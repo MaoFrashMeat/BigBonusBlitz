@@ -524,6 +524,7 @@ function startSpinning(reelIndex) {
     const speedPerMs = pixelsPerRotation / durationPerRotation; // 1ミリ秒あたりの移動ピクセル数
     
     let lastTime = performance.now();
+    let spinStartTime = lastTime;
     
     function spin(timestamp) {
         if (!state.reelsSpinning[reelIndex]) return; 
@@ -535,6 +536,47 @@ function startSpinning(reelIndex) {
         if (deltaTime > 100) deltaTime = 16.67; 
         
         let move = speedPerMs * deltaTime;
+        
+        // オートプレイ時の目押し（ターゲットが近づいたらストップ）
+        if (state.isAutoMode && state.autoStopTarget && state.autoStopTarget[reelIndex] !== undefined) {
+            const tIdx = state.autoStopTarget[reelIndex];
+            
+            // ターゲット図柄が中段付近に来る理想のoffset
+            let idealOffset = -(tIdx - 1) * SYMBOL_SIZE;
+            idealOffset = idealOffset % pixelsPerRotation;
+            if (idealOffset > 0) idealOffset -= pixelsPerRotation;
+            
+            let currentOffset = state.reelOffsets[reelIndex] % pixelsPerRotation;
+            if (currentOffset > 0) currentOffset -= pixelsPerRotation;
+            
+            let diff = Math.abs(currentOffset - idealOffset);
+            if (diff > pixelsPerRotation / 2) diff = pixelsPerRotation - diff;
+            
+            // 許容誤差範囲に到達したらストップ（最大4コマ滑るので判定は広めでOK）
+            if (diff <= move * 1.5 + 20) {
+                delete state.autoStopTarget[reelIndex];
+                onStop(reelIndex);
+            }
+        }
+        
+        // オートプレイ時の強制ストップ（何らかの理由で止まらない場合のフェイルセーフ）
+        if (state.isAutoMode && (timestamp - spinStartTime > 2000) && state.slipPixels[reelIndex] === null) {
+            if (state.autoStopTarget) delete state.autoStopTarget[reelIndex];
+            try {
+                onStop(reelIndex);
+            } catch(e) { console.error(e); }
+            
+            // onStopがエラーで失敗した場合の究極のフォールバック
+            if (state.slipPixels[reelIndex] === null) {
+                state.slipPixels[reelIndex] = 0;
+                let fallbackIdx = Math.floor(Math.abs(state.reelOffsets[reelIndex]) / SYMBOL_SIZE) % REEL_SYMBOLS;
+                state.stoppedSymbols[reelIndex] = [
+                    reelStrips[reelIndex][fallbackIdx],
+                    reelStrips[reelIndex][(fallbackIdx + 1) % REEL_SYMBOLS],
+                    reelStrips[reelIndex][(fallbackIdx + 2) % REEL_SYMBOLS]
+                ];
+            }
+        }
         
         if (state.slipPixels[reelIndex] !== null) {
             if (state.slipPixels[reelIndex] <= move) {
@@ -635,10 +677,19 @@ function scoreSlip(reelIndex, testSymbols, flag, stoppedState) {
     for (let line of lines) {
         let targetCount = 0;
         let isPossible = true;
+        let firstTarget = null;
         for (let i=0; i<3; i++) {
             if (line[i]) {
-                if (targetSyms.includes(line[i])) targetCount++;
-                else isPossible = false;
+                if (targetSyms.includes(line[i])) {
+                    if (firstTarget === null) firstTarget = line[i];
+                    if (line[i] === firstTarget) {
+                        targetCount++;
+                    } else {
+                        isPossible = false; // RED7とBLUE7が混ざった場合など
+                    }
+                } else {
+                    isPossible = false;
+                }
             }
         }
         if (isPossible && targetCount > 0) {
@@ -807,6 +858,7 @@ function onAutoToggle() {
             clearTimeout(state.autoPlayTimeoutId);
             state.autoPlayTimeoutId = null;
         }
+        state.autoStopTarget = null;
     }
 }
 
@@ -818,14 +870,73 @@ function triggerNextAutoAction() {
     }
     
     if (state.isGameActive) {
-        // 回転中のリールを止める
-        const spinningIndex = state.reelsSpinning.findIndex(s => s === true);
+        // 回転中のリールを止める（左から順に）
+        const spinningIndex = state.reelsSpinning.findIndex(s => s === true && state.slipPixels[s] === null);
         if (spinningIndex !== -1) {
-            state.autoPlayTimeoutId = setTimeout(() => {
-                if (state.isAutoMode && state.reelsSpinning[spinningIndex]) {
-                    onStop(spinningIndex);
+            try {
+                if (!state.autoStopTarget) state.autoStopTarget = {};
+                
+                const flag = state.currentFlag;
+                if (flag === FLAGS.HAZE) {
+                    // ハズレ時は適当に（少し遅延させて）止める
+                    state.autoPlayTimeoutId = setTimeout(() => {
+                        if (state.isAutoMode && state.reelsSpinning[spinningIndex]) {
+                            onStop(spinningIndex);
+                        }
+                    }, 300);
+                } else {
+                    // 目押しターゲットを設定
+                    let targets = WIN_SYMBOLS[flag] || [];
+                    
+                    // 既に停止しているリールがある場合、その図柄に絞る（RED7とBLUE7が混ざるのを防ぐため）
+                    for (let r = 0; r < 3; r++) {
+                        if (state.stoppedSymbols[r]) {
+                            let found = null;
+                            for (let sym of state.stoppedSymbols[r]) {
+                                if (targets.includes(sym)) {
+                                    found = sym;
+                                    break;
+                                }
+                            }
+                            if (found) {
+                                targets = [found];
+                                break;
+                            }
+                        }
+                    }
+                    
+                    const strip = reelStrips[spinningIndex];
+                    let tIdx = -1;
+                    if (targets.length > 0) {
+                        for (let j = 0; j < strip.length; j++) {
+                            if (targets.includes(strip[j])) {
+                                tIdx = j;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (tIdx !== -1) {
+                        state.autoStopTarget[spinningIndex] = tIdx;
+                        // startSpinning 内のループでターゲット到達時に自動的に onStop が呼ばれる
+                    } else {
+                        // ターゲットが無い場合は適当に止める
+                        state.autoPlayTimeoutId = setTimeout(() => {
+                            if (state.isAutoMode && state.reelsSpinning[spinningIndex]) {
+                                onStop(spinningIndex);
+                            }
+                        }, 300);
+                    }
                 }
-            }, 300); // 各リールの停止間隔
+            } catch (e) {
+                console.error("triggerNextAutoAction error:", e);
+                // エラー発生時はフェイルセーフとして300ms後に強制ストップ
+                state.autoPlayTimeoutId = setTimeout(() => {
+                    if (state.isAutoMode && state.reelsSpinning[spinningIndex]) {
+                        onStop(spinningIndex);
+                    }
+                }, 300);
+            }
         }
     } else {
         // 次のゲーム開始

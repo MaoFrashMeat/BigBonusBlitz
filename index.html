@@ -19,22 +19,6 @@
                 WELCOME TO BIG BONUS BLITZ!
             </div>
             
-            <!-- Debug Panel -->
-            <div id="debug-panel" style="font-size:12px; display:flex; gap:10px; align-items:center; margin-left:15px; color:#fff;">
-                <select id="debug-force-flag" style="background:#222; color:#0f0; border:1px solid #555; padding:2px;">
-                    <option value="-1">NORMAL RNG</option>
-                    <option value="0">HAZE (0)</option>
-                    <option value="1">REPLAY (1)</option>
-                    <option value="2">CHERRY (2)</option>
-                    <option value="3">WATERMELON (3)</option>
-                    <option value="4">STAR (4)</option>
-                    <option value="5">BIG BONUS (5)</option>
-                    <option value="6">REG BONUS (6)</option>
-                </select>
-                <span>RNG: <span id="debug-rng">-</span></span>
-                <span>FLAG: <span id="debug-flag">-</span></span>
-            </div>
-            
             <button id="btn-paytable" class="btn btn-action" style="margin-left: auto; font-size: 14px; padding: 5px 10px;">PAYTABLE</button>
         </header>
 
@@ -74,7 +58,7 @@
 
         <!-- 下部：操作パネル -->
         <footer id="control-panel">
-            <div class="info-container">
+            <div class="info-container" style="gap:5px;">
                 <div class="info-box">
                     <span class="label">CREDIT <span id="btn-add-credit" style="cursor:pointer; color:#0f0; background:#222; padding:0 4px; border-radius:3px; font-size:10px; border:1px solid #0f0; margin-left:5px;">+50</span></span>
                     <span id="credit-display">50</span>
@@ -82,6 +66,24 @@
                 <div class="info-box">
                     <span class="label">PAYOUT</span>
                     <span id="payout-display">0</span>
+                </div>
+                
+                <!-- Debug Panel moved here -->
+                <div id="debug-panel" class="info-box" style="flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; padding: 2px 5px; background: rgba(0,0,0,0.5); border: 1px dashed #555; margin-left: 10px; width: auto;">
+                    <select id="debug-force-flag" style="background:#222; color:#0f0; border:1px solid #555; padding:1px; font-size:10px; width:100px;">
+                        <option value="-1">NORMAL RNG</option>
+                        <option value="0">HAZE (0)</option>
+                        <option value="1">REPLAY (1)</option>
+                        <option value="2">CHERRY (2)</option>
+                        <option value="3">WATER (3)</option>
+                        <option value="4">STAR (4)</option>
+                        <option value="5">BIG BONUS</option>
+                        <option value="6">REG BONUS</option>
+                    </select>
+                    <div style="font-size:10px; color:#fff; display:flex; gap:5px;">
+                        <span>RNG: <span id="debug-rng">-</span></span>
+                        <span>FLG: <span id="debug-flag">-</span></span>
+                    </div>
                 </div>
             </div>
             
