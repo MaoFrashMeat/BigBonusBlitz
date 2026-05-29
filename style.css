@@ -1,0 +1,272 @@
+:root {
+    --bg-color: #1a1a24;
+    --panel-bg: #2b2b36;
+    --border-color: #444455;
+    --text-color: #f0f0f0;
+    --accent-color: #ffaa00;
+    --reel-bg: #e0e0e0;
+    --btn-action: #4a90e2;
+    --btn-action-hover: #357abd;
+    --btn-stop: #e74c3c;
+    --btn-stop-hover: #c0392b;
+    --btn-disabled: #555566;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: #000;
+    color: var(--text-color);
+    font-family: 'DotGothic16', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    image-rendering: pixelated; /* ドット絵をくっきり表示 */
+}
+
+#game-container {
+    width: 600px;
+    height: auto;
+    min-height: 800px;
+    background-color: var(--bg-color);
+    border: 4px solid var(--border-color);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.8);
+}
+
+/* Header */
+#header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--panel-bg);
+    padding: 10px;
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    margin-bottom: 10px;
+    height: 60px;
+}
+
+.info-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #111;
+    border: 2px solid #333;
+    padding: 5px 15px;
+    min-width: 120px;
+    border-radius: 4px;
+}
+
+.info-box .label {
+    font-size: 12px;
+    color: #aaa;
+}
+
+.info-box span:not(.label) {
+    font-size: 20px;
+    color: var(--accent-color);
+    text-shadow: 0 0 5px var(--accent-color);
+}
+
+.message-box {
+    flex-grow: 1;
+    margin: 0 20px;
+    text-align: center;
+    font-size: 18px;
+    color: #fff;
+    background: #000;
+    padding: 5px;
+    border: 2px inset #444;
+}
+
+/* Main Screen */
+#main-screen {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    gap: 15px;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+#character-area {
+    width: 100%;
+    height: 200px;
+    background-color: #111;
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+}
+
+#character-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    image-rendering: pixelated;
+}
+
+#slot-area {
+    width: 100%;
+    flex-grow: 1;
+    background-color: #222;
+    border: 4px solid #555;
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.reels-container {
+    display: flex;
+    gap: 15px;
+    background-color: #000;
+    padding: 10px;
+    border-radius: 5px;
+    border: 2px solid #444;
+    position: relative;
+    overflow: hidden;
+}
+
+/* 1コマの高さ設定。3コマ表示 */
+.reel {
+    width: 100px;
+    height: 300px; /* 100px * 3コマ */
+    background-color: var(--reel-bg);
+    overflow: hidden;
+    position: relative;
+    border: 2px solid #222;
+}
+
+.reel-strip {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    /* 高さや位置はJSで制御 */
+}
+
+.symbol {
+    width: 100px;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 60px;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    color: #333;
+}
+
+.symbol img {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    image-rendering: pixelated;
+}
+
+/* リール上部の影（立体感） */
+.reel-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.5) 100%);
+    pointer-events: none;
+}
+
+/* Footer (Controls) */
+#control-panel {
+    background-color: var(--panel-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    padding: 15px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn {
+    font-family: 'DotGothic16', sans-serif;
+    font-size: 20px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #000;
+    transition: transform 0.1s, box-shadow 0.1s;
+    user-select: none;
+}
+
+.btn:active:not(:disabled) {
+    transform: translateY(4px);
+    box-shadow: 0 0 0 #000;
+}
+
+.btn:disabled {
+    background-color: var(--btn-disabled);
+    color: #888;
+    cursor: not-allowed;
+    box-shadow: 0 4px 0 #222;
+}
+
+.btn-action {
+    background-color: var(--btn-action);
+    color: #fff;
+    min-width: 100px;
+    padding: 10px 5px;
+    font-size: 16px;
+}
+
+.action-buttons-column {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn-action:hover:not(:disabled) { background-color: var(--btn-action-hover); }
+
+.btn-stop {
+    background-color: var(--btn-stop);
+    color: #fff;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    font-size: 24px;
+}
+
+.btn-stop:hover:not(:disabled) { background-color: var(--btn-stop-hover); }
+
+/* Win Effect */
+.flash {
+    animation: flashAnim 0.5s infinite;
+}
+
+@keyframes flashAnim {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; filter: brightness(1.5); }
+}
+
+.btn-auto-active {
+    background-color: var(--accent-color);
+    color: #000;
+}
+
+.btn-auto-active:hover:not(:disabled) {
+    background-color: #e69900;
+}

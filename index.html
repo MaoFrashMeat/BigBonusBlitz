@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BigBonusBlitz</title>
+    <!-- ドット絵風フォント（日本語対応） -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- 上部：スコア等の情報表示 -->
+        <header id="header">
+            <div class="info-box">
+                <span class="label">CREDIT</span>
+                <span id="credit-display">50</span>
+            </div>
+            <div class="info-box">
+                <span class="label">PAYOUT</span>
+                <span id="payout-display">0</span>
+            </div>
+            <div class="message-box" id="message-display">
+                WELCOME TO BIG BONUS BLITZ!
+            </div>
+        </header>
+
+        <!-- メイン画面：キャラとスロット -->
+        <main id="main-screen">
+            <!-- 液晶表示エリア -->
+            <section id="character-area">
+                <img src="assets/lcd_battle.png" id="character-img" alt="Battle Scene" />
+            </section>
+
+            <!-- スロットエリア -->
+            <section id="slot-area">
+                <div class="reels-container">
+                    <div class="reel" id="reel-left">
+                        <div class="reel-strip" id="strip-left"></div>
+                        <div class="reel-overlay"></div>
+                    </div>
+                    <div class="reel" id="reel-center">
+                        <div class="reel-strip" id="strip-center"></div>
+                        <div class="reel-overlay"></div>
+                    </div>
+                    <div class="reel" id="reel-right">
+                        <div class="reel-strip" id="strip-right"></div>
+                        <div class="reel-overlay"></div>
+                    </div>
+                    
+                    <!-- ペイライン表示用 -->
+                    <div class="payline line-top"></div>
+                    <div class="payline line-center"></div>
+                    <div class="payline line-bottom"></div>
+                    <div class="payline line-diag-down"></div>
+                    <div class="payline line-diag-up"></div>
+                </div>
+            </section>
+        </main>
+
+        <!-- 下部：操作パネル -->
+        <footer id="control-panel">
+            <div class="action-buttons-column">
+                <button id="btn-auto" class="btn btn-action">AUTO</button>
+                <button id="btn-maxbet" class="btn btn-action">MAX BET (3)</button>
+            </div>
+            <button id="btn-stop-left" class="btn btn-stop" data-reel="0" disabled>L</button>
+            <button id="btn-stop-center" class="btn btn-stop" data-reel="1" disabled>C</button>
+            <button id="btn-stop-right" class="btn btn-stop" data-reel="2" disabled>R</button>
+        </footer>
+    </div>
+    <script src="main.js"></script>
+</body>
+</html>
