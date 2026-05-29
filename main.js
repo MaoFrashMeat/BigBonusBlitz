@@ -33,7 +33,8 @@ const FLAGS = {
     CHERRY: 2,
     WATERMELON: 3,
     STAR: 4,
-    BONUS: 5
+    BIG_BONUS: 5,
+    REG_BONUS: 6
 };
 
 const WIN_SYMBOLS = {
@@ -41,7 +42,8 @@ const WIN_SYMBOLS = {
     [FLAGS.CHERRY]: ['CHERRY'],
     [FLAGS.WATERMELON]: ['WATERMELON'],
     [FLAGS.STAR]: ['STAR'],
-    [FLAGS.BONUS]: ['RED7', 'BLUE7', 'BAR']
+    [FLAGS.BIG_BONUS]: ['RED7', 'BLUE7'],
+    [FLAGS.REG_BONUS]: ['BAR']
 };
 
 // 状態管理
@@ -58,8 +60,8 @@ let state = {
     isReplay: false,
     currentFlag: FLAGS.HAZE,
     currentRNG: 0,
-    heldBonus: false, // ボーナスの持ち越し
-    stoppedSymbols: [null, null, null], // [ [top, center, bottom], ... ]
+    heldBonusFlag: 0, // ボーナスの持ち越しフラグ (0=なし, 5=BIG, 6=REG)
+    stoppedSymbols: [null, null, null],
     slipPixels: [null, null, null]
 };
 
@@ -73,7 +75,7 @@ function saveGameState() {
         credit: state.credit,
         bgmVolume: bgmSlider ? bgmSlider.value : 0.2,
         seVolume: seSlider ? seSlider.value : 0.5,
-        heldBonus: state.heldBonus
+        heldBonusFlag: state.heldBonusFlag
     };
     localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
 }
@@ -94,8 +96,8 @@ function loadGameState() {
                 const slider = document.getElementById('se-volume-slider');
                 if (slider) slider.value = savedData.seVolume;
             }
-            if (savedData.heldBonus !== undefined) {
-                state.heldBonus = savedData.heldBonus;
+            if (savedData.heldBonusFlag !== undefined) {
+                state.heldBonusFlag = savedData.heldBonusFlag;
             }
         } catch (e) {
             console.error('Save data parse error', e);
@@ -126,6 +128,7 @@ const btnBgm = document.getElementById('btn-bgm');
 const btnOptions = document.getElementById('btn-options');
 const btnCloseOptions = document.getElementById('btn-close-options');
 const optionsModal = document.getElementById('options-modal');
+const btnAddCredit = document.getElementById('btn-add-credit');
 
 // 音声システム（Web Audio API）
 let audioCtx = null;
@@ -330,6 +333,16 @@ function init() {
         optionsModal.classList.add('hidden');
     });
 
+    // Add Credit
+    if (btnAddCredit) {
+        btnAddCredit.addEventListener('click', () => {
+            initAudio();
+            state.credit += 50;
+            playSoundBet(); // コイン追加音
+            updateUI();
+        });
+    }
+
     // キーボード操作対応
     window.addEventListener('keydown', (e) => {
         // Space または テンキーの0
@@ -412,10 +425,11 @@ function onMaxBet() {
 function updateLamp() {
     const lamp = document.getElementById('bonus-lamp');
     if (!lamp) return;
-    if (state.heldBonus) {
-        lamp.classList.add('lamp-on');
-    } else {
-        lamp.classList.remove('lamp-on');
+    lamp.classList.remove('lamp-big', 'lamp-reg');
+    if (state.heldBonusFlag === FLAGS.BIG_BONUS) {
+        lamp.classList.add('lamp-big');
+    } else if (state.heldBonusFlag === FLAGS.REG_BONUS) {
+        lamp.classList.add('lamp-reg');
     }
 }
 
@@ -425,14 +439,16 @@ function drawLottery() {
     const debugForce = document.getElementById('debug-force-flag');
     if (debugForce && debugForce.value !== "-1") {
         state.currentFlag = parseInt(debugForce.value, 10);
-        if (state.currentFlag === FLAGS.BONUS) state.heldBonus = true;
+        if (state.currentFlag === FLAGS.BIG_BONUS || state.currentFlag === FLAGS.REG_BONUS) {
+            state.heldBonusFlag = state.currentFlag;
+        }
         updateLamp();
         return;
     }
 
     // ボーナス持ち越し中
-    if (state.heldBonus) {
-        state.currentFlag = FLAGS.BONUS;
+    if (state.heldBonusFlag) {
+        state.currentFlag = state.heldBonusFlag;
         // 実機ではリプレイ等の小役と重複するが、ここではボーナス最優先とする
         updateLamp();
         return;
@@ -446,16 +462,20 @@ function drawLottery() {
     // CHERRY: 約1/32 (512)
     // WATERMELON: 約1/64 (256)
     // STAR: 約1/128 (128)
-    // BONUS: 約1/256 (64)
+    // BIG_BONUS: 約1/409.6 (40)
+    // REG_BONUS: 約1/682.6 (24)
     
     if (rng <= 2244) state.currentFlag = FLAGS.REPLAY;
     else if (rng <= 2756) state.currentFlag = FLAGS.CHERRY;
     else if (rng <= 3012) state.currentFlag = FLAGS.WATERMELON;
     else if (rng <= 3140) state.currentFlag = FLAGS.STAR;
+    else if (rng <= 3180) {
+        state.currentFlag = FLAGS.BIG_BONUS;
+        state.heldBonusFlag = FLAGS.BIG_BONUS;
+    }
     else if (rng <= 3204) {
-        state.currentFlag = FLAGS.BONUS;
-        state.heldBonus = true;
-        // 告知音（キュイン等）を鳴らすならここ
+        state.currentFlag = FLAGS.REG_BONUS;
+        state.heldBonusFlag = FLAGS.REG_BONUS;
     }
     else state.currentFlag = FLAGS.HAZE;
 
@@ -467,7 +487,7 @@ function updateDebugUI() {
     const elFlag = document.getElementById('debug-flag');
     if (elRng && elFlag) {
         elRng.textContent = state.currentRNG;
-        const flagNames = ['HAZE', 'REPLAY', 'CHERRY', 'WATERMELON', 'STAR', 'BONUS'];
+        const flagNames = ['HAZE', 'REPLAY', 'CHERRY', 'WATERMELON', 'STAR', 'BIG_BONUS', 'REG_BONUS'];
         elFlag.textContent = flagNames[state.currentFlag] || 'UNKNOWN';
     }
 }
@@ -499,24 +519,35 @@ function onLever() {
 
 // リール回転アニメーション
 function startSpinning(reelIndex) {
-    const speed = 30; // 1フレームあたりの移動ピクセル
+    const pixelsPerRotation = REEL_SYMBOLS * SYMBOL_SIZE; // 21コマ * 100px = 2100px
+    const durationPerRotation = 780; // 1回転0.78秒 (780ミリ秒)
+    const speedPerMs = pixelsPerRotation / durationPerRotation; // 1ミリ秒あたりの移動ピクセル数
     
-    function spin() {
+    let lastTime = performance.now();
+    
+    function spin(timestamp) {
         if (!state.reelsSpinning[reelIndex]) return; 
         
-        let move = speed;
+        let deltaTime = timestamp - lastTime;
+        lastTime = timestamp;
+        
+        // タブ切り替え等で時間が空いた場合の異常なジャンプを防ぐ
+        if (deltaTime > 100) deltaTime = 16.67; 
+        
+        let move = speedPerMs * deltaTime;
+        
         if (state.slipPixels[reelIndex] !== null) {
-            if (state.slipPixels[reelIndex] <= speed) {
+            if (state.slipPixels[reelIndex] <= move) {
                 move = state.slipPixels[reelIndex];
                 state.slipPixels[reelIndex] = 0;
             } else {
-                state.slipPixels[reelIndex] -= speed;
+                state.slipPixels[reelIndex] -= move;
             }
         }
         
         state.reelOffsets[reelIndex] += move;
         if (state.reelOffsets[reelIndex] >= 0) {
-            state.reelOffsets[reelIndex] -= (REEL_SYMBOLS * SYMBOL_SIZE);
+            state.reelOffsets[reelIndex] -= pixelsPerRotation;
         }
         updateReelPosition(reelIndex);
         
@@ -535,7 +566,7 @@ function startSpinning(reelIndex) {
         
         state.animationIds[reelIndex] = requestAnimationFrame(spin);
     }
-    spin();
+    state.animationIds[reelIndex] = requestAnimationFrame(spin);
 }
 
 function checkSlipValidity(reelIndex, testSymbols, flag, stoppedState) {
@@ -701,9 +732,14 @@ function evaluateWin() {
     lines.forEach(line => {
         if (line[0] === line[1] && line[1] === line[2]) {
             const sym = line[0];
-            if (sym === 'RED7' || sym === 'BLUE7' || sym === 'BAR') {
+            if (sym === 'RED7' || sym === 'BLUE7') {
                 totalPayout += 15; 
-                state.heldBonus = false; // ボーナス消化
+                state.heldBonusFlag = 0; // ボーナス消化
+                updateLamp();
+            }
+            else if (sym === 'BAR') {
+                totalPayout += 15; // REGもとりあえず15枚とする
+                state.heldBonusFlag = 0; // ボーナス消化
                 updateLamp();
             }
             else if (sym === 'STAR') totalPayout += 10;

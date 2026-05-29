@@ -134,12 +134,21 @@ body {
     z-index: 10;
 }
 
-#bonus-lamp.lamp-on {
+#bonus-lamp.lamp-big {
     background: radial-gradient(circle, #ff00ff, #aa00aa);
     color: #fff;
     box-shadow: 0 0 30px #ff00ff, inset 0 0 10px #ffaaaa;
     text-shadow: 0 0 5px #fff;
     border-color: #ff00ff;
+    animation: flash 0.1s infinite alternate;
+}
+
+#bonus-lamp.lamp-reg {
+    background: radial-gradient(circle, #00ff00, #008800);
+    color: #fff;
+    box-shadow: 0 0 30px #00ff00, inset 0 0 10px #aaffaa;
+    text-shadow: 0 0 5px #fff;
+    border-color: #00ff00;
     animation: flash 0.1s infinite alternate;
 }
 
