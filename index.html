@@ -14,23 +14,34 @@
     <div id="game-container">
         <!-- 上部：スコア等の情報表示 -->
         <header id="header">
-            <div class="info-box">
-                <span class="label">CREDIT</span>
-                <span id="credit-display">50</span>
-            </div>
-            <div class="info-box">
-                <span class="label">PAYOUT</span>
-                <span id="payout-display">0</span>
-            </div>
+            <div class="logo">BigBonusBlitz</div>
             <div class="message-box" id="message-display">
                 WELCOME TO BIG BONUS BLITZ!
             </div>
+            
+            <!-- Debug Panel -->
+            <div id="debug-panel" style="font-size:12px; display:flex; gap:10px; align-items:center; margin-left:15px; color:#fff;">
+                <select id="debug-force-flag" style="background:#222; color:#0f0; border:1px solid #555; padding:2px;">
+                    <option value="-1">NORMAL RNG</option>
+                    <option value="0">HAZE (0)</option>
+                    <option value="1">REPLAY (1)</option>
+                    <option value="2">CHERRY (2)</option>
+                    <option value="3">WATERMELON (3)</option>
+                    <option value="4">STAR (4)</option>
+                    <option value="5">BONUS (5)</option>
+                </select>
+                <span>RNG: <span id="debug-rng">-</span></span>
+                <span>FLAG: <span id="debug-flag">-</span></span>
+            </div>
+            
+            <button id="btn-paytable" class="btn btn-action" style="margin-left: auto; font-size: 14px; padding: 5px 10px;">PAYTABLE</button>
         </header>
 
         <!-- メイン画面：キャラとスロット -->
         <main id="main-screen">
             <!-- 液晶表示エリア -->
             <section id="character-area">
+                <div id="bonus-lamp" class="lamp-off">CHANCE</div>
                 <img src="assets/lcd_battle.png" id="character-img" alt="Battle Scene" />
             </section>
 
@@ -62,6 +73,17 @@
 
         <!-- 下部：操作パネル -->
         <footer id="control-panel">
+            <div class="info-container">
+                <div class="info-box">
+                    <span class="label">CREDIT</span>
+                    <span id="credit-display">50</span>
+                </div>
+                <div class="info-box">
+                    <span class="label">PAYOUT</span>
+                    <span id="payout-display">0</span>
+                </div>
+            </div>
+            
             <div class="action-buttons-column">
                 <button id="btn-auto" class="btn btn-action">AUTO</button>
                 <button id="btn-maxbet" class="btn btn-action">MAX BET (3)</button>
@@ -69,7 +91,45 @@
             <button id="btn-stop-left" class="btn btn-stop" data-reel="0" disabled>L</button>
             <button id="btn-stop-center" class="btn btn-stop" data-reel="1" disabled>C</button>
             <button id="btn-stop-right" class="btn btn-stop" data-reel="2" disabled>R</button>
+            
+            <div class="sys-buttons-column" style="display:flex; flex-direction:column; gap:5px; margin-left:15px;">
+                <button id="btn-options" class="btn btn-action" style="font-size:20px; padding:5px; min-width:60px;" title="Options">⚙️</button>
+                <button id="btn-bgm" class="btn btn-action" style="font-size:12px; padding:2px 5px; min-width:60px;">BGM OFF</button>
+            </div>
         </footer>
+
+        <!-- Options Modal -->
+        <div id="options-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2>OPTIONS</h2>
+                <div class="options-grid" style="width:100%; display:flex; flex-direction:column; gap:20px;">
+                    <div class="option-row" style="display:flex; justify-content:space-between; align-items:center;">
+                        <label style="color:#fff; font-size:20px;">BGM VOLUME</label>
+                        <input type="range" id="bgm-volume-slider" min="0" max="1" step="0.05" value="0.2" style="width:150px; cursor:pointer;">
+                    </div>
+                    <div class="option-row" style="display:flex; justify-content:space-between; align-items:center;">
+                        <label style="color:#fff; font-size:20px;">SE VOLUME</label>
+                        <input type="range" id="se-volume-slider" min="0" max="1" step="0.05" value="0.5" style="width:150px; cursor:pointer;">
+                    </div>
+                </div>
+                <button id="btn-close-options" class="btn btn-action" style="margin-top:30px; padding:10px; width:100px;">CLOSE</button>
+            </div>
+        </div>
+
+        <!-- Paytable Modal -->
+        <div id="paytable-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2>PAYTABLE</h2>
+                <div class="paytable-grid">
+                    <div class="pay-row"><div class="pay-sym"><img src="assets/red7.png"> <img src="assets/blue7.png"> <img src="assets/bar.png"> ANY 3</div><div class="pay-val">15</div></div>
+                    <div class="pay-row"><div class="pay-sym"><img src="assets/star.png"> x 3</div><div class="pay-val">10</div></div>
+                    <div class="pay-row"><div class="pay-sym"><img src="assets/watermelon.png"> x 3</div><div class="pay-val">9</div></div>
+                    <div class="pay-row"><div class="pay-sym"><img src="assets/cherry.png"> Left Reel</div><div class="pay-val">4</div></div>
+                    <div class="pay-row"><div class="pay-sym"><img src="assets/replay.png"> x 3</div><div class="pay-val">REPLAY</div></div>
+                </div>
+                <button id="btn-close-paytable" class="btn btn-action" style="margin-top:20px; padding:10px; width:100px;">CLOSE</button>
+            </div>
+        </div>
     </div>
     <script src="main.js"></script>
 </body>

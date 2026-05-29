@@ -26,19 +26,82 @@ const reelStrips = [
     ['CHERRY', 'RED7', 'WATERMELON', 'STAR', 'REPLAY', 'WATERMELON', 'BLUE7', 'REPLAY', 'STAR', 'BAR', 'WATERMELON', 'CHERRY', 'REPLAY', 'STAR', 'WATERMELON', 'BLUE7', 'REPLAY', 'STAR', 'WATERMELON', 'STAR', 'REPLAY']
 ];
 
+// フラグ定義
+const FLAGS = {
+    HAZE: 0,
+    REPLAY: 1,
+    CHERRY: 2,
+    WATERMELON: 3,
+    STAR: 4,
+    BONUS: 5
+};
+
+const WIN_SYMBOLS = {
+    [FLAGS.REPLAY]: ['REPLAY'],
+    [FLAGS.CHERRY]: ['CHERRY'],
+    [FLAGS.WATERMELON]: ['WATERMELON'],
+    [FLAGS.STAR]: ['STAR'],
+    [FLAGS.BONUS]: ['RED7', 'BLUE7', 'BAR']
+};
+
 // 状態管理
 let state = {
     credit: 50,
     bet: 0,
     reelsSpinning: [false, false, false],
-    reelPositions: [0, 0, 0], // 現在の停止位置（インデックス）
-    reelOffsets: [0, 0, 0], // アニメーション用のピクセルオフセット
+    reelPositions: [0, 0, 0], 
+    reelOffsets: [0, 0, 0], 
     animationIds: [null, null, null],
     isGameActive: false,
     isAutoMode: false,
     autoPlayTimeoutId: null,
     isReplay: false,
+    currentFlag: FLAGS.HAZE,
+    currentRNG: 0,
+    heldBonus: false, // ボーナスの持ち越し
+    stoppedSymbols: [null, null, null], // [ [top, center, bottom], ... ]
+    slipPixels: [null, null, null]
 };
+
+// セーブデータ用キー
+const SAVE_KEY = 'BigBonusBlitz_Save';
+
+function saveGameState() {
+    const bgmSlider = document.getElementById('bgm-volume-slider');
+    const seSlider = document.getElementById('se-volume-slider');
+    const saveData = {
+        credit: state.credit,
+        bgmVolume: bgmSlider ? bgmSlider.value : 0.2,
+        seVolume: seSlider ? seSlider.value : 0.5,
+        heldBonus: state.heldBonus
+    };
+    localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+}
+
+function loadGameState() {
+    const savedDataStr = localStorage.getItem(SAVE_KEY);
+    if (savedDataStr) {
+        try {
+            const savedData = JSON.parse(savedDataStr);
+            if (typeof savedData.credit === 'number') {
+                state.credit = savedData.credit;
+            }
+            if (savedData.bgmVolume !== undefined) {
+                const slider = document.getElementById('bgm-volume-slider');
+                if (slider) slider.value = savedData.bgmVolume;
+            }
+            if (savedData.seVolume !== undefined) {
+                const slider = document.getElementById('se-volume-slider');
+                if (slider) slider.value = savedData.seVolume;
+            }
+            if (savedData.heldBonus !== undefined) {
+                state.heldBonus = savedData.heldBonus;
+            }
+        } catch (e) {
+            console.error('Save data parse error', e);
+        }
+    }
+}
 
 // DOM要素
 const elCredit = document.getElementById('credit-display');
@@ -56,17 +119,215 @@ const btnStops = [
     document.getElementById('btn-stop-center'),
     document.getElementById('btn-stop-right')
 ];
+const btnPaytable = document.getElementById('btn-paytable');
+const btnClosePaytable = document.getElementById('btn-close-paytable');
+const paytableModal = document.getElementById('paytable-modal');
+const btnBgm = document.getElementById('btn-bgm');
+const btnOptions = document.getElementById('btn-options');
+const btnCloseOptions = document.getElementById('btn-close-options');
+const optionsModal = document.getElementById('options-modal');
+
+// 音声システム（Web Audio API）
+let audioCtx = null;
+let bgmGain = null;
+let seGain = null;
+
+function initAudio() {
+    if (audioCtx) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        return;
+    }
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    
+    audioCtx = new AudioContext();
+    bgmGain = audioCtx.createGain();
+    seGain = audioCtx.createGain();
+    bgmGain.connect(audioCtx.destination);
+    seGain.connect(audioCtx.destination);
+    
+    const bgmSlider = document.getElementById('bgm-volume-slider');
+    const seSlider = document.getElementById('se-volume-slider');
+    
+    if (bgmSlider) {
+        bgmGain.gain.value = bgmSlider.value;
+        bgmSlider.addEventListener('input', (e) => {
+            if (bgmGain) bgmGain.gain.value = e.target.value;
+            saveGameState();
+        });
+    }
+    
+    if (seSlider) {
+        seGain.gain.value = seSlider.value;
+        seSlider.addEventListener('input', (e) => {
+            if (seGain) seGain.gain.value = e.target.value;
+            saveGameState();
+        });
+    }
+}
+
+// 基本的なビープ音生成（効果音用）
+function playTone(freq, type, duration, vol = 1, slideDown = false) {
+    if (!audioCtx || !seGain) return;
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    
+    // スライドダウン（ガツンという打撃感・重量感の演出）
+    if (slideDown) {
+        osc.frequency.exponentialRampToValueAtTime(freq * 0.1, audioCtx.currentTime + duration);
+    }
+    
+    // クリックノイズを防ぎつつ、アタックを強くするエンベロープ
+    gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+    
+    osc.connect(gain);
+    gain.connect(seGain);
+    
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+}
+
+// 各種効果音のプリセット（全体的に低音域・矩形波/ノコギリ波を使用して機械的な重厚感を出す）
+function playSoundBet() { 
+    // 重みのあるメダル投入音
+    playTone(300, 'square', 0.15, 0.7, true); 
+}
+function playSoundSpinStart() { 
+    // 重いギアが回り始めるような音
+    playTone(120, 'sawtooth', 0.3, 0.8, true); 
+    setTimeout(() => playTone(80, 'sawtooth', 0.4, 0.6, true), 100);
+}
+function playSoundStop() { 
+    // ガツンと重く止まる音
+    playTone(100, 'square', 0.15, 1.0, true); 
+}
+function playSoundWin() {
+    // 勝利ファンファーレも太く響く音色で
+    playTone(261.63, 'square', 0.15, 0.6);
+    setTimeout(() => playTone(329.63, 'square', 0.15, 0.6), 150);
+    setTimeout(() => playTone(392.00, 'square', 0.2, 0.6), 300);
+    setTimeout(() => playTone(523.25, 'square', 0.6, 0.8), 450);
+}
+function playSoundReplay() {
+    // リプレイは少し機械的な起動音風
+    playTone(300, 'sawtooth', 0.15, 0.6);
+    setTimeout(() => playTone(450, 'sawtooth', 0.3, 0.6), 150);
+}
+function playSoundError() { 
+    // ブブーという重いエラー音
+    playTone(80, 'sawtooth', 0.4, 1.0, true); 
+}
+
+// BGMシーケンサー（Web Audio APIによる自動生成BGM）
+let isBgmPlaying = false;
+let nextNoteTime = 0;
+let currentNote = 0;
+let bgmInterval = null;
+
+// Cマイナーペンタトニック的な、少しダークで重厚感のあるループ
+const bgmNotes = [
+    130.81, 130.81, 155.56, 174.61, 
+    196.00, 174.61, 155.56, 130.81,
+    103.83, 103.83, 130.81, 155.56,
+    174.61, 155.56, 130.81, 103.83
+];
+const noteDuration = 0.15; // 1音の長さ(秒)
+
+function scheduleBGM() {
+    if (!isBgmPlaying || !audioCtx) return;
+    
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    // タブがバックグラウンドに行った時などにスケジュールが遅延して大量に発音されるのを防ぐ
+    if (nextNoteTime < audioCtx.currentTime) {
+        nextNoteTime = audioCtx.currentTime + 0.05;
+    }
+
+    // 現在時刻より少し先までスケジュールする
+    while (nextNoteTime < audioCtx.currentTime + 0.1) {
+        const freq = bgmNotes[currentNote];
+        playBGMNote(freq, nextNoteTime, noteDuration);
+        nextNoteTime += noteDuration;
+        currentNote = (currentNote + 1) % bgmNotes.length;
+    }
+}
+
+function playBGMNote(freq, time, duration) {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    
+    osc.type = 'square'; // スマホ等のスピーカーでも聞こえやすいように倍音の多い矩形波に変更
+    osc.frequency.value = freq; // 周波数を戻して聞き取りやすく
+    
+    // ポップノイズを防ぎつつ、軽く減衰するエンベロープ
+    gain.gain.setValueAtTime(0.001, time); // 0だとRampでエラーになるブラウザ対策
+    gain.gain.linearRampToValueAtTime(0.4, time + 0.02); // 音量をしっかり上げる
+    gain.gain.exponentialRampToValueAtTime(0.01, time + duration - 0.01); // リリース
+    
+    osc.connect(gain);
+    gain.connect(bgmGain);
+    
+    osc.start(time);
+    osc.stop(time + duration);
+}
+
+function toggleBGM() {
+    initAudio();
+    if (isBgmPlaying) {
+        isBgmPlaying = false;
+        clearInterval(bgmInterval);
+        btnBgm.textContent = 'BGM OFF';
+        btnBgm.classList.remove('btn-auto-active');
+    } else {
+        isBgmPlaying = true;
+        nextNoteTime = audioCtx.currentTime + 0.1;
+        bgmInterval = setInterval(scheduleBGM, 50);
+        btnBgm.textContent = 'BGM ON';
+        btnBgm.classList.add('btn-auto-active');
+    }
+}
 
 // 初期化
 function init() {
+    loadGameState();
     setupReels();
     updateUI();
+    updateLamp();
     
     // イベントリスナー
-    btnAuto.addEventListener('click', onAutoToggle);
-    btnMaxBet.addEventListener('click', onMaxBet);
+    btnAuto.addEventListener('click', () => { initAudio(); onAutoToggle(); });
+    btnMaxBet.addEventListener('click', () => { initAudio(); onMaxBet(); });
     btnStops.forEach((btn, index) => {
-        btn.addEventListener('click', () => onStop(index));
+        btn.addEventListener('click', () => { initAudio(); onStop(index); });
+    });
+    
+    // PAYTABLE Modal
+    btnPaytable.addEventListener('click', () => {
+        initAudio();
+        paytableModal.classList.remove('hidden');
+    });
+    btnClosePaytable.addEventListener('click', () => {
+        initAudio();
+        paytableModal.classList.add('hidden');
+    });
+
+    // BGM Toggle
+    btnBgm.addEventListener('click', toggleBGM);
+
+    // OPTIONS Modal
+    btnOptions.addEventListener('click', () => {
+        initAudio();
+        optionsModal.classList.remove('hidden');
+    });
+    btnCloseOptions.addEventListener('click', () => {
+        initAudio();
+        optionsModal.classList.add('hidden');
     });
 
     // キーボード操作対応
@@ -74,6 +335,7 @@ function init() {
         // Space または テンキーの0
         if (e.code === 'Space' || e.code === 'Numpad0') {
             e.preventDefault(); // Spaceキーでの画面スクロールを防止
+            initAudio(); // 初回操作対応
             if (!btnMaxBet.disabled) {
                 btnMaxBet.click();
             }
@@ -138,9 +400,75 @@ function onMaxBet() {
         state.credit -= 3;
         updateUI();
         btnMaxBet.disabled = true;
+        playSoundBet();
         onLever();
     } else {
         elMessage.textContent = 'CREDIT NOT ENOUGH';
+        playSoundError();
+    }
+}
+
+// ボーナスランプ更新
+function updateLamp() {
+    const lamp = document.getElementById('bonus-lamp');
+    if (!lamp) return;
+    if (state.heldBonus) {
+        lamp.classList.add('lamp-on');
+    } else {
+        lamp.classList.remove('lamp-on');
+    }
+}
+
+// 内部抽選
+function drawLottery() {
+    // デバッグ用の強制フラグ
+    const debugForce = document.getElementById('debug-force-flag');
+    if (debugForce && debugForce.value !== "-1") {
+        state.currentFlag = parseInt(debugForce.value, 10);
+        if (state.currentFlag === FLAGS.BONUS) state.heldBonus = true;
+        updateLamp();
+        return;
+    }
+
+    // ボーナス持ち越し中
+    if (state.heldBonus) {
+        state.currentFlag = FLAGS.BONUS;
+        // 実機ではリプレイ等の小役と重複するが、ここではボーナス最優先とする
+        updateLamp();
+        return;
+    }
+
+    const rng = Math.floor(Math.random() * 16384) + 1;
+    state.currentRNG = rng;
+    
+    // 確率テーブル
+    // REPLAY: 約1/7.3 (2244)
+    // CHERRY: 約1/32 (512)
+    // WATERMELON: 約1/64 (256)
+    // STAR: 約1/128 (128)
+    // BONUS: 約1/256 (64)
+    
+    if (rng <= 2244) state.currentFlag = FLAGS.REPLAY;
+    else if (rng <= 2756) state.currentFlag = FLAGS.CHERRY;
+    else if (rng <= 3012) state.currentFlag = FLAGS.WATERMELON;
+    else if (rng <= 3140) state.currentFlag = FLAGS.STAR;
+    else if (rng <= 3204) {
+        state.currentFlag = FLAGS.BONUS;
+        state.heldBonus = true;
+        // 告知音（キュイン等）を鳴らすならここ
+    }
+    else state.currentFlag = FLAGS.HAZE;
+
+    updateLamp();
+}
+
+function updateDebugUI() {
+    const elRng = document.getElementById('debug-rng');
+    const elFlag = document.getElementById('debug-flag');
+    if (elRng && elFlag) {
+        elRng.textContent = state.currentRNG;
+        const flagNames = ['HAZE', 'REPLAY', 'CHERRY', 'WATERMELON', 'STAR', 'BONUS'];
+        elFlag.textContent = flagNames[state.currentFlag] || 'UNKNOWN';
     }
 }
 
@@ -149,6 +477,13 @@ function onLever() {
     if (state.bet === 0) return;
     state.isGameActive = true;
     elMessage.textContent = 'SPINNING...';
+    playSoundSpinStart();
+    
+    drawLottery();
+    updateDebugUI();
+    
+    state.stoppedSymbols = [null, null, null];
+    state.slipPixels = [null, null, null];
     
     // 全リール回転
     for (let i = 0; i < 3; i++) {
@@ -162,51 +497,168 @@ function onLever() {
     }
 }
 
-// リール回転アニメーション（簡易版）
+// リール回転アニメーション
 function startSpinning(reelIndex) {
     const speed = 30; // 1フレームあたりの移動ピクセル
     
     function spin() {
-        if (!state.reelsSpinning[reelIndex]) return; // 停止指示で抜ける
+        if (!state.reelsSpinning[reelIndex]) return; 
         
-        state.reelOffsets[reelIndex] += speed;
-        // 1周分（21コマ）スクロールしたら戻す（ループ）
+        let move = speed;
+        if (state.slipPixels[reelIndex] !== null) {
+            if (state.slipPixels[reelIndex] <= speed) {
+                move = state.slipPixels[reelIndex];
+                state.slipPixels[reelIndex] = 0;
+            } else {
+                state.slipPixels[reelIndex] -= speed;
+            }
+        }
+        
+        state.reelOffsets[reelIndex] += move;
         if (state.reelOffsets[reelIndex] >= 0) {
             state.reelOffsets[reelIndex] -= (REEL_SYMBOLS * SYMBOL_SIZE);
         }
         updateReelPosition(reelIndex);
+        
+        if (state.slipPixels[reelIndex] === 0) {
+            // 完全停止
+            state.reelsSpinning[reelIndex] = false;
+            state.slipPixels[reelIndex] = null;
+            cancelAnimationFrame(state.animationIds[reelIndex]);
+            playSoundStop();
+            checkAllStopped();
+            if (state.isAutoMode && state.reelsSpinning.some(s => s === true)) {
+                triggerNextAutoAction();
+            }
+            return;
+        }
+        
         state.animationIds[reelIndex] = requestAnimationFrame(spin);
     }
     spin();
 }
 
+function checkSlipValidity(reelIndex, testSymbols, flag, stoppedState) {
+    let st = [];
+    for(let i=0; i<3; i++) {
+        if (i === reelIndex) st.push(testSymbols);
+        else st.push(stoppedState[i]);
+    }
+    
+    let hasCherry = testSymbols.includes('CHERRY');
+    if (reelIndex === 0) {
+        if (flag === FLAGS.CHERRY && !hasCherry) return false;
+        if (flag !== FLAGS.CHERRY && hasCherry) return false;
+    }
+
+    const lines = [
+        [st[0]?.[1], st[1]?.[1], st[2]?.[1]],
+        [st[0]?.[0], st[1]?.[0], st[2]?.[0]],
+        [st[0]?.[2], st[1]?.[2], st[2]?.[2]],
+        [st[0]?.[0], st[1]?.[1], st[2]?.[2]],
+        [st[0]?.[2], st[1]?.[1], st[0]?.[0]] // Diag Up (fixed) -> [st[0]?.[2], st[1]?.[1], st[2]?.[0]]
+    ];
+    lines[4] = [st[0]?.[2], st[1]?.[1], st[2]?.[0]];
+
+    let completedWins = [];
+    for (let line of lines) {
+        if (line[0] && line[1] && line[2]) {
+            if (line[0] === line[1] && line[1] === line[2]) {
+                completedWins.push(line[0]);
+            }
+        }
+    }
+    
+    if (flag === FLAGS.HAZE && completedWins.length > 0) return false;
+    
+    let targetSyms = WIN_SYMBOLS[flag] || [];
+    for (let win of completedWins) {
+        if (!targetSyms.includes(win)) return false;
+    }
+    
+    return true;
+}
+
+function scoreSlip(reelIndex, testSymbols, flag, stoppedState) {
+    if (!checkSlipValidity(reelIndex, testSymbols, flag, stoppedState)) return -1; 
+    if (flag === FLAGS.HAZE) return 0;
+    if (flag === FLAGS.CHERRY && reelIndex === 0) return testSymbols.includes('CHERRY') ? 100 : 0;
+    
+    let st = [];
+    for(let i=0; i<3; i++) {
+        if (i === reelIndex) st.push(testSymbols);
+        else st.push(stoppedState[i]);
+    }
+    
+    const lines = [
+        [st[0]?.[1], st[1]?.[1], st[2]?.[1]],
+        [st[0]?.[0], st[1]?.[0], st[2]?.[0]],
+        [st[0]?.[2], st[1]?.[2], st[2]?.[2]],
+        [st[0]?.[0], st[1]?.[1], st[2]?.[2]],
+        [st[0]?.[2], st[1]?.[1], st[2]?.[0]]
+    ];
+
+    let targetSyms = WIN_SYMBOLS[flag] || [];
+    let score = 0;
+    
+    for (let line of lines) {
+        let targetCount = 0;
+        let isPossible = true;
+        for (let i=0; i<3; i++) {
+            if (line[i]) {
+                if (targetSyms.includes(line[i])) targetCount++;
+                else isPossible = false;
+            }
+        }
+        if (isPossible && targetCount > 0) {
+            score += Math.pow(10, targetCount); 
+        }
+    }
+    return score;
+}
+
 // ストップボタン処理
 function onStop(reelIndex) {
     if (!state.reelsSpinning[reelIndex]) return;
-    
-    state.reelsSpinning[reelIndex] = false;
     btnStops[reelIndex].disabled = true;
-    cancelAnimationFrame(state.animationIds[reelIndex]);
     
-    // パチスロ風の順方向へのスベリ制御（最大1コマ弱の滑り）
-    // reelOffsetsは負の値から0に向かって増加（リールは下へスクロール）
-    let offset = state.reelOffsets[reelIndex];
-    let remainder = Math.abs(offset) % SYMBOL_SIZE;
+    let baseIdx = Math.floor(Math.abs(state.reelOffsets[reelIndex]) / SYMBOL_SIZE);
     
-    // offsetを正の方向（回転方向）の直近のSYMBOL_SIZEの倍数にスナップさせる
-    offset += remainder;
+    let bestSlip = 0;
+    let maxScore = -999;
     
-    state.reelOffsets[reelIndex] = offset;
-    updateReelPosition(reelIndex);
-    
-    // 配列上のインデックスを計算
-    // 表示上は中央のコマを基準にするなど調整が必要。後ほど実装を詰める。
-    
-    checkAllStopped();
-    
-    if (state.isAutoMode && state.reelsSpinning.some(s => s === true)) {
-        triggerNextAutoAction();
+    for (let k = 0; k <= 4; k++) {
+        let testIdx = (baseIdx - k + REEL_SYMBOLS) % REEL_SYMBOLS;
+        let testSymbols = [
+            reelStrips[reelIndex][testIdx],
+            reelStrips[reelIndex][(testIdx + 1) % REEL_SYMBOLS],
+            reelStrips[reelIndex][(testIdx + 2) % REEL_SYMBOLS]
+        ];
+        
+        let score = scoreSlip(reelIndex, testSymbols, state.currentFlag, state.stoppedSymbols);
+        
+        if (score > maxScore) {
+            maxScore = score;
+            bestSlip = k;
+        }
     }
+    
+    // スリップを適用
+    let finalIdx = (baseIdx - bestSlip + REEL_SYMBOLS) % REEL_SYMBOLS;
+    state.stoppedSymbols[reelIndex] = [
+        reelStrips[reelIndex][finalIdx],
+        reelStrips[reelIndex][(finalIdx + 1) % REEL_SYMBOLS],
+        reelStrips[reelIndex][(finalIdx + 2) % REEL_SYMBOLS]
+    ];
+    
+    let currentAbsOffset = Math.abs(state.reelOffsets[reelIndex]);
+    let targetAbsOffset = finalIdx * SYMBOL_SIZE;
+    let distance = currentAbsOffset - targetAbsOffset;
+    if (distance < 0) {
+        distance += REEL_SYMBOLS * SYMBOL_SIZE;
+    }
+    
+    state.slipPixels[reelIndex] = distance;
 }
 
 // 全リール停止判定
@@ -249,7 +701,11 @@ function evaluateWin() {
     lines.forEach(line => {
         if (line[0] === line[1] && line[1] === line[2]) {
             const sym = line[0];
-            if (sym === 'RED7' || sym === 'BLUE7' || sym === 'BAR') totalPayout += 15; // ボーナス（仮で15枚）
+            if (sym === 'RED7' || sym === 'BLUE7' || sym === 'BAR') {
+                totalPayout += 15; 
+                state.heldBonus = false; // ボーナス消化
+                updateLamp();
+            }
             else if (sym === 'STAR') totalPayout += 10;
             else if (sym === 'WATERMELON') totalPayout += 9; // ディスクはスイカ9枚
             else if (sym === 'CHERRY') totalPayout += 4;
@@ -264,6 +720,7 @@ function evaluateWin() {
     }
     
     if (totalPayout > 0) {
+        playSoundWin();
         state.credit += totalPayout;
         elPayout.textContent = totalPayout;
         elMessage.textContent = `WIN! +${totalPayout}`;
@@ -273,6 +730,7 @@ function evaluateWin() {
             if (state.isAutoMode) triggerNextAutoAction();
         }, 2000);
     } else if (isReplay) {
+        playSoundReplay();
         elPayout.textContent = 0;
         elMessage.textContent = 'REPLAY!';
         elMessage.classList.add('flash');
@@ -352,6 +810,7 @@ function triggerNextAutoAction() {
 
 function updateUI() {
     elCredit.textContent = state.credit;
+    saveGameState();
 }
 
 // 起動
