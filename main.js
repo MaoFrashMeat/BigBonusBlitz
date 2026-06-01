@@ -4,7 +4,7 @@
 
 // 定数定義
 const SYMBOL_SIZE = 100; // 1コマの高さ(px)
-const REEL_SYMBOLS = 21; // リール1周のコマ数
+const REEL_SYMBOLS = 20; // リール1周のコマ数
 const SYMBOLS = {
     'RED7': '<img src="assets/red7.png" alt="RED7">',
     'BLUE7': '<img src="assets/blue7.png" alt="BLUE7">',
@@ -13,17 +13,17 @@ const SYMBOLS = {
     'WATERMELON': '<img src="assets/watermelon.png" alt="WATERMELON">',
     'CHERRY': '<img src="assets/cherry.png" alt="CHERRY">',
     'REPLAY': '<img src="assets/replay.png" alt="REPLAY">',
-    'BLANK': ' '
+    'BLANK': '<img src="assets/remix.png" alt="BLANK">'
 };
 
-// 画像に基づいた21コマ配列
+// 画像に基づいた20コマ配列
 let reelStrips = (typeof CONFIG !== 'undefined' && CONFIG.reelStrips) ? CONFIG.reelStrips : [
     // 左リール
-    ['WATERMELON', 'RED7', 'REPLAY', 'WATERMELON', 'STAR', 'REPLAY', 'STAR', 'STAR', 'BLUE7', 'WATERMELON', 'STAR', 'REPLAY', 'CHERRY', 'REPLAY', 'STAR', 'BAR', 'WATERMELON', 'REPLAY', 'WATERMELON', 'CHERRY', 'STAR'],
+    ['WATERMELON', 'RED7', 'REPLAY', 'WATERMELON', 'STAR', 'REPLAY', 'STAR', 'STAR', 'BLUE7', 'WATERMELON', 'STAR', 'REPLAY', 'CHERRY', 'REPLAY', 'STAR', 'BAR', 'WATERMELON', 'REPLAY', 'WATERMELON', 'CHERRY'],
     // 中リール
-    ['STAR', 'RED7', 'CHERRY', 'WATERMELON', 'REPLAY', 'STAR', 'CHERRY', 'REPLAY', 'STAR', 'STAR', 'BAR', 'CHERRY', 'REPLAY', 'STAR', 'CHERRY', 'BLUE7', 'WATERMELON', 'REPLAY', 'STAR', 'CHERRY', 'REPLAY'],
+    ['STAR', 'RED7', 'CHERRY', 'WATERMELON', 'REPLAY', 'STAR', 'CHERRY', 'REPLAY', 'STAR', 'STAR', 'BAR', 'CHERRY', 'REPLAY', 'STAR', 'CHERRY', 'BLUE7', 'WATERMELON', 'REPLAY', 'STAR', 'CHERRY'],
     // 右リール
-    ['CHERRY', 'RED7', 'WATERMELON', 'STAR', 'REPLAY', 'WATERMELON', 'BLUE7', 'REPLAY', 'STAR', 'BAR', 'WATERMELON', 'CHERRY', 'REPLAY', 'STAR', 'WATERMELON', 'BLUE7', 'REPLAY', 'STAR', 'WATERMELON', 'STAR', 'REPLAY']
+    ['CHERRY', 'RED7', 'WATERMELON', 'STAR', 'REPLAY', 'WATERMELON', 'BLUE7', 'REPLAY', 'STAR', 'BAR', 'WATERMELON', 'CHERRY', 'REPLAY', 'STAR', 'WATERMELON', 'BLUE7', 'REPLAY', 'STAR', 'WATERMELON', 'STAR']
 ];
 
 // フラグ定義
@@ -47,12 +47,12 @@ const WIN_COMBOS = {
     [FLAGS.BB_D]: { symbols: ['BLUE7', 'RED7', 'BLUE7'], validLines: [1] }, // 中段のみ
     [FLAGS.RB_A]: { symbols: ['RED7', 'RED7', 'BAR'], validLines: [0, 1, 2, 3, 4] },
     [FLAGS.RB_B]: { symbols: ['BLUE7', 'BLUE7', 'BAR'], validLines: [0, 1, 2, 3, 4] },
-    [FLAGS.REPLAY_A]: { symbols: ['REPLAY', 'REPLAY', 'REPLAY'], validLines: [0] }, // 上段
-    [FLAGS.REPLAY_B]: { symbols: ['REPLAY', 'REPLAY', 'REPLAY'], validLines: [3, 4] }, // 斜め
-    [FLAGS.REPLAY_C]: { symbols: ['REPLAY', 'REPLAY', 'REPLAY'], validLines: [2] }, // 下段
-    [FLAGS.BELL_A]: { symbols: ['STAR', 'STAR', 'STAR'], validLines: [0, 3, 4] }, // 上段・斜め
-    [FLAGS.BELL_B]: { symbols: ['STAR', 'STAR', 'STAR'], validLines: [1] }, // 中段
-    [FLAGS.BELL_C]: { symbols: ['STAR', 'STAR', 'STAR'], validLines: [2] }, // 下段
+    [FLAGS.REPLAY_A]: { symbols: [['REPLAY', 'RED7'], 'REPLAY', 'REPLAY'], validLines: [0] }, // 上段
+    [FLAGS.REPLAY_B]: { symbols: [['REPLAY', 'RED7'], 'REPLAY', 'REPLAY'], validLines: [3, 4] }, // 斜め
+    [FLAGS.REPLAY_C]: { symbols: [['REPLAY', 'RED7'], 'REPLAY', 'REPLAY'], validLines: [2] }, // 下段
+    [FLAGS.BELL_A]: { symbols: [['STAR', 'BAR'], 'STAR', 'STAR'], validLines: [0, 3, 4] }, // 上段・斜め
+    [FLAGS.BELL_B]: { symbols: [['STAR', 'BAR'], 'STAR', 'STAR'], validLines: [1] }, // 中段
+    [FLAGS.BELL_C]: { symbols: [['STAR', 'BAR'], 'STAR', 'STAR'], validLines: [2] }, // 下段
     [FLAGS.CHERRY_A]: { symbols: ['CHERRY', null, null], validLines: [0, 2] }, // 角
     [FLAGS.CHERRY_B]: { symbols: ['CHERRY', null, ['RED7', 'BLUE7', 'BAR']], validLines: [0, 2] }, // 右中段ボーナス図柄 (ライン判定は特殊対応)
     [FLAGS.CHERRY_C]: { symbols: ['CHERRY', null, null], validLines: [1] }, // 中段
@@ -84,7 +84,8 @@ let state = {
     heldBonusFlag: 0, // ボーナスの持ち越しフラグ (0=なし, 5=BIG, 6=REG)
     stoppedSymbols: [null, null, null],
     slipPixels: [null, null, null],
-    currentSetting: 1 // 現在の設定 (1-6)
+    currentSetting: 1, // 現在の設定 (1-6)
+    isDebugMode: false
 };
 
 // セーブデータ用キー
@@ -95,10 +96,11 @@ function saveGameState() {
     const seSlider = document.getElementById('se-volume-slider');
     const saveData = {
         credit: state.credit,
-        bgmVolume: bgmSlider ? bgmSlider.value : 0.2,
-        seVolume: seSlider ? seSlider.value : 0.5,
+        bgmVolume: bgmSlider ? bgmSlider.value : 1.0,
+        seVolume: seSlider ? seSlider.value : 1.0,
         heldBonusFlag: state.heldBonusFlag,
-        currentSetting: state.currentSetting
+        currentSetting: state.currentSetting,
+        isDebugMode: state.isDebugMode
     };
     localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
 }
@@ -124,6 +126,16 @@ function loadGameState() {
             }
             if (savedData.currentSetting !== undefined) {
                 state.currentSetting = savedData.currentSetting;
+            }
+            if (savedData.isDebugMode !== undefined) {
+                state.isDebugMode = savedData.isDebugMode;
+                const toggle = document.getElementById('debug-mode-toggle');
+                if (toggle) toggle.checked = state.isDebugMode;
+                const popup = document.getElementById('debug-popup');
+                if (popup) {
+                    if (state.isDebugMode) popup.classList.remove('hidden');
+                    else popup.classList.add('hidden');
+                }
             }
         } catch (e) {
             console.error('Save data parse error', e);
@@ -157,6 +169,9 @@ function ensureLotteryTables() {
 }
 
 // DOM要素
+const titleScreen = document.getElementById('title-screen');
+const btnStartGame = document.getElementById('btn-start-game');
+
 const elSlipDisplays = [
     document.getElementById('slip-display-0'),
     document.getElementById('slip-display-1'),
@@ -213,17 +228,17 @@ function initAudio() {
     const seSlider = document.getElementById('se-volume-slider');
     
     if (bgmSlider) {
-        bgmGain.gain.value = bgmSlider.value;
+        bgmGain.gain.value = bgmSlider.value * 0.05;
         bgmSlider.addEventListener('input', (e) => {
-            if (bgmGain) bgmGain.gain.value = e.target.value;
+            if (bgmGain) bgmGain.gain.value = e.target.value * 0.05;
             saveGameState();
         });
     }
     
     if (seSlider) {
-        seGain.gain.value = seSlider.value;
+        seGain.gain.value = seSlider.value * 0.1;
         seSlider.addEventListener('input', (e) => {
-            if (seGain) seGain.gain.value = e.target.value;
+            if (seGain) seGain.gain.value = e.target.value * 0.1;
             saveGameState();
         });
     }
@@ -260,6 +275,49 @@ function playTone(freq, type, duration, vol = 1, slideDown = false) {
 function playSoundBet() { 
     // 重みのあるメダル投入音
     playTone(300, 'square', 0.15, 0.7, true); 
+}
+
+function playSoundCoin() {
+    // 「チャリーン！」というお金の音 (Cha-ching)
+    if (!audioCtx || !seGain) return;
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    
+    // 最初の「チャッ」部分
+    const osc1 = audioCtx.createOscillator();
+    const gain1 = audioCtx.createGain();
+    osc1.type = 'square';
+    osc1.frequency.setValueAtTime(1500, audioCtx.currentTime);
+    osc1.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.08);
+    gain1.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain1.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+    osc1.connect(gain1);
+    gain1.connect(seGain);
+    osc1.start();
+    osc1.stop(audioCtx.currentTime + 0.08);
+    
+    // 後半の「リーン！」部分 (高い金属音)
+    setTimeout(() => {
+        if (!audioCtx || !seGain) return;
+        const osc2 = audioCtx.createOscillator();
+        const osc3 = audioCtx.createOscillator();
+        const gain2 = audioCtx.createGain();
+        osc2.type = 'sine';
+        osc3.type = 'triangle';
+        osc2.frequency.value = 2500;
+        osc3.frequency.value = 3200;
+        
+        gain2.gain.setValueAtTime(0.6, audioCtx.currentTime);
+        gain2.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+        
+        osc2.connect(gain2);
+        osc3.connect(gain2);
+        gain2.connect(seGain);
+        
+        osc2.start();
+        osc3.start();
+        osc2.stop(audioCtx.currentTime + 0.5);
+        osc3.stop(audioCtx.currentTime + 0.5);
+    }, 60);
 }
 function playSoundSpinStart() { 
     // 重いギアが回り始めるような音
@@ -372,10 +430,12 @@ function init() {
     });
     
     // PAYTABLE Modal
-    btnPaytable.addEventListener('click', () => {
-        initAudio();
-        paytableModal.classList.remove('hidden');
-    });
+    if (btnPaytable) {
+        btnPaytable.addEventListener('click', () => {
+            initAudio();
+            paytableModal.classList.remove('hidden');
+        });
+    }
     btnClosePaytable.addEventListener('click', () => {
         initAudio();
         paytableModal.classList.add('hidden');
@@ -455,7 +515,7 @@ function init() {
         btnAddCredit.addEventListener('click', () => {
             initAudio();
             state.credit += 50;
-            playSoundBet(); // コイン追加音
+            playSoundCoin(); // チャリーン！というお金の追加音
             updateUI();
         });
     }
@@ -531,6 +591,22 @@ function updateUI() {
     const gDisp = document.getElementById('g-display');
     if (gDisp) {
         gDisp.textContent = `${state.mode} - ${state.spinCount}G`;
+    }
+    
+    // HPバー（クレジット）の更新
+    const hpBarFill = document.getElementById('hp-bar-fill');
+    const hpBarText = document.getElementById('hp-bar-text');
+    if (hpBarFill && hpBarText) {
+        const MAX_HP = 500;
+        let hpRatio = Math.min((state.credit / MAX_HP) * 100, 100);
+        hpBarFill.style.width = `${hpRatio}%`;
+        hpBarText.textContent = `HP (CREDIT): ${state.credit} / ${MAX_HP}`;
+        
+        if (state.credit < 50) {
+            hpBarFill.style.background = 'linear-gradient(90deg, #ff3333, #aa0000)';
+        } else {
+            hpBarFill.style.background = 'linear-gradient(90deg, #33ff33, #00aa00)';
+        }
     }
 }
 
@@ -641,6 +717,29 @@ function updateDebugUI() {
     }
 }
 
+// スライムの小役示唆演出を更新
+function updateEnemySlimeColor() {
+    const enemy = document.getElementById('enemy-img');
+    if (!enemy) return;
+    
+    enemy.className = '';
+    const flag = state.currentFlag;
+    
+    if (flag >= FLAGS.REPLAY_A && flag <= FLAGS.REPLAY_C) {
+        enemy.classList.add('enemy-slime-blue');
+    } else if (flag >= FLAGS.BELL_A && flag <= FLAGS.BELL_C) {
+        enemy.classList.add('enemy-slime-yellow');
+    } else if (flag >= FLAGS.SUICA_A && flag <= FLAGS.SUICA_C) {
+        enemy.classList.add('enemy-slime-green');
+    } else if ((flag >= FLAGS.CHERRY_A && flag <= FLAGS.CHERRY_C) || flag === FLAGS.HAZE) {
+        enemy.classList.add('enemy-slime-red');
+    } else if ((flag >= FLAGS.BB_A && flag <= FLAGS.BB_D) || (flag >= FLAGS.RB_A && flag <= FLAGS.RB_B)) {
+        enemy.classList.add('enemy-slime-rainbow');
+    } else {
+        enemy.classList.add('enemy-slime-blue');
+    }
+}
+
 // レバーオン（回転開始）
 function onLever() {
     if (state.bet === 0) return;
@@ -650,6 +749,7 @@ function onLever() {
     
     drawLottery();
     updateDebugUI();
+    updateEnemySlimeColor();
     
     state.stoppedSymbols = [null, null, null];
     state.slipPixels = [null, null, null];
@@ -1209,9 +1309,9 @@ function resizeGame() {
     const gameContainer = document.getElementById('game-container');
     if (!gameContainer) return;
     
-    // ベースとなる解像度（元々のCSSの想定サイズ）
-    const baseWidth = 770; 
-    const baseHeight = 850; 
+    // ベースとなる解像度（現在の実際のサイズを動的に取得）
+    const baseWidth = gameContainer.offsetWidth || 770; 
+    const baseHeight = gameContainer.offsetHeight || 960; 
     
     const windowWidth = window.innerWidth;
     const windowHeight = window.innerHeight;
@@ -1229,5 +1329,87 @@ window.addEventListener('DOMContentLoaded', resizeGame);
 // 初期実行
 resizeGame();
 
-// 起動
-init();
+// タイトル画面の処理
+if (btnStartGame && titleScreen) {
+    btnStartGame.addEventListener('click', () => {
+        initAudio(); // ユーザーのアクションでAudioContextを初期化
+        titleScreen.style.transition = 'opacity 0.5s ease-out';
+        titleScreen.style.opacity = '0';
+        setTimeout(() => {
+            titleScreen.style.display = 'none';
+        }, 500);
+        
+        // 起動
+        init();
+    });
+} else {
+    // 起動
+    init();
+}
+
+// デバッグモードのトグル
+const debugModeToggle = document.getElementById('debug-mode-toggle');
+const debugPopup = document.getElementById('debug-popup');
+
+if (debugModeToggle && debugPopup) {
+    debugModeToggle.addEventListener('change', (e) => {
+        state.isDebugMode = e.target.checked;
+        if (state.isDebugMode) {
+            debugPopup.classList.remove('hidden');
+        } else {
+            debugPopup.classList.add('hidden');
+        }
+        saveGameState();
+    });
+}
+
+// デバッグポップアップのドラッグ機能
+let isDraggingDebug = false;
+let debugDragOffsetX = 0;
+let debugDragOffsetY = 0;
+
+if (debugPopup) {
+    debugPopup.addEventListener('mousedown', (e) => {
+        // セレクトボックスなどをクリックした時はドラッグしない
+        if (e.target.tagName.toLowerCase() === 'select' || e.target.tagName.toLowerCase() === 'option') return;
+        
+        isDraggingDebug = true;
+        const rect = debugPopup.getBoundingClientRect();
+        // コンテナのスケールを考慮
+        const gameContainer = document.getElementById('game-container');
+        const transform = window.getComputedStyle(gameContainer).transform;
+        let scale = 1;
+        if (transform !== 'none') {
+            const matrix = new DOMMatrix(transform);
+            scale = matrix.a;
+        }
+        
+        debugDragOffsetX = (e.clientX - rect.left) / scale;
+        debugDragOffsetY = (e.clientY - rect.top) / scale;
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isDraggingDebug) return;
+        
+        const gameContainer = document.getElementById('game-container');
+        const transform = window.getComputedStyle(gameContainer).transform;
+        let scale = 1;
+        if (transform !== 'none') {
+            const matrix = new DOMMatrix(transform);
+            scale = matrix.a;
+        }
+        
+        const containerRect = gameContainer.getBoundingClientRect();
+        
+        // コンテナ内の相対座標に変換
+        let newX = (e.clientX - containerRect.left) / scale - debugDragOffsetX;
+        let newY = (e.clientY - containerRect.top) / scale - debugDragOffsetY;
+        
+        debugPopup.style.left = newX + 'px';
+        debugPopup.style.top = newY + 'px';
+    });
+
+    document.addEventListener('mouseup', () => {
+        isDraggingDebug = false;
+    });
+}

@@ -11,28 +11,48 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="title-screen" style="position:fixed; top:0; left:0; width:100vw; height:100vh; background: radial-gradient(circle at center, #0f3460, #1a1a2e); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <img src="assets/bbb_logo.png" alt="Big Bonus Blitz" style="width: 1280px; height: 720px; max-width: 90vw; max-height: 70vh; object-fit: contain; border-radius: 20px; box-shadow: 0 0 30px rgba(233, 69, 96, 0.6); animation: titlePulse 2s infinite;">
+        <button id="btn-start-game" class="btn btn-action" style="margin-top: 60px; font-size: 28px; padding: 15px 50px; box-shadow: 0 0 20px #e94560; animation: flash 1.5s infinite alternate;">TAP TO START</button>
+    </div>
+    <style>
+        @keyframes titlePulse {
+            0% { transform: scale(1); box-shadow: 0 0 20px rgba(233, 69, 96, 0.4); }
+            50% { transform: scale(1.03); box-shadow: 0 0 50px rgba(233, 69, 96, 0.8); }
+            100% { transform: scale(1); box-shadow: 0 0 20px rgba(233, 69, 96, 0.4); }
+        }
+        @keyframes flash {
+            0% { opacity: 0.7; transform: scale(1); }
+            100% { opacity: 1; transform: scale(1.05); }
+        }
+    </style>
     <div id="game-container">
-        <!-- 上部：スコア等の情報表示 -->
-        <header id="header">
-            <div class="logo">BigBonusBlitz</div>
-            <div class="message-box" id="message-display">
-                ビッグボーナスブリッツへようこそ！
-            </div>
-            
-            <button id="btn-paytable" class="btn btn-action" style="font-size:12px; padding:5px 10px;">PAYTABLE</button>
-            <div style="flex:1; text-align:right;">
-                <span style="font-size:14px; margin-right:10px;">CREDIT: <span id="header-credit">50</span></span>
-                <span style="font-size:14px;">PAYOUT: <span id="header-payout">0</span></span>
-            </div>
-        </header>
+
 
         <!-- メイン画面：キャラとスロット -->
         <main id="main-screen">
             <!-- 液晶表示エリア -->
             <section id="character-area">
                 <div id="bonus-lamp" class="lamp-off">CHANCE</div>
-                <img src="assets/lcd_battle.png" id="character-img" alt="Battle Scene" />
+                
+                <!-- 背景層 (遠景: 空など) -->
+                <div id="lcd-layer-bg" class="lcd-layer"></div>
+                <!-- 中景層 (舞台: 草原など) -->
+                <div id="lcd-layer-mg" class="lcd-layer"></div>
+                <!-- 前景層 (キャラ・エフェクト: 後ほど追加予定) -->
+                <div id="lcd-layer-fg" class="lcd-layer"></div>
+                
+                <!-- キャラクター（前景） -->
+                <img src="assets/character.png" id="character-img" alt="Character" />
+                <!-- 敵キャラクター（小役示唆） -->
+                <img src="assets/slime.png" id="enemy-img" alt="Enemy" class="enemy-slime-blue" />
             </section>
+            
+            <!-- HPバー（クレジット表示） -->
+            <div id="hp-bar-container">
+                <div id="hp-bar-fill" style="width: 10%;"></div>
+                <div id="hp-bar-text">HP (CREDIT): 50 / 500</div>
+            </div>
 
             <!-- スロットエリア -->
             <section id="slot-area">
@@ -73,7 +93,7 @@
         <footer id="control-panel">
             <div class="info-container" style="gap:5px;">
                 <div class="info-box">
-                    <span class="label">CREDIT <span id="btn-add-credit" style="cursor:pointer; color:#0f0; background:#222; padding:0 4px; border-radius:3px; font-size:10px; border:1px solid #0f0; margin-left:5px;">+50</span></span>
+                    <span class="label">CREDIT</span>
                     <span id="credit-display">50</span>
                 </div>
                 <div class="info-box">
@@ -85,38 +105,6 @@
                     <span id="g-display">A - 0G</span>
                 </div>
                 
-                <!-- Debug Panel moved here -->
-                <div id="debug-panel" class="info-box" style="flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; padding: 2px 5px; background: rgba(0,0,0,0.5); border: 1px dashed #555; margin-top: 5px; width: 140px; box-sizing: border-box; overflow: hidden;">
-                    <select id="debug-force-flag" style="background:#222; color:#0f0; border:1px solid #555; padding:1px; font-size:10px; width:100%; box-sizing: border-box;">
-                        <option value="-1">NORMAL RNG</option>
-                        <option value="0">HAZE (0)</option>
-                        <option value="1">BB_A (1)</option>
-                        <option value="2">BB_B (2)</option>
-                        <option value="3">BB_C (3)</option>
-                        <option value="4">BB_D (4)</option>
-                        <option value="5">RB_A (5)</option>
-                        <option value="6">RB_B (6)</option>
-                        <option value="7">REPLAY_A (7)</option>
-                        <option value="8">REPLAY_B (8)</option>
-                        <option value="9">REPLAY_C (9)</option>
-                        <option value="10">BELL_A (10)</option>
-                        <option value="11">BELL_B (11)</option>
-                        <option value="12">BELL_C (12)</option>
-                        <option value="13">CHERRY_A (13)</option>
-                        <option value="14">CHERRY_B (14)</option>
-                        <option value="15">CHERRY_C (15)</option>
-                        <option value="16">SUICA_A (16)</option>
-                        <option value="17">SUICA_B (17)</option>
-                        <option value="18">SUICA_C (18)</option>
-                        <option value="19">CHANCE_A (19)</option>
-                        <option value="20">CHANCE_B (20)</option>
-                        <option value="21">CHANCE_C (21)</option>
-                    </select>
-                    <div style="font-size:8px; color:#fff; display:flex; flex-direction:column; gap:0px; width:100%;">
-                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 8px;">RNG: <span id="debug-rng" style="font-size: 8px;">-</span></span>
-                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 8px;">FLG: <span id="debug-flag" style="font-size: 8px;">-</span></span>
-                    </div>
-                </div>
             </div>
             
             <div class="action-buttons-column">
@@ -128,12 +116,6 @@
             <button id="btn-stop-right" class="btn btn-stop" data-reel="2" disabled>R</button>
             
             <div class="sys-buttons-column" style="display:flex; flex-direction:column; gap:5px; margin-left:15px;">
-                <div style="background:#222; padding:2px 5px; border-radius:3px; font-size:10px; color:#fff; text-align:center;">
-                    SET: <select id="setting-select" style="background:#000; color:#0f0; border:none; outline:none; cursor:pointer; font-weight:bold;">
-                        <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-                        <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-                    </select>
-                </div>
                 <button id="btn-options" class="btn btn-action" style="font-size:20px; padding:5px; min-width:60px;" title="Options">⚙️</button>
                 <button id="btn-bgm" class="btn btn-action" style="font-size:12px; padding:2px 5px; min-width:60px;">BGM OFF</button>
             </div>
@@ -144,13 +126,17 @@
             <div class="modal-content">
                 <h2>OPTIONS</h2>
                 <div class="options-grid" style="width:100%; display:flex; flex-direction:column; gap:20px;">
+                    <div class="option-row" style="display:flex; justify-content:space-between; align-items:center; background: rgba(0,255,0,0.1); padding: 10px; border-radius: 4px; border: 1px dashed #0f0;">
+                        <label style="color:#0f0; font-size:20px;">DEBUG MODE</label>
+                        <input type="checkbox" id="debug-mode-toggle" style="width:24px; height:24px; cursor:pointer;">
+                    </div>
                     <div class="option-row" style="display:flex; justify-content:space-between; align-items:center;">
                         <label style="color:#fff; font-size:20px;">BGM VOLUME</label>
-                        <input type="range" id="bgm-volume-slider" min="0" max="1" step="0.05" value="0.2" style="width:150px; cursor:pointer;">
+                        <input type="range" id="bgm-volume-slider" min="0" max="1" step="0.05" value="1" style="width:150px; cursor:pointer;">
                     </div>
                     <div class="option-row" style="display:flex; justify-content:space-between; align-items:center;">
                         <label style="color:#fff; font-size:20px;">SE VOLUME</label>
-                        <input type="range" id="se-volume-slider" min="0" max="1" step="0.05" value="0.5" style="width:150px; cursor:pointer;">
+                        <input type="range" id="se-volume-slider" min="0" max="1" step="0.05" value="1" style="width:150px; cursor:pointer;">
                     </div>
                     <div class="option-row" style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; border-top: 1px solid #555; padding-top: 20px;">
                         <label style="color:#fff; font-size:16px;">RESET GAME STATE</label>
@@ -174,6 +160,58 @@
                     <div class="pay-row"><div class="pay-sym"><img src="assets/replay.png"> x 3</div><div class="pay-val">REPLAY</div></div>
                 </div>
                 <button id="btn-close-paytable" class="btn btn-action" style="margin-top:20px; padding:10px; width:100px;">CLOSE</button>
+            </div>
+        </div>
+        
+        <!-- Floating Debug Popup -->
+        <div id="debug-popup" class="hidden" style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.9); border: 2px solid #0f0; border-radius: 5px; padding: 15px; z-index: 10001; display: flex; flex-direction: column; gap: 15px; box-shadow: 0 0 15px rgba(0,255,0,0.5);">
+            <div style="font-size:16px; color:#0f0; font-weight:bold; border-bottom: 1px solid #0f0; padding-bottom: 5px; text-align: center;">DEBUG TOOLS</div>
+            
+            <div style="display:flex; flex-direction:column; gap: 5px;">
+                <label style="color:#fff; font-size:12px;">FORCE FLAG:</label>
+                <select id="debug-force-flag" style="background:#222; color:#0f0; border:1px solid #555; padding:5px; font-size:12px; cursor: pointer; width: 100%;">
+                    <option value="-1">DEBUG (NORMAL)</option>
+                    <option value="0">HAZE (0)</option>
+                    <option value="1">BB_A (1)</option>
+                    <option value="2">BB_B (2)</option>
+                    <option value="3">BB_C (3)</option>
+                    <option value="4">BB_D (4)</option>
+                    <option value="5">RB_A (5)</option>
+                    <option value="6">RB_B (6)</option>
+                    <option value="7">REPLAY_A (7)</option>
+                    <option value="8">REPLAY_B (8)</option>
+                    <option value="9">REPLAY_C (9)</option>
+                    <option value="10">BELL_A (10)</option>
+                    <option value="11">BELL_B (11)</option>
+                    <option value="12">BELL_C (12)</option>
+                    <option value="13">CHERRY_A (13)</option>
+                    <option value="14">CHERRY_B (14)</option>
+                    <option value="15">CHERRY_C (15)</option>
+                    <option value="16">SUICA_A (16)</option>
+                    <option value="17">SUICA_B (17)</option>
+                    <option value="18">SUICA_C (18)</option>
+                    <option value="19">CHANCE_A (19)</option>
+                    <option value="20">CHANCE_B (20)</option>
+                    <option value="21">CHANCE_C (21)</option>
+                </select>
+            </div>
+            
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label style="color:#fff; font-size:12px;">SETTING (1-6):</label>
+                <select id="setting-select" style="background:#222; color:#0f0; border:1px solid #555; padding:5px; font-size:14px; cursor: pointer; font-weight: bold;">
+                    <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                    <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+                </select>
+            </div>
+            
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label style="color:#fff; font-size:12px;">ADD CREDIT:</label>
+                <button id="btn-add-credit" style="background:#222; color:#0f0; border:1px solid #555; padding:2px 10px; font-size:14px; cursor: pointer; font-weight: bold; border-radius: 3px;">+50</button>
+            </div>
+            
+            <div style="font-size:12px; color:#fff; display:flex; flex-direction:column; gap:5px; background:#111; padding:10px; border-radius:3px; border: 1px solid #333;">
+                <span>RNG: <span id="debug-rng" style="color: #0f0;">-</span></span>
+                <span>FLG: <span id="debug-flag" style="color: #0f0;">-</span></span>
             </div>
         </div>
     </div>

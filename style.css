@@ -174,11 +174,150 @@ body {
     position: relative;
 }
 
-#character-img {
+.lcd-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
+    background-size: auto 100%;
+    background-repeat: repeat-x;
+    image-rendering: pixelated;
+}
+
+#lcd-layer-bg {
+    z-index: 1;
+    background-image: url('assets/bg_sky.png');
+    background-position: center center;
+    /* ゆっくりスクロール */
+    animation: scrollSky 600s linear infinite;
+}
+
+#lcd-layer-mg {
+    z-index: 2;
+    background-image: url('assets/bg_grass.png');
+    background-position: center bottom;
+    /* 草原より上の空部分を削るためのグラデーションマスク */
+    -webkit-mask-image: linear-gradient(to bottom, transparent 15%, black 40%);
+    mask-image: linear-gradient(to bottom, transparent 15%, black 40%);
+    /* BGより少し速くスクロールしてパララックスを表現 */
+    animation: scrollGrass 240s linear infinite;
+}
+
+#lcd-layer-fg {
+    z-index: 3;
+    background-image: url('assets/bg_ground.png');
+    background-position: center bottom;
+    background-size: cover;
+    /* 上部を透過して下部の地面だけ表示するマスク */
+    -webkit-mask-image: linear-gradient(to bottom, transparent 65%, black 85%);
+    mask-image: linear-gradient(to bottom, transparent 65%, black 85%);
+}
+
+@keyframes scrollSky {
+    from { background-position-x: 0; }
+    to { background-position-x: -1000px; }
+}
+
+@keyframes scrollGrass {
+    from { background-position-x: 0; }
+    to { background-position-x: -1000px; }
+}
+
+#character-img {
+    height: 90px;
+    width: auto;
+    position: absolute;
+    bottom: 20px; /* 地面の上に立つように調整 */
+    left: 20%; /* 左側に寄せる */
     object-fit: contain;
     image-rendering: pixelated;
+    z-index: 4;
+    /* 待機（アイドル）アニメーション */
+    animation: idleAnim 1.5s infinite ease-in-out;
+}
+
+@keyframes idleAnim {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(0.96) translateY(2px); }
+}
+
+#enemy-img {
+    height: 70px;
+    width: auto;
+    position: absolute;
+    bottom: 20px;
+    right: 20%; /* 右側に寄せる */
+    object-fit: contain;
+    image-rendering: pixelated;
+    z-index: 4;
+    animation: idleEnemyAnim 2s infinite ease-in-out;
+    transition: filter 0.3s ease;
+}
+
+@keyframes idleEnemyAnim {
+    0%, 100% { transform: scaleY(1) translateY(0); }
+    50% { transform: scaleY(0.9) translateY(4px); }
+}
+
+/* スライムの色変化（ベースは青） */
+.enemy-slime-blue {
+    filter: none;
+}
+.enemy-slime-yellow {
+    /* 青から黄色へ */
+    filter: hue-rotate(180deg) brightness(1.2);
+}
+.enemy-slime-green {
+    /* 青から緑へ */
+    filter: hue-rotate(240deg);
+}
+.enemy-slime-red {
+    /* 青から赤/ピンクへ */
+    filter: hue-rotate(120deg) brightness(1.1);
+}
+.enemy-slime-rainbow {
+    /* ボーナス濃厚時の虹色アニメーション */
+    animation: idleEnemyAnim 2s infinite ease-in-out, rainbowCycle 1.5s infinite linear !important;
+}
+
+@keyframes rainbowCycle {
+    0% { filter: hue-rotate(0deg); }
+    100% { filter: hue-rotate(360deg); }
+}
+
+/* HPバー */
+#hp-bar-container {
+    width: 100%;
+    height: 15px;
+    background-color: #222;
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    margin-bottom: 10px;
+    position: relative;
+    overflow: hidden;
+}
+
+#hp-bar-fill {
+    height: 100%;
+    width: 10%;
+    background: linear-gradient(90deg, #33ff33, #00aa00);
+    transition: width 0.3s ease-out, background 0.3s ease;
+}
+
+#hp-bar-text {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 10px;
+    color: #fff;
+    text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+    pointer-events: none;
 }
 
 #slot-area {
@@ -192,11 +331,17 @@ body {
 
 .reels-container {
     display: flex;
-    gap: 15px;
+    gap: 15px; /* リール間の隙間 */
     background-color: #000;
-    padding: 10px;
-    border-radius: 5px;
-    border: 2px solid #444;
+    padding: 15px;
+    
+    /* 石枠の装飾 */
+    border: 32px solid transparent;
+    border-image: url('assets/stone_texture.png') 40 round;
+    
+    /* 立体感を出すための影 */
+    box-shadow: inset 0 0 25px rgba(0,0,0,0.9), 0 10px 20px rgba(0,0,0,0.7);
+    image-rendering: pixelated;
     position: relative;
     overflow: hidden;
 }
@@ -383,6 +528,10 @@ body {
 
 .modal.hidden {
     display: none;
+}
+
+#debug-popup.hidden {
+    display: none !important;
 }
 
 .modal-content {

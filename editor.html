@@ -239,8 +239,8 @@
             </div> <!-- end tab-prob -->
             
             <div id="tab-reel" class="tab-content" style="display:none;">
-                <h3 class="section-title">リール図柄配列（1〜21コマ）</h3>
-                <p style="font-size:12px; color:#aaa;">※「4コマ滑り」を考慮し、小役（リプレイ・ベル等）は5コマ以上離れないように配置してください。</p>
+                <h3 class="section-title">リール図柄配列（1〜20コマ）</h3>
+                <p style="font-size:12px; color:#aaa;">※「4コマ滑り」を考慮し、小役（リプレイ・ベル等）は5コマ以上離れないように配置してください。<br>（左リールのみ「赤7」はリプレイの代用、「黒BAR」はベルの代用として判定されます）</p>
                 <div id="reel-warning" style="display:none; color:#ffaa00; font-size:14px; margin-top:15px; background:rgba(255, 170, 0, 0.2); padding:10px; border-radius:5px; border:1px solid #ffaa00;"></div>
                 <div id="reel-grid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:15px; margin-top:10px;">
                     <!-- JS generated -->
@@ -299,16 +299,16 @@
                 4: { HAZE: 16384 }, 5: { HAZE: 16384 }, 6: { HAZE: 16384 }
             },
             reelStrips: [
-                ['WATERMELON', 'RED7', 'REPLAY', 'WATERMELON', 'STAR', 'REPLAY', 'STAR', 'STAR', 'BLUE7', 'WATERMELON', 'STAR', 'REPLAY', 'CHERRY', 'REPLAY', 'STAR', 'BAR', 'WATERMELON', 'REPLAY', 'WATERMELON', 'CHERRY', 'STAR'],
-                ['STAR', 'RED7', 'CHERRY', 'WATERMELON', 'REPLAY', 'STAR', 'CHERRY', 'REPLAY', 'STAR', 'STAR', 'BAR', 'CHERRY', 'REPLAY', 'STAR', 'CHERRY', 'BLUE7', 'WATERMELON', 'REPLAY', 'STAR', 'CHERRY', 'REPLAY'],
-                ['CHERRY', 'RED7', 'WATERMELON', 'STAR', 'REPLAY', 'WATERMELON', 'BLUE7', 'REPLAY', 'STAR', 'BAR', 'WATERMELON', 'CHERRY', 'REPLAY', 'STAR', 'WATERMELON', 'BLUE7', 'REPLAY', 'STAR', 'WATERMELON', 'STAR', 'REPLAY']
+                ['WATERMELON', 'RED7', 'REPLAY', 'WATERMELON', 'STAR', 'REPLAY', 'STAR', 'STAR', 'BLUE7', 'WATERMELON', 'STAR', 'REPLAY', 'CHERRY', 'REPLAY', 'STAR', 'BAR', 'WATERMELON', 'REPLAY', 'WATERMELON', 'CHERRY'],
+                ['STAR', 'RED7', 'CHERRY', 'WATERMELON', 'REPLAY', 'STAR', 'CHERRY', 'REPLAY', 'STAR', 'STAR', 'BAR', 'CHERRY', 'REPLAY', 'STAR', 'CHERRY', 'BLUE7', 'WATERMELON', 'REPLAY', 'STAR', 'CHERRY'],
+                ['CHERRY', 'RED7', 'WATERMELON', 'STAR', 'REPLAY', 'WATERMELON', 'BLUE7', 'REPLAY', 'STAR', 'BAR', 'WATERMELON', 'CHERRY', 'REPLAY', 'STAR', 'WATERMELON', 'BLUE7', 'REPLAY', 'STAR', 'WATERMELON', 'STAR']
             ]
         };
         if (!currentConfig.reelStrips) {
             currentConfig.reelStrips = [
-                ['WATERMELON', 'RED7', 'REPLAY', 'WATERMELON', 'STAR', 'REPLAY', 'STAR', 'STAR', 'BLUE7', 'WATERMELON', 'STAR', 'REPLAY', 'CHERRY', 'REPLAY', 'STAR', 'BAR', 'WATERMELON', 'REPLAY', 'WATERMELON', 'CHERRY', 'STAR'],
-                ['STAR', 'RED7', 'CHERRY', 'WATERMELON', 'REPLAY', 'STAR', 'CHERRY', 'REPLAY', 'STAR', 'STAR', 'BAR', 'CHERRY', 'REPLAY', 'STAR', 'CHERRY', 'BLUE7', 'WATERMELON', 'REPLAY', 'STAR', 'CHERRY', 'REPLAY'],
-                ['CHERRY', 'RED7', 'WATERMELON', 'STAR', 'REPLAY', 'WATERMELON', 'BLUE7', 'REPLAY', 'STAR', 'BAR', 'WATERMELON', 'CHERRY', 'REPLAY', 'STAR', 'WATERMELON', 'BLUE7', 'REPLAY', 'STAR', 'WATERMELON', 'STAR', 'REPLAY']
+                ['WATERMELON', 'RED7', 'REPLAY', 'WATERMELON', 'STAR', 'REPLAY', 'STAR', 'STAR', 'BLUE7', 'WATERMELON', 'STAR', 'REPLAY', 'CHERRY', 'REPLAY', 'STAR', 'BAR', 'WATERMELON', 'REPLAY', 'WATERMELON', 'CHERRY'],
+                ['STAR', 'RED7', 'CHERRY', 'WATERMELON', 'REPLAY', 'STAR', 'CHERRY', 'REPLAY', 'STAR', 'STAR', 'BAR', 'CHERRY', 'REPLAY', 'STAR', 'CHERRY', 'BLUE7', 'WATERMELON', 'REPLAY', 'STAR', 'CHERRY'],
+                ['CHERRY', 'RED7', 'WATERMELON', 'STAR', 'REPLAY', 'WATERMELON', 'BLUE7', 'REPLAY', 'STAR', 'BAR', 'WATERMELON', 'CHERRY', 'REPLAY', 'STAR', 'WATERMELON', 'BLUE7', 'REPLAY', 'STAR', 'WATERMELON', 'STAR']
             ];
         }
         
@@ -334,7 +334,17 @@
         }
 
         const SYMBOL_OPTIONS = ['RED7', 'BLUE7', 'BAR', 'STAR', 'WATERMELON', 'CHERRY', 'REPLAY', 'BLANK'];
-        const REEL_NAMES = ['リールC (左)', 'リールB (中)', 'リールA (右)'];
+        const SYMBOL_IMAGES = {
+            'RED7': 'assets/red7.png',
+            'BLUE7': 'assets/blue7.png',
+            'BAR': 'assets/bar.png',
+            'STAR': 'assets/star.png',
+            'WATERMELON': 'assets/watermelon.png',
+            'CHERRY': 'assets/cherry.png',
+            'REPLAY': 'assets/replay.png',
+            'BLANK': 'assets/remix.png'
+        };
+        const REEL_NAMES = ['リールA (左)', 'リールB (中)', 'リールC (右)'];
         
         function loadReelsUI() {
             const grid = document.getElementById('reel-grid');
@@ -347,14 +357,14 @@
                 col.style.borderRadius = '5px';
                 col.innerHTML = '<h4 style="margin:0 0 10px 0; color:#e94560; text-align:center;">' + REEL_NAMES[r] + '</h4>';
                 
-                for (let i = 0; i < 21; i++) {
+                for (let i = 0; i < 20; i++) {
                     const row = document.createElement('div');
                     row.style.display = 'flex';
                     row.style.justifyContent = 'space-between';
                     row.style.alignItems = 'center';
                     row.style.margin = '4px 0';
                     row.style.fontSize = '14px';
-                    row.innerHTML = '<label>' + (i+1) + 'コマ</label>';
+                    row.innerHTML = '<label style="font-family: monospace;">' + String(20 - i).padStart(2, '0') + '</label>';
                     
                     const sel = document.createElement('select');
                     sel.style.background = '#0f3460';
@@ -362,22 +372,50 @@
                     sel.style.border = '1px solid #e94560';
                     sel.style.borderRadius = '3px';
                     sel.style.padding = '2px';
-                    sel.style.width = '110px';
+                    sel.style.width = '90px'; // shrunk slightly to fit image
                     
                     for (const sym of SYMBOL_OPTIONS) {
                         const opt = document.createElement('option');
                         opt.value = sym;
-                        opt.textContent = sym;
+                        // はみ出し対策で表示のみ略語（SUICA）に変更
+                        opt.textContent = sym === 'WATERMELON' ? 'SUICA' : sym;
                         sel.appendChild(opt);
                     }
                     
+                    const imgPreview = document.createElement('img');
+                    imgPreview.style.width = '24px';
+                    imgPreview.style.height = '24px';
+                    imgPreview.style.objectFit = 'contain';
+                    imgPreview.style.marginLeft = '5px';
+                    imgPreview.style.background = '#fff';
+                    imgPreview.style.borderRadius = '3px';
+                    
+                    const updateImg = (val) => {
+                        if (SYMBOL_IMAGES[val]) {
+                            imgPreview.src = SYMBOL_IMAGES[val];
+                            imgPreview.style.display = 'block';
+                        } else {
+                            imgPreview.src = '';
+                            imgPreview.style.display = 'none';
+                        }
+                    };
+                    
                     sel.value = currentConfig.reelStrips[r][i] || 'BLANK';
+                    updateImg(sel.value);
+                    
                     sel.addEventListener('change', (e) => {
                         currentConfig.reelStrips[r][i] = e.target.value;
+                        updateImg(e.target.value);
                         validateReels();
                     });
                     
-                    row.appendChild(sel);
+                    const wrap = document.createElement('div');
+                    wrap.style.display = 'flex';
+                    wrap.style.alignItems = 'center';
+                    wrap.appendChild(sel);
+                    wrap.appendChild(imgPreview);
+                    
+                    row.appendChild(wrap);
                     col.appendChild(row);
                 }
                 grid.appendChild(col);
@@ -396,8 +434,14 @@
                 const strip = currentConfig.reelStrips[r];
                 for (const targetSym of checkSymbols) {
                     let indices = [];
-                    for (let i = 0; i < 21; i++) {
-                        if (strip[i] === targetSym) indices.push(i);
+                    for (let i = 0; i < 20; i++) {
+                        if (strip[i] === targetSym) {
+                            indices.push(i);
+                        } else if (r === 0 && targetSym === 'REPLAY' && strip[i] === 'RED7') {
+                            indices.push(i);
+                        } else if (r === 0 && targetSym === 'STAR' && strip[i] === 'BAR') {
+                            indices.push(i);
+                        }
                     }
                     
                     if (indices.length === 0) {
@@ -408,7 +452,7 @@
                     for (let j = 0; j < indices.length; j++) {
                         const nextIdx = (j + 1) % indices.length;
                         let gap = indices[nextIdx] - indices[j];
-                        if (gap <= 0) gap += 21; // wrap around
+                        if (gap <= 0) gap += 20; // wrap around
                         
                         if (gap > 5) {
                             warnings.push(REEL_NAMES[r] + ' の ' + targetSym + ' の間隔が ' + (gap-1) + ' コマ空いている箇所があります。（4コマ滑りでは取りこぼす位置が存在します）');
