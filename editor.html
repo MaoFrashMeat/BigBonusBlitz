@@ -196,33 +196,44 @@
                     <div style="display:flex; align-items:center; gap:10px;"><span id="descHAZE" class="desc-span"></span><input type="number" class="prob-input" id="probHAZE" readonly style="background:#333; color:#aaa; border-color:#555;"></div>
                 </div>
                 
-                <div style="display:grid; grid-template-columns: 1fr; gap: 5px;">
-                    <div>
-                        <h4 style="margin:5px 0; color:#e94560;">ボーナス</h4>
+                <div style="display:grid; grid-template-columns: 1fr; gap: 15px;">
+                    
+                    <!-- ボーナス -->
+                    <div style="background: rgba(0, 0, 0, 0.2); padding: 10px; border-radius: 5px; border-left: 4px solid #e94560;">
+                        <h4 style="margin:5px 0 10px 0; color:#e94560; font-size: 16px;">【ボーナス】</h4>
                         <div class="row"><label>BB_A (赤7揃い)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descBB_A" class="desc-span"></span><input type="number" class="prob-input" id="probBB_A"></div></div>
                         <div class="row"><label>BB_B (青7揃い)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descBB_B" class="desc-span"></span><input type="number" class="prob-input" id="probBB_B"></div></div>
                         <div class="row"><label>BB_C (BAR揃い中)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descBB_C" class="desc-span"></span><input type="number" class="prob-input" id="probBB_C"></div></div>
                         <div class="row"><label>BB_D (青赤青中)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descBB_D" class="desc-span"></span><input type="number" class="prob-input" id="probBB_D"></div></div>
                         <div class="row"><label>RB_A (赤赤BAR)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descRB_A" class="desc-span"></span><input type="number" class="prob-input" id="probRB_A"></div></div>
                         <div class="row"><label>RB_B (青青BAR)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descRB_B" class="desc-span"></span><input type="number" class="prob-input" id="probRB_B"></div></div>
+                    </div>
+
+                    <!-- 小役 -->
+                    <div style="background: rgba(0, 0, 0, 0.2); padding: 10px; border-radius: 5px; border-left: 4px solid #00d2ff;">
+                        <h4 style="margin:5px 0 10px 0; color:#00d2ff; font-size: 16px;">【小役】</h4>
                         
-                        <h4 style="margin:10px 0 5px 0; color:#e94560;">リプレイ</h4>
+                        <h5 style="margin:10px 0 5px 0; color:#aaa;">リプレイ</h5>
                         <div class="row"><label>REPLAY_A (上段)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descREPLAY_A" class="desc-span"></span><input type="number" class="prob-input" id="probREPLAY_A"></div></div>
                         <div class="row"><label>REPLAY_B (斜め)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descREPLAY_B" class="desc-span"></span><input type="number" class="prob-input" id="probREPLAY_B"></div></div>
                         <div class="row"><label>REPLAY_C (下段)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descREPLAY_C" class="desc-span"></span><input type="number" class="prob-input" id="probREPLAY_C"></div></div>
-                    </div>
-                    <div>
-                        <h4 style="margin:5px 0; color:#e94560;">ベル (STAR)</h4>
+
+                        <h5 style="margin:10px 0 5px 0; color:#aaa;">ベル (STAR)</h5>
                         <div class="row"><label>BELL_A (上/斜)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descBELL_A" class="desc-span"></span><input type="number" class="prob-input" id="probBELL_A"></div></div>
                         <div class="row"><label>BELL_B (中段)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descBELL_B" class="desc-span"></span><input type="number" class="prob-input" id="probBELL_B"></div></div>
                         <div class="row"><label>BELL_C (下段)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descBELL_C" class="desc-span"></span><input type="number" class="prob-input" id="probBELL_C"></div></div>
+                    </div>
+                    
+                    <!-- レア役 -->
+                    <div style="background: rgba(0, 0, 0, 0.2); padding: 10px; border-radius: 5px; border-left: 4px solid #ffaa00;">
+                        <h4 style="margin:5px 0 10px 0; color:#ffaa00; font-size: 16px;">【レア役】</h4>
                         
-                        <h4 style="margin:10px 0 5px 0; color:#e94560;">チェリー</h4>
+                        <h5 style="margin:10px 0 5px 0; color:#aaa;">チェリー</h5>
                         <div class="row"><label>CHERRY_A (角)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descCHERRY_A" class="desc-span"></span><input type="number" class="prob-input" id="probCHERRY_A"></div></div>
                         <div class="row"><label>CHERRY_B (右中ボ)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descCHERRY_B" class="desc-span"></span><input type="number" class="prob-input" id="probCHERRY_B"></div></div>
                         <div class="row"><label>CHERRY_C (中段)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descCHERRY_C" class="desc-span"></span><input type="number" class="prob-input" id="probCHERRY_C"></div></div>
                         
-                        <h4 style="margin:10px 0 5px 0; color:#e94560;">スイカ / チャンス</h4>
+                        <h5 style="margin:10px 0 5px 0; color:#aaa;">スイカ / チャンス</h5>
                         <div class="row"><label>SUICA_A (上/斜)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descSUICA_A" class="desc-span"></span><input type="number" class="prob-input" id="probSUICA_A"></div></div>
                         <div class="row"><label>SUICA_B (中段)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descSUICA_B" class="desc-span"></span><input type="number" class="prob-input" id="probSUICA_B"></div></div>
                         <div class="row"><label>SUICA_C (下段)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descSUICA_C" class="desc-span"></span><input type="number" class="prob-input" id="probSUICA_C"></div></div>

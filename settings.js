@@ -6,14 +6,15 @@ let CONFIG = {
         "REG": 90,
         "STAR": 8,
         "WATERMELON": 6,
-        "CHERRY": 4
+        "CHERRY": 4,
+        "REPLAY": 3
     },
     "timings": {
         "reel1": 1400,
-        "reel2": 300,
-        "reel3": 300,
-        "next": 800,
-        "nextWin": 1000
+        "reel2": 150,
+        "reel3": 150,
+        "next": 400,
+        "nextWin": 800
     },
     "probabilities": {
         "1": {

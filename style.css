@@ -161,6 +161,95 @@ body {
     to { opacity: 1.0; }
 }
 
+/* ボーナス情報表示（左上） */
+#bonus-info {
+    position: absolute;
+    top: 20px;
+    left: 90px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid #ff00ff;
+    padding: 5px 15px;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 10;
+    box-shadow: 0 0 10px #ff00ff;
+}
+
+#bonus-info.hidden {
+    display: none;
+}
+
+#bonus-left-count {
+    color: #ff00ff;
+    font-size: 20px;
+    font-weight: bold;
+    text-shadow: 0 0 5px #ff00ff;
+}
+
+/* BB MODE 突入ロゴ（右下） */
+#bb-mode-logo {
+    position: absolute;
+    right: 20px;
+    background: radial-gradient(circle, #ff00ff, #aa00aa);
+    border: 4px solid #fff;
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: #fff;
+    font-weight: bold;
+    font-size: 16px;
+    box-shadow: 0 0 30px #ff00ff, inset 0 0 15px #fff;
+    text-shadow: 2px 2px 0px #000;
+    z-index: 10;
+    animation: bbLogoAnim 3s linear infinite, bbLogoFloat 2s ease-in-out infinite alternate;
+}
+
+#bb-mode-logo.hidden {
+    display: none;
+}
+
+/* RB MODE 突入ロゴ（右下） */
+#rb-mode-logo {
+    position: absolute;
+    right: 20px;
+    background: radial-gradient(circle, #00ff00, #008800);
+    border: 4px solid #fff;
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: #fff;
+    font-weight: bold;
+    font-size: 16px;
+    box-shadow: 0 0 30px #00ff00, inset 0 0 15px #fff;
+    text-shadow: 2px 2px 0px #000;
+    z-index: 10;
+    animation: bbLogoAnim 3s linear infinite, bbLogoFloat 2s ease-in-out infinite alternate;
+}
+
+#rb-mode-logo.hidden {
+    display: none;
+}
+
+@keyframes bbLogoAnim {
+    from { transform: rotateY(0deg); }
+    to { transform: rotateY(360deg); }
+}
+
+@keyframes bbLogoFloat {
+    from { bottom: 10px; }
+    to { bottom: 30px; }
+}
+
 #character-area {
     width: 100%;
     height: 200px;
@@ -244,15 +333,83 @@ body {
 
 #enemy-img {
     height: 70px;
-    width: auto;
+    width: 70px;
     position: absolute;
     bottom: 20px;
     right: 20%; /* 右側に寄せる */
-    object-fit: contain;
-    image-rendering: pixelated;
     z-index: 4;
     animation: idleEnemyAnim 2s infinite ease-in-out;
-    transition: filter 0.3s ease;
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.slime-sprite {
+    position: absolute;
+    height: 100%;
+    width: auto;
+    object-fit: contain;
+    image-rendering: pixelated;
+    transition: filter 0.3s ease, opacity 0.3s ease;
+    z-index: 1;
+}
+
+#dust-cloud-img {
+    position: absolute;
+    height: 120%;
+    width: 120%;
+    object-fit: contain;
+    image-rendering: pixelated;
+    z-index: 5;
+    animation: bokoSukaAnim 0.1s infinite alternate;
+}
+
+#dust-cloud-img.hidden {
+    display: none;
+}
+
+#knight-win-img {
+    height: 100px;
+    width: auto;
+    position: absolute;
+    bottom: 20px;
+    right: 15%;
+    object-fit: contain;
+    image-rendering: pixelated;
+    z-index: 5;
+    animation: knightJumpAnim 0.5s ease-in-out infinite alternate;
+}
+
+#knight-win-img.hidden {
+    display: none;
+}
+
+@keyframes bokoSukaAnim {
+    0% { transform: scale(1) rotate(-5deg); }
+    100% { transform: scale(1.1) rotate(5deg); }
+}
+
+@keyframes knightJumpAnim {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-15px); }
+}
+
+
+.slime-core {
+    width: 24px;
+    height: 24px;
+    margin-top: 10px;
+    z-index: 2;
+    /* 3x3 ドット絵風の十字形状に切り抜き */
+    clip-path: polygon(
+        33.33% 0%, 66.67% 0%, 
+        66.67% 33.33%, 100% 33.33%, 
+        100% 66.67%, 66.67% 66.67%, 
+        66.67% 100%, 33.33% 100%, 
+        33.33% 66.67%, 0% 66.67%, 
+        0% 33.33%, 33.33% 33.33%
+    );
 }
 
 @keyframes idleEnemyAnim {
@@ -260,25 +417,53 @@ body {
     50% { transform: scaleY(0.9) translateY(4px); }
 }
 
-/* スライムの色変化（ベースは青） */
-.enemy-slime-blue {
+/* スライムの体色（元の16bit画像をhue-rotateで色変え） */
+.enemy-slime-blue .slime-sprite {
     filter: none;
 }
-.enemy-slime-yellow {
-    /* 青から黄色へ */
+.enemy-slime-yellow .slime-sprite {
     filter: hue-rotate(180deg) brightness(1.2);
 }
-.enemy-slime-green {
-    /* 青から緑へ */
+.enemy-slime-green .slime-sprite {
     filter: hue-rotate(240deg);
 }
-.enemy-slime-red {
-    /* 青から赤/ピンクへ */
+.enemy-slime-red .slime-sprite {
     filter: hue-rotate(120deg) brightness(1.1);
 }
-.enemy-slime-rainbow {
-    /* ボーナス濃厚時の虹色アニメーション */
-    animation: idleEnemyAnim 2s infinite ease-in-out, rainbowCycle 1.5s infinite linear !important;
+.enemy-slime-rainbow .slime-sprite {
+    animation: rainbowCycle 1.5s infinite linear;
+}
+
+/* スライムのコア色 */
+.core-red {
+    background: radial-gradient(circle at 30% 30%, #ffaaaa, #ff3333, #880000) !important;
+    box-shadow: 0 0 10px rgba(255,50,50,0.8) !important;
+}
+.core-blue {
+    background: radial-gradient(circle at 30% 30%, #aaaaff, #3333ff, #000088) !important;
+    box-shadow: 0 0 10px rgba(50,50,255,0.8) !important;
+}
+.core-yellow {
+    background: radial-gradient(circle at 30% 30%, #ffffaa, #eeee00, #888800) !important;
+    box-shadow: 0 0 10px rgba(255,255,50,0.8) !important;
+}
+.core-green {
+    background: radial-gradient(circle at 30% 30%, #aaffaa, #33ff33, #008800) !important;
+    box-shadow: 0 0 10px rgba(50,255,50,0.8) !important;
+}
+.core-rainbow {
+    background: radial-gradient(circle at 30% 30%, #ffffff, #aaaaaa, #555555) !important;
+    animation: rainbowAnim 1s infinite linear, corePulse 1.5s infinite alternate ease-in-out;
+}
+
+@keyframes rainbowAnim {
+    0% { filter: hue-rotate(0deg); }
+    100% { filter: hue-rotate(360deg); }
+}
+
+@keyframes corePulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.2); }
 }
 
 @keyframes rainbowCycle {

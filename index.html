@@ -35,6 +35,18 @@
             <section id="character-area">
                 <div id="bonus-lamp" class="lamp-off">CHANCE</div>
                 
+                <!-- ボーナス情報表示（左上） -->
+                <div id="bonus-info" class="hidden">
+                    <span class="bonus-info-label" style="font-size: 10px; color: #aaa;">残枚数</span>
+                    <span id="bonus-left-count">0</span>
+                </div>
+
+                <!-- BB MODE 突入ロゴ（右下） -->
+                <div id="bb-mode-logo" class="hidden">BB<br>MODE</div>
+                
+                <!-- RB MODE 突入ロゴ（右下） -->
+                <div id="rb-mode-logo" class="hidden">RB<br>MODE</div>
+                
                 <!-- 背景層 (遠景: 空など) -->
                 <div id="lcd-layer-bg" class="lcd-layer"></div>
                 <!-- 中景層 (舞台: 草原など) -->
@@ -45,7 +57,14 @@
                 <!-- キャラクター（前景） -->
                 <img src="assets/character.png" id="character-img" alt="Character" />
                 <!-- 敵キャラクター（小役示唆） -->
-                <img src="assets/slime.png" id="enemy-img" alt="Enemy" class="enemy-slime-blue" />
+                <div id="enemy-img" class="enemy-slime-blue">
+                    <img src="assets/slime.png" class="slime-sprite" alt="Enemy" />
+                    <div class="slime-core core-red"></div>
+                    <!-- ボコスカ砂煙（第2停止時用） -->
+                    <img src="assets/dust_cloud.png" id="dust-cloud-img" class="hidden" alt="Dust Cloud" />
+                </div>
+                <!-- ベル当選時 第3停止で登場する女騎士 -->
+                <img src="assets/knight_win.png" id="knight-win-img" class="hidden" alt="Knight Win" />
             </section>
             
             <!-- HPバー（クレジット表示） -->
@@ -157,7 +176,7 @@
                     <div class="pay-row"><div class="pay-sym"><img src="assets/star.png"> x 3</div><div class="pay-val">10</div></div>
                     <div class="pay-row"><div class="pay-sym"><img src="assets/watermelon.png"> x 3</div><div class="pay-val">9</div></div>
                     <div class="pay-row"><div class="pay-sym"><img src="assets/cherry.png"> Left Reel</div><div class="pay-val">4</div></div>
-                    <div class="pay-row"><div class="pay-sym"><img src="assets/replay.png"> x 3</div><div class="pay-val">REPLAY</div></div>
+                    <div class="pay-row"><div class="pay-sym"><img src="assets/replay.png"> x 3</div><div class="pay-val">3</div></div>
                 </div>
                 <button id="btn-close-paytable" class="btn btn-action" style="margin-top:20px; padding:10px; width:100px;">CLOSE</button>
             </div>
@@ -212,6 +231,7 @@
             <div style="font-size:12px; color:#fff; display:flex; flex-direction:column; gap:5px; background:#111; padding:10px; border-radius:3px; border: 1px solid #333;">
                 <span>RNG: <span id="debug-rng" style="color: #0f0;">-</span></span>
                 <span>FLG: <span id="debug-flag" style="color: #0f0;">-</span></span>
+                <span>MOD: <span id="debug-mode" style="color: #0f0;">-</span></span>
             </div>
         </div>
     </div>
