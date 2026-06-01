@@ -1,0 +1,17 @@
+Parameter,Value,Description
+PAYOUT_BIG,15,BIGボーナスの払い出し枚数
+PAYOUT_REG,15,REGボーナスの払い出し枚数
+PAYOUT_STAR,10,星（ベル）の払い出し枚数
+PAYOUT_WATERMELON,9,スイカの払い出し枚数
+PAYOUT_CHERRY,4,チェリーの払い出し枚数
+PROB_REPLAY,2244,リプレイの確率（/16384）
+PROB_CHERRY,512,チェリーの確率（/16384）
+PROB_WATERMELON,256,スイカの確率（/16384）
+PROB_STAR,128,星（ベル）の確率（/16384）
+PROB_BIG,40,BIGの確率（/16384）
+PROB_REG,24,REGの確率（/16384）
+TIME_AUTO_REEL1,1400,オート時：回転開始～左停止のウェイト(ms)
+TIME_AUTO_REEL2,300,オート時：左停止～中停止のウェイト(ms)
+TIME_AUTO_REEL3,300,オート時：中停止～右停止のウェイト(ms)
+TIME_AUTO_NEXT_HAZE,800,オート時：ハズレ後の次ゲーム開始ウェイト(ms)
+TIME_AUTO_NEXT_WIN,1000,オート時：小役揃い後のメッセージ表示時間(ms)

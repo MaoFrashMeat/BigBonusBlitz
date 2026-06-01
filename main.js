@@ -17,7 +17,7 @@ const SYMBOLS = {
 };
 
 // 画像に基づいた21コマ配列
-const reelStrips = [
+let reelStrips = (typeof CONFIG !== 'undefined' && CONFIG.reelStrips) ? CONFIG.reelStrips : [
     // 左リール
     ['WATERMELON', 'RED7', 'REPLAY', 'WATERMELON', 'STAR', 'REPLAY', 'STAR', 'STAR', 'BLUE7', 'WATERMELON', 'STAR', 'REPLAY', 'CHERRY', 'REPLAY', 'STAR', 'BAR', 'WATERMELON', 'REPLAY', 'WATERMELON', 'CHERRY', 'STAR'],
     // 中リール
@@ -29,21 +29,39 @@ const reelStrips = [
 // フラグ定義
 const FLAGS = {
     HAZE: 0,
-    REPLAY: 1,
-    CHERRY: 2,
-    WATERMELON: 3,
-    STAR: 4,
-    BIG_BONUS: 5,
-    REG_BONUS: 6
+    BB_A: 1, BB_B: 2, BB_C: 3, BB_D: 4,
+    RB_A: 5, RB_B: 6,
+    REPLAY_A: 7, REPLAY_B: 8, REPLAY_C: 9,
+    BELL_A: 10, BELL_B: 11, BELL_C: 12,
+    CHERRY_A: 13, CHERRY_B: 14, CHERRY_C: 15,
+    SUICA_A: 16, SUICA_B: 17, SUICA_C: 18,
+    CHANCE_A: 19, CHANCE_B: 20, CHANCE_C: 21
 };
 
-const WIN_SYMBOLS = {
-    [FLAGS.REPLAY]: ['REPLAY'],
-    [FLAGS.CHERRY]: ['CHERRY'],
-    [FLAGS.WATERMELON]: ['WATERMELON'],
-    [FLAGS.STAR]: ['STAR'],
-    [FLAGS.BIG_BONUS]: ['RED7', 'BLUE7'],
-    [FLAGS.REG_BONUS]: ['BAR']
+// サブフラグごとの揃い方定義
+// validLines: 0=上段, 1=中段, 2=下段, 3=右下がり斜め, 4=右上がり斜め
+const WIN_COMBOS = {
+    [FLAGS.BB_A]: { symbols: ['RED7', 'RED7', 'RED7'], validLines: [0, 1, 2, 3, 4] },
+    [FLAGS.BB_B]: { symbols: ['BLUE7', 'BLUE7', 'BLUE7'], validLines: [0, 1, 2, 3, 4] },
+    [FLAGS.BB_C]: { symbols: ['BAR', 'BAR', 'BAR'], validLines: [1] }, // 中段のみ
+    [FLAGS.BB_D]: { symbols: ['BLUE7', 'RED7', 'BLUE7'], validLines: [1] }, // 中段のみ
+    [FLAGS.RB_A]: { symbols: ['RED7', 'RED7', 'BAR'], validLines: [0, 1, 2, 3, 4] },
+    [FLAGS.RB_B]: { symbols: ['BLUE7', 'BLUE7', 'BAR'], validLines: [0, 1, 2, 3, 4] },
+    [FLAGS.REPLAY_A]: { symbols: ['REPLAY', 'REPLAY', 'REPLAY'], validLines: [0] }, // 上段
+    [FLAGS.REPLAY_B]: { symbols: ['REPLAY', 'REPLAY', 'REPLAY'], validLines: [3, 4] }, // 斜め
+    [FLAGS.REPLAY_C]: { symbols: ['REPLAY', 'REPLAY', 'REPLAY'], validLines: [2] }, // 下段
+    [FLAGS.BELL_A]: { symbols: ['STAR', 'STAR', 'STAR'], validLines: [0, 3, 4] }, // 上段・斜め
+    [FLAGS.BELL_B]: { symbols: ['STAR', 'STAR', 'STAR'], validLines: [1] }, // 中段
+    [FLAGS.BELL_C]: { symbols: ['STAR', 'STAR', 'STAR'], validLines: [2] }, // 下段
+    [FLAGS.CHERRY_A]: { symbols: ['CHERRY', null, null], validLines: [0, 2] }, // 角
+    [FLAGS.CHERRY_B]: { symbols: ['CHERRY', null, ['RED7', 'BLUE7', 'BAR']], validLines: [0, 2] }, // 右中段ボーナス図柄 (ライン判定は特殊対応)
+    [FLAGS.CHERRY_C]: { symbols: ['CHERRY', null, null], validLines: [1] }, // 中段
+    [FLAGS.SUICA_A]: { symbols: ['WATERMELON', 'WATERMELON', 'WATERMELON'], validLines: [0, 3, 4] }, // 上段・斜め
+    [FLAGS.SUICA_B]: { symbols: ['WATERMELON', 'WATERMELON', 'WATERMELON'], validLines: [1] }, // 中段
+    [FLAGS.SUICA_C]: { symbols: ['WATERMELON', 'WATERMELON', 'WATERMELON'], validLines: [2] }, // 下段
+    [FLAGS.CHANCE_A]: { isReachMe: true, type: 'SUICA_MISS' }, // スイカハズレ
+    [FLAGS.CHANCE_B]: { isReachMe: true, type: 'CHERRY_MISS' }, // チェリー付きリーチ目
+    [FLAGS.CHANCE_C]: { isReachMe: true, type: 'REPLAY_V' } // リプレイ小V
 };
 
 // 状態管理
@@ -56,13 +74,17 @@ let state = {
     animationIds: [null, null, null],
     isGameActive: false,
     isAutoMode: false,
+    mode: 'A', // A, B, C, D
+    spinCount: 0, // 現在のゲーム数
+    currentLotteryTable: [], // 現在設定の16384配列
     autoPlayTimeoutId: null,
     isReplay: false,
     currentFlag: FLAGS.HAZE,
     currentRNG: 0,
     heldBonusFlag: 0, // ボーナスの持ち越しフラグ (0=なし, 5=BIG, 6=REG)
     stoppedSymbols: [null, null, null],
-    slipPixels: [null, null, null]
+    slipPixels: [null, null, null],
+    currentSetting: 1 // 現在の設定 (1-6)
 };
 
 // セーブデータ用キー
@@ -75,7 +97,8 @@ function saveGameState() {
         credit: state.credit,
         bgmVolume: bgmSlider ? bgmSlider.value : 0.2,
         seVolume: seSlider ? seSlider.value : 0.5,
-        heldBonusFlag: state.heldBonusFlag
+        heldBonusFlag: state.heldBonusFlag,
+        currentSetting: state.currentSetting
     };
     localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
 }
@@ -99,16 +122,51 @@ function loadGameState() {
             if (savedData.heldBonusFlag !== undefined) {
                 state.heldBonusFlag = savedData.heldBonusFlag;
             }
+            if (savedData.currentSetting !== undefined) {
+                state.currentSetting = savedData.currentSetting;
+            }
         } catch (e) {
             console.error('Save data parse error', e);
         }
     }
 }
 
+// 16384配列の動的生成
+function ensureLotteryTables() {
+    const p = CONFIG.probabilities[state.currentSetting];
+    if (!p) return;
+    let arr = [];
+    
+    // 全フラグを走査
+    const keys = Object.keys(FLAGS);
+    for (let k of keys) {
+        if (k !== 'HAZE' && p[k]) {
+            for (let i = 0; i < p[k]; i++) arr.push(FLAGS[k]);
+        }
+    }
+    
+    const hazeCount = p.HAZE !== undefined ? p.HAZE : (16384 - arr.length);
+    for (let i = 0; i < hazeCount; i++) arr.push(FLAGS.HAZE);
+    
+    // シャッフル
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    state.currentLotteryTable = arr;
+}
+
 // DOM要素
+const elSlipDisplays = [
+    document.getElementById('slip-display-0'),
+    document.getElementById('slip-display-1'),
+    document.getElementById('slip-display-2')
+];
 const elCredit = document.getElementById('credit-display');
 const elPayout = document.getElementById('payout-display');
-const elMessage = document.getElementById('message-display');
+const elHeaderCredit = document.getElementById('header-credit');
+const elHeaderPayout = document.getElementById('header-payout');
+const elMessage = document.getElementById('g-display');
 const strips = [
     document.getElementById('strip-left'),
     document.getElementById('strip-center'),
@@ -125,9 +183,11 @@ const btnPaytable = document.getElementById('btn-paytable');
 const btnClosePaytable = document.getElementById('btn-close-paytable');
 const paytableModal = document.getElementById('paytable-modal');
 const btnBgm = document.getElementById('btn-bgm');
+const settingSelect = document.getElementById('setting-select');
 const btnOptions = document.getElementById('btn-options');
 const btnCloseOptions = document.getElementById('btn-close-options');
 const optionsModal = document.getElementById('options-modal');
+const btnResetState = document.getElementById('btn-reset-state');
 const btnAddCredit = document.getElementById('btn-add-credit');
 
 // 音声システム（Web Audio API）
@@ -298,6 +358,7 @@ function toggleBGM() {
 
 // 初期化
 function init() {
+    ensureLotteryTables(); // 16384配列を保証
     loadGameState();
     setupReels();
     updateUI();
@@ -323,6 +384,17 @@ function init() {
     // BGM Toggle
     btnBgm.addEventListener('click', toggleBGM);
 
+    // Setting Selector
+    if (settingSelect) {
+        settingSelect.value = state.currentSetting || 1;
+        settingSelect.addEventListener('change', (e) => {
+            initAudio();
+            state.currentSetting = parseInt(e.target.value, 10);
+            saveGameState();
+            ensureLotteryTables(); // 設定変更時にテーブル再生成
+        });
+    }
+
     // OPTIONS Modal
     btnOptions.addEventListener('click', () => {
         initAudio();
@@ -332,6 +404,51 @@ function init() {
         initAudio();
         optionsModal.classList.add('hidden');
     });
+    
+
+    // Reset Game State
+    if (btnResetState) {
+        btnResetState.addEventListener('click', () => {
+            if (confirm("クレジットやボーナスなどの状態をすべて初期化しますか？")) {
+                localStorage.removeItem(SAVE_KEY);
+                state.credit = 50;
+                state.bet = 0;
+                state.isGameActive = false;
+                state.isAutoMode = false;
+                if (state.autoPlayTimeoutId) clearTimeout(state.autoPlayTimeoutId);
+                state.autoPlayTimeoutId = null;
+                state.autoStopTarget = null;
+                state.isReplay = false;
+                state.currentFlag = FLAGS.HAZE;
+                state.heldBonusFlag = 0;
+                
+                for (let i = 0; i < 3; i++) {
+                    if (state.animationIds[i]) {
+                        cancelAnimationFrame(state.animationIds[i]);
+                        state.animationIds[i] = null;
+                    }
+                    state.reelsSpinning[i] = false;
+                    state.slipPixels[i] = null;
+                    btnStops[i].disabled = true;
+                    
+                    state.reelOffsets[i] = -(REEL_SYMBOLS * SYMBOL_SIZE);
+                    updateReelPosition(i);
+                    state.stoppedSymbols[i] = null;
+                    if (elSlipDisplays[i]) elSlipDisplays[i].textContent = '-';
+                }
+                
+                elMessage.textContent = 'GAME RESET';
+                btnMaxBet.disabled = false;
+                btnMaxBet.textContent = 'MAX BET (3)';
+                btnAuto.classList.remove('btn-auto-active');
+                btnAuto.textContent = 'AUTO';
+                
+                updateLamp();
+                updateUI();
+                optionsModal.classList.add('hidden');
+            }
+        });
+    }
 
     // Add Credit
     if (btnAddCredit) {
@@ -397,6 +514,26 @@ function updateReelPosition(reelIndex) {
 }
 
 // MAX BET処理
+function updateUI() {
+    elCredit.textContent = state.credit;
+    if (elHeaderCredit) elHeaderCredit.textContent = state.credit;
+    if (state.isReplay) {
+        btnMaxBet.textContent = 'SPIN (REPLAY)';
+    } else {
+        btnMaxBet.textContent = state.bet === 3 ? 'SPIN (MAX)' : 'MAX BET (3)';
+    }
+    btnMaxBet.disabled = (state.credit < 3 && !state.isReplay) || state.isGameActive;
+    
+    // オートモード中のボタン表示
+    btnAuto.textContent = state.isAutoMode ? 'AUTO: ON' : 'AUTO';
+    
+    // G数表示更新
+    const gDisp = document.getElementById('g-display');
+    if (gDisp) {
+        gDisp.textContent = `${state.mode} - ${state.spinCount}G`;
+    }
+}
+
 function onMaxBet() {
     if (state.isGameActive) return;
     
@@ -426,12 +563,15 @@ function updateLamp() {
     const lamp = document.getElementById('bonus-lamp');
     if (!lamp) return;
     lamp.classList.remove('lamp-big', 'lamp-reg');
-    if (state.heldBonusFlag === FLAGS.BIG_BONUS) {
+    if (state.heldBonusFlag >= FLAGS.BB_A && state.heldBonusFlag <= FLAGS.BB_D) {
         lamp.classList.add('lamp-big');
-    } else if (state.heldBonusFlag === FLAGS.REG_BONUS) {
+    } else if (state.heldBonusFlag >= FLAGS.RB_A && state.heldBonusFlag <= FLAGS.RB_B) {
         lamp.classList.add('lamp-reg');
     }
 }
+
+// モードと天井の定義
+const CEILINGS = { 'A': 999, 'B': 555, 'C': 333, 'D': 100 };
 
 // 内部抽選
 function drawLottery() {
@@ -439,7 +579,8 @@ function drawLottery() {
     const debugForce = document.getElementById('debug-force-flag');
     if (debugForce && debugForce.value !== "-1") {
         state.currentFlag = parseInt(debugForce.value, 10);
-        if (state.currentFlag === FLAGS.BIG_BONUS || state.currentFlag === FLAGS.REG_BONUS) {
+        if ((state.currentFlag >= FLAGS.BB_A && state.currentFlag <= FLAGS.BB_D) || 
+            (state.currentFlag >= FLAGS.RB_A && state.currentFlag <= FLAGS.RB_B)) {
             state.heldBonusFlag = state.currentFlag;
         }
         updateLamp();
@@ -449,36 +590,38 @@ function drawLottery() {
     // ボーナス持ち越し中
     if (state.heldBonusFlag) {
         state.currentFlag = state.heldBonusFlag;
-        // 実機ではリプレイ等の小役と重複するが、ここではボーナス最優先とする
         updateLamp();
         return;
     }
 
-    const rng = Math.floor(Math.random() * 16384) + 1;
-    state.currentRNG = rng;
-    
-    // 確率テーブル
-    // REPLAY: 約1/7.3 (2244)
-    // CHERRY: 約1/32 (512)
-    // WATERMELON: 約1/64 (256)
-    // STAR: 約1/128 (128)
-    // BIG_BONUS: 約1/409.6 (40)
-    // REG_BONUS: 約1/682.6 (24)
-    
-    if (rng <= 2244) state.currentFlag = FLAGS.REPLAY;
-    else if (rng <= 2756) state.currentFlag = FLAGS.CHERRY;
-    else if (rng <= 3012) state.currentFlag = FLAGS.WATERMELON;
-    else if (rng <= 3140) state.currentFlag = FLAGS.STAR;
-    else if (rng <= 3180) {
-        state.currentFlag = FLAGS.BIG_BONUS;
-        state.heldBonusFlag = FLAGS.BIG_BONUS;
+    // ゲーム数加算と天井判定
+    state.spinCount++;
+    const ceiling = CEILINGS[state.mode] || 999;
+    if (state.spinCount >= ceiling) {
+        // 天井恩恵：BIG:REG = 1:1 （とりあえず BB_A と RB_A をセット）
+        let forced = Math.random() < 0.5 ? FLAGS.BB_A : FLAGS.RB_A;
+        state.currentFlag = forced;
+        state.heldBonusFlag = forced;
+        updateLamp();
+        return;
     }
-    else if (rng <= 3204) {
-        state.currentFlag = FLAGS.REG_BONUS;
-        state.heldBonusFlag = FLAGS.REG_BONUS;
-    }
-    else state.currentFlag = FLAGS.HAZE;
 
+    const rng = Math.floor(Math.random() * 16384);
+    state.currentRNG = rng + 1; // UI表示用に1~16384とする
+    
+    if (!state.currentLotteryTable || state.currentLotteryTable.length !== 16384) {
+        ensureLotteryTables();
+    }
+    
+    // テーブルからフラグを取得
+    state.currentFlag = state.currentLotteryTable[rng];
+    
+    if (state.currentFlag >= FLAGS.BB_A && state.currentFlag <= FLAGS.BB_D) {
+        state.heldBonusFlag = state.currentFlag;
+    } else if (state.currentFlag >= FLAGS.RB_A && state.currentFlag <= FLAGS.RB_B) {
+        state.heldBonusFlag = state.currentFlag;
+    }
+    
     updateLamp();
 }
 
@@ -487,8 +630,14 @@ function updateDebugUI() {
     const elFlag = document.getElementById('debug-flag');
     if (elRng && elFlag) {
         elRng.textContent = state.currentRNG;
-        const flagNames = ['HAZE', 'REPLAY', 'CHERRY', 'WATERMELON', 'STAR', 'BIG_BONUS', 'REG_BONUS'];
-        elFlag.textContent = flagNames[state.currentFlag] || 'UNKNOWN';
+        let foundKey = 'UNKNOWN';
+        for (const [key, value] of Object.entries(FLAGS)) {
+            if (value === state.currentFlag) {
+                foundKey = key;
+                break;
+            }
+        }
+        elFlag.textContent = foundKey;
     }
 }
 
@@ -504,6 +653,7 @@ function onLever() {
     
     state.stoppedSymbols = [null, null, null];
     state.slipPixels = [null, null, null];
+    elSlipDisplays.forEach(el => { if (el) el.textContent = '-'; });
     
     // 全リール回転
     for (let i = 0; i < 3; i++) {
@@ -537,11 +687,10 @@ function startSpinning(reelIndex) {
         
         let move = speedPerMs * deltaTime;
         
-        // オートプレイ時の目押し（ターゲットが近づいたらストップ）
+        // オートプレイ時の目押し（指定時間経過後にセットされたターゲットが近づいたらストップ）
         if (state.isAutoMode && state.autoStopTarget && state.autoStopTarget[reelIndex] !== undefined) {
             const tIdx = state.autoStopTarget[reelIndex];
             
-            // ターゲット図柄が中段付近に来る理想のoffset
             let idealOffset = -(tIdx - 1) * SYMBOL_SIZE;
             idealOffset = idealOffset % pixelsPerRotation;
             if (idealOffset > 0) idealOffset -= pixelsPerRotation;
@@ -556,25 +705,6 @@ function startSpinning(reelIndex) {
             if (diff <= move * 1.5 + 20) {
                 delete state.autoStopTarget[reelIndex];
                 onStop(reelIndex);
-            }
-        }
-        
-        // オートプレイ時の強制ストップ（何らかの理由で止まらない場合のフェイルセーフ）
-        if (state.isAutoMode && (timestamp - spinStartTime > 2000) && state.slipPixels[reelIndex] === null) {
-            if (state.autoStopTarget) delete state.autoStopTarget[reelIndex];
-            try {
-                onStop(reelIndex);
-            } catch(e) { console.error(e); }
-            
-            // onStopがエラーで失敗した場合の究極のフォールバック
-            if (state.slipPixels[reelIndex] === null) {
-                state.slipPixels[reelIndex] = 0;
-                let fallbackIdx = Math.floor(Math.abs(state.reelOffsets[reelIndex]) / SYMBOL_SIZE) % REEL_SYMBOLS;
-                state.stoppedSymbols[reelIndex] = [
-                    reelStrips[reelIndex][fallbackIdx],
-                    reelStrips[reelIndex][(fallbackIdx + 1) % REEL_SYMBOLS],
-                    reelStrips[reelIndex][(fallbackIdx + 2) % REEL_SYMBOLS]
-                ];
             }
         }
         
@@ -617,45 +747,76 @@ function checkSlipValidity(reelIndex, testSymbols, flag, stoppedState) {
         if (i === reelIndex) st.push(testSymbols);
         else st.push(stoppedState[i]);
     }
-    
+
+    let isCherryFlag = (flag >= FLAGS.CHERRY_A && flag <= FLAGS.CHERRY_C);
     let hasCherry = testSymbols.includes('CHERRY');
+
     if (reelIndex === 0) {
-        if (flag === FLAGS.CHERRY && !hasCherry) return false;
-        if (flag !== FLAGS.CHERRY && hasCherry) return false;
+        if (!isCherryFlag && hasCherry) return false; // チェリー以外のフラグ時に左リールにチェリーを止めない
     }
 
     const lines = [
-        [st[0]?.[1], st[1]?.[1], st[2]?.[1]],
-        [st[0]?.[0], st[1]?.[0], st[2]?.[0]],
-        [st[0]?.[2], st[1]?.[2], st[2]?.[2]],
-        [st[0]?.[0], st[1]?.[1], st[2]?.[2]],
-        [st[0]?.[2], st[1]?.[1], st[0]?.[0]] // Diag Up (fixed) -> [st[0]?.[2], st[1]?.[1], st[2]?.[0]]
+        [st[0]?.[1], st[1]?.[1], st[2]?.[1]], // 0: 中段
+        [st[0]?.[0], st[1]?.[0], st[2]?.[0]], // 1: 上段
+        [st[0]?.[2], st[1]?.[2], st[2]?.[2]], // 2: 下段
+        [st[0]?.[0], st[1]?.[1], st[2]?.[2]], // 3: 右下がり
+        [st[0]?.[2], st[1]?.[1], st[2]?.[0]]  // 4: 右上がり
     ];
-    lines[4] = [st[0]?.[2], st[1]?.[1], st[2]?.[0]];
 
     let completedWins = [];
-    for (let line of lines) {
+    for (let l = 0; l < 5; l++) {
+        let line = lines[l];
         if (line[0] && line[1] && line[2]) {
-            if (line[0] === line[1] && line[1] === line[2]) {
-                completedWins.push(line[0]);
+            for (let f in WIN_COMBOS) {
+                let combo = WIN_COMBOS[f];
+                if (combo.isReachMe) continue;
+                
+                let match = true;
+                for (let r = 0; r < 3; r++) {
+                    if (combo.symbols[r] === null) continue;
+                    if (Array.isArray(combo.symbols[r])) {
+                        if (!combo.symbols[r].includes(line[r])) match = false;
+                    } else {
+                        if (line[r] !== combo.symbols[r]) match = false;
+                    }
+                }
+                if (match) {
+                    if (combo.validLines.includes(l)) {
+                        completedWins.push(parseInt(f, 10));
+                    }
+                }
             }
         }
     }
     
-    if (flag === FLAGS.HAZE && completedWins.length > 0) return false;
+    // ハズレ・リーチ目時に、小役が揃うのはNG（ただし、持ち越しボーナスなら揃ってOK）
+    if ((flag === FLAGS.HAZE || (flag >= FLAGS.CHANCE_A && flag <= FLAGS.CHANCE_C)) && completedWins.length > 0) {
+        let onlyHeldBonus = true;
+        for (let winFlag of completedWins) {
+            if (winFlag !== state.heldBonusFlag) {
+                onlyHeldBonus = false;
+                break;
+            }
+        }
+        if (!onlyHeldBonus) return false;
+    }
     
-    let targetSyms = WIN_SYMBOLS[flag] || [];
-    for (let win of completedWins) {
-        if (!targetSyms.includes(win)) return false;
+    // 指定フラグ以外が揃うのはNG（ただし、持ち越しボーナスならOK）
+    for (let winFlag of completedWins) {
+        if (winFlag !== flag && winFlag !== state.heldBonusFlag) return false;
     }
     
     return true;
 }
 
 function scoreSlip(reelIndex, testSymbols, flag, stoppedState) {
-    if (!checkSlipValidity(reelIndex, testSymbols, flag, stoppedState)) return -1; 
+    if (!checkSlipValidity(reelIndex, testSymbols, flag, stoppedState)) return -1;
     if (flag === FLAGS.HAZE) return 0;
-    if (flag === FLAGS.CHERRY && reelIndex === 0) return testSymbols.includes('CHERRY') ? 100 : 0;
+    
+    let isCherryFlag = (flag >= FLAGS.CHERRY_A && flag <= FLAGS.CHERRY_C);
+    if (isCherryFlag && reelIndex === 0) {
+        return testSymbols.includes('CHERRY') ? 100 : 0;
+    }
     
     let st = [];
     for(let i=0; i<3; i++) {
@@ -668,79 +829,129 @@ function scoreSlip(reelIndex, testSymbols, flag, stoppedState) {
         [st[0]?.[0], st[1]?.[0], st[2]?.[0]],
         [st[0]?.[2], st[1]?.[2], st[2]?.[2]],
         [st[0]?.[0], st[1]?.[1], st[2]?.[2]],
-        [st[0]?.[2], st[1]?.[1], st[2]?.[0]]
+        [st[0]?.[2], st[1]?.[1], st[0]?.[0]]
     ];
 
-    let targetSyms = WIN_SYMBOLS[flag] || [];
-    let score = 0;
+    let combo = WIN_COMBOS[flag];
+    if (!combo) return 0;
     
-    for (let line of lines) {
+    if (combo.isReachMe) {
+        // リーチ目は適当に止める（後で調整可能）
+        return 0;
+    }
+
+    let score = 0;
+    for (let l = 0; l < 5; l++) {
+        if (!combo.validLines.includes(l)) continue;
+        
+        let line = lines[l];
         let targetCount = 0;
         let isPossible = true;
-        let firstTarget = null;
-        for (let i=0; i<3; i++) {
-            if (line[i]) {
-                if (targetSyms.includes(line[i])) {
-                    if (firstTarget === null) firstTarget = line[i];
-                    if (line[i] === firstTarget) {
-                        targetCount++;
-                    } else {
-                        isPossible = false; // RED7とBLUE7が混ざった場合など
-                    }
+        
+        for (let r = 0; r < 3; r++) {
+            let target = combo.symbols[r];
+            if (target === null) {
+                targetCount++;
+                continue;
+            }
+            if (line[r]) {
+                if (Array.isArray(target)) {
+                    if (target.includes(line[r])) targetCount++;
+                    else isPossible = false;
                 } else {
-                    isPossible = false;
+                    if (line[r] === target) targetCount++;
+                    else isPossible = false;
                 }
             }
         }
+        
         if (isPossible && targetCount > 0) {
-            score += Math.pow(10, targetCount); 
+            score += Math.pow(10, targetCount);
         }
     }
+    
+    if (reelIndex === 0 && !isCherryFlag) {
+        let symsToPull = [];
+        if (combo.symbols[0]) {
+            if (Array.isArray(combo.symbols[0])) symsToPull = combo.symbols[0];
+            else symsToPull = [combo.symbols[0]];
+        }
+        for (let sym of symsToPull) {
+            if (testSymbols.includes(sym)) {
+                score += 5;
+                break;
+            }
+        }
+    }
+    
     return score;
 }
 
 // ストップボタン処理
 function onStop(reelIndex) {
-    if (!state.reelsSpinning[reelIndex]) return;
-    btnStops[reelIndex].disabled = true;
-    
-    let baseIdx = Math.floor(Math.abs(state.reelOffsets[reelIndex]) / SYMBOL_SIZE);
-    
-    let bestSlip = 0;
-    let maxScore = -999;
-    
-    for (let k = 0; k <= 4; k++) {
-        let testIdx = (baseIdx - k + REEL_SYMBOLS) % REEL_SYMBOLS;
-        let testSymbols = [
-            reelStrips[reelIndex][testIdx],
-            reelStrips[reelIndex][(testIdx + 1) % REEL_SYMBOLS],
-            reelStrips[reelIndex][(testIdx + 2) % REEL_SYMBOLS]
+    try {
+        if (!state.reelsSpinning[reelIndex]) return;
+        btnStops[reelIndex].disabled = true;
+        
+        let baseIdx = Math.floor(Math.abs(state.reelOffsets[reelIndex]) / SYMBOL_SIZE);
+        
+        let bestSlip = 0;
+        let maxScore = -999;
+        
+        // スベリ限界は絶対に4コマ（ルール厳守）
+        let maxSlip = 4;
+        
+        for (let k = 0; k <= maxSlip; k++) {
+            let testIdx = (baseIdx - k + REEL_SYMBOLS) % REEL_SYMBOLS;
+            let testSymbols = [
+                reelStrips[reelIndex][testIdx],
+                reelStrips[reelIndex][(testIdx + 1) % REEL_SYMBOLS],
+                reelStrips[reelIndex][(testIdx + 2) % REEL_SYMBOLS]
+            ];
+            
+            let score = scoreSlip(reelIndex, testSymbols, state.currentFlag, state.stoppedSymbols);
+            
+            if (score > maxScore) {
+                maxScore = score;
+                bestSlip = k;
+            }
+        }
+        
+        // スリップを適用
+        let finalIdx = (baseIdx - bestSlip + REEL_SYMBOLS) % REEL_SYMBOLS;
+        
+        if (elSlipDisplays[reelIndex]) {
+            elSlipDisplays[reelIndex].textContent = bestSlip;
+        }
+        
+        state.stoppedSymbols[reelIndex] = [
+            reelStrips[reelIndex][finalIdx],
+            reelStrips[reelIndex][(finalIdx + 1) % REEL_SYMBOLS],
+            reelStrips[reelIndex][(finalIdx + 2) % REEL_SYMBOLS]
         ];
         
-        let score = scoreSlip(reelIndex, testSymbols, state.currentFlag, state.stoppedSymbols);
-        
-        if (score > maxScore) {
-            maxScore = score;
-            bestSlip = k;
+        let currentAbsOffset = Math.abs(state.reelOffsets[reelIndex]);
+        let targetAbsOffset = finalIdx * SYMBOL_SIZE;
+        let distance = currentAbsOffset - targetAbsOffset;
+        if (distance < 0) {
+            distance += REEL_SYMBOLS * SYMBOL_SIZE;
         }
+        
+        state.slipPixels[reelIndex] = distance;
+    } catch (e) {
+        console.error("FATAL ERROR in onStop:", e);
+        // フォールバック: 即座に止める
+        state.slipPixels[reelIndex] = 0;
+        if (elSlipDisplays[reelIndex]) {
+            elSlipDisplays[reelIndex].textContent = 0;
+        }
+        let fallbackIdx = Math.floor(Math.abs(state.reelOffsets[reelIndex]) / SYMBOL_SIZE) % REEL_SYMBOLS;
+        state.stoppedSymbols[reelIndex] = [
+            reelStrips[reelIndex][fallbackIdx],
+            reelStrips[reelIndex][(fallbackIdx + 1) % REEL_SYMBOLS],
+            reelStrips[reelIndex][(fallbackIdx + 2) % REEL_SYMBOLS]
+        ];
     }
-    
-    // スリップを適用
-    let finalIdx = (baseIdx - bestSlip + REEL_SYMBOLS) % REEL_SYMBOLS;
-    state.stoppedSymbols[reelIndex] = [
-        reelStrips[reelIndex][finalIdx],
-        reelStrips[reelIndex][(finalIdx + 1) % REEL_SYMBOLS],
-        reelStrips[reelIndex][(finalIdx + 2) % REEL_SYMBOLS]
-    ];
-    
-    let currentAbsOffset = Math.abs(state.reelOffsets[reelIndex]);
-    let targetAbsOffset = finalIdx * SYMBOL_SIZE;
-    let distance = currentAbsOffset - targetAbsOffset;
-    if (distance < 0) {
-        distance += REEL_SYMBOLS * SYMBOL_SIZE;
-    }
-    
-    state.slipPixels[reelIndex] = distance;
 }
 
 // 全リール停止判定
@@ -779,46 +990,84 @@ function evaluateWin() {
     
     let totalPayout = 0;
     let isReplay = false;
+    let bonusWon = false;
     
-    lines.forEach(line => {
-        if (line[0] === line[1] && line[1] === line[2]) {
-            const sym = line[0];
-            if (sym === 'RED7' || sym === 'BLUE7') {
-                totalPayout += 15; 
-                state.heldBonusFlag = 0; // ボーナス消化
-                updateLamp();
-            }
-            else if (sym === 'BAR') {
-                totalPayout += 15; // REGもとりあえず15枚とする
-                state.heldBonusFlag = 0; // ボーナス消化
-                updateLamp();
-            }
-            else if (sym === 'STAR') totalPayout += 10;
-            else if (sym === 'WATERMELON') totalPayout += 9; // ディスクはスイカ9枚
-            else if (sym === 'CHERRY') totalPayout += 4;
-            else if (sym === 'REPLAY') isReplay = true;
-        }
-    });
-
-    // チェリー判定 (左リールにチェリーが出現すれば払い出し)
+    // チェリー判定 (左リール枠内にチェリーがあれば払い出し)
+    let cherryWin = false;
     if (indices[0][0] === 'CHERRY' || indices[0][1] === 'CHERRY' || indices[0][2] === 'CHERRY') {
-        // パチスロの角チェリー/中段チェリーとして4枚払い出し
-        totalPayout += 4;
+        cherryWin = true;
+    }
+    
+    for (let l = 0; l < 5; l++) {
+        let line = lines[l];
+        if (!line[0] || !line[1] || !line[2]) continue;
+        
+        for (let f in WIN_COMBOS) {
+            let combo = WIN_COMBOS[f];
+            if (combo.isReachMe) continue;
+            if (!combo.validLines.includes(l)) continue;
+            
+            let match = true;
+            for (let r = 0; r < 3; r++) {
+                if (combo.symbols[r] === null) continue;
+                if (Array.isArray(combo.symbols[r])) {
+                    if (!combo.symbols[r].includes(line[r])) match = false;
+                } else {
+                    if (line[r] !== combo.symbols[r]) match = false;
+                }
+            }
+            
+            if (match) {
+                let flagId = parseInt(f, 10);
+                if (flagId >= FLAGS.BB_A && flagId <= FLAGS.BB_D) {
+                    totalPayout += CONFIG.payouts.BIG;
+                    bonusWon = true;
+                } else if (flagId >= FLAGS.RB_A && flagId <= FLAGS.RB_B) {
+                    totalPayout += CONFIG.payouts.REG;
+                    bonusWon = true;
+                } else if (flagId >= FLAGS.REPLAY_A && flagId <= FLAGS.REPLAY_C) {
+                    isReplay = true;
+                } else if (flagId >= FLAGS.BELL_A && flagId <= FLAGS.BELL_C) {
+                    totalPayout += CONFIG.payouts.STAR;
+                } else if (flagId >= FLAGS.SUICA_A && flagId <= FLAGS.SUICA_C) {
+                    totalPayout += CONFIG.payouts.WATERMELON;
+                }
+                // チェリーは個別で判定済みなのでライン判定での加算はしない
+            }
+        }
+    }
+    
+    if (cherryWin) {
+        totalPayout += CONFIG.payouts.CHERRY;
+    }
+    
+    if (bonusWon) {
+        state.heldBonusFlag = 0;
+        state.spinCount = 0; // ボーナス終了でG数リセット
+        
+        // モード移行（均等にランダムでA〜Dへ）
+        const rnd = Math.random();
+        if (rnd < 0.25) state.mode = 'A';
+        else if (rnd < 0.5) state.mode = 'B';
+        else if (rnd < 0.75) state.mode = 'C';
+        else state.mode = 'D';
+        
+        updateLamp();
     }
     
     if (totalPayout > 0) {
         playSoundWin();
         state.credit += totalPayout;
         elPayout.textContent = totalPayout;
+        if (elHeaderPayout) elHeaderPayout.textContent = totalPayout;
         elMessage.textContent = `WIN! +${totalPayout}`;
         elMessage.classList.add('flash');
-        setTimeout(() => {
-            elMessage.classList.remove('flash');
-            if (state.isAutoMode) triggerNextAutoAction();
-        }, 2000);
+        setTimeout(() => elMessage.classList.remove('flash'), CONFIG.timings.nextWin);
+        if (state.isAutoMode) triggerNextAutoAction();
     } else if (isReplay) {
         playSoundReplay();
         elPayout.textContent = 0;
+        if (elHeaderPayout) elHeaderPayout.textContent = 0;
         elMessage.textContent = 'REPLAY!';
         elMessage.classList.add('flash');
         // リプレイはクレジットを減らさずに再度回せる（自動MAX BET状態）
@@ -827,13 +1076,12 @@ function evaluateWin() {
         btnMaxBet.disabled = false;
         btnMaxBet.textContent = 'SPIN (REPLAY)';
         updateUI();
-        setTimeout(() => {
-            elMessage.classList.remove('flash');
-            if (state.isAutoMode) triggerNextAutoAction();
-        }, 2000);
+        setTimeout(() => elMessage.classList.remove('flash'), CONFIG.timings.nextWin);
+        if (state.isAutoMode) triggerNextAutoAction();
         return; // リプレイ時はここで終了
     } else {
         elPayout.textContent = 0;
+        if (elHeaderPayout) elHeaderPayout.textContent = 0;
         elMessage.textContent = 'GAME OVER';
         if (state.isAutoMode) triggerNextAutoAction();
     }
@@ -870,73 +1118,69 @@ function triggerNextAutoAction() {
     }
     
     if (state.isGameActive) {
-        // 回転中のリールを止める（左から順に）
-        const spinningIndex = state.reelsSpinning.findIndex(s => s === true && state.slipPixels[s] === null);
+        // 回転中のリールを止める（左から順に1つだけ）
+        const spinningIndex = state.reelsSpinning.findIndex((s, idx) => s === true && state.slipPixels[idx] === null);
         if (spinningIndex !== -1) {
-            try {
-                if (!state.autoStopTarget) state.autoStopTarget = {};
+            // 回転開始後（第1リール）は設定値1、それ以降は設定値2, 3の間隔でアクションを起こす
+            let delay = CONFIG.timings.reel1;
+            if (spinningIndex === 1) delay = CONFIG.timings.reel2;
+            else if (spinningIndex === 2) delay = CONFIG.timings.reel3;
+            
+            state.autoPlayTimeoutId = setTimeout(() => {
+                if (!state.isAutoMode || !state.reelsSpinning[spinningIndex]) return;
                 
                 const flag = state.currentFlag;
-                if (flag === FLAGS.HAZE) {
-                    // ハズレ時は適当に（少し遅延させて）止める
-                    state.autoPlayTimeoutId = setTimeout(() => {
-                        if (state.isAutoMode && state.reelsSpinning[spinningIndex]) {
-                            onStop(spinningIndex);
+                const needsMeoshi = (
+                    (flag >= FLAGS.BB_A && flag <= FLAGS.BB_D) ||
+                    (flag >= FLAGS.RB_A && flag <= FLAGS.RB_B) ||
+                    (flag >= FLAGS.CHERRY_A && flag <= FLAGS.CHERRY_C) ||
+                    (flag >= FLAGS.SUICA_A && flag <= FLAGS.SUICA_C) ||
+                    (flag >= FLAGS.BELL_A && flag <= FLAGS.BELL_C) ||
+                    (flag >= FLAGS.REPLAY_A && flag <= FLAGS.REPLAY_C)
+                );
+                
+                if (needsMeoshi) {
+                    try {
+                        if (!state.autoStopTarget) state.autoStopTarget = {};
+                        
+                        let combo = WIN_COMBOS[flag];
+                        let targets = [];
+                        
+                        if (combo && combo.symbols && combo.symbols[spinningIndex]) {
+                            let sym = combo.symbols[spinningIndex];
+                            if (Array.isArray(sym)) {
+                                targets = [...sym];
+                            } else {
+                                targets.push(sym);
+                            }
                         }
-                    }, 300);
-                } else {
-                    // 目押しターゲットを設定
-                    let targets = WIN_SYMBOLS[flag] || [];
-                    
-                    // 既に停止しているリールがある場合、その図柄に絞る（RED7とBLUE7が混ざるのを防ぐため）
-                    for (let r = 0; r < 3; r++) {
-                        if (state.stoppedSymbols[r]) {
-                            let found = null;
-                            for (let sym of state.stoppedSymbols[r]) {
-                                if (targets.includes(sym)) {
-                                    found = sym;
+                        
+                        // 既に停止しているリールから絞り込む必要は基本的に無い（WIN_COMBOSでリール毎に指定済みのため）
+
+                        
+                        const strip = reelStrips[spinningIndex];
+                        let tIdx = -1;
+                        if (targets.length > 0) {
+                            for (let j = 0; j < strip.length; j++) {
+                                if (targets.includes(strip[j])) {
+                                    tIdx = j;
                                     break;
                                 }
                             }
-                            if (found) {
-                                targets = [found];
-                                break;
-                            }
                         }
-                    }
-                    
-                    const strip = reelStrips[spinningIndex];
-                    let tIdx = -1;
-                    if (targets.length > 0) {
-                        for (let j = 0; j < strip.length; j++) {
-                            if (targets.includes(strip[j])) {
-                                tIdx = j;
-                                break;
-                            }
+                        
+                        if (tIdx !== -1) {
+                            // 目押しが必要な場合はターゲットをセットし、startSpinningに任せる
+                            state.autoStopTarget[spinningIndex] = tIdx;
+                            return;
                         }
-                    }
-                    
-                    if (tIdx !== -1) {
-                        state.autoStopTarget[spinningIndex] = tIdx;
-                        // startSpinning 内のループでターゲット到達時に自動的に onStop が呼ばれる
-                    } else {
-                        // ターゲットが無い場合は適当に止める
-                        state.autoPlayTimeoutId = setTimeout(() => {
-                            if (state.isAutoMode && state.reelsSpinning[spinningIndex]) {
-                                onStop(spinningIndex);
-                            }
-                        }, 300);
-                    }
+                    } catch (e) { console.error(e); }
                 }
-            } catch (e) {
-                console.error("triggerNextAutoAction error:", e);
-                // エラー発生時はフェイルセーフとして300ms後に強制ストップ
-                state.autoPlayTimeoutId = setTimeout(() => {
-                    if (state.isAutoMode && state.reelsSpinning[spinningIndex]) {
-                        onStop(spinningIndex);
-                    }
-                }, 300);
-            }
+                
+                // ハズレや目押し不要な小役（リプレイ、ベル等）は即ストップ
+                try { onStop(spinningIndex); } catch(e) { console.error(e); }
+                
+            }, delay);
         }
     } else {
         // 次のゲーム開始
@@ -951,7 +1195,7 @@ function triggerNextAutoAction() {
                     onAutoToggle();
                 }
             }
-        }, 800); // 次のゲームまでの間隔
+        }, CONFIG.timings.next);
     }
 }
 
@@ -959,6 +1203,31 @@ function updateUI() {
     elCredit.textContent = state.credit;
     saveGameState();
 }
+
+// ウィンドウサイズに応じたスケール調整
+function resizeGame() {
+    const gameContainer = document.getElementById('game-container');
+    if (!gameContainer) return;
+    
+    // ベースとなる解像度（元々のCSSの想定サイズ）
+    const baseWidth = 770; 
+    const baseHeight = 850; 
+    
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    
+    const scaleX = windowWidth / baseWidth;
+    const scaleY = windowHeight / baseHeight;
+    // 画面内に収めるためのスケール比率
+    const scale = Math.min(scaleX, scaleY) * 0.98; 
+    
+    gameContainer.style.transform = `scale(${scale})`;
+}
+
+window.addEventListener('resize', resizeGame);
+window.addEventListener('DOMContentLoaded', resizeGame);
+// 初期実行
+resizeGame();
 
 // 起動
 init();

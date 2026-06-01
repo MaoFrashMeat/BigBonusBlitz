@@ -16,10 +16,14 @@
         <header id="header">
             <div class="logo">BigBonusBlitz</div>
             <div class="message-box" id="message-display">
-                WELCOME TO BIG BONUS BLITZ!
+                ビッグボーナスブリッツへようこそ！
             </div>
             
-            <button id="btn-paytable" class="btn btn-action" style="margin-left: auto; font-size: 14px; padding: 5px 10px;">PAYTABLE</button>
+            <button id="btn-paytable" class="btn btn-action" style="font-size:12px; padding:5px 10px;">PAYTABLE</button>
+            <div style="flex:1; text-align:right;">
+                <span style="font-size:14px; margin-right:10px;">CREDIT: <span id="header-credit">50</span></span>
+                <span style="font-size:14px;">PAYOUT: <span id="header-payout">0</span></span>
+            </div>
         </header>
 
         <!-- メイン画面：キャラとスロット -->
@@ -33,17 +37,26 @@
             <!-- スロットエリア -->
             <section id="slot-area">
                 <div class="reels-container">
-                    <div class="reel" id="reel-left">
-                        <div class="reel-strip" id="strip-left"></div>
-                        <div class="reel-overlay"></div>
+                    <div class="reel-wrapper">
+                        <div class="reel" id="reel-left">
+                            <div class="reel-strip" id="strip-left"></div>
+                            <div class="reel-overlay"></div>
+                        </div>
+                        <div class="slip-display" id="slip-display-0">-</div>
                     </div>
-                    <div class="reel" id="reel-center">
-                        <div class="reel-strip" id="strip-center"></div>
-                        <div class="reel-overlay"></div>
+                    <div class="reel-wrapper">
+                        <div class="reel" id="reel-center">
+                            <div class="reel-strip" id="strip-center"></div>
+                            <div class="reel-overlay"></div>
+                        </div>
+                        <div class="slip-display" id="slip-display-1">-</div>
                     </div>
-                    <div class="reel" id="reel-right">
-                        <div class="reel-strip" id="strip-right"></div>
-                        <div class="reel-overlay"></div>
+                    <div class="reel-wrapper">
+                        <div class="reel" id="reel-right">
+                            <div class="reel-strip" id="strip-right"></div>
+                            <div class="reel-overlay"></div>
+                        </div>
+                        <div class="slip-display" id="slip-display-2">-</div>
                     </div>
                     
                     <!-- ペイライン表示用 -->
@@ -67,22 +80,41 @@
                     <span class="label">PAYOUT</span>
                     <span id="payout-display">0</span>
                 </div>
+                <div class="info-box">
+                    <span class="label">STATE</span>
+                    <span id="g-display">A - 0G</span>
+                </div>
                 
                 <!-- Debug Panel moved here -->
-                <div id="debug-panel" class="info-box" style="flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; padding: 2px 5px; background: rgba(0,0,0,0.5); border: 1px dashed #555; margin-left: 10px; width: auto;">
-                    <select id="debug-force-flag" style="background:#222; color:#0f0; border:1px solid #555; padding:1px; font-size:10px; width:100px;">
+                <div id="debug-panel" class="info-box" style="flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; padding: 2px 5px; background: rgba(0,0,0,0.5); border: 1px dashed #555; margin-top: 5px; width: 140px; box-sizing: border-box; overflow: hidden;">
+                    <select id="debug-force-flag" style="background:#222; color:#0f0; border:1px solid #555; padding:1px; font-size:10px; width:100%; box-sizing: border-box;">
                         <option value="-1">NORMAL RNG</option>
                         <option value="0">HAZE (0)</option>
-                        <option value="1">REPLAY (1)</option>
-                        <option value="2">CHERRY (2)</option>
-                        <option value="3">WATER (3)</option>
-                        <option value="4">STAR (4)</option>
-                        <option value="5">BIG BONUS</option>
-                        <option value="6">REG BONUS</option>
+                        <option value="1">BB_A (1)</option>
+                        <option value="2">BB_B (2)</option>
+                        <option value="3">BB_C (3)</option>
+                        <option value="4">BB_D (4)</option>
+                        <option value="5">RB_A (5)</option>
+                        <option value="6">RB_B (6)</option>
+                        <option value="7">REPLAY_A (7)</option>
+                        <option value="8">REPLAY_B (8)</option>
+                        <option value="9">REPLAY_C (9)</option>
+                        <option value="10">BELL_A (10)</option>
+                        <option value="11">BELL_B (11)</option>
+                        <option value="12">BELL_C (12)</option>
+                        <option value="13">CHERRY_A (13)</option>
+                        <option value="14">CHERRY_B (14)</option>
+                        <option value="15">CHERRY_C (15)</option>
+                        <option value="16">SUICA_A (16)</option>
+                        <option value="17">SUICA_B (17)</option>
+                        <option value="18">SUICA_C (18)</option>
+                        <option value="19">CHANCE_A (19)</option>
+                        <option value="20">CHANCE_B (20)</option>
+                        <option value="21">CHANCE_C (21)</option>
                     </select>
-                    <div style="font-size:10px; color:#fff; display:flex; gap:5px;">
-                        <span>RNG: <span id="debug-rng">-</span></span>
-                        <span>FLG: <span id="debug-flag">-</span></span>
+                    <div style="font-size:8px; color:#fff; display:flex; flex-direction:column; gap:0px; width:100%;">
+                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 8px;">RNG: <span id="debug-rng" style="font-size: 8px;">-</span></span>
+                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 8px;">FLG: <span id="debug-flag" style="font-size: 8px;">-</span></span>
                     </div>
                 </div>
             </div>
@@ -96,6 +128,12 @@
             <button id="btn-stop-right" class="btn btn-stop" data-reel="2" disabled>R</button>
             
             <div class="sys-buttons-column" style="display:flex; flex-direction:column; gap:5px; margin-left:15px;">
+                <div style="background:#222; padding:2px 5px; border-radius:3px; font-size:10px; color:#fff; text-align:center;">
+                    SET: <select id="setting-select" style="background:#000; color:#0f0; border:none; outline:none; cursor:pointer; font-weight:bold;">
+                        <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                        <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+                    </select>
+                </div>
                 <button id="btn-options" class="btn btn-action" style="font-size:20px; padding:5px; min-width:60px;" title="Options">⚙️</button>
                 <button id="btn-bgm" class="btn btn-action" style="font-size:12px; padding:2px 5px; min-width:60px;">BGM OFF</button>
             </div>
@@ -114,6 +152,10 @@
                         <label style="color:#fff; font-size:20px;">SE VOLUME</label>
                         <input type="range" id="se-volume-slider" min="0" max="1" step="0.05" value="0.5" style="width:150px; cursor:pointer;">
                     </div>
+                    <div class="option-row" style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; border-top: 1px solid #555; padding-top: 20px;">
+                        <label style="color:#fff; font-size:16px;">RESET GAME STATE</label>
+                        <button id="btn-reset-state" class="btn btn-action" style="background: linear-gradient(180deg, #ff4c4c, #cc0000); padding:5px 15px; width:auto; font-size:14px;">RESET</button>
+                    </div>
                 </div>
                 <button id="btn-close-options" class="btn btn-action" style="margin-top:30px; padding:10px; width:100px;">CLOSE</button>
             </div>
@@ -124,7 +166,8 @@
             <div class="modal-content">
                 <h2>PAYTABLE</h2>
                 <div class="paytable-grid">
-                    <div class="pay-row"><div class="pay-sym"><img src="assets/red7.png"> <img src="assets/blue7.png"> <img src="assets/bar.png"> ANY 3</div><div class="pay-val">15</div></div>
+                    <div class="pay-row"><div class="pay-sym">BIG: <img src="assets/red7.png" height="16">x3 <img src="assets/blue7.png" height="16">x3 <img src="assets/bar.png" height="16">x3</div><div class="pay-val">15</div></div>
+                    <div class="pay-row"><div class="pay-sym">REG: <img src="assets/red7.png" height="16"> <img src="assets/red7.png" height="16"> <img src="assets/bar.png" height="16"></div><div class="pay-val">15</div></div>
                     <div class="pay-row"><div class="pay-sym"><img src="assets/star.png"> x 3</div><div class="pay-val">10</div></div>
                     <div class="pay-row"><div class="pay-sym"><img src="assets/watermelon.png"> x 3</div><div class="pay-val">9</div></div>
                     <div class="pay-row"><div class="pay-sym"><img src="assets/cherry.png"> Left Reel</div><div class="pay-val">4</div></div>
@@ -134,6 +177,7 @@
             </div>
         </div>
     </div>
+    <script src="settings.js"></script>
     <script src="main.js"></script>
 </body>
 </html>
