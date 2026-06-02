@@ -2,3 +2,5 @@ Script error. at 0
 Script error. at 0
 Script error. at 0
 Uncaught ReferenceError: CONFIG is not defined at 230
+Uncaught SyntaxError: Unexpected token '}' at 125
+Uncaught SyntaxError: Unexpected token '}' at 125

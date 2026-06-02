@@ -344,14 +344,46 @@ body {
    Character (Popora) Sprite Animation
    ========================================= */
 #character-sprite {
-    height: 280px; /* 適切な高さ */
-    width: auto;
+    height: 280px;
     position: absolute;
-    bottom: 20px; /* 地面の上に立つ */
+    bottom: 20px;
     left: 15%;
-    object-fit: contain;
     z-index: 4;
     transform-origin: bottom center;
+    background-repeat: no-repeat;
+}
+
+.popora-idle {
+    width: 280px;
+    background-image: url('assets/popora_idle_strip.png');
+    background-size: 900% 100%;
+    animation: playIdle 0.9s steps(9) infinite;
+}
+
+.popora-attack {
+    width: 186px;
+    margin-left: 47px;
+    background-image: url('assets/popora_attack_strip_corrected.png');
+    background-size: 600% 100%;
+    animation: playAttack 0.6s steps(6) infinite;
+}
+
+@keyframes playIdle {
+    from { background-position: 0 0; }
+    to { background-position: -2520px 0; }
+}
+    to { background-position: 100% 0; }
+}
+
+@keyframes playAttack {
+    from { background-position: 0 0; }
+    to { background-position: -1116px 0; }
+}
+    to { background-position: -282px 0; }
+}
+    to { background-position: -1680px 0; }
+}
+    to { background-position: 100% 0; }
 }
 
 
@@ -765,6 +797,22 @@ body {
 
 #debug-popup.hidden {
     display: none !important;
+}
+
+/* ダメージ数字アニメーション */
+@keyframes damageFloat {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    10% { transform: translateY(-10px) scale(1.5); }
+    100% { opacity: 0; transform: translateY(-60px) scale(1); }
+}
+
+.damage-text {
+    position: absolute;
+    color: #ff3333;
+    font-size: 36px;
+    font-family: 'DotGothic16', sans-serif;
+    text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 4px 4px 0 #000;
+    animation: damageFloat 1s forwards ease-out;
 }
 
 .modal-content {

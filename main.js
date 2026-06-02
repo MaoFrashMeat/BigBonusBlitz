@@ -108,45 +108,83 @@ let state = {
     bonusMode: 'NORMAL', // 'NORMAL', 'BB', 'RB'
     bonusPayoutTarget: 0,
     bonusEarned: 0,
-    stockCount: 0 // 1G連ストックなどの保持数
+    stockCount: 0, // 1G連ストックなどの保持数
+    enemyHP: 100,
+    enemyMaxHP: 100
 };
 
 // キャラクターアニメーション再生関数
 function playCharacterAnimation(type, onComplete = null) {
-    if (state.characterAnimInterval) clearInterval(state.characterAnimInterval);
-    state.characterAnimFrame = 1;
     const charEl = document.getElementById('character-sprite');
     if (!charEl) return;
 
-    // 定義されているアニメーションタイプに基づく連番画像切り替え
-    const animConfig = {
-        'idle': { frames: 9, speed: 150, loop: true },
-        'attack': { frames: 6, speed: 100, loop: false }
-    };
-    const config = animConfig[type] || animConfig['idle'];
+    // 既存のインラインスタイルをクリア
+    charEl.style.backgroundImage = '';
+    charEl.style.backgroundSize = '';
+    charEl.style.backgroundRepeat = '';
+    charEl.style.backgroundPosition = '';
     
-    charEl.src = `assets/popora_${type}_1.png`;
+    // クラスを付け替え
+    charEl.className = `popora-${type}`;
     
-    state.characterAnimInterval = setInterval(() => {
-        state.characterAnimFrame++;
-        if (state.characterAnimFrame > config.frames) {
-            if (config.loop) {
-                state.characterAnimFrame = 1;
-            } else {
-                clearInterval(state.characterAnimInterval);
-                state.characterAnimInterval = null;
-                if (onComplete) onComplete();
-                return;
-            }
-        }
-        charEl.src = `assets/popora_${type}_${state.characterAnimFrame}.png`;
-    }, config.speed);
+    if (type === 'attack') {
+        // アタックアニメーションはCSSで0.6sに設定されている
+        setTimeout(() => {
+            if (onComplete) onComplete();
+        }, 600);
+    }
 }
 
 function stopCharacterAnimation() {
-    if (state.characterAnimInterval) {
-        clearInterval(state.characterAnimInterval);
-        state.characterAnimInterval = null;
+    // CSSアニメーションを使用するため、ここでは何もしない
+}
+
+// ダメージ処理関数
+function dealDamage(amount) {
+    state.enemyHP -= amount;
+    if (state.enemyHP < 0) state.enemyHP = 0;
+    
+    // UI Update
+    const hpFill = document.getElementById('enemy-hp-fill');
+    if (hpFill) {
+        const pct = (state.enemyHP / state.enemyMaxHP) * 100;
+        hpFill.style.width = `${pct}%`;
+        if (pct < 30) hpFill.style.backgroundColor = '#f00';
+        else if (pct < 60) hpFill.style.backgroundColor = '#ff0';
+        else hpFill.style.backgroundColor = '#0f0';
+    }
+    
+    // Damage text
+    const dmgContainer = document.getElementById('damage-container');
+    if (dmgContainer) {
+        const el = document.createElement('div');
+        el.className = 'damage-text';
+        el.textContent = amount;
+        
+        // Randomize slight position
+        el.style.left = `${(Math.random() - 0.5) * 60}px`;
+        el.style.top = `${(Math.random() - 0.5) * 60}px`;
+        
+        dmgContainer.appendChild(el);
+        setTimeout(() => el.remove(), 1000);
+    }
+    
+    // 敵撃破時の処理
+    if (state.enemyHP <= 0) {
+        setTimeout(() => {
+            if (typeof elMessage !== 'undefined') {
+                elMessage.textContent = 'ENEMY DEFEATED! CHANCE!';
+                elMessage.classList.add('flash');
+                setTimeout(() => elMessage.classList.remove('flash'), 3000);
+            }
+            
+            // 次の敵をスポーン（回復）
+            state.enemyHP = state.enemyMaxHP;
+            if (hpFill) {
+                hpFill.style.width = '100%';
+                hpFill.style.backgroundColor = '#0f0';
+            }
+        }, 1000);
     }
 }
 
@@ -1660,10 +1698,15 @@ function evaluateWin() {
     if (totalPayout > 0) {
         playSoundWin(winType);
         
-        // 開発用プレースホルダー：小役が揃ったら攻撃モーションを再生し、終わったら待機に戻す
+        // 小役が揃ったら攻撃モーションを再生し、ダメージを与える
         playCharacterAnimation('attack', () => {
             playCharacterAnimation('idle');
         });
+        
+        setTimeout(() => {
+            dealDamage(totalPayout * 5); // 獲得枚数x5をダメージとする
+            playSoundStop(); // 打撃音の代わり
+        }, 400); // 剣を振り下ろすタイミング
         
         const character = document.getElementById('character-sprite');
         const enemy = document.getElementById('enemy-img');

@@ -70,14 +70,20 @@
                 <div id="lcd-layer-fg" class="lcd-layer"></div>
                 
                 <!-- キャラクター（前景） -->
-                <img src="assets/popora_idle.png" id="character-sprite" class="popora-idle" alt="Popora" />
+                <div id="character-sprite" class="popora-idle"></div>
                 <!-- 敵キャラクター（小役示唆） -->
-                <div id="enemy-img" class="enemy-slime-blue">
+                <div id="enemy-img" class="enemy-slime-blue" style="position: relative;">
+                    <!-- 敵HPバー -->
+                    <div id="enemy-hp-container" style="position:absolute; top:-20px; left:50%; transform:translateX(-50%); width: 100px; height: 10px; background: #333; border: 2px solid #000; border-radius: 5px; overflow: hidden; z-index: 10;">
+                        <div id="enemy-hp-fill" style="width: 100%; height: 100%; background: #0f0; transition: width 0.2s, background-color 0.2s;"></div>
+                    </div>
                     <img src="assets/slime.png" class="slime-sprite" alt="Enemy" />
                     <div class="slime-core core-red"></div>
                     <!-- ボコスカ砂煙（第2停止時用） -->
                     <img src="assets/dust_cloud.png" id="dust-cloud-img" class="hidden" alt="Dust Cloud" />
                 </div>
+                <!-- ダメージ数字表示用コンテナ -->
+                <div id="damage-container" style="position: absolute; right: 25%; top: 40%; z-index: 100; pointer-events: none;"></div>
                 <!-- ベル当選時 第3停止で登場する女騎士 -->
                 <img src="assets/knight_win.png" id="knight-win-img" class="hidden" alt="Knight Win" />
             </section>
