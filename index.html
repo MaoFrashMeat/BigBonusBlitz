@@ -12,10 +12,22 @@
 </head>
 <body>
     <div id="title-screen" style="position:fixed; top:0; left:0; width:100vw; height:100vh; background: radial-gradient(circle at center, #0f3460, #1a1a2e); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-        <img src="assets/bbb_logo.png" alt="Big Bonus Blitz" style="width: 1280px; height: 720px; max-width: 90vw; max-height: 70vh; object-fit: contain; border-radius: 20px; box-shadow: 0 0 30px rgba(233, 69, 96, 0.6); animation: titlePulse 2s infinite;">
-        <button id="btn-start-game" class="btn btn-action" style="margin-top: 60px; font-size: 28px; padding: 15px 50px; box-shadow: 0 0 20px #e94560; animation: flash 1.5s infinite alternate;">TAP TO START</button>
+        <div style="position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 800px; height: 800px; max-width: 90vw; max-height: 70vh;">
+            <!-- 魔法陣ロゴ（ファンタジーRPG風） -->
+            <img src="assets/bbb_magic_circle.png" alt="Magic Circle" style="position: absolute; top:0; left:0; width: 100%; height: 100%; object-fit: contain; animation: spin 60s linear infinite;">
+            <img src="assets/bbb_text_only.png" alt="Big Bonus Blitz Text" style="position: absolute; top:0; left:0; width: 100%; height: 100%; object-fit: contain; z-index: 1; filter: drop-shadow(2px 0 0 #0f172a) drop-shadow(-2px 0 0 #0f172a) drop-shadow(0 2px 0 #0f172a) drop-shadow(0 -2px 0 #0f172a) drop-shadow(0 0 15px rgba(0,0,0,0.9));">
+            
+            <!-- カジュアル・ポップ風ロゴを使いたい場合はこちらをアンコメントしてください -->
+            <!-- <img src="assets/bbb_logo_casual_pop.png" alt="Big Bonus Blitz Casual Pop" style="position: absolute; top:0; left:0; width: 100%; height: 100%; object-fit: contain; z-index: 1; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.5));"> -->
+            
+            <button id="btn-start-game" class="btn btn-action" style="position: absolute; bottom: 5%; font-size: 32px; padding: 15px 50px; box-shadow: 0 0 20px #e94560; animation: flash 1.5s infinite alternate; z-index: 2;">TAP TO START</button>
+        </div>
     </div>
     <style>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
         @keyframes titlePulse {
             0% { transform: scale(1); box-shadow: 0 0 20px rgba(233, 69, 96, 0.4); }
             50% { transform: scale(1.03); box-shadow: 0 0 50px rgba(233, 69, 96, 0.8); }
@@ -43,6 +55,9 @@
 
                 <!-- BB MODE 突入ロゴ（右下） -->
                 <div id="bb-mode-logo" class="hidden">BB<br>MODE</div>
+                
+                <!-- BIG BONUS CUT-IN ロゴ -->
+                <img src="assets/britz_bonus_logo.png" id="bb-cutin-logo" class="hidden" alt="Britz BONUS" />
                 
                 <!-- RB MODE 突入ロゴ（右下） -->
                 <div id="rb-mode-logo" class="hidden">RB<br>MODE</div>
@@ -73,72 +88,75 @@
                 <div id="hp-bar-text">HP (CREDIT): 50 / 500</div>
             </div>
 
-            <!-- スロットエリア -->
-            <section id="slot-area">
-                <div class="reels-container">
-                    <div class="reel-wrapper">
-                        <div class="reel" id="reel-left">
-                            <div class="reel-strip" id="strip-left"></div>
-                            <div class="reel-overlay"></div>
+            <!-- コントロールデッキ（アーケード風茶色パネル） -->
+            <section id="control-deck">
+                <!-- 左側：リール＆ストップボタン -->
+                <div id="reels-and-buttons-container">
+                    <div class="reels-container">
+                        <div class="reel-wrapper">
+                            <div class="reel" id="reel-left">
+                                <div class="reel-strip" id="strip-left"></div>
+                                <div class="reel-overlay"></div>
+                            </div>
+                            <div class="slip-display" id="slip-display-0">-</div>
+                            <button id="btn-stop-left" class="btn btn-stop" data-reel="0" disabled>L</button>
                         </div>
-                        <div class="slip-display" id="slip-display-0">-</div>
+                        <div class="reel-wrapper">
+                            <div class="reel" id="reel-center">
+                                <div class="reel-strip" id="strip-center"></div>
+                                <div class="reel-overlay"></div>
+                            </div>
+                            <div class="slip-display" id="slip-display-1">-</div>
+                            <button id="btn-stop-center" class="btn btn-stop" data-reel="1" disabled>C</button>
+                        </div>
+                        <div class="reel-wrapper">
+                            <div class="reel" id="reel-right">
+                                <div class="reel-strip" id="strip-right"></div>
+                                <div class="reel-overlay"></div>
+                            </div>
+                            <div class="slip-display" id="slip-display-2">-</div>
+                            <button id="btn-stop-right" class="btn btn-stop" data-reel="2" disabled>R</button>
+                        </div>
+                        
+                        <!-- ペイライン表示用 -->
+                        <div class="payline line-top"></div>
+                        <div class="payline line-center"></div>
+                        <div class="payline line-bottom"></div>
+                        <div class="payline line-diag-down"></div>
+                        <div class="payline line-diag-up"></div>
                     </div>
-                    <div class="reel-wrapper">
-                        <div class="reel" id="reel-center">
-                            <div class="reel-strip" id="strip-center"></div>
-                            <div class="reel-overlay"></div>
+                </div>
+
+                <!-- 左下：AUTO/MAX BET -->
+                <div id="left-panel" style="position: absolute; left: 20px; bottom: 20px; display: flex; flex-direction: column; gap: 10px;">
+                    <button id="btn-auto" class="btn btn-action" style="padding: 10px; width: 120px; font-weight: bold; background: #333; border: 2px solid #555;">AUTO</button>
+                    <button id="btn-maxbet" class="btn btn-action" style="padding: 10px; width: 120px; font-weight: bold; background: #e94560; border: 2px solid #fff;">MAX BET</button>
+                </div>
+
+                <!-- 右下：操作・情報パネル -->
+                <aside id="side-panel" style="position: absolute; right: 20px; bottom: 20px; display: flex; gap: 15px; align-items: flex-end; background: transparent; border: none; padding: 0; box-shadow: none;">
+                    <div class="info-container" style="gap:5px; background: #000; padding: 10px; border-radius: 5px; border: 2px solid #333;">
+                        <div class="info-box" style="background: transparent;">
+                            <span class="label" style="color: #f90;">CREDIT</span>
+                            <span id="credit-display" style="font-size: 20px;">50</span>
                         </div>
-                        <div class="slip-display" id="slip-display-1">-</div>
-                    </div>
-                    <div class="reel-wrapper">
-                        <div class="reel" id="reel-right">
-                            <div class="reel-strip" id="strip-right"></div>
-                            <div class="reel-overlay"></div>
+                        <div class="info-box" style="background: transparent;">
+                            <span class="label" style="color: #f90;">PAYOUT</span>
+                            <span id="payout-display" style="font-size: 20px;">0</span>
                         </div>
-                        <div class="slip-display" id="slip-display-2">-</div>
+                        <div class="info-box" style="background: transparent;">
+                            <span class="label" style="color: #f90;">STATE</span>
+                            <span id="g-display" style="font-size: 16px;">A - 0G</span>
+                        </div>
                     </div>
                     
-                    <!-- ペイライン表示用 -->
-                    <div class="payline line-top"></div>
-                    <div class="payline line-center"></div>
-                    <div class="payline line-bottom"></div>
-                    <div class="payline line-diag-down"></div>
-                    <div class="payline line-diag-up"></div>
-                </div>
+                    <div class="sys-buttons-column" style="display:flex; flex-direction:column; gap:10px; background: #000; padding: 10px; border-radius: 5px; border: 2px solid #333;">
+                        <button id="btn-options" class="btn btn-action" style="font-size:24px; padding:5px; width:70px;" title="Options">⚙️</button>
+                        <button id="btn-bgm" class="btn btn-action" style="font-size:12px; padding:10px 5px; width:70px;">BGM OFF</button>
+                    </div>
+                </aside>
             </section>
         </main>
-
-        <!-- 下部：操作パネル -->
-        <footer id="control-panel">
-            <div class="info-container" style="gap:5px;">
-                <div class="info-box">
-                    <span class="label">CREDIT</span>
-                    <span id="credit-display">50</span>
-                </div>
-                <div class="info-box">
-                    <span class="label">PAYOUT</span>
-                    <span id="payout-display">0</span>
-                </div>
-                <div class="info-box">
-                    <span class="label">STATE</span>
-                    <span id="g-display">A - 0G</span>
-                </div>
-                
-            </div>
-            
-            <div class="action-buttons-column">
-                <button id="btn-auto" class="btn btn-action">AUTO</button>
-                <button id="btn-maxbet" class="btn btn-action">MAX BET (3)</button>
-            </div>
-            <button id="btn-stop-left" class="btn btn-stop" data-reel="0" disabled>L</button>
-            <button id="btn-stop-center" class="btn btn-stop" data-reel="1" disabled>C</button>
-            <button id="btn-stop-right" class="btn btn-stop" data-reel="2" disabled>R</button>
-            
-            <div class="sys-buttons-column" style="display:flex; flex-direction:column; gap:5px; margin-left:15px;">
-                <button id="btn-options" class="btn btn-action" style="font-size:20px; padding:5px; min-width:60px;" title="Options">⚙️</button>
-                <button id="btn-bgm" class="btn btn-action" style="font-size:12px; padding:2px 5px; min-width:60px;">BGM OFF</button>
-            </div>
-        </footer>
 
         <!-- Options Modal -->
         <div id="options-modal" class="modal hidden">
@@ -236,6 +254,7 @@
         </div>
     </div>
     <script src="settings.js?v=2"></script>
+    <script>window.addEventListener('error', function(e) { fetch('http://127.0.0.1:9999/?error=' + encodeURIComponent(e.message + ' at ' + e.lineno)); });</script>
     <script src="main.js?v=2"></script>
 </body>
 </html>

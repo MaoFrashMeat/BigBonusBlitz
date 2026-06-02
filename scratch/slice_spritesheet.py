@@ -7,10 +7,10 @@ def slice_and_transparent(input_path, output_dir):
         img = Image.open(input_path).convert("RGBA")
         width, height = img.size
         
-        # 4等分
-        frame_width = width // 4
+        # 9等分
+        frame_width = width // 9
         
-        for i in range(4):
+        for i in range(9):
             box = (i * frame_width, 0, (i + 1) * frame_width, height)
             cropped = img.crop(box)
             
@@ -33,4 +33,4 @@ def slice_and_transparent(input_path, output_dir):
     except Exception as e:
         print(f"Error: {e}")
 
-slice_and_transparent(r"C:\Users\sato_takuma\.gemini\antigravity\brain\d5be8c52-7899-4d13-bff1-47e8f29fc48c\popora_true_idle_spritesheet_1780366629278.png", r"d:\GitHub\BigBonusBlitz\assets")
+slice_and_transparent(r"C:\Users\sato_takuma\.gemini\antigravity\brain\d5be8c52-7899-4d13-bff1-47e8f29fc48c\popora_idle_9frames_custom_1780371789991.png", r"d:\GitHub\BigBonusBlitz\assets")

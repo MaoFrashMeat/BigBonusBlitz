@@ -29,20 +29,17 @@ body {
     margin: 0;
     height: 100vh;
     overflow: hidden;
-    image-rendering: pixelated; /* ドット絵をくっきり表示 */
 }
 
 #game-container {
-    width: 750px;
+    width: 1200px;
     height: auto;
-    min-height: 800px;
-    background-color: var(--bg-color);
-    border: 4px solid var(--border-color);
-    border-radius: 8px;
+    background-color: #0f52ba;
+    border-radius: 20px;
     display: flex;
     flex-direction: column;
-    padding: 10px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.8);
+    padding: 30px;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 0 20px rgba(0,0,0,0.8);
     transform-origin: center center;
 }
 
@@ -102,9 +99,8 @@ body {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-    gap: 15px;
-    margin-bottom: 10px;
-    align-items: center;
+    gap: 0;
+    align-items: stretch;
 }
 
 .character-sprite {
@@ -240,6 +236,33 @@ body {
     display: none;
 }
 
+#bb-cutin-logo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1);
+    width: 80%;
+    max-width: 600px;
+    z-index: 50;
+    object-fit: contain;
+    animation: cutinZoom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, cutinFloat 2s ease-in-out infinite alternate 0.5s;
+    filter: drop-shadow(0 0 20px rgba(255, 50, 50, 0.8));
+}
+
+#bb-cutin-logo.hidden {
+    display: none;
+}
+
+@keyframes cutinZoom {
+    0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+@keyframes cutinFloat {
+    0% { transform: translate(-50%, -50%) scale(1); filter: drop-shadow(0 0 20px rgba(255, 50, 50, 0.8)); }
+    100% { transform: translate(-50%, -55%) scale(1.05); filter: drop-shadow(0 0 40px rgba(255, 100, 50, 1)); }
+}
+
 @keyframes bbLogoAnim {
     from { transform: rotateY(0deg); }
     to { transform: rotateY(360deg); }
@@ -252,15 +275,17 @@ body {
 
 #character-area {
     width: 100%;
-    height: 200px;
+    height: 350px;
     background-color: #111;
-    border: 2px solid var(--border-color);
-    border-radius: 4px;
+    border: 4px solid #222;
+    border-bottom: none;
+    border-radius: 10px 10px 0 0;
     display: flex;
     justify-content: center;
     align-items: center;
     overflow: hidden;
     position: relative;
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
 }
 
 .lcd-layer {
@@ -271,7 +296,6 @@ body {
     height: 100%;
     background-size: auto 100%;
     background-repeat: repeat-x;
-    image-rendering: pixelated;
 }
 
 #lcd-layer-bg {
@@ -279,7 +303,7 @@ body {
     background-image: url('assets/bg_sky.png');
     background-position: center center;
     /* ゆっくりスクロール */
-    animation: scrollSky 600s linear infinite;
+    
 }
 
 #lcd-layer-mg {
@@ -290,17 +314,15 @@ body {
     -webkit-mask-image: linear-gradient(to bottom, transparent 15%, black 40%);
     mask-image: linear-gradient(to bottom, transparent 15%, black 40%);
     /* BGより少し速くスクロールしてパララックスを表現 */
-    animation: scrollGrass 240s linear infinite;
+    
 }
 
 #lcd-layer-fg {
     z-index: 3;
     background-image: url('assets/bg_ground.png');
     background-position: center bottom;
-    background-size: cover;
-    /* 上部を透過して下部の地面だけ表示するマスク */
-    -webkit-mask-image: linear-gradient(to bottom, transparent 65%, black 85%);
-    mask-image: linear-gradient(to bottom, transparent 65%, black 85%);
+    background-size: auto 100%;
+    
 }
 
 @keyframes scrollSky {
@@ -313,25 +335,29 @@ body {
     to { background-position-x: -1000px; }
 }
 
+@keyframes scrollGround {
+    from { background-position-x: 0; }
+    to { background-position-x: -1000px; }
+}
+
 /* =========================================
    Character (Popora) Sprite Animation
    ========================================= */
 #character-sprite {
-    height: 120px; /* 適切な高さ */
+    height: 280px; /* 適切な高さ */
     width: auto;
     position: absolute;
     bottom: 20px; /* 地面の上に立つ */
     left: 15%;
     object-fit: contain;
     z-index: 4;
-    image-rendering: pixelated;
     transform-origin: bottom center;
 }
 
 
 #enemy-img {
-    height: 70px;
-    width: 70px;
+    height: 150px;
+    width: 150px;
     position: absolute;
     bottom: 20px;
     right: 20%; /* 右側に寄せる */
@@ -348,7 +374,6 @@ body {
     height: 100%;
     width: auto;
     object-fit: contain;
-    image-rendering: pixelated;
     transition: filter 0.3s ease, opacity 0.3s ease;
     z-index: 1;
 }
@@ -358,7 +383,6 @@ body {
     height: 120%;
     width: 120%;
     object-fit: contain;
-    image-rendering: pixelated;
     z-index: 5;
     animation: bokoSukaAnim 0.1s infinite alternate;
 }
@@ -374,7 +398,6 @@ body {
     bottom: 20px;
     right: 15%;
     object-fit: contain;
-    image-rendering: pixelated;
     z-index: 5;
     animation: knightJumpAnim 0.5s ease-in-out infinite alternate;
 }
@@ -524,7 +547,6 @@ body {
     
     /* 立体感を出すための影 */
     box-shadow: inset 0 0 25px rgba(0,0,0,0.9), 0 10px 20px rgba(0,0,0,0.7);
-    image-rendering: pixelated;
     position: relative;
     overflow: hidden;
 }
@@ -590,7 +612,6 @@ body {
     width: 150px; /* シンボル画像も幅広に許容する */
     height: 80px;
     object-fit: contain;
-    image-rendering: pixelated;
 }
 
 /* リール上部の影（立体感） */
@@ -605,17 +626,40 @@ body {
 }
 
 /* Footer (Controls) */
-#control-panel {
-    background-color: var(--panel-bg);
-    border: 2px solid var(--border-color);
-    border-radius: 4px;
-    padding: 15px;
+/* Arcade Cabinet Deck */
+#control-deck {
+    background-color: #a0522d;
+    border: 4px solid #222;
+    border-top: none;
+    border-radius: 0 0 10px 10px;
     display: flex;
-    flex-direction: row;
     justify-content: center;
-    align-items: center;
-    gap: 10px;
+    align-items: flex-start;
+    padding-top: 40px;
+    min-height: 400px;
+    position: relative;
+    box-shadow: inset 0 20px 20px -20px rgba(0,0,0,0.8);
 }
+
+#reels-and-buttons-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#side-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    background: rgba(0,0,0,0.4);
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid rgba(0,0,0,0.5);
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+}
+
 
 .btn {
     font-family: 'DotGothic16', sans-serif;
@@ -664,12 +708,18 @@ body {
 .btn-action:hover:not(:disabled) { background-color: #556677; }
 
 .btn-stop {
-    background-color: var(--btn-stop);
+    background: radial-gradient(circle at 30% 30%, #555, #111);
     color: #fff;
-    width: 60px;
-    height: 60px;
+    width: 70px;
+    height: 70px;
     border-radius: 50%;
-    font-size: 24px;
+    font-size: 28px;
+    font-weight: bold;
+    border: 4px solid #222;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.8), inset 0 2px 5px rgba(255,255,255,0.2);
+    cursor: pointer;
+    transition: all 0.1s;
+    margin-top: 15px;
 }
 
 .btn-stop:hover:not(:disabled) { background-color: var(--btn-stop-hover); }

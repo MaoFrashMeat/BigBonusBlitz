@@ -112,7 +112,7 @@ let state = {
 };
 
 // キャラクターアニメーション再生関数
-function playCharacterAnimation(type) {
+function playCharacterAnimation(type, onComplete = null) {
     if (state.characterAnimInterval) clearInterval(state.characterAnimInterval);
     state.characterAnimFrame = 1;
     const charEl = document.getElementById('character-sprite');
@@ -120,12 +120,25 @@ function playCharacterAnimation(type) {
 
     // 定義されているアニメーションタイプに基づく連番画像切り替え
     const animConfig = {
-        'idle': { frames: 4, speed: 200 }
+        'idle': { frames: 9, speed: 150, loop: true },
+        'attack': { frames: 6, speed: 100, loop: false }
     };
     const config = animConfig[type] || animConfig['idle'];
     
+    charEl.src = `assets/popora_${type}_1.png`;
+    
     state.characterAnimInterval = setInterval(() => {
-        state.characterAnimFrame = (state.characterAnimFrame % config.frames) + 1;
+        state.characterAnimFrame++;
+        if (state.characterAnimFrame > config.frames) {
+            if (config.loop) {
+                state.characterAnimFrame = 1;
+            } else {
+                clearInterval(state.characterAnimInterval);
+                state.characterAnimInterval = null;
+                if (onComplete) onComplete();
+                return;
+            }
+        }
         charEl.src = `assets/popora_${type}_${state.characterAnimFrame}.png`;
     }, config.speed);
 }
@@ -199,35 +212,61 @@ function loadGameState() {
             if (savedData.bonusPayoutTarget !== undefined) state.bonusPayoutTarget = savedData.bonusPayoutTarget;
             if (savedData.bonusEarned !== undefined) state.bonusEarned = savedData.bonusEarned;
             if (savedData.stockCount !== undefined) state.stockCount = savedData.stockCount;
+            return true;
         } catch (e) {
             console.error('Save data parse error', e);
         }
     }
+    return false;
 }
 
 // 65536配列の動的生成
 function ensureLotteryTables() {
-    const p = CONFIG.probabilities[state.currentSetting];
-    if (!p) return;
-    let arr = [];
-    
-    // 全フラグを走査
-    const keys = Object.keys(FLAGS);
-    for (let k of keys) {
-        if (k !== 'HAZE' && p[k]) {
-            for (let i = 0; i < p[k]; i++) arr.push(FLAGS[k]);
+    function generateTable(probabilitiesObj) {
+        if (!probabilitiesObj) return null;
+        let arr = [];
+        const keys = Object.keys(FLAGS);
+        for (let k of keys) {
+            if (k !== 'HAZE' && probabilitiesObj[k]) {
+                for (let i = 0; i < probabilitiesObj[k]; i++) arr.push(FLAGS[k]);
+            }
         }
+        const hazeCount = probabilitiesObj.HAZE !== undefined ? probabilitiesObj.HAZE : (65536 - arr.length);
+        for (let i = 0; i < hazeCount; i++) arr.push(FLAGS.HAZE);
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    let probA = CONFIG.probabilities_A || CONFIG.probabilities;
+    if (probA) {
+        state.currentLotteryTableA = generateTable(probA[state.currentSetting]);
     }
     
-    const hazeCount = p.HAZE !== undefined ? p.HAZE : (65536 - arr.length);
-    for (let i = 0; i < hazeCount; i++) arr.push(FLAGS.HAZE);
-    
-    // シャッフル
-    for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
+    let probB = CONFIG.probabilities_B || probA;
+    if (probB) {
+        state.currentLotteryTableB = generateTable(probB[state.currentSetting]);
     }
-    state.currentLotteryTable = arr;
+
+    let probC = CONFIG.probabilities_C || probA;
+    if (probC) {
+        state.currentLotteryTableC = generateTable(probC[state.currentSetting]);
+    }
+
+    let probD = CONFIG.probabilities_D || probA;
+    if (probD) {
+        state.currentLotteryTableD = generateTable(probD[state.currentSetting]);
+    }
+    
+    if (CONFIG.probabilities_BB) {
+        state.currentLotteryTableBB = generateTable(CONFIG.probabilities_BB[state.currentSetting]);
+    }
+    
+    if (CONFIG.probabilities_RB) {
+        state.currentLotteryTableRB = generateTable(CONFIG.probabilities_RB[state.currentSetting]);
+    }
 }
 
 // DOM要素
@@ -457,14 +496,22 @@ let nextNoteTime = 0;
 let currentNote = 0;
 let bgmInterval = null;
 
-// Cマイナーペンタトニック的な、少しダークで重厚感のあるループ
+const bgmAudioNormal = new Audio('assets/bgm/bgm_poke_sync_192.wav');
+bgmAudioNormal.loop = true;
+let bgmAudioNode = null;
+
+// 8bitレトロ調、草原フィールド風の軽快なループ
 const bgmNotes = [
-    130.81, 130.81, 155.56, 174.61, 
-    196.00, 174.61, 155.56, 130.81,
-    103.83, 103.83, 130.81, 155.56,
-    174.61, 155.56, 130.81, 103.83
+    523.25, 659.25, 783.99, 0,
+    698.46, 659.25, 587.33, 0,
+    659.25, 523.25, 392.00, 0,
+    440.00, 493.88, 523.25, 0,
+    523.25, 659.25, 783.99, 0,
+    880.00, 783.99, 698.46, 0,
+    783.99, 659.25, 523.25, 0,
+    587.33, 659.25, 523.25, 0
 ];
-const noteDuration = 0.15; // 1音の長さ(秒)
+const noteDuration = 0.12; // ちょっと軽快なテンポ
 
 // ボーナス用BGM: BIG (アップテンポでメジャーな高揚感のある進行)
 const bgmNotesBB = [
@@ -487,6 +534,7 @@ const noteDurationRB = 0.12;
 function restartBGM() {
     if (isBgmPlaying) {
         clearInterval(bgmInterval);
+        bgmAudioNormal.pause();
         currentNote = 0;
         nextNoteTime = audioCtx ? audioCtx.currentTime + 0.1 : 0;
         bgmInterval = setInterval(scheduleBGM, 50);
@@ -512,9 +560,34 @@ function checkBonusStock(winType) {
 }
 
 function scheduleBGM() {
-    if (!isBgmPlaying || !audioCtx) return;
+    if (!isBgmPlaying || !audioCtx) {
+        if (!bgmAudioNormal.paused) bgmAudioNormal.pause();
+        return;
+    }
     
     if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    // Web Audio APIへのルーティング（一度だけ実行）
+    if (!bgmAudioNode) {
+        try {
+            bgmAudioNode = audioCtx.createMediaElementSource(bgmAudioNormal);
+            bgmAudioNode.connect(bgmGain);
+        } catch(e) {
+            console.warn(e);
+        }
+    }
+
+    if (state.bonusMode === 'NORMAL') {
+        if (bgmAudioNormal.paused) {
+            bgmAudioNormal.play().catch(e => console.warn(e));
+        }
+        return; // 通常時はWAVを再生してシンセサイザーは止める
+    } else {
+        if (!bgmAudioNormal.paused) {
+            bgmAudioNormal.pause();
+            bgmAudioNormal.currentTime = 0;
+        }
+    }
 
     // タブがバックグラウンドに行った時などにスケジュールが遅延して大量に発音されるのを防ぐ
     if (nextNoteTime < audioCtx.currentTime) {
@@ -568,6 +641,7 @@ function toggleBGM() {
     if (isBgmPlaying) {
         isBgmPlaying = false;
         clearInterval(bgmInterval);
+        bgmAudioNormal.pause();
         btnBgm.textContent = 'BGM OFF';
         btnBgm.classList.remove('btn-auto-active');
     } else {
@@ -579,14 +653,37 @@ function toggleBGM() {
     }
 }
 
+function determineNextMode(timing) {
+    if (!CONFIG.modeTransitions) return 'A';
+    const trans = CONFIG.modeTransitions[timing];
+    if (!trans) return 'A';
+    const probs = trans[state.currentSetting];
+    if (!probs) return 'A';
+    
+    const rnd = Math.random() * 100;
+    let sum = 0;
+    const modes = ['A', 'B', 'C', 'D'];
+    for (let m of modes) {
+        sum += (probs[m] || 0);
+        if (rnd < sum) return m;
+    }
+    return 'A'; // fallback
+}
+
 // 初期化
 function init() {
     ensureLotteryTables(); // 65536配列を保証
-    loadGameState();
+    
+    const wasLoaded = loadGameState();
+    if (!wasLoaded) {
+        state.mode = determineNextMode('initial');
+    }
+    
     setupReels();
     updateUI();
     updateLamp();
     updateDebugUI();
+    playCharacterAnimation('idle'); // 起動直後から待機モーションを再生
     
     // イベントリスナー
     btnAuto.addEventListener('click', () => { initAudio(); onAutoToggle(); });
@@ -649,7 +746,7 @@ function init() {
                 state.heldBonusFlag = 0;
                 
                 // ボーナス・モード関連のリセット
-                state.mode = 'A';
+                state.mode = determineNextMode('initial');
                 state.spinCount = 0;
                 state.bonusMode = 'NORMAL';
                 state.bonusPayoutTarget = 0;
@@ -828,9 +925,15 @@ function onMaxBet() {
         state.isReplay = false;
         btnMaxBet.textContent = 'MAX BET (3)';
         btnMaxBet.disabled = true;
-        let replayCost = (typeof CONFIG !== 'undefined' && CONFIG.payouts && CONFIG.payouts.REPLAY) ? CONFIG.payouts.REPLAY : 3;
+        let currentPayouts = CONFIG.payouts;
+        if (state.bonusMode === 'BB' && CONFIG.payouts_BB) currentPayouts = CONFIG.payouts_BB;
+        if (state.bonusMode === 'RB' && CONFIG.payouts_RB) currentPayouts = CONFIG.payouts_RB;
+        let replayCost = (typeof CONFIG !== 'undefined' && currentPayouts && currentPayouts.REPLAY) ? currentPayouts.REPLAY : 3;
         state.credit -= replayCost;
         state.bet = 3;
+        if (state.bonusMode === 'BB' || state.bonusMode === 'RB') {
+            state.bonusEarned -= replayCost;
+        }
         updateUI();
         onLever();
         return;
@@ -839,6 +942,9 @@ function onMaxBet() {
     if (state.credit >= 3) {
         state.bet = 3;
         state.credit -= 3;
+        if (state.bonusMode === 'BB' || state.bonusMode === 'RB') {
+            state.bonusEarned -= 3;
+        }
         updateUI();
         btnMaxBet.disabled = true;
         playSoundBet();
@@ -882,16 +988,21 @@ function drawLottery() {
         // ボーナス中専用の抽選
         const rng = Math.floor(Math.random() * 65536);
         state.currentRNG = rng + 1;
-        if (rng < 14000) {
-            state.currentFlag = FLAGS.BELL_A; // ベル高確率
-        } else if (rng < 15000) {
-            state.currentFlag = FLAGS.REPLAY_A; // リプレイ
-        } else if (rng < 15200) {
-            state.currentFlag = FLAGS.SUICA_A; // スイカ
-        } else if (rng < 15400) {
-            state.currentFlag = FLAGS.CHERRY_A; // チェリー
+        
+        if (!state.currentLotteryTableBB || !state.currentLotteryTableRB) {
+            ensureLotteryTables();
+        }
+        
+        let table = state.bonusMode === 'BB' ? state.currentLotteryTableBB : state.currentLotteryTableRB;
+        if (table && table.length === 65536) {
+            state.currentFlag = table[rng];
         } else {
-            state.currentFlag = Math.random() < 0.5 ? FLAGS.CHANCE_A : FLAGS.HAZE;
+            // フォールバック（設定がない場合）
+            if (rng < 14000) state.currentFlag = FLAGS.BELL_A;
+            else if (rng < 15000) state.currentFlag = FLAGS.REPLAY_A;
+            else if (rng < 15200) state.currentFlag = FLAGS.SUICA_A;
+            else if (rng < 15400) state.currentFlag = FLAGS.CHERRY_A;
+            else state.currentFlag = Math.random() < 0.5 ? FLAGS.CHANCE_A : FLAGS.HAZE;
         }
         updateLamp();
         return;
@@ -906,7 +1017,8 @@ function drawLottery() {
 
     // ゲーム数加算と天井判定 (通常時のみ)
     state.spinCount++;
-    const ceiling = CEILINGS[state.mode] || 999;
+    const ceilingsConfig = CONFIG.ceilings || CEILINGS;
+    const ceiling = ceilingsConfig[state.mode] || 999;
     if (state.spinCount >= ceiling) {
         // 天井恩恵：BIG:REG = 1:1 （とりあえず BB_A と RB_A をセット）
         let forced = Math.random() < 0.5 ? FLAGS.BB_A : FLAGS.RB_A;
@@ -919,12 +1031,18 @@ function drawLottery() {
     const rng = Math.floor(Math.random() * 65536);
     state.currentRNG = rng + 1; // UI表示用に1~65536とする
     
-    if (!state.currentLotteryTable || state.currentLotteryTable.length !== 65536) {
+    if (!state.currentLotteryTableA || state.currentLotteryTableA.length !== 65536) {
         ensureLotteryTables();
     }
     
     // テーブルからフラグを取得
-    state.currentFlag = state.currentLotteryTable[rng];
+    let targetTable;
+    if (state.mode === 'B') targetTable = state.currentLotteryTableB;
+    else if (state.mode === 'C') targetTable = state.currentLotteryTableC;
+    else if (state.mode === 'D') targetTable = state.currentLotteryTableD;
+    else targetTable = state.currentLotteryTableA;
+    
+    state.currentFlag = targetTable[rng];
     
     if (state.currentFlag >= FLAGS.BB_A && state.currentFlag <= FLAGS.BB_D) {
         state.heldBonusFlag = state.currentFlag;
@@ -932,7 +1050,6 @@ function drawLottery() {
         state.heldBonusFlag = state.currentFlag;
     }
     
-    updateReels();
     playCharacterAnimation('idle'); // 初期状態のアイドル再生
 }
 
@@ -1400,6 +1517,10 @@ function evaluateWin() {
     let bonusWon = false;
     let winType = null;
     
+    let currentPayouts = CONFIG.payouts;
+    if (state.bonusMode === 'BB' && CONFIG.payouts_BB) currentPayouts = CONFIG.payouts_BB;
+    if (state.bonusMode === 'RB' && CONFIG.payouts_RB) currentPayouts = CONFIG.payouts_RB;
+
     // チェリー判定 (左リール枠内にチェリーがあれば払い出し)
     let cherryWin = false;
     if (indices[0][0] === 'CHERRY' || indices[0][1] === 'CHERRY' || indices[0][2] === 'CHERRY') {
@@ -1439,14 +1560,14 @@ function evaluateWin() {
                     }
                 } else if (flagId >= FLAGS.REPLAY_A && flagId <= FLAGS.REPLAY_C) {
                     isReplay = true;
-                    if (typeof CONFIG !== 'undefined' && CONFIG.payouts && CONFIG.payouts.REPLAY) {
-                        totalPayout += CONFIG.payouts.REPLAY;
+                    if (typeof CONFIG !== 'undefined' && currentPayouts && currentPayouts.REPLAY) {
+                        totalPayout += currentPayouts.REPLAY;
                     }
                 } else if (flagId >= FLAGS.BELL_A && flagId <= FLAGS.BELL_C) {
-                    totalPayout += CONFIG.payouts.STAR;
+                    totalPayout += currentPayouts.STAR;
                     if (!winType) winType = 'BELL';
                 } else if (flagId >= FLAGS.SUICA_A && flagId <= FLAGS.SUICA_C) {
-                    totalPayout += CONFIG.payouts.WATERMELON;
+                    totalPayout += currentPayouts.WATERMELON;
                     if (!winType) winType = 'WATERMELON';
                 }
                 // チェリーは個別で判定済みなのでライン判定での加算はしない
@@ -1455,7 +1576,7 @@ function evaluateWin() {
     }
     
     if (cherryWin) {
-        totalPayout += CONFIG.payouts.CHERRY;
+        totalPayout += currentPayouts.CHERRY;
         if (!winType) winType = 'CHERRY';
     }
     
@@ -1463,12 +1584,15 @@ function evaluateWin() {
         state.heldBonusFlag = 0;
         if (winType === 'BIG') {
             state.bonusMode = 'BB';
-            state.bonusPayoutTarget = CONFIG.payouts.BIG;
+            state.bonusPayoutTarget = currentPayouts.BIG;
         } else {
             state.bonusMode = 'RB';
-            state.bonusPayoutTarget = CONFIG.payouts.REG;
+            state.bonusPayoutTarget = currentPayouts.REG;
         }
         state.bonusEarned = 0;
+        
+        // モード移行
+        state.mode = determineNextMode('bonus');
         
         playSoundWin(winType);
         elMessage.textContent = `BONUS START! 0 / ${state.bonusPayoutTarget}`;
@@ -1479,9 +1603,19 @@ function evaluateWin() {
         // ボーナスアニメーション付与
         const character = document.getElementById('character-sprite');
         if (character) {
-            stopCharacterAnimation(); // アイドル再生を止める
-            character.src = 'assets/popora_idle_1.png'; // ベース画像に戻す
             character.classList.add('anim-bonus');
+        }
+        
+        // BIG BONUS用 カットイン
+        if (winType === 'BIG') {
+            const cutin = document.getElementById('bb-cutin-logo');
+            if (cutin) {
+                cutin.classList.remove('hidden');
+                // 3秒後に非表示
+                setTimeout(() => {
+                    cutin.classList.add('hidden');
+                }, 3000);
+            }
         }
         
         // BGM切替のためにリスタート
@@ -1511,13 +1645,6 @@ function evaluateWin() {
             state.bonusPayoutTarget = 0;
             state.spinCount = 0; // G数リセット
             
-            // モード移行
-            const rnd = Math.random();
-            if (rnd < 0.25) state.mode = 'A';
-            else if (rnd < 0.5) state.mode = 'B';
-            else if (rnd < 0.75) state.mode = 'C';
-            else state.mode = 'D';
-            
             updateLamp();
             elMessage.textContent = 'BONUS END!';
             elMessage.classList.add('flash');
@@ -1533,6 +1660,11 @@ function evaluateWin() {
     if (totalPayout > 0) {
         playSoundWin(winType);
         
+        // 開発用プレースホルダー：小役が揃ったら攻撃モーションを再生し、終わったら待機に戻す
+        playCharacterAnimation('attack', () => {
+            playCharacterAnimation('idle');
+        });
+        
         const character = document.getElementById('character-sprite');
         const enemy = document.getElementById('enemy-img');
         const gameContainer = document.getElementById('game-container');
@@ -1540,7 +1672,6 @@ function evaluateWin() {
         const dust = document.getElementById('dust-cloud-img');
 
         // 第3停止時のアクション演出（winTypeに応じて）
-        if (character) stopCharacterAnimation(); // アイドル連番を止める
         
         if (winType === 'BELL') {
             if (character) character.classList.add('anim-bell');
@@ -1576,8 +1707,6 @@ function evaluateWin() {
         // リプレイ演出
         const character = document.getElementById('character-sprite');
         if (character) {
-            stopCharacterAnimation();
-            character.src = 'assets/popora_idle_1.png';
             character.classList.add('anim-replay');
         }
         
@@ -1603,8 +1732,6 @@ function evaluateWin() {
             const character = document.getElementById('character-sprite');
             const enemy = document.getElementById('enemy-img');
             if (character) {
-                stopCharacterAnimation();
-                character.src = 'assets/popora_idle_1.png';
                 character.classList.add('anim-miss');
             }
             if (enemy) enemy.classList.add('enemy-anim-hit'); // 敵が攻撃してきたような動きに流用
@@ -1846,3 +1973,13 @@ if (debugPopup) {
         }
     });
 }
+
+// グローバルエラーハンドラ
+window.addEventListener('error', function(e) {
+    const elMessage = document.getElementById('message-display');
+    if (elMessage) {
+        elMessage.textContent = 'ERR: ' + e.message + ' at ' + e.lineno;
+        elMessage.style.color = 'red';
+        elMessage.style.fontSize = '12px';
+    }
+});
