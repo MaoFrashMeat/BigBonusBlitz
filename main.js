@@ -91,7 +91,7 @@ let state = {
     isAutoMode: false,
     mode: 'A', // A, B, C, D
     spinCount: 0, // 現在のゲーム数
-    currentLotteryTable: [], // 現在設定の16384配列
+    currentLotteryTable: [], // 現在設定の65536配列
     autoPlayTimeoutId: null,
     isReplay: false,
     currentFlag: FLAGS.HAZE,
@@ -170,7 +170,7 @@ function loadGameState() {
     }
 }
 
-// 16384配列の動的生成
+// 65536配列の動的生成
 function ensureLotteryTables() {
     const p = CONFIG.probabilities[state.currentSetting];
     if (!p) return;
@@ -184,7 +184,7 @@ function ensureLotteryTables() {
         }
     }
     
-    const hazeCount = p.HAZE !== undefined ? p.HAZE : (16384 - arr.length);
+    const hazeCount = p.HAZE !== undefined ? p.HAZE : (65536 - arr.length);
     for (let i = 0; i < hazeCount; i++) arr.push(FLAGS.HAZE);
     
     // シャッフル
@@ -546,7 +546,7 @@ function toggleBGM() {
 
 // 初期化
 function init() {
-    ensureLotteryTables(); // 16384配列を保証
+    ensureLotteryTables(); // 65536配列を保証
     loadGameState();
     setupReels();
     updateUI();
@@ -844,7 +844,7 @@ function drawLottery() {
 
     if (state.bonusMode !== 'NORMAL') {
         // ボーナス中専用の抽選
-        const rng = Math.floor(Math.random() * 16384);
+        const rng = Math.floor(Math.random() * 65536);
         state.currentRNG = rng + 1;
         if (rng < 14000) {
             state.currentFlag = FLAGS.BELL_A; // ベル高確率
@@ -880,10 +880,10 @@ function drawLottery() {
         return;
     }
 
-    const rng = Math.floor(Math.random() * 16384);
-    state.currentRNG = rng + 1; // UI表示用に1~16384とする
+    const rng = Math.floor(Math.random() * 65536);
+    state.currentRNG = rng + 1; // UI表示用に1~65536とする
     
-    if (!state.currentLotteryTable || state.currentLotteryTable.length !== 16384) {
+    if (!state.currentLotteryTable || state.currentLotteryTable.length !== 65536) {
         ensureLotteryTables();
     }
     
@@ -980,11 +980,26 @@ function onLever() {
     const enemy = document.getElementById('enemy-img');
     const slimeSprite = document.querySelector('.slime-sprite');
     const core = document.querySelector('.slime-core');
+    const character = document.getElementById('character-sprite');
+    const gameContainer = document.getElementById('game-container');
+    
     if (dust) dust.classList.add('hidden');
     if (knight) knight.classList.add('hidden');
-    if (enemy) enemy.style.display = '';
+    
+    if (enemy) {
+        enemy.style.display = '';
+        enemy.classList.remove('enemy-anim-hit', 'enemy-anim-squash');
+    }
     if (slimeSprite) slimeSprite.style.opacity = '1';
     if (core) core.style.display = '';
+    
+    if (character) {
+        character.classList.remove('anim-miss', 'anim-replay', 'anim-bell', 'anim-cherry', 'anim-watermelon', 'anim-bonus');
+        character.classList.add('popora-idle'); // リセット時にアイドルモーションに戻す
+    }
+    if (gameContainer) {
+        gameContainer.classList.remove('screen-shake');
+    }
     
     state.stoppedSymbols = [null, null, null];
     state.slipPixels = [null, null, null];
@@ -1423,6 +1438,13 @@ function evaluateWin() {
         setTimeout(() => elMessage.classList.remove('flash'), CONFIG.timings.nextWin);
         updateLamp();
         
+        // ボーナスアニメーション付与
+        const character = document.getElementById('character-sprite');
+        if (character) {
+            character.classList.remove('popora-idle');
+            character.classList.add('anim-bonus');
+        }
+        
         // BGM切替のためにリスタート
         restartBGM();
         
@@ -1472,14 +1494,27 @@ function evaluateWin() {
     if (totalPayout > 0) {
         playSoundWin(winType);
         
-        // 第3停止（ベル）の女騎士登場演出
+        const character = document.getElementById('character-sprite');
+        const enemy = document.getElementById('enemy-img');
+        const gameContainer = document.getElementById('game-container');
+        const knight = document.getElementById('knight-win-img');
+        const dust = document.getElementById('dust-cloud-img');
+
+        // 第3停止時のアクション演出（winTypeに応じて）
+        if (character) character.classList.remove('popora-idle'); // アイドルを外す
         if (winType === 'BELL') {
-            const knight = document.getElementById('knight-win-img');
-            const dust = document.getElementById('dust-cloud-img');
-            const enemy = document.getElementById('enemy-img');
-            if (knight) knight.classList.remove('hidden');
+            if (character) character.classList.add('anim-bell');
+            if (enemy) enemy.classList.add('enemy-anim-squash');
+            // 今までの knight_win.png の代わりになるが、一応隠す
+            if (knight) knight.classList.add('hidden');
             if (dust) dust.classList.add('hidden');
-            if (enemy) enemy.style.display = 'none';
+        } else if (winType === 'CHERRY') {
+            if (character) character.classList.add('anim-cherry');
+            if (enemy) enemy.classList.add('enemy-anim-hit');
+        } else if (winType === 'WATERMELON') {
+            if (character) character.classList.add('anim-watermelon');
+            if (enemy) enemy.classList.add('enemy-anim-hit');
+            if (gameContainer) gameContainer.classList.add('screen-shake');
         }
         
         state.credit += totalPayout;
@@ -1497,6 +1532,14 @@ function evaluateWin() {
         if (state.isAutoMode) triggerNextAutoAction();
     } else if (isReplay) {
         playSoundReplay();
+        
+        // リプレイ演出
+        const character = document.getElementById('character-sprite');
+        if (character) {
+            character.classList.remove('popora-idle');
+            character.classList.add('anim-replay');
+        }
+        
         elPayout.textContent = 0;
         if (elHeaderPayout) elHeaderPayout.textContent = 0;
         elMessage.textContent = 'REPLAY!';
@@ -1513,6 +1556,17 @@ function evaluateWin() {
     } else {
         elPayout.textContent = 0;
         if (elHeaderPayout) elHeaderPayout.textContent = 0;
+        
+        // ハズレ演出
+        if (state.bonusMode === 'NORMAL') {
+            const character = document.getElementById('character-sprite');
+            const enemy = document.getElementById('enemy-img');
+            if (character) {
+                character.classList.remove('popora-idle');
+                character.classList.add('anim-miss');
+            }
+            if (enemy) enemy.classList.add('enemy-anim-hit'); // 敵が攻撃してきたような動きに流用
+        }
         
         if (state.bonusMode !== 'NORMAL') {
             elMessage.textContent = `BONUS: ${state.bonusEarned} / ${state.bonusPayoutTarget}`;

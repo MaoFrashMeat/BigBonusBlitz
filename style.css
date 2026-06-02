@@ -313,22 +313,28 @@ body {
     to { background-position-x: -1000px; }
 }
 
-#character-img {
-    height: 90px;
+/* =========================================
+   Character (Popora) Sprite Animation
+   ========================================= */
+#character-sprite {
+    height: 120px; /* 適切な高さ */
     width: auto;
     position: absolute;
-    bottom: 20px; /* 地面の上に立つように調整 */
-    left: 20%; /* 左側に寄せる */
+    bottom: 20px; /* 地面の上に立つ */
+    left: 15%;
     object-fit: contain;
-    image-rendering: pixelated;
     z-index: 4;
-    /* 待機（アイドル）アニメーション */
-    animation: idleAnim 1.5s infinite ease-in-out;
+    image-rendering: pixelated;
+    transform-origin: bottom center;
 }
 
-@keyframes idleAnim {
-    0%, 100% { transform: scaleY(1); }
-    50% { transform: scaleY(0.96) translateY(2px); }
+.popora-idle {
+    /* スムーズな呼吸（待機）モーション */
+    animation: smoothIdle 2s ease-in-out infinite;
+}
+@keyframes smoothIdle {
+    0%, 100% { transform: scaleY(1) scaleX(1) translateY(0); }
+    50% { transform: scaleY(0.96) scaleX(1.02) translateY(1px); } /* 少しだけ沈み込んで横に広がる（呼吸） */
 }
 
 #enemy-img {
@@ -773,4 +779,107 @@ body {
     font-size: 28px;
     color: var(--accent-color);
     font-weight: bold;
+}
+
+/* =========================================
+   Battle Animations for Popora & Slime
+   ========================================= */
+
+/* Haze (Miss / Hit) */
+.anim-miss {
+    animation: animMiss 0.5s ease-out;
+}
+@keyframes animMiss {
+    0% { transform: scaleY(1) translateX(0); }
+    20% { transform: scaleY(0.9) translateX(-20px) rotate(-10deg); filter: brightness(1.5) sepia(1) hue-rotate(-50deg) saturate(3); }
+    40% { transform: scaleY(1) translateX(5px) rotate(5deg); }
+    60% { transform: scaleY(0.95) translateX(-5px) rotate(-2deg); }
+    100% { transform: scaleY(1) translateX(0) rotate(0deg); }
+}
+
+.enemy-anim-hit {
+    animation: enemyAnimHit 0.3s ease-in-out;
+}
+@keyframes enemyAnimHit {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2) rotate(10deg); filter: brightness(1.5); }
+}
+
+/* Replay (Guard) */
+.anim-replay {
+    animation: animReplay 0.8s ease-out;
+    filter: drop-shadow(0 0 15px rgba(100, 200, 255, 0.8));
+}
+@keyframes animReplay {
+    0% { transform: scaleY(1) translateX(0); }
+    20% { transform: scaleY(0.9) translateX(15px); }
+    80% { transform: scaleY(0.9) translateX(15px); }
+    100% { transform: scaleY(1) translateX(0); }
+}
+
+/* Bell (Jump & Slash Down) */
+.anim-bell {
+    animation: animBell 0.6s ease-in;
+}
+@keyframes animBell {
+    0% { transform: translateY(0) scale(1); }
+    40% { transform: translateY(-50px) scale(1.1); }
+    80% { transform: translateY(10px) scale(1.1) rotate(15deg); }
+    100% { transform: translateY(0) scale(1) rotate(0deg); }
+}
+
+.enemy-anim-squash {
+    animation: enemyAnimSquash 0.5s ease-out forwards;
+}
+@keyframes enemyAnimSquash {
+    0% { transform: scaleY(1); }
+    50% { transform: scaleY(0.2) scaleX(1.5) translateY(30px); }
+    100% { transform: scaleY(0.2) scaleX(1.5) translateY(30px); opacity: 0; }
+}
+
+/* Cherry (Horizontal Slash) */
+.anim-cherry {
+    animation: animCherry 0.7s ease-in-out;
+}
+@keyframes animCherry {
+    0% { transform: translateX(0) rotate(0deg); }
+    30% { transform: translateX(-30px) rotate(-20deg); }
+    40% { transform: translateX(60px) rotate(30deg); filter: drop-shadow(0 0 20px red) brightness(1.2); }
+    60% { transform: translateX(50px) rotate(25deg); filter: drop-shadow(0 0 20px red) brightness(1.2); }
+    100% { transform: translateX(0) rotate(0deg); }
+}
+
+/* Watermelon (Ground Slam & Shake) */
+.anim-watermelon {
+    animation: animWatermelon 0.8s ease-in-out;
+}
+@keyframes animWatermelon {
+    0% { transform: translateY(0) rotate(0deg); }
+    30% { transform: translateY(-80px) rotate(0deg); }
+    45% { transform: translateY(20px) rotate(-15deg); filter: drop-shadow(0 0 15px lime); }
+    70% { transform: translateY(20px) rotate(-15deg); filter: drop-shadow(0 0 15px lime); }
+    100% { transform: translateY(0) rotate(0deg); }
+}
+
+.screen-shake {
+    animation: screenShake 0.4s ease-in-out;
+}
+@keyframes screenShake {
+    0%, 100% { transform: translate(0, 0); }
+    20% { transform: translate(-10px, -10px); }
+    40% { transform: translate(10px, 10px); }
+    60% { transform: translate(-10px, 5px); }
+    80% { transform: translate(10px, -5px); }
+}
+
+/* Bonus (Cut-in) */
+.anim-bonus {
+    animation: animBonus 3.5s ease-in-out forwards;
+    z-index: 100 !important;
+}
+@keyframes animBonus {
+    0% { transform: scale(1) translate(0, 0); }
+    10% { transform: scale(2.2) translate(30%, -10%); filter: drop-shadow(0 0 30px yellow) brightness(1.3); }
+    90% { transform: scale(2.2) translate(30%, -10%); filter: drop-shadow(0 0 30px yellow) brightness(1.3); }
+    100% { transform: scale(1) translate(0, 0); }
 }

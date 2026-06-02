@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
     <div id="title-screen" style="position:fixed; top:0; left:0; width:100vw; height:100vh; background: radial-gradient(circle at center, #0f3460, #1a1a2e); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center;">
@@ -55,7 +55,7 @@
                 <div id="lcd-layer-fg" class="lcd-layer"></div>
                 
                 <!-- キャラクター（前景） -->
-                <img src="assets/character.png" id="character-img" alt="Character" />
+                <img src="assets/popora_idle.png" id="character-sprite" class="popora-idle" alt="Popora" />
                 <!-- 敵キャラクター（小役示唆） -->
                 <div id="enemy-img" class="enemy-slime-blue">
                     <img src="assets/slime.png" class="slime-sprite" alt="Enemy" />
@@ -235,7 +235,7 @@
             </div>
         </div>
     </div>
-    <script src="settings.js"></script>
-    <script src="main.js"></script>
+    <script src="settings.js?v=2"></script>
+    <script src="main.js?v=2"></script>
 </body>
 </html>
