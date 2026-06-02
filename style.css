@@ -328,14 +328,6 @@ body {
     transform-origin: bottom center;
 }
 
-.popora-idle {
-    /* スムーズな呼吸（待機）モーション */
-    animation: smoothIdle 2s ease-in-out infinite;
-}
-@keyframes smoothIdle {
-    0%, 100% { transform: scaleY(1) scaleX(1) translateY(0); }
-    50% { transform: scaleY(0.96) scaleX(1.02) translateY(1px); } /* 少しだけ沈み込んで横に広がる（呼吸） */
-}
 
 #enemy-img {
     height: 70px;

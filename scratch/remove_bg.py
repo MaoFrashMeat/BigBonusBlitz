@@ -21,5 +21,5 @@ def remove_white_bg(input_path, output_path):
     img.putdata(newData)
     img.save(output_path, "PNG")
 
-remove_white_bg(r"C:\Users\sato_takuma\.gemini\antigravity\brain\d5be8c52-7899-4d13-bff1-47e8f29fc48c\popora_true_idle_1780364921701.png", r"d:\GitHub\BigBonusBlitz\assets\popora_idle.png")
+remove_white_bg(r"C:\Users\sato_takuma\.gemini\antigravity\brain\d5be8c52-7899-4d13-bff1-47e8f29fc48c\popora_stance_idle_1780365095912.png", r"d:\GitHub\BigBonusBlitz\assets\popora_idle.png")
 print("Background removed successfully.")

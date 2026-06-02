@@ -98,7 +98,11 @@ let state = {
     currentRNG: 0,
     heldBonusFlag: 0, // ボーナスの持ち越しフラグ (0=なし, 5=BIG, 6=REG)
     stoppedSymbols: [null, null, null],
-    slipPixels: [null, null, null],
+    slipPixels: [null, null, null],     // 停止後のスベリピクセル数
+    
+    // キャラクターアニメーション管理
+    characterAnimInterval: null,
+    characterAnimFrame: 1,
     currentSetting: 1, // 現在の設定 (1-6)
     isDebugMode: false,
     bonusMode: 'NORMAL', // 'NORMAL', 'BB', 'RB'
@@ -106,6 +110,32 @@ let state = {
     bonusEarned: 0,
     stockCount: 0 // 1G連ストックなどの保持数
 };
+
+// キャラクターアニメーション再生関数
+function playCharacterAnimation(type) {
+    if (state.characterAnimInterval) clearInterval(state.characterAnimInterval);
+    state.characterAnimFrame = 1;
+    const charEl = document.getElementById('character-sprite');
+    if (!charEl) return;
+
+    // 定義されているアニメーションタイプに基づく連番画像切り替え
+    const animConfig = {
+        'idle': { frames: 4, speed: 200 }
+    };
+    const config = animConfig[type] || animConfig['idle'];
+    
+    state.characterAnimInterval = setInterval(() => {
+        state.characterAnimFrame = (state.characterAnimFrame % config.frames) + 1;
+        charEl.src = `assets/popora_${type}_${state.characterAnimFrame}.png`;
+    }, config.speed);
+}
+
+function stopCharacterAnimation() {
+    if (state.characterAnimInterval) {
+        clearInterval(state.characterAnimInterval);
+        state.characterAnimInterval = null;
+    }
+}
 
 // セーブデータ用キー
 const SAVE_KEY = 'BigBonusBlitz_Save';
@@ -123,7 +153,9 @@ function saveGameState() {
         bonusMode: state.bonusMode,
         bonusPayoutTarget: state.bonusPayoutTarget,
         bonusEarned: state.bonusEarned,
-        stockCount: state.stockCount
+        stockCount: state.stockCount,
+        debugPosX: document.getElementById('debug-popup') ? document.getElementById('debug-popup').style.left : null,
+        debugPosY: document.getElementById('debug-popup') ? document.getElementById('debug-popup').style.top : null
     };
     localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
 }
@@ -158,6 +190,9 @@ function loadGameState() {
                 if (popup) {
                     if (state.isDebugMode) popup.classList.remove('hidden');
                     else popup.classList.add('hidden');
+                    
+                    if (savedData.debugPosX) popup.style.left = savedData.debugPosX;
+                    if (savedData.debugPosY) popup.style.top = savedData.debugPosY;
                 }
             }
             if (savedData.bonusMode !== undefined) state.bonusMode = savedData.bonusMode;
@@ -783,6 +818,7 @@ function updateUI() {
             if (elRbLogo) elRbLogo.classList.add('hidden');
         }
     }
+    saveGameState();
 }
 
 function onMaxBet() {
@@ -896,7 +932,8 @@ function drawLottery() {
         state.heldBonusFlag = state.currentFlag;
     }
     
-    updateLamp();
+    updateReels();
+    playCharacterAnimation('idle'); // 初期状態のアイドル再生
 }
 
 function updateDebugUI() {
@@ -974,6 +1011,8 @@ function onLever() {
     updateDebugUI();
     updateEnemySlimeColor();
     
+    playCharacterAnimation('idle'); // 連番画像でのアイドル再生を開始
+    
     // アニメーション状態のリセット
     const dust = document.getElementById('dust-cloud-img');
     const knight = document.getElementById('knight-win-img');
@@ -995,7 +1034,6 @@ function onLever() {
     
     if (character) {
         character.classList.remove('anim-miss', 'anim-replay', 'anim-bell', 'anim-cherry', 'anim-watermelon', 'anim-bonus');
-        character.classList.add('popora-idle'); // リセット時にアイドルモーションに戻す
     }
     if (gameContainer) {
         gameContainer.classList.remove('screen-shake');
@@ -1441,7 +1479,8 @@ function evaluateWin() {
         // ボーナスアニメーション付与
         const character = document.getElementById('character-sprite');
         if (character) {
-            character.classList.remove('popora-idle');
+            stopCharacterAnimation(); // アイドル再生を止める
+            character.src = 'assets/popora_idle_1.png'; // ベース画像に戻す
             character.classList.add('anim-bonus');
         }
         
@@ -1501,7 +1540,8 @@ function evaluateWin() {
         const dust = document.getElementById('dust-cloud-img');
 
         // 第3停止時のアクション演出（winTypeに応じて）
-        if (character) character.classList.remove('popora-idle'); // アイドルを外す
+        if (character) stopCharacterAnimation(); // アイドル連番を止める
+        
         if (winType === 'BELL') {
             if (character) character.classList.add('anim-bell');
             if (enemy) enemy.classList.add('enemy-anim-squash');
@@ -1536,7 +1576,8 @@ function evaluateWin() {
         // リプレイ演出
         const character = document.getElementById('character-sprite');
         if (character) {
-            character.classList.remove('popora-idle');
+            stopCharacterAnimation();
+            character.src = 'assets/popora_idle_1.png';
             character.classList.add('anim-replay');
         }
         
@@ -1562,7 +1603,8 @@ function evaluateWin() {
             const character = document.getElementById('character-sprite');
             const enemy = document.getElementById('enemy-img');
             if (character) {
-                character.classList.remove('popora-idle');
+                stopCharacterAnimation();
+                character.src = 'assets/popora_idle_1.png';
                 character.classList.add('anim-miss');
             }
             if (enemy) enemy.classList.add('enemy-anim-hit'); // 敵が攻撃してきたような動きに流用
@@ -1691,10 +1733,6 @@ function triggerNextAutoAction() {
     }
 }
 
-function updateUI() {
-    elCredit.textContent = state.credit;
-    saveGameState();
-}
 
 // ウィンドウサイズに応じたスケール調整
 function resizeGame() {
@@ -1802,6 +1840,9 @@ if (debugPopup) {
     });
 
     document.addEventListener('mouseup', () => {
-        isDraggingDebug = false;
+        if (isDraggingDebug) {
+            isDraggingDebug = false;
+            saveGameState();
+        }
     });
 }
