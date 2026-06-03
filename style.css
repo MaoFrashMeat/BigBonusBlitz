@@ -347,62 +347,53 @@ body {
    Character (Popora) Sprite Animation
    ========================================= */
 #character-sprite {
-    height: 378px;
+    height: 302px;
     position: absolute;
     bottom: 20px;
     left: 15%;
-    z-index: 4;
+    z-index: 5;
     transform-origin: bottom center;
     background-repeat: no-repeat;
 }
 
-
-
-
-
-
-    to { background-position: -2520px 0; }
-}
-    to { background-position: 100% 0; }
-}
-
-
-    to { background-position: -1116px 0; }
-}
-    to { background-position: -282px 0; }
-}
-    to { background-position: -1680px 0; }
-}
-    to { background-position: 100% 0; }
-}
-
-
-
 .chr-idle {
-    width: 378px;
+    width: 302px;
     background-image: url('assets/chr0001_idle_strip.png');
     background-size: 400% 100%;
-    animation: chrIdle 0.8s steps(4) infinite;
+    animation: chrIdle 1.6s steps(4) infinite;
 }
 @keyframes chrIdle {
     from { background-position: 0 0; }
-    to { background-position: -1512px 0; }
+    to { background-position: -1208px 0; }
+}
+
+.chr-walk {
+    width: 302px;
+    background-size: 100% 100%;
+    animation: chrWalkSeq 0.6s step-end infinite;
+}
+@keyframes chrWalkSeq {
+    0%   { background-image: url('assets/popora_walk_1.png'); }
+    25%  { background-image: url('assets/popora_walk_2.png'); }
+    50%  { background-image: url('assets/popora_walk_3.png'); }
+    75%  { background-image: url('assets/popora_walk_4.png'); }
+    100% { background-image: url('assets/popora_walk_1.png'); }
 }
 
 .chr-attack {
-    width: 502px;
-    margin-left: -111px;
+    width: 541px;
+    margin-left: -120px; /* 待機モーションとの中心合わせ */
     background-image: url('assets/chr0001_attack_strip.png');
-    background-size: 400% 100%;
+    background-size: 400% 100%; /* 4 frames */
 }
 .chr-attack-f1 { background-position: 0 0; }
-.chr-attack-f2 { background-position: -502px 0; }
+.chr-attack-f2 { background-position: -541px 0; }
 .chr-attack-f3-4 {
-    animation: chrAttack34 0.2s steps(2) forwards;
+    animation: chrAttack34 0.2s steps(2, start) forwards;
 }
 @keyframes chrAttack34 {
-    from { background-position: -1004px 0; }
-    to { background-position: -2008px 0; }
+    from { background-position: -541px 0; } /* start指定により即座に -1082px(Frame3) になる */
+    to { background-position: -1623px 0; } /* Frame4 で停止 */
 }
 
 #enemy-img {
@@ -485,6 +476,16 @@ body {
 @keyframes idleEnemyAnim {
     0%, 100% { transform: scaleY(1) translateY(0); }
     50% { transform: scaleY(0.9) translateY(4px); }
+}
+
+/* 敵が右からスライドインするアニメーション */
+.enemy-slide-in {
+    animation: enemySlideIn 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards,
+               idleEnemyAnim 2s infinite ease-in-out 0.5s;
+}
+@keyframes enemySlideIn {
+    from { transform: translateX(300px) scaleY(1); opacity: 0; }
+    to   { transform: translateX(0)     scaleY(1); opacity: 1; }
 }
 
 /* 敵の体色（元の画像をhue-rotateで色変え） */
@@ -598,9 +599,9 @@ body {
     box-shadow: inset 0 0 25px rgba(0,0,0,0.9), 0 10px 20px rgba(0,0,0,0.7);
     position: relative;
     
-    /* ゲーム画面にはみ出して最前面に表示 */
+    /* ゲーム画面にはみ出して最前面に表示（SS確認済み位置） */
     z-index: 500;
-    transform: translateY(-115px);
+    transform: translateY(-38px) scale(1.41);
 }
 
 .payline {
@@ -809,7 +810,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 100;
+    z-index: 1000;
 }
 
 .modal.hidden {
@@ -986,7 +987,7 @@ body {
 /* Bonus (Cut-in) */
 .anim-bonus {
     animation: animBonus 3.5s ease-in-out forwards;
-    z-index: 100 !important;
+    z-index: 1001 !important;
 }
 @keyframes animBonus {
     0% { transform: scale(1) translate(0, 0); }
@@ -995,29 +996,4 @@ body {
     100% { transform: scale(1) translate(0, 0); }
 }
 
-.chr-idle {
-    width: 280px;
-    background-image: url('assets/chr0001_idle_strip.png');
-    background-size: 400% 100%;
-    animation: chrIdle 0.6s steps(4) infinite;
-}
-@keyframes chrIdle {
-    from { background-position: 0 0; }
-    to { background-position: -1120px 0; }
-}
 
-.chr-attack {
-    width: 502px;
-    margin-left: -111px;
-    background-image: url('assets/chr0001_attack_strip.png');
-    background-size: 400% 100%;
-}
-.chr-attack-f1 { background-position: 0 0; }
-.chr-attack-f2 { background-position: -502px 0; }
-.chr-attack-f3-4 {
-    animation: chrAttack34 0.2s steps(2) forwards;
-}
-@keyframes chrAttack34 {
-    from { background-position: -1004px 0; }
-    to { background-position: -2008px 0; }
-}

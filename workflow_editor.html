@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>BigBonusBlitz - ワークフローエディター</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep:  #0d0d1a;
+            --bg-card:  #141428;
+            --bg-panel: #1a1a35;
+            --bg-input: #0f0f22;
+            --accent:   #7c3aed;
+            --accent-lt:#a78bfa;
+            --gold:     #f59e0b;
+            --green:    #10b981;
+            --yellow:   #f59e0b;
+            --red:      #ef4444;
+            --text:     #e2e8f0;
+            --muted:    #64748b;
+            --border:   #2d2d55;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg-deep); color: var(--text);
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh; display: flex; flex-direction: column;
+        }
+
+        /* HEADER */
+        header {
+            background: linear-gradient(135deg,#1a0533,#0d0d2b);
+            border-bottom: 2px solid var(--accent);
+            padding: 14px 28px;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 4px 20px rgba(124,58,237,.3);
+        }
+        header h1 {
+            font-size: 20px; font-weight: 900;
+            background: linear-gradient(135deg,var(--accent-lt),var(--gold));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .hdr-right { display:flex; gap:12px; align-items:center; }
+        #status { font-size:13px; color:var(--muted); }
+        .btn-hdr {
+            padding:8px 18px; border-radius:8px; font-size:13px;
+            font-weight:700; cursor:pointer; border:none; transition:all .2s;
+        }
+        .btn-open { background:var(--bg-panel); color:var(--accent-lt); border:1px solid var(--accent); }
+        .btn-open:hover { background:var(--accent); color:#fff; }
+        .btn-save { background:var(--accent); color:#fff; }
+        .btn-save:hover { background:#6d28d9; }
+        .btn-save:disabled { background:#333; color:#555; cursor:not-allowed; }
+
+        /* LAYOUT */
+        .workspace { display:flex; flex:1; overflow:hidden; }
+
+        /* SIDEBAR */
+        .sidebar {
+            width:156px; flex-shrink:0;
+            background:var(--bg-card); border-right:2px solid var(--border);
+            display:flex; flex-direction:column; padding:12px 0; overflow-y:auto;
+        }
+        .sidebar-lbl {
+            font-size:10px; font-weight:700; color:var(--muted);
+            letter-spacing:2px; padding:4px 14px 10px; text-transform:uppercase;
+        }
+        .role-tab {
+            padding:11px 14px; cursor:pointer;
+            border-left:3px solid transparent; transition:all .15s;
+            display:flex; flex-direction:column; gap:3px;
+        }
+        .role-tab:hover { background:rgba(124,58,237,.1); border-left-color:var(--accent); }
+        .role-tab.active { background:rgba(124,58,237,.2); border-left-color:var(--accent-lt); }
+        .role-tab .rn { font-size:14px; font-weight:700; }
+        .role-tab .rt { font-size:11px; font-weight:600; }
+        .rt.ok  { color:var(--green); }
+        .rt.warn{ color:var(--yellow); }
+        .rt.over{ color:var(--red); }
+        .rt.zero{ color:var(--muted); }
+
+        /* MAIN */
+        .main { flex:1; overflow-y:auto; padding:14px 20px; display:flex; flex-direction:column; gap:10px; }
+
+        /* ROLE HEADER */
+        .role-hdr { display:flex; align-items:center; gap:10px; }
+        .role-badge {
+            font-size:18px; font-weight:900; padding:4px 12px;
+            border-radius:8px; border:2px solid; white-space:nowrap;
+        }
+        .role-sub { color:var(--muted); font-size:12px; }
+
+        /* TOTAL BAR */
+        .total-wrap {
+            background:var(--bg-card); border:1px solid var(--border);
+            border-radius:8px; padding:8px 14px;
+            display:flex; align-items:center; gap:10px;
+        }
+        .total-track { flex:1; height:6px; background:var(--bg-deep); border-radius:99px; overflow:hidden; }
+        .total-fill { height:100%; border-radius:99px; transition:width .3s,background .3s; }
+        .total-lbl { font-size:12px; font-weight:700; min-width:120px; text-align:right; }
+
+        /* ===== EVENT CATEGORY ===== */
+        .section {
+            background:var(--bg-card); border:1px solid var(--border);
+            border-radius:14px; overflow:hidden;
+        }
+        /* Tier2グリッドは7列（A-F + 何もなし）*/
+        .tier2-grid {
+            display:grid; grid-template-columns:repeat(7,1fr); gap:10px;
+        }
+        .sec-header {
+            display:flex; align-items:center; gap:8px;
+            padding:8px 14px; background:var(--bg-panel);
+            border-bottom:1px solid var(--border);
+        }
+        .sec-icon { font-size:15px; }
+        .sec-name { font-size:13px; font-weight:700; }
+        .sec-rate-wrap { margin-left:auto; display:flex; align-items:center; gap:6px; }
+        .sec-rate-input {
+            width:58px; padding:4px 18px 4px 8px;
+            background:var(--bg-input); border:1px solid var(--border);
+            border-radius:6px; color:var(--text); font-size:13px;
+            font-weight:700; font-family:'Outfit',sans-serif; text-align:center;
+            transition:border-color .2s;
+        }
+        .sec-rate-input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 2px rgba(124,58,237,.2); }
+        .sec-rate-input::-webkit-inner-spin-button { display:none; }
+        .sec-suffix { font-size:10px; color:var(--muted); position:absolute; right:5px; pointer-events:none; }
+        .sec-rate-box { position:relative; display:flex; align-items:center; }
+        .sec-rate-bar-track { width:60px; height:4px; background:var(--bg-deep); border-radius:99px; overflow:hidden; }
+        .sec-rate-bar-fill { height:100%; border-radius:99px; transition:width .3s; }
+
+        /* TIER2 variant grid */
+        .tier2 {
+            padding:8px 14px 10px;
+            border-top:1px solid var(--border);
+            background:rgba(0,0,0,.15);
+        }
+        .tier2-lbl {
+            font-size:10px; color:var(--muted); font-weight:600;
+            letter-spacing:1px; text-transform:uppercase; margin-bottom:8px;
+            display:flex; align-items:center; justify-content:space-between;
+        }
+        .tier2-total { font-size:11px; font-weight:700; }
+        .v-item { display:flex; flex-direction:column; gap:3px; }
+        .v-lbl { font-size:10px; font-weight:600; color:var(--muted); text-align:center; }
+        .v-input-box { position:relative; display:flex; align-items:center; }
+        .v-input {
+            width:100%; padding:5px 16px 5px 6px;
+            background:var(--bg-input); border:1px solid var(--border);
+            border-radius:5px; color:var(--text); font-size:12px;
+            font-weight:700; font-family:'Outfit',sans-serif; text-align:center;
+            transition:border-color .2s;
+        }
+        .v-input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 2px rgba(124,58,237,.2); }
+        .v-input::-webkit-inner-spin-button { display:none; }
+        .v-sfx { position:absolute; right:4px; font-size:9px; color:var(--muted); pointer-events:none; }
+        .v-bar { height:3px; border-radius:99px; transition:width .2s; }
+
+        /* NONE section */
+        .none-section {
+            background:var(--bg-card); border:1px solid #37415140;
+            border-radius:8px; overflow:hidden;
+        }
+        .none-body {
+            padding:8px 14px; display:flex; align-items:center; gap:12px;
+        }
+        .none-desc { color:var(--muted); font-size:12px; line-height:1.5; }
+
+        /* TOAST */
+        #toast {
+            position:fixed; top:18px; right:18px;
+            background:var(--bg-panel); border-left:4px solid var(--green);
+            color:var(--text); padding:11px 18px; border-radius:8px;
+            font-weight:700; font-size:13px;
+            box-shadow:0 8px 30px rgba(0,0,0,.5);
+            transform:translateX(120%); transition:transform .3s; z-index:9999;
+        }
+        #toast.show { transform:translateX(0); }
+        #toast.err  { border-left-color:var(--red); }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🎰 ワークフローエディター</h1>
+    <div class="hdr-right">
+        <span id="status">ファイルを読み込んでください</span>
+        <button id="btn-open" class="btn-hdr btn-open">📂 ファイル紐付け</button>
+        <button id="btn-save" class="btn-hdr btn-save" disabled>💾 保存</button>
+    </div>
+</header>
+
+<div class="workspace">
+    <nav class="sidebar">
+        <div class="sidebar-lbl">役の種類</div>
+    </nav>
+    <main class="main" id="main">
+        <div style="color:var(--muted);text-align:center;margin-top:80px;font-size:15px;">
+            📂「ファイル紐付け」から <strong>workflow.js</strong> を選択<br>
+            <span style="font-size:12px;margin-top:6px;display:block;">初回は新規作成されます</span>
+        </div>
+    </main>
+</div>
+<div id="toast"></div>
+
+<script>
+/* =====================================================
+   定数
+===================================================== */
+const ROLES = [
+    { key:'HAZE',   label:'ハズレ',   emoji:'💨', color:'#94a3b8' },
+    { key:'BELL',   label:'ベル',     emoji:'🔔', color:'#fbbf24' },
+    { key:'REPLAY', label:'リプレイ', emoji:'🔁', color:'#60a5fa' },
+    { key:'CHERRY', label:'チェリー', emoji:'🍒', color:'#f87171' },
+    { key:'SUICA',  label:'スイカ',   emoji:'🍉', color:'#34d399' },
+    { key:'CHANCE', label:'チャンス', emoji:'⭐', color:'#c084fc' },
+    { key:'BONUS',  label:'ボーナス', emoji:'🎯', color:'#fb923c' },
+];
+
+const CATS = [
+    { key:'SERIF',  label:'セリフ',       icon:'💬', color:'#60a5fa' },
+    { key:'ENEMY',  label:'敵の出現',     icon:'👾', color:'#f87171' },
+    { key:'ZONE',   label:'高確率ゾーン', icon:'🔥', color:'#fb923c' },
+    { key:'ACTION', label:'行動',         icon:'⚔️', color:'#a78bfa' },
+];
+
+const VARIANTS = ['A','B','C','D','E','F'];
+
+/* =====================================================
+   データ構造
+   workflow[roleKey] = {
+     NONE: number,               // 何もなし %（Tier1）
+     SERIF:  { rate: number, A:n, B:n, C:n, D:n, E:n, F:n },  // rate=Tier1%, A-F=Tier2%
+     ENEMY:  { rate: number, ... },
+     ZONE:   { rate: number, ... },
+     ACTION: { rate: number, ... },
+   }
+   Tier1: NONE + sum(cat.rate) <= 100
+   Tier2: sum(cat.A~F) <= 100
+===================================================== */
+function createDefault() {
+    const wf = {};
+    for (const r of ROLES) {
+        wf[r.key] = {};
+        for (const c of CATS) {
+            wf[r.key][c.key] = { rate:0, A:0, B:0, C:0, D:0, E:0, F:0 };
+        }
+    }
+    return wf;
+}
+
+let workflow = createDefault();
+let currentRole = ROLES[0].key;
+let fileHandle = null;
+
+/* =====================================================
+   IndexedDB によるファイルハンドル永続化
+===================================================== */
+const IDB_NAME    = 'WorkflowEditor';
+const IDB_STORE   = 'handles';
+const IDB_KEY     = 'workflowFileHandle';
+
+function openIDB() {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open(IDB_NAME, 1);
+        req.onupgradeneeded = e => e.target.result.createObjectStore(IDB_STORE);
+        req.onsuccess = e => resolve(e.target.result);
+        req.onerror   = e => reject(e.target.error);
+    });
+}
+
+async function saveHandleToIDB(handle) {
+    const db = await openIDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(IDB_STORE, 'readwrite');
+        tx.objectStore(IDB_STORE).put(handle, IDB_KEY);
+        tx.oncomplete = resolve;
+        tx.onerror    = e => reject(e.target.error);
+    });
+}
+
+async function loadHandleFromIDB() {
+    const db = await openIDB();
+    return new Promise((resolve, reject) => {
+        const tx  = db.transaction(IDB_STORE, 'readonly');
+        const req = tx.objectStore(IDB_STORE).get(IDB_KEY);
+        req.onsuccess = e => resolve(e.target.result || null);
+        req.onerror   = e => reject(e.target.error);
+    });
+}
+
+/* ファイルを読み込んでUIに反映する共通処理 */
+async function loadFromHandle(handle) {
+    const file = await handle.getFile();
+    const text = await file.text();
+    try {
+        const fn = new Function(text + '; return typeof WORKFLOW_CONFIG!=="undefined"?WORKFLOW_CONFIG:null;');
+        const loaded = fn();
+        if (loaded) mergeLoaded(loaded);
+    } catch(e) { console.warn('解析失敗:', e); }
+    document.getElementById('status').textContent = `✅ ${file.name}`;
+    document.getElementById('btn-save').disabled = false;
+    renderAll();
+}
+
+/* =====================================================
+   ファイルI/O
+===================================================== */
+document.getElementById('btn-open').addEventListener('click', async () => {
+    try {
+        [fileHandle] = await window.showOpenFilePicker({
+            types:[{ description:'JavaScript', accept:{'text/javascript':['.js']} }]
+        });
+        await saveHandleToIDB(fileHandle);   // IndexedDB に記憶
+        await loadFromHandle(fileHandle);
+        showToast('読み込みました');
+    } catch(e) {
+        if (e.name !== 'AbortError') showToast('読み込み失敗: ' + e.message, true);
+    }
+});
+
+/* ページロード時に前回のハンドルを自動復元 */
+(async () => {
+    try {
+        const saved = await loadHandleFromIDB();
+        if (!saved) return;
+
+        // 読み取り権限を確認（まず queryPermission、必要なら request）
+        let perm = await saved.queryPermission({ mode: 'readwrite' });
+        if (perm === 'prompt') {
+            // ユーザーの操作が必要なのでボタンを「再接続」スタイルにする
+            document.getElementById('status').textContent = '🔗 前回のファイルを復元できます';
+            document.getElementById('btn-open').textContent = '🔗 前回のファイルを再接続';
+            // ボタンクリック時に権限取得して復元
+            document.getElementById('btn-open').addEventListener('click', async () => {
+                perm = await saved.requestPermission({ mode: 'readwrite' });
+                if (perm === 'granted') {
+                    fileHandle = saved;
+                    await loadFromHandle(fileHandle);
+                    showToast('前回のファイルを復元しました');
+                    document.getElementById('btn-open').textContent = '📂 ファイル紐付け';
+                }
+            }, { once: true });
+        } else if (perm === 'granted') {
+            // すでに権限あり → 即時復元
+            fileHandle = saved;
+            await loadFromHandle(fileHandle);
+            showToast('前回のファイルを自動復元しました');
+        }
+    } catch(e) {
+        console.warn('ハンドル復元失敗:', e);
+    }
+})();
+
+function mergeLoaded(loaded) {
+    for (const r of ROLES) {
+        const src = loaded[r.key] || {};
+        for (const c of CATS) {
+            const srcC = src[c.key] || {};
+            workflow[r.key][c.key] = {
+                rate: srcC.rate ?? 0,
+                A: srcC.A ?? 0, B: srcC.B ?? 0, C: srcC.C ?? 0,
+                D: srcC.D ?? 0, E: srcC.E ?? 0, F: srcC.F ?? 0,
+            };
+        }
+    }
+}
+
+document.getElementById('btn-save').addEventListener('click', async () => {
+    if (!fileHandle) return;
+    try {
+        const perm = await fileHandle.queryPermission({ mode:'readwrite' });
+        if (perm !== 'granted') await fileHandle.requestPermission({ mode:'readwrite' });
+        const w = await fileHandle.createWritable();
+        await w.write(generateCode());
+        await w.close();
+        showToast('保存しました ✅');
+    } catch(e) { showToast('保存失敗: ' + e.message, true); }
+});
+
+function generateCode() {
+    return `// ゲームワークフロー設定 (WORKFLOW_CONFIG)
+// このファイルはワークフローエディターによって自動更新されます
+//
+// 【構造説明】
+// ・NONE          : 役成立時に何もイベントが発生しない確率（Tier1 %）
+// ・各カテゴリ.rate: そのイベントカテゴリが発動する確率（Tier1 %）
+//   → NONE + 全カテゴリのrate の合計が100%になるよう設定してください
+// ・各カテゴリ.A〜F: カテゴリ発動時にどのバリアントが選ばれるか（Tier2 %）
+//   → A〜Fの合計が100%になるよう設定してください
+let WORKFLOW_CONFIG = ${JSON.stringify(workflow, null, 4)};
+`;
+}
+
+/* =====================================================
+   Tier1計算
+===================================================== */
+// カテゴリrate合計
+function catRateTotal(roleKey) {
+    return CATS.reduce((s, c) => s + (workflow[roleKey][c.key]?.rate || 0), 0);
+}
+// 何もなし = 100 - カテゴリ合計（0未満にならない）
+function calcNone(roleKey) {
+    return Math.max(0, 100 - catRateTotal(roleKey));
+}
+// Tier1合計表示用（カテゴリ合計のみ、何もなしは自動なので100%超えチェックに使う）
+function tier1Total(roleKey) {
+    return catRateTotal(roleKey);
+}
+
+function tier2Total(roleKey, catKey) {
+    const obj = workflow[roleKey][catKey];
+    return VARIANTS.reduce((s, v) => s + (obj[v] || 0), 0);
+}
+
+// Tier2 何もなし = 100 - A〜F合計（0未満にならない）
+function calcTier2None(roleKey, catKey) {
+    return Math.max(0, 100 - tier2Total(roleKey, catKey));
+}
+
+/* =====================================================
+   レンダリング
+===================================================== */
+function renderAll() {
+    renderSidebar();
+    renderMain();
+}
+
+function renderSidebar() {
+    const sb = document.querySelector('.sidebar');
+    sb.innerHTML = '<div class="sidebar-lbl">役の種類</div>';
+    for (const r of ROLES) {
+        const t = catRateTotal(r.key);
+        const cls = t > 100 ? 'over' : t === 100 ? 'ok' : t === 0 ? 'zero' : 'warn';
+        const txt = t > 100 ? `⚠ ${t}%` : t === 100 ? '✅ 100%' : t === 0 ? '未設定' : `${t}%`;
+        const tab = document.createElement('div');
+        tab.className = `role-tab ${r.key === currentRole ? 'active' : ''}`;
+        tab.dataset.roleKey = r.key;  // refreshTotalsOnly で参照するため
+        tab.innerHTML = `<span class="rn" style="color:${r.color}">${r.emoji} ${r.label}</span><span class="rt ${cls}">${txt}</span>`;
+        tab.addEventListener('click', () => { currentRole = r.key; renderAll(); });
+        sb.appendChild(tab);
+    }
+}
+
+function renderMain() {
+    const role    = ROLES.find(r => r.key === currentRole);
+    const wf      = workflow[currentRole];
+    const catTotal = catRateTotal(currentRole);
+    const noneVal  = calcNone(currentRole);
+    // カテゴリ合計がNONEを含めて常に100%になる前提で表示
+    const barPct   = Math.min(catTotal, 100);
+    const barColor = catTotal > 100 ? '#ef4444' : catTotal === 100 ? '#f59e0b' : '#10b981';
+    const t1Msg    = catTotal > 100 ? '⚠ 超過！（100%以下にしてください）'
+                   : `イベント合計 ${catTotal}%　／　何もなし ${noneVal}%`;
+
+    let html = `
+    <div class="role-hdr">
+        <div class="role-badge" style="color:${role.color};border-color:${role.color}30;background:${role.color}12;">
+            ${role.emoji} ${role.label}
+        </div>
+        <div class="role-sub">役成立時のイベント抽選設定</div>
+    </div>
+
+    <!-- Tier1合計バー -->
+    <div class="total-wrap">
+        <div style="font-size:13px;color:var(--muted);min-width:90px;">Tier1 合計</div>
+        <div class="total-track">
+            <div class="total-fill" style="width:${barPct}%;background:${barColor};"></div>
+        </div>
+        <div class="total-lbl" style="color:${barColor};font-size:12px;">${t1Msg}</div>
+    </div>
+
+    <!-- 何もなし（自動計算・読み取り専用） -->
+    <div class="none-section">
+        <div class="sec-header" style="background:rgba(71,85,105,.15);">
+            <span class="sec-icon">🚫</span>
+            <span class="sec-name" style="color:var(--muted);">何もなし</span>
+            <span style="margin-left:auto;font-size:12px;color:var(--muted);">自動計算（100% − 各イベント合計）</span>
+        </div>
+        <div class="none-body">
+            <div style="width:80px;text-align:center;">
+                <div class="none-display" style="font-size:36px;font-weight:900;color:${noneVal===0?'#475569':'#e2e8f0'};line-height:1;">${noneVal}<span style="font-size:18px;">%</span></div>
+            </div>
+            <div class="none-desc">
+                各イベントの発動率合計が <strong style="color:var(--text)">${catTotal}%</strong> のため、<br>
+                役が成立しても <strong style="color:${noneVal>0?'#e2e8f0':'#475569'}">${noneVal}%</strong> の確率でイベントが発生しません。
+            </div>
+        </div>
+    </div>`;
+
+    // 各カテゴリ
+    for (const c of CATS) {
+        const catData = wf[c.key];
+        const rate    = catData.rate || 0;
+        const t2      = tier2Total(currentRole, c.key);
+        const t2Color = t2 > 100 ? '#ef4444' : t2 === 100 ? '#10b981' : t2 === 0 ? '#475569' : '#f59e0b';
+        const barW    = Math.min(rate, 100);
+
+        html += `
+    <div class="section">
+        <!-- Tier1 行 -->
+        <div class="sec-header">
+            <span class="sec-icon">${c.icon}</span>
+            <span class="sec-name">${c.label}</span>
+            <div class="sec-rate-wrap">
+                <div class="sec-rate-bar-track">
+                    <div class="sec-rate-bar-fill" style="width:${barW}%;background:${c.color};"></div>
+                </div>
+                <span style="font-size:11px;color:var(--muted);white-space:nowrap;">Tier1発動率</span>
+                <div class="sec-rate-box">
+                    <input type="number" class="sec-rate-input" min="0" max="100" step="1"
+                        value="${rate}"
+                        data-role="${currentRole}" data-cat="${c.key}">
+                    <span class="sec-suffix">%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tier2 バリアント -->
+        <div class="tier2">
+            <div class="tier2-lbl">
+                <span>↳ どのバリアントが選ばれるか（Tier2）</span>
+                <span class="tier2-total" style="color:${t2Color};">合計 ${t2}%${t2 > 100 ? ' ⚠' : t2 === 100 ? ' ✅' : ''}</span>
+            </div>
+            <div class="tier2-grid">`;
+
+        for (const v of VARIANTS) {
+            const val   = catData[v] || 0;
+            const barW2 = Math.min(val, 100);
+            html += `
+                <div class="v-item">
+                    <div class="v-lbl">${c.label} ${v}</div>
+                    <div class="v-input-box">
+                        <input type="number" class="v-input" min="0" max="100" step="1"
+                            value="${val}"
+                            data-role="${currentRole}" data-cat="${c.key}" data-var="${v}">
+                        <span class="v-sfx">%</span>
+                    </div>
+                    <div class="v-bar" style="width:${barW2}%;background:${c.color};"></div>
+                </div>`;
+        }
+
+        // Tier2 何もなし（自動計算・読み取り専用）
+        const t2None = calcTier2None(currentRole, c.key);
+        html += `
+                <div class="v-item" style="opacity:${t2None===0?0.35:1};">
+                    <div class="v-lbl" style="color:#475569;">何もなし</div>
+                    <div class="v-input-box">
+                        <div style="width:100%;padding:7px 8px;background:rgba(71,85,105,.15);
+                             border:1px dashed #37415180;border-radius:7px;
+                             font-size:14px;font-weight:900;text-align:center;
+                             color:${t2None===0?'#475569':'#e2e8f0'};">
+                            ${t2None}%
+                        </div>
+                    </div>
+                    <div class="v-bar" style="width:${Math.min(t2None,100)}%;background:#475569;"></div>
+                </div>`;
+
+        html += `
+            </div>
+        </div>
+    </div>`;
+    }
+
+    const main = document.getElementById('main');
+    main.innerHTML = html;
+
+    // ===== イベントリスナー =====
+
+    // Tier1 発動率
+    main.querySelectorAll('.sec-rate-input').forEach(el => {
+        el.addEventListener('input', () => {
+            let v = parseInt(el.value, 10);
+            if (isNaN(v) || v < 0) v = 0;
+            if (v > 100) v = 100;
+            workflow[el.dataset.role][el.dataset.cat].rate = v;
+            workflow[el.dataset.role].NONE = calcNone(el.dataset.role);
+            // 入力中はサイドバーと合計バーだけ軽量更新（入力欄は再描画しない）
+            refreshTotalsOnly();
+        });
+        el.addEventListener('blur', () => renderAll());  // フォーカスを外したら全更新
+        el.addEventListener('focus', () => el.select());
+    });
+
+    // Tier2 バリアント
+    main.querySelectorAll('.v-input').forEach(el => {
+        el.addEventListener('input', () => {
+            let v = parseInt(el.value, 10);
+            if (isNaN(v) || v < 0) v = 0;
+            if (v > 100) v = 100;
+            workflow[el.dataset.role][el.dataset.cat][el.dataset.var] = v;
+            workflow[el.dataset.role][el.dataset.cat].NONE = calcTier2None(el.dataset.role, el.dataset.cat);
+            // 入力中は合計表示だけ軽量更新
+            refreshTotalsOnly();
+        });
+        el.addEventListener('blur', () => renderAll());  // フォーカスを外したら全更新
+        el.addEventListener('focus', () => el.select());
+    });
+}
+
+/* =====================================================
+   合計表示だけを軽量更新（入力欄はそのまま）
+===================================================== */
+function refreshTotalsOnly() {
+    // サイドバーの各役の合計%を更新
+    document.querySelectorAll('.role-tab').forEach(tab => {
+        const key = tab.dataset.roleKey;
+        if (!key) return;
+        const t = catRateTotal(key);
+        const cls = t > 100 ? 'over' : t === 100 ? 'ok' : t === 0 ? 'zero' : 'warn';
+        const txt = t > 100 ? `⚠ ${t}%` : t === 100 ? '✅ 100%' : t === 0 ? '未設定' : `${t}%`;
+        const rtEl = tab.querySelector('.rt');
+        if (rtEl) { rtEl.className = `rt ${cls}`; rtEl.textContent = txt; }
+    });
+
+    // 合計バーを更新
+    const catTotal = catRateTotal(currentRole);
+    const noneVal  = calcNone(currentRole);
+    const barColor = catTotal > 100 ? '#ef4444' : catTotal === 100 ? '#f59e0b' : '#10b981';
+    const t1Msg    = catTotal > 100 ? '⚠ 超過！（100%以下にしてください）'
+                   : `イベント合計 ${catTotal}%　／　何もなし ${noneVal}%`;
+    const fill = document.querySelector('.total-fill');
+    const lbl  = document.querySelector('.total-lbl');
+    const noneDisp = document.querySelector('.none-display');
+    if (fill) { fill.style.width = `${Math.min(catTotal,100)}%`; fill.style.background = barColor; }
+    if (lbl)  { lbl.style.color = barColor; lbl.textContent = t1Msg; }
+    if (noneDisp) {
+        noneDisp.textContent = `${noneVal}%`;
+        noneDisp.style.color = noneVal === 0 ? '#475569' : '#e2e8f0';
+    }
+}
+
+/* =====================================================
+   Toast
+===================================================== */
+function showToast(msg, isErr = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = isErr ? 'show err' : 'show';
+    setTimeout(() => t.className = '', 2600);
+}
+
+/* 初期描画 */
+renderAll();
+</script>
+</body>
+</html>

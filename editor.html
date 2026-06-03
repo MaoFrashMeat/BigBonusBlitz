@@ -160,7 +160,20 @@
             <div id="tab-prob" class="tab-content active" style="display:block;">
                 
                 <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 5px; margin-bottom: 20px;">
-                    <h3 class="section-title" style="margin-top:0;">AUTO設定（タイミング/ミリ秒）※全状態・全設定共通</h3>
+                    <h3 class="section-title" style="margin-top:0;">🎰 リールレイアウト（位置・スケール）</h3>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom:15px;">
+                        <div class="row" style="flex-direction:column; align-items:flex-start; margin:0;">
+                            <label style="margin-bottom:5px; font-size:12px; color:#aaa;">Y移動 (translateY / px)</label>
+                            <input type="number" id="reelLayoutY" style="width:100%;" step="1">
+                            <span style="font-size:11px; color:#888; margin-top:3px;">上方向が負の値。例: -38</span>
+                        </div>
+                        <div class="row" style="flex-direction:column; align-items:flex-start; margin:0;">
+                            <label style="margin-bottom:5px; font-size:12px; color:#aaa;">スケール (scale)</label>
+                            <input type="number" id="reelLayoutScale" style="width:100%;" step="0.01" min="0.3" max="3.0">
+                            <span style="font-size:11px; color:#888; margin-top:3px;">等倍=1.0。例: 1.41</span>
+                        </div>
+                    </div>
+                <h3 class="section-title" style="margin-top:0;">AUTO設定（タイミング/ミリ秒）※全状態・全設定共通</h3>
                     <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap: 15px;">
                         <div class="row" style="flex-direction:column; align-items:flex-start; margin:0;"><label style="margin-bottom:5px; font-size:12px; color:#aaa;">第1リール待機</label><input type="number" id="timeAutoReel1" style="width:100%;"></div>
                         <div class="row" style="flex-direction:column; align-items:flex-start; margin:0;"><label style="margin-bottom:5px; font-size:12px; color:#aaa;">第2リール待機</label><input type="number" id="timeAutoReel2" style="width:100%;"></div>
@@ -621,6 +634,11 @@
             document.getElementById('timeAutoReel3').value = currentConfig.timings.reel3;
             document.getElementById('timeAutoNext').value = currentConfig.timings.next;
             document.getElementById('timeAutoNextWin').value = currentConfig.timings.nextWin;
+
+            // リールレイアウト設定の読み込み
+            const rl = currentConfig.reelLayout || { translateY: -38, scale: 1.41 };
+            document.getElementById('reelLayoutY').value     = rl.translateY;
+            document.getElementById('reelLayoutScale').value = rl.scale;
             
             document.getElementById('ceilingA').value = currentConfig.ceilings.A;
             document.getElementById('ceilingB').value = currentConfig.ceilings.B;
@@ -920,6 +938,11 @@
                 currentConfig.timings.reel3 = parseInt(document.getElementById('timeAutoReel3').value, 10);
                 currentConfig.timings.next = parseInt(document.getElementById('timeAutoNext').value, 10);
                 currentConfig.timings.nextWin = parseInt(document.getElementById('timeAutoNextWin').value, 10);
+
+                // リールレイアウト設定を保存
+                if (!currentConfig.reelLayout) currentConfig.reelLayout = {};
+                currentConfig.reelLayout.translateY = parseFloat(document.getElementById('reelLayoutY').value) || -38;
+                currentConfig.reelLayout.scale      = parseFloat(document.getElementById('reelLayoutScale').value) || 1.41;
 
                 const newCode = generateCode();
 

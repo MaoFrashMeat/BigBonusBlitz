@@ -1,6 +1,10 @@
 // パラメータ設定 (CONFIG)
 // このファイルはエディターツールによって自動更新されます
 let CONFIG = {
+    "reelLayout": {
+        "translateY": -38,
+        "scale": 1.41
+    },
     "payouts": {
         "BIG": 300,
         "REG": 90,

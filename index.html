@@ -86,6 +86,11 @@
                 <div id="damage-container" style="position: absolute; right: 25%; top: 40%; z-index: 100; pointer-events: none;"></div>
                 <!-- ベル当選時 第3停止で登場する女騎士 -->
                 <img src="assets/knight_win.png" id="knight-win-img" class="hidden" alt="Knight Win" />
+                
+                <!-- 内部ゲーム数表示（赤枠あたり） -->
+                <div style="position: absolute; right: 20px; bottom: 10px; width: 150px; height: 50px; background-image: url('assets/g_display_frame.png'); background-size: 100% 100%; image-rendering: pixelated; display: flex; align-items: center; justify-content: flex-end; padding-right: 20px; box-sizing: border-box; z-index: 10;">
+                    <div id="internal-game-count" style="font-size: 24px; color: #fff; text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; font-family: 'DotGothic16', monospace;">0G</div>
+                </div>
             </section>
             
             <!-- HPバー（クレジット表示） -->
@@ -135,6 +140,11 @@
 
                 <!-- 左下：AUTO/MAX BET -->
                 <div id="left-panel" style="position: absolute; left: 20px; bottom: 20px; display: flex; flex-direction: column; gap: 10px;">
+                    <div id="auto-speed-panel" style="display: flex; gap: 5px; width: 120px; justify-content: space-between;">
+                        <button id="btn-auto-x2" class="btn" style="flex:1; padding: 5px; font-size: 14px; font-weight: bold; background: #333; color: #fff; border: 1px solid #555; border-radius: 3px; cursor: pointer; transition: background 0.2s;">x2</button>
+                        <button id="btn-auto-x3" class="btn" style="flex:1; padding: 5px; font-size: 14px; font-weight: bold; background: #333; color: #fff; border: 1px solid #555; border-radius: 3px; cursor: pointer; transition: background 0.2s;">x3</button>
+                        <button id="btn-auto-x6" class="btn" style="flex:1; padding: 5px; font-size: 14px; font-weight: bold; background: #333; color: #fff; border: 1px solid #555; border-radius: 3px; cursor: pointer; transition: background 0.2s;">x6</button>
+                    </div>
                     <button id="btn-auto" class="btn btn-action" style="padding: 10px; width: 120px; font-weight: bold; background: #333; border: 2px solid #555;">AUTO</button>
                     <button id="btn-maxbet" class="btn btn-action" style="padding: 10px; width: 120px; font-weight: bold; background: #e94560; border: 2px solid #fff;">MAX BET</button>
                 </div>
@@ -150,15 +160,17 @@
                             <span class="label" style="color: #f90;">PAYOUT</span>
                             <span id="payout-display" style="font-size: 20px;">0</span>
                         </div>
-                        <div class="info-box" style="background: transparent;">
-                            <span class="label" style="color: #f90;">STATE</span>
-                            <span id="g-display" style="font-size: 16px; display: block; width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right;">0G</span>
+                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px;">
+                            <span class="label" style="color: #f90; font-size: 10px; margin-right: 5px;">GAME</span>
+                            <div style="width: 110px; height: 40px; background-image: url('assets/g_display_frame.png'); background-size: 100% 100%; display: flex; align-items: center; justify-content: flex-end; padding-right: 15px; position: relative; image-rendering: pixelated; box-shadow: 0 4px 6px rgba(0,0,0,0.5);">
+                                <span id="g-display" style="font-size: 16px; color: #fff; font-weight: bold; text-shadow: 1px 1px 0 #000; display: block; width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right;">0G</span>
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="sys-buttons-column" style="display:flex; flex-direction:column; gap:10px; background: #000; padding: 10px; border-radius: 5px; border: 2px solid #333;">
-                        <button id="btn-options" class="btn btn-action" style="font-size:24px; padding:5px; width:70px;" title="Options">⚙️</button>
-                        <button id="btn-bgm" class="btn btn-action" style="font-size:12px; padding:10px 5px; width:70px;">BGM OFF</button>
+                    <div class="sys-buttons-column" style="display:flex; flex-direction:column; gap:20px; align-items:center;">
+                        <button id="btn-options" style="font-size:32px; background:transparent; border:none; box-shadow:none; cursor:pointer; padding:0; line-height:1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)); transition: transform 0.1s; color: #fff;" title="Options">⚙️</button>
+                        <button id="btn-bgm" style="font-size:32px; background:transparent; border:none; box-shadow:none; cursor:pointer; padding:0; line-height:1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)); transition: transform 0.1s, opacity 0.2s; color: #fff; opacity: 1;" title="BGM Toggle">🎵</button>
                     </div>
                 </aside>
             </section>
@@ -181,11 +193,11 @@
                     </div>
                     <div class="option-row" style="display:flex; justify-content:space-between; align-items:center;">
                         <label style="color:#fff; font-size:20px;">BGM VOLUME</label>
-                        <input type="range" id="bgm-volume-slider" min="0" max="1" step="0.05" value="1" style="width:150px; cursor:pointer;">
+                        <input type="range" id="bgm-volume-slider" min="0" max="0.2" step="0.01" value="0.1" style="width:150px; cursor:pointer;">
                     </div>
                     <div class="option-row" style="display:flex; justify-content:space-between; align-items:center;">
                         <label style="color:#fff; font-size:20px;">SE VOLUME</label>
-                        <input type="range" id="se-volume-slider" min="0" max="1" step="0.05" value="1" style="width:150px; cursor:pointer;">
+                        <input type="range" id="se-volume-slider" min="0" max="0.2" step="0.01" value="0.1" style="width:150px; cursor:pointer;">
                     </div>
                     <div class="option-row" style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; border-top: 1px solid #555; padding-top: 20px;">
                         <label style="color:#fff; font-size:16px;">RESET GAME STATE</label>
@@ -263,35 +275,17 @@
                 <span>FLG: <span id="debug-flag" style="color: #0f0;">-</span></span>
                 <span>GM: <span id="debug-game-mode" style="color: #ff0;">-</span></span>
                 <span>MOD: <span id="debug-mode" style="color: #0f0;">-</span></span>
+                <div style="border-top:1px solid #333; margin:3px 0;"></div>
+                <span style="color:#aaa;">ROLE: <span id="debug-wfl-role" style="color:#7c3aed; font-weight:bold;">-</span></span>
+                <span style="color:#aaa;">EVENT: <span id="debug-wfl-event" style="color:#f59e0b; font-weight:bold;">-</span></span>
+                <span style="color:#aaa;">VAR: <span id="debug-wfl-var" style="color:#34d399; font-weight:bold;">-</span></span>
             </div>
 
-            <!-- スロット枠 位置・スケール調整 -->
-            <div style="background:#111; padding:10px; border-radius:3px; border:1px solid #555; display:flex; flex-direction:column; gap:8px;">
-                <div style="color:#ff0; font-size:12px; font-weight:bold; border-bottom:1px solid #555; padding-bottom:4px;">🎰 REEL POSITION</div>
-                <div style="display:flex; flex-direction:column; gap:3px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <label style="color:#aaa; font-size:11px;">Y移動 (translateY)</label>
-                        <span id="debug-reel-y-val" style="color:#0ff; font-size:11px; min-width:50px; text-align:right;">-115px</span>
-                    </div>
-                    <input type="range" id="debug-reel-y" min="-300" max="100" value="-115" step="1"
-                        style="width:100%; cursor:pointer; accent-color:#0ff;">
-                </div>
-                <div style="display:flex; flex-direction:column; gap:3px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <label style="color:#aaa; font-size:11px;">スケール (scale)</label>
-                        <span id="debug-reel-scale-val" style="color:#0ff; font-size:11px; min-width:50px; text-align:right;">1.00</span>
-                    </div>
-                    <input type="range" id="debug-reel-scale" min="0.3" max="2.0" value="1.0" step="0.01"
-                        style="width:100%; cursor:pointer; accent-color:#0ff;">
-                </div>
-                <div style="color:#888; font-size:10px; text-align:center; border-top:1px solid #333; padding-top:4px;">
-                    📷 SS撮影後に値をエンジニアへ共有
-                </div>
-            </div>
         </div>
 
     </div>
     <script src="settings.js?v=2"></script>
+    <script src="workflow.js?v=1"></script>
     <script>window.addEventListener('error', function(e) { fetch('http://127.0.0.1:9999/?error=' + encodeURIComponent(e.message + ' at ' + e.lineno)); });</script>
     <script src="main.js?v=2"></script>
 </body>

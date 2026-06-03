@@ -90,8 +90,10 @@ let state = {
     animationIds: [null, null, null],
     isGameActive: false,
     isAutoMode: false,
+    autoSpeed: 1, // AUTOの再生速度倍率 (1, 2, 3, 6)
     mode: 'A', // A, B, C, D
     spinCount: 0, // 現在のゲーム数
+    totalSpinCount: 0, // 総合ゲーム数
     currentLotteryTable: [], // 現在設定の65536配列
     autoPlayTimeoutId: null,
     isReplay: false,
@@ -112,7 +114,10 @@ let state = {
     stockCount: 0, // 1G連ストックなどの保持数
     enemyHP: 100,
     enemyMaxHP: 100,
-    currentEnemyType: 'goblin' // 'slime' or 'goblin'
+    currentEnemyType: 'goblin',
+    pendingEnemySpawn: false,
+    enemyActive: false,        // 現在敵が画面上に存在するか
+    lastWflResult: null,       // ワークフロー直近抽選結果
 };
 
 // キャラクターアニメーション再生関数
@@ -131,6 +136,8 @@ function playCharacterAnimation(type, onComplete = null) {
     
     if (type === 'idle') {
         charEl.classList.add('chr-idle');
+    } else if (type === 'walk') {
+        charEl.classList.add('chr-walk');
     } else if (type.startsWith('attack-f')) {
         charEl.classList.add('chr-attack');
         charEl.classList.add('chr-' + type);
@@ -175,15 +182,17 @@ function dealDamage(amount) {
     // 敵撃破時の処理
     if (state.enemyHP <= 0 && !wasDead) {
         playSoundEnemyDeath();
+        state.enemyActive = false; // 撃破→非アクティブ（次のENEMY当選まで復活しない）
         setTimeout(() => {
             if (typeof elMessage !== 'undefined') {
                 elMessage.textContent = 'ENEMY DEFEATED! CHANCE!';
                 elMessage.classList.add('flash');
                 setTimeout(() => elMessage.classList.remove('flash'), 3000);
             }
-            
-            // 次の敵をスポーン
-            spawnEnemy();
+
+            // 敵を非表示（次のワークフローENEMY当選で登場）
+            const enemyImgContainer = document.getElementById('enemy-img');
+            if (enemyImgContainer) enemyImgContainer.style.visibility = 'hidden';
         }, 1000);
     }
 }
@@ -202,10 +211,12 @@ function spawnEnemy() {
         sprite.src = 'assets/slime.png';
         sprite.className = 'slime-sprite';
         core.style.display = 'block';
+        enemyImgContainer.style.bottom = '20px';
     } else {
         sprite.src = 'assets/goblin.png';
         sprite.className = 'goblin-sprite';
         core.style.display = 'none';
+        enemyImgContainer.style.bottom = '42px';
     }
     
     state.enemyHP = state.enemyMaxHP;
@@ -218,12 +229,29 @@ function spawnEnemy() {
     updateEnemyColor();
 }
 
+// 右からスライドインして敵をスポーンする
+function spawnEnemySlideIn() {
+    const enemyImgContainer = document.getElementById('enemy-img');
+    if (!enemyImgContainer) return;
+
+    // まず内容を更新
+    spawnEnemy();
+
+    // 右外からスライドインアニメーション
+    enemyImgContainer.style.visibility = 'visible';
+    enemyImgContainer.classList.remove('enemy-slide-in');
+    // reflow を起こしてアニメーションをリセット
+    void enemyImgContainer.offsetWidth;
+    enemyImgContainer.classList.add('enemy-slide-in');
+}
+
 // セーブデータ用キー
 const SAVE_KEY = 'BigBonusBlitz_Save';
 
 function saveGameState() {
     const bgmSlider = document.getElementById('bgm-volume-slider');
     const seSlider = document.getElementById('se-volume-slider');
+    const debugPopup = document.getElementById('debug-popup');
     const saveData = {
         credit: state.credit,
         bgmVolume: bgmSlider ? bgmSlider.value : 1.0,
@@ -235,8 +263,10 @@ function saveGameState() {
         bonusPayoutTarget: state.bonusPayoutTarget,
         bonusEarned: state.bonusEarned,
         stockCount: state.stockCount,
-        debugPosX: document.getElementById('debug-popup') ? document.getElementById('debug-popup').style.left : null,
-        debugPosY: document.getElementById('debug-popup') ? document.getElementById('debug-popup').style.top : null
+        spinCount: state.spinCount,
+        totalSpinCount: state.totalSpinCount,
+        debugPosX: debugPopup ? debugPopup.style.left : null,
+        debugPosY: debugPopup ? debugPopup.style.top : null
     };
     localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
 }
@@ -253,7 +283,7 @@ function loadGameState() {
                 const slider = document.getElementById('bgm-volume-slider');
                 if (slider) {
                     slider.value = savedData.bgmVolume;
-                    bgmAudioNormal.volume = savedData.bgmVolume * 0.5;
+                    bgmAudioNormal.volume = Math.min(savedData.bgmVolume, 1.0);
                 }
             }
             if (savedData.selectedBgm !== undefined) {
@@ -290,6 +320,12 @@ function loadGameState() {
             if (savedData.bonusPayoutTarget !== undefined) state.bonusPayoutTarget = savedData.bonusPayoutTarget;
             if (savedData.bonusEarned !== undefined) state.bonusEarned = savedData.bonusEarned;
             if (savedData.stockCount !== undefined) state.stockCount = savedData.stockCount;
+            if (savedData.spinCount !== undefined) {
+                state.spinCount = savedData.spinCount;
+            }
+            if (savedData.totalSpinCount !== undefined) {
+                state.totalSpinCount = savedData.totalSpinCount;
+            }
             return true;
         } catch (e) {
             console.error('Save data parse error', e);
@@ -360,7 +396,7 @@ const elCredit = document.getElementById('credit-display');
 const elPayout = document.getElementById('payout-display');
 const elHeaderCredit = document.getElementById('header-credit');
 const elHeaderPayout = document.getElementById('header-payout');
-const elMessage = document.getElementById('g-display');
+const elMessage = document.createElement('div'); // ダミーエレメントを使って既存のコードをエラーにしない
 const strips = [
     document.getElementById('strip-left'),
     document.getElementById('strip-center'),
@@ -385,6 +421,10 @@ const btnResetState = document.getElementById('btn-reset-state');
 const btnAddCredit = document.getElementById('btn-add-credit');
 
 // 音声システム（Web Audio API）
+const btnAutoX2 = document.getElementById('btn-auto-x2');
+const btnAutoX3 = document.getElementById('btn-auto-x3');
+const btnAutoX6 = document.getElementById('btn-auto-x6');
+
 let audioCtx = null;
 let bgmGain = null;
 let seGain = null;
@@ -398,7 +438,7 @@ function playSoundUiJingle() {
         const audio = sfxUiJingle.cloneNode();
         const seSlider = document.getElementById('se-volume-slider');
         if (seSlider) {
-            audio.volume = seSlider.value;
+            audio.volume = Math.min(seSlider.value, 1.0);
         }
         audio.play().catch(e => console.error('UI jingle play error:', e));
     } catch(e) {
@@ -411,7 +451,7 @@ function playSoundAttack() {
         const audio = sfxAttack.cloneNode();
         const seSlider = document.getElementById('se-volume-slider');
         if (seSlider) {
-            audio.volume = seSlider.value; // 0.0 ~ 1.0
+            audio.volume = Math.min(seSlider.value, 1.0); // 0.0 ~ 1.0
         }
         audio.play().catch(e => {
             console.error('Audio play error:', e);
@@ -427,7 +467,7 @@ function playSoundEnemyDeath() {
         const audio = sfxEnemyDeath.cloneNode();
         const seSlider = document.getElementById('se-volume-slider');
         if (seSlider) {
-            audio.volume = seSlider.value;
+            audio.volume = Math.min(seSlider.value, 1.0);
         }
         audio.play().catch(e => console.error('Enemy death sound play error:', e));
     } catch(e) {
@@ -448,17 +488,15 @@ function initAudio() {
     seGain = audioCtx.createGain();
     bgmGain.connect(audioCtx.destination);
     seGain.connect(audioCtx.destination);
-    
     const bgmSlider = document.getElementById('bgm-volume-slider');
     const seSlider = document.getElementById('se-volume-slider');
-    
     if (bgmSlider) {
-        bgmGain.gain.value = bgmSlider.value * 0.05;
-        bgmAudioNormal.volume = bgmSlider.value * 0.5;
+        bgmGain.gain.value = bgmSlider.value;
+        bgmAudioNormal.volume = Math.min(bgmSlider.value, 1.0);
     }
     
     if (seSlider) {
-        seGain.gain.value = seSlider.value * 0.1;
+        seGain.gain.value = seSlider.value;
     }
 }
 
@@ -754,8 +792,7 @@ function toggleBGM() {
         isBgmPlaying = false;
         clearInterval(bgmInterval);
         bgmAudioNormal.pause();
-        btnBgm.textContent = 'BGM OFF';
-        btnBgm.classList.remove('btn-auto-active');
+        btnBgm.style.opacity = '0.4';
     } else {
         isBgmPlaying = true;
         if (state.bonusMode === 'NORMAL') {
@@ -764,8 +801,7 @@ function toggleBGM() {
             nextNoteTime = audioCtx.currentTime + 0.1;
             bgmInterval = setInterval(scheduleBGM, 50);
         }
-        btnBgm.textContent = 'BGM ON';
-        btnBgm.classList.add('btn-auto-active');
+        btnBgm.style.opacity = '1';
     }
 }
 
@@ -799,14 +835,77 @@ function init() {
     updateUI();
     updateLamp();
     updateDebugUI();
-    spawnEnemy();
-    playCharacterAnimation('idle'); // 起動直後から待機モーションを再生
+    // 初回起動時は敵なし（役でENEMY当選してから登場させる）
+    const enemyImgContainer = document.getElementById('enemy-img');
+    if (enemyImgContainer) enemyImgContainer.style.visibility = 'hidden';
+    state.enemyActive = false;
+    playCharacterAnimation('walk'); // 起動直後から歩行モーションを再生
     
     // イベントリスナー
+    
+    // アニメーション再生速度同期ループ（CSS Animation, Web Animationの速度を倍率に同期）
+    function syncAnimationSpeeds() {
+        if (typeof document.getAnimations === 'function') {
+            document.getAnimations().forEach(anim => {
+                if (anim.playbackRate !== state.autoSpeed) {
+                    anim.playbackRate = state.autoSpeed;
+                }
+            });
+        }
+        requestAnimationFrame(syncAnimationSpeeds);
+    }
+    requestAnimationFrame(syncAnimationSpeeds);
+
     btnAuto.addEventListener('click', () => { initAudio(); playSoundUiJingle(); onAutoToggle(); });
     btnMaxBet.addEventListener('click', () => { initAudio(); playSoundUiJingle(); onMaxBet(); });
+    
+    // Auto Speed Buttons
+    function updateAutoSpeedUI() {
+        if(btnAutoX2) btnAutoX2.style.background = state.autoSpeed === 2 ? '#f90' : '#333';
+        if(btnAutoX3) btnAutoX3.style.background = state.autoSpeed === 3 ? '#f90' : '#333';
+        if(btnAutoX6) btnAutoX6.style.background = state.autoSpeed === 6 ? '#f90' : '#333';
+    }
+    
+    function setAutoSpeed(speed) {
+        initAudio();
+        playSoundUiJingle();
+        if (state.autoSpeed === speed) {
+            state.autoSpeed = 1; // toggle off
+        } else {
+            state.autoSpeed = speed;
+        }
+        updateAutoSpeedUI();
+        if (state.autoSpeed > 1 && !state.isAutoMode) {
+            onAutoToggle();
+        }
+    }
+    
+    if (btnAutoX2) btnAutoX2.addEventListener('click', () => setAutoSpeed(2));
+    if (btnAutoX3) btnAutoX3.addEventListener('click', () => setAutoSpeed(3));
+    if (btnAutoX6) btnAutoX6.addEventListener('click', () => setAutoSpeed(6));
+    updateAutoSpeedUI();
+
+    // 非表示の停止ボタンにイベントリスナー（内部ロジック用）
     btnStops.forEach((btn, index) => {
         btn.addEventListener('click', () => { initAudio(); onStop(index); });
+    });
+
+    // 各リールをクリックして停止できるようにする（ビジュアル操作）
+    const reelElements = [
+        document.getElementById('reel-left'),
+        document.getElementById('reel-center'),
+        document.getElementById('reel-right')
+    ];
+    reelElements.forEach((reelEl, index) => {
+        if (!reelEl) return;
+        reelEl.style.cursor = 'pointer';
+        reelEl.addEventListener('click', () => {
+            // 対応するbtnStopsが有効な時のみ停止
+            if (btnStops[index] && !btnStops[index].disabled) {
+                initAudio();
+                onStop(index);
+            }
+        });
     });
     
     // PAYTABLE Modal
@@ -866,6 +965,7 @@ function init() {
                 // ボーナス・モード関連のリセット
                 state.mode = determineNextMode('initial');
                 state.spinCount = 0;
+                state.totalSpinCount = 0;
                 state.bonusMode = 'NORMAL';
                 state.bonusPayoutTarget = 0;
                 state.bonusEarned = 0;
@@ -982,7 +1082,13 @@ function updateUI() {
     // G数表示更新（ゲーム数のみ）
     const gDisp = document.getElementById('g-display');
     if (gDisp) {
-        gDisp.textContent = `${state.spinCount}G`;
+        gDisp.textContent = `${state.totalSpinCount}G`;
+    }
+    
+    // 内部ゲーム数（ボーナス間）の表示
+    const internalGDisp = document.getElementById('internal-game-count');
+    if (internalGDisp) {
+        internalGDisp.textContent = `${state.spinCount}G`;
     }
     
     // HPバー（クレジット）の更新
@@ -1038,7 +1144,7 @@ function updateUI() {
 
 function onMaxBet() {
     if (state.isGameActive) return;
-    
+
     if (state.isReplay) {
         state.isReplay = false;
         btnMaxBet.textContent = 'MAX BET (3)';
@@ -1133,8 +1239,9 @@ function drawLottery() {
         return;
     }
 
-    // ゲーム数加算と天井判定 (通常時のみ)
+    // ゲーム数加算
     state.spinCount++;
+    state.totalSpinCount++;
     const ceilingsConfig = CONFIG.ceilings || CEILINGS;
     const ceiling = ceilingsConfig[state.mode] || 999;
     if (state.spinCount >= ceiling) {
@@ -1171,7 +1278,7 @@ function drawLottery() {
     if (state.currentFlag >= FLAGS.BELL_A && state.currentFlag <= FLAGS.BELL_C) {
         playCharacterAnimation('attack-f1');
     } else {
-        playCharacterAnimation('idle'); // 初期状態のアイドル再生
+        playCharacterAnimation('walk'); // 初期状態の歩行再生
     }
 }
 
@@ -1192,13 +1299,21 @@ function updateDebugUI() {
         }
         elFlag.textContent = foundKey;
     }
-    // GM欄: 抽選に使用されているゲームモード（A〜D）を表示
-    if (elGameMode) {
-        elGameMode.textContent = `MODE_${state.mode}`;
-    }
-    // MOD欄: ボーナス中かどうかを表示（NORMAL / BB / RB）
-    if (elMode) {
-        elMode.textContent = state.bonusMode;
+    if (elGameMode) elGameMode.textContent = `MODE_${state.mode}`;
+    if (elMode)     elMode.textContent = state.bonusMode;
+
+    // ワークフロー抽選結果表示
+    const elRole  = document.getElementById('debug-wfl-role');
+    const elEvent = document.getElementById('debug-wfl-event');
+    const elVar   = document.getElementById('debug-wfl-var');
+    if (elRole && state.lastWflResult) {
+        const res = state.lastWflResult;
+        elRole.textContent  = res.roleKey;
+        elEvent.textContent = res.category === 'NONE' ? '何もなし' : res.category;
+        elVar.textContent   = res.variant  || '-';
+        // 何もなし時はグレーで表示
+        elEvent.style.color = res.category === 'NONE' ? '#475569' : '#f59e0b';
+        elVar.style.color   = res.variant  ? '#34d399' : '#475569';
     }
 }
 
@@ -1261,7 +1376,7 @@ function updateEnemyColor() {
 function onLever() {
     if (state.bet === 0) return;
     state.isGameActive = true;
-    elMessage.textContent = `${state.spinCount}G`;
+    // elMessage.textContent = `${state.spinCount}G`;
 
     playSoundSpinStart();
     
@@ -1269,7 +1384,8 @@ function onLever() {
     updateDebugUI();
     updateEnemyColor();
     
-    playCharacterAnimation('idle'); // 連番画像でのアイドル再生を開始
+    // スピン中も歩き続けるので特に変更なし（必要ならここで再トリガーしてもよい）
+    playCharacterAnimation('walk');
     
     // アニメーション状態のリセット
     const dust = document.getElementById('dust-cloud-img');
@@ -1331,14 +1447,19 @@ function startSpinning(reelIndex) {
         // タブ切り替え等で時間が空いた場合の異常なジャンプを防ぐ
         if (deltaTime > 100) deltaTime = 16.67; 
         
+        // オートスピード倍率を適用（リールの物理的な回転速度を上げる）
+        deltaTime *= state.autoSpeed;
+        
         let move = speedPerMs * deltaTime;
         
         // オートプレイ時の目押し（指定時間経過後にセットされたターゲットが近づいたらストップ）
-        if (state.isAutoMode && state.autoStopTarget && state.autoStopTarget[reelIndex] !== undefined) {
-            const tIdx = state.autoStopTarget[reelIndex];
+        if (state.autoStopTarget && state.autoStopTarget[reelIndex] !== undefined) {
+            let targetData = state.autoStopTarget[reelIndex];
+            let tIdx = typeof targetData === 'object' ? targetData.idx : targetData;
+            let lineOffset = typeof targetData === 'object' ? targetData.lineOffset : 1.5;
             
             // ターゲットの約1.5コマ上が通過するタイミングでボタンを押す
-            let idealPressOffset = -(tIdx + 1.5) * SYMBOL_SIZE;
+            let idealPressOffset = -(tIdx + lineOffset) * SYMBOL_SIZE;
             
             idealPressOffset = idealPressOffset % pixelsPerRotation;
             if (idealPressOffset > 0) idealPressOffset -= pixelsPerRotation;
@@ -1569,8 +1690,12 @@ function onStop(reelIndex) {
         let bestSlip = 0;
         let maxScore = -999;
         
-        // スベリ限界は絶対に4コマ（ルール厳守）
         let maxSlip = 4;
+        if (state.isAutoMode && state.autoSpeed > 1) {
+            // 高速オート時は1フレームの移動量が大きく、手前で判定された場合に
+            // 4コマの探索範囲ではターゲットに届かない事があるため探索範囲を広げる
+            maxSlip = 4 + Math.ceil(state.autoSpeed * 1.5); 
+        }
         
         for (let k = 0; k <= maxSlip; k++) {
             let testIdx = (baseIdx - k + len) % len;
@@ -1638,6 +1763,9 @@ function checkAllStopped() {
 function evaluateWin() {
     state.isGameActive = false;
     btnMaxBet.disabled = false;
+    
+    // 回転終了時も基本は歩き続ける
+    playCharacterAnimation('walk');
     
     // 各リールの表示シンボルインデックスを取得 [top, center, bottom]
     const indices = [];
@@ -1746,7 +1874,7 @@ function evaluateWin() {
         playSoundWin(winType);
         elMessage.textContent = `BONUS START! 0 / ${state.bonusPayoutTarget}`;
         elMessage.classList.add('flash');
-        setTimeout(() => elMessage.classList.remove('flash'), CONFIG.timings.nextWin);
+        setTimeout(() => elMessage.classList.remove('flash'), CONFIG.timings.nextWin / state.autoSpeed);
         updateLamp();
         
         // ボーナスアニメーション付与
@@ -1845,7 +1973,7 @@ function evaluateWin() {
         } else {
             elMessage.textContent = `WIN! +${totalPayout}`;
             elMessage.classList.add('flash');
-            setTimeout(() => elMessage.classList.remove('flash'), CONFIG.timings.nextWin);
+            setTimeout(() => elMessage.classList.remove('flash'), CONFIG.timings.nextWin / state.autoSpeed);
         }
         
         if (state.isAutoMode) triggerNextAutoAction();
@@ -1868,7 +1996,7 @@ function evaluateWin() {
         btnMaxBet.disabled = false;
         btnMaxBet.textContent = 'SPIN (REPLAY)';
         updateUI();
-        setTimeout(() => elMessage.classList.remove('flash'), CONFIG.timings.nextWin);
+        setTimeout(() => elMessage.classList.remove('flash'), CONFIG.timings.nextWin / state.autoSpeed);
         if (state.isAutoMode) triggerNextAutoAction();
         return; 
     } else {
@@ -1896,7 +2024,66 @@ function evaluateWin() {
     
     state.bet = 0;
     updateUI();
+
+    // ワークフロー抽選を実行してデバッグ表示を更新
+    const wflRoleKey = winTypeToWorkflowRole(winType, isReplay);
+    state.lastWflResult = runWorkflowLottery(wflRoleKey);
     updateDebugUI();
+
+    // ENEMYカテゴリが当選→未出現なら右からスライドイン登場
+    if (state.lastWflResult?.category === 'ENEMY' && !state.enemyActive) {
+        state.enemyActive = true;
+        setTimeout(() => spawnEnemySlideIn(), 500); // 少し間を置いて登場
+    }
+}
+
+// winType → WORKFLOW_CONFIG のキーへ変換
+const WIN_TYPE_TO_WFL_ROLE = {
+    'BIG':       'BONUS',
+    'REG':       'BONUS',
+    'BELL':      'BELL',
+    'WATERMELON':'SUICA',
+    'CHERRY':    'CHERRY',
+    'CHANCE':    'CHANCE',
+};
+function winTypeToWorkflowRole(winType, isReplay) {
+    if (isReplay)  return 'REPLAY';
+    return WIN_TYPE_TO_WFL_ROLE[winType] || 'HAZE';
+}
+
+// WORKFLOW_CONFIG に基づいてイベントを抽選する
+function runWorkflowLottery(roleKey) {
+    if (typeof WORKFLOW_CONFIG === 'undefined') return { roleKey, category: 'NONE', variant: null };
+    const roleCfg = WORKFLOW_CONFIG[roleKey];
+    if (!roleCfg) return { roleKey, category: 'NONE', variant: null };
+
+    const roll = Math.random() * 100;
+    let cumulative = 0;
+
+    // NONE（何もなし）判定
+    cumulative += roleCfg.NONE || 0;
+    if (roll < cumulative) return { roleKey, category: 'NONE', variant: null };
+
+    // 各イベントカテゴリを順に判定
+    for (const catKey of ['SERIF', 'ENEMY', 'ZONE', 'ACTION']) {
+        const cat = roleCfg[catKey];
+        if (!cat || !cat.rate) continue;
+        cumulative += cat.rate;
+        if (roll < cumulative) {
+            // Tier2: バリアント抽選
+            const varRoll = Math.random() * 100;
+            let varCum = 0;
+            for (const v of ['A', 'B', 'C', 'D', 'E', 'F']) {
+                varCum += cat[v] || 0;
+                if (varRoll < varCum) return { roleKey, category: catKey, variant: v };
+            }
+            // Tier2の何もなしに該当
+            return { roleKey, category: catKey, variant: 'NONE' };
+        }
+    }
+
+    // 全カテゴリを超えた（未割当）→ 何もなし
+    return { roleKey, category: 'NONE', variant: null };
 }
 
 // オートプレイ機能
@@ -1931,9 +2118,9 @@ function triggerNextAutoAction() {
         const spinningIndex = state.reelsSpinning.findIndex((s, idx) => s === true && state.slipPixels[idx] === null);
         if (spinningIndex !== -1) {
             // 回転開始後（第1リール）は設定値1、それ以降は設定値2, 3の間隔でアクションを起こす
-            let delay = CONFIG.timings.reel1;
-            if (spinningIndex === 1) delay = CONFIG.timings.reel2;
-            else if (spinningIndex === 2) delay = CONFIG.timings.reel3;
+            let delay = CONFIG.timings.reel1 / state.autoSpeed;
+            if (spinningIndex === 1) delay = CONFIG.timings.reel2 / state.autoSpeed;
+            else if (spinningIndex === 2) delay = CONFIG.timings.reel3 / state.autoSpeed;
             
             state.autoPlayTimeoutId = setTimeout(() => {
                 if (!state.isAutoMode || !state.reelsSpinning[spinningIndex]) return;
@@ -1959,6 +2146,10 @@ function triggerNextAutoAction() {
                             let sym = combo.symbols[spinningIndex];
                             if (Array.isArray(sym)) {
                                 targets = [...sym];
+                                // BAR等が含まれていれば、それを優先的に狙う（STAR等を除外）
+                                if (targets.includes('BAR')) targets = ['BAR'];
+                                else if (targets.includes('RED7')) targets = ['RED7'];
+                                else if (targets.includes('BLUE7')) targets = ['BLUE7'];
                             } else {
                                 targets.push(sym);
                             }
@@ -1978,9 +2169,15 @@ function triggerNextAutoAction() {
                             }
                         }
                         
+                        let targetLineOffset = 1.5; // Center default
+                        if (combo && combo.validLines && combo.validLines.length === 1) {
+                            if (combo.validLines[0] === 2) targetLineOffset = 0.5; // Bottom
+                            else if (combo.validLines[0] === 1) targetLineOffset = 2.5; // Top
+                        }
+                        
                         if (tIdx !== -1) {
-                            // 目押しが必要な場合はターゲットをセットし、startSpinningに任せる
-                            state.autoStopTarget[spinningIndex] = tIdx;
+                            // 目押しが必要な場合はターゲットと狙うラインをセットし、startSpinningに任せる
+                            state.autoStopTarget[spinningIndex] = { idx: tIdx, lineOffset: targetLineOffset };
                             return;
                         }
                     } catch (e) { console.error(e); }
@@ -2004,7 +2201,7 @@ function triggerNextAutoAction() {
                     onAutoToggle();
                 }
             }
-        }, CONFIG.timings.next);
+        }, CONFIG.timings.next / state.autoSpeed);
     }
 }
 
@@ -2066,29 +2263,16 @@ if (debugModeToggle && debugPopup) {
     });
 }
 
-// スロット枠 位置・スケール リアルタイム調整
-(function setupReelPositionDebug() {
-    const sliderY     = document.getElementById('debug-reel-y');
-    const sliderScale = document.getElementById('debug-reel-scale');
-    const valY        = document.getElementById('debug-reel-y-val');
-    const valScale    = document.getElementById('debug-reel-scale-val');
-    const reelsCont   = document.querySelector('.reels-container');
+// リールレイアウトをCONFIG.reelLayoutから適用（Settingsで管理）
+(function applyReelLayoutFromConfig() {
+    const reelsCont = document.querySelector('.reels-container');
+    if (!reelsCont) return;
 
-    if (!sliderY || !sliderScale || !reelsCont) return;
+    const rl = (typeof CONFIG !== 'undefined' && CONFIG.reelLayout)
+        ? CONFIG.reelLayout
+        : { translateY: -38, scale: 1.41 };
 
-    function applyReelTransform() {
-        const y     = parseFloat(sliderY.value);
-        const scale = parseFloat(sliderScale.value);
-        reelsCont.style.transform = `translateY(${y}px) scale(${scale})`;
-        valY.textContent     = `${y}px`;
-        valScale.textContent = scale.toFixed(2);
-    }
-
-    sliderY.addEventListener('input', applyReelTransform);
-    sliderScale.addEventListener('input', applyReelTransform);
-
-    // 初期値を反映
-    applyReelTransform();
+    reelsCont.style.transform = `translateY(${rl.translateY}px) scale(${rl.scale})`;
 })();
 
 
@@ -2099,8 +2283,10 @@ let debugDragOffsetY = 0;
 
 if (debugPopup) {
     debugPopup.addEventListener('mousedown', (e) => {
-        // セレクトボックスなどをクリックした時はドラッグしない
-        if (e.target.tagName.toLowerCase() === 'select' || e.target.tagName.toLowerCase() === 'option') return;
+        // input（スライダー含む）・button・select操作時はドラッグしない
+        const tag = e.target.tagName.toLowerCase();
+        if (tag === 'input' || tag === 'button' || tag === 'select' || tag === 'option' || tag === 'label') return;
+
         
         isDraggingDebug = true;
         const rect = debugPopup.getBoundingClientRect();
@@ -2143,8 +2329,8 @@ if (debugPopup) {
 const globalBgmSlider = document.getElementById('bgm-volume-slider');
 if (globalBgmSlider) {
     globalBgmSlider.addEventListener('input', (e) => {
-        if (bgmGain) bgmGain.gain.value = e.target.value * 0.05;
-        bgmAudioNormal.volume = e.target.value * 0.5;
+        if (bgmGain) bgmGain.gain.value = e.target.value;
+        bgmAudioNormal.volume = Math.min(e.target.value, 1.0);
         saveGameState();
     });
 }
@@ -2152,7 +2338,7 @@ if (globalBgmSlider) {
 const globalSeSlider = document.getElementById('se-volume-slider');
 if (globalSeSlider) {
     globalSeSlider.addEventListener('input', (e) => {
-        if (seGain) seGain.gain.value = e.target.value * 0.1;
+        if (seGain) seGain.gain.value = e.target.value;
         saveGameState();
     });
 }
