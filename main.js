@@ -36,13 +36,14 @@ const FLAGS = {
     BELL_A: 10, BELL_B: 11, BELL_C: 12,
     CHERRY_A: 13, CHERRY_B: 14, CHERRY_C: 15,
     SUICA_A: 16, SUICA_B: 17, SUICA_C: 18,
-    CHANCE_A: 19, CHANCE_B: 20, CHANCE_C: 21
+    CHANCE_A: 19, CHANCE_B: 20, CHANCE_C: 21,
+    CHANCE_D: 22
 };
 
 // 役のグループ化定義
 const ROLE_GROUPS = {
     SMALL: [FLAGS.REPLAY_A, FLAGS.REPLAY_B, FLAGS.REPLAY_C, FLAGS.BELL_A, FLAGS.BELL_B, FLAGS.BELL_C], // 小役（リプレイ・ベル）
-    RARE: [FLAGS.CHERRY_A, FLAGS.CHERRY_B, FLAGS.CHERRY_C, FLAGS.SUICA_A, FLAGS.SUICA_B, FLAGS.SUICA_C, FLAGS.CHANCE_A, FLAGS.CHANCE_B, FLAGS.CHANCE_C], // レア役（チェリー・スイカ・チャンス目）
+    RARE: [FLAGS.CHERRY_A, FLAGS.CHERRY_B, FLAGS.CHERRY_C, FLAGS.SUICA_A, FLAGS.SUICA_B, FLAGS.SUICA_C, FLAGS.CHANCE_A, FLAGS.CHANCE_B, FLAGS.CHANCE_C, FLAGS.CHANCE_D], // レア役（チェリー・スイカ・チャンス目）
     BONUS: [FLAGS.BB_A, FLAGS.BB_B, FLAGS.BB_C, FLAGS.BB_D, FLAGS.RB_A, FLAGS.RB_B] // ボーナス
 };
 
@@ -77,7 +78,8 @@ const WIN_COMBOS = {
     [FLAGS.SUICA_C]: { symbols: ['WATERMELON', 'WATERMELON', 'WATERMELON'], validLines: [2] }, // 下段
     [FLAGS.CHANCE_A]: { isReachMe: true, type: 'SUICA_MISS' }, // スイカハズレ
     [FLAGS.CHANCE_B]: { isReachMe: true, type: 'CHERRY_MISS' }, // チェリー付きリーチ目
-    [FLAGS.CHANCE_C]: { isReachMe: true, type: 'REPLAY_V' } // リプレイ小V
+    [FLAGS.CHANCE_C]: { isReachMe: true, type: 'REPLAY_V' }, // リプレイ小V
+    [FLAGS.CHANCE_D]: { symbols: ['REPLAY', 'REPLAY', 'BELL'], validLines: [1] } // チャンス目（リリベ・中段限定）
 };
 
 // 状態管理
@@ -118,10 +120,21 @@ let state = {
     pendingEnemySpawn: false,
     enemyActive: false,        // 現在敵が画面上に存在するか
     lastWflResult: null,       // ワークフロー直近抽選結果
+    
+    // RPG要素・Tier2(高確率ゾーン)管理
+    isTier2: false,
+    tier2SpinCount: 0,
+    playerLevel: 1,
+    playerExp: 0,
 };
 
 // キャラクターアニメーション再生関数
 function playCharacterAnimation(type, onComplete = null) {
+    // 敵が存在する場合はwalkをidleに上書きして立ち止まらせる
+    if (type === 'walk' && state.enemyActive) {
+        type = 'idle';
+    }
+
     const charEl = document.getElementById('character-sprite');
     if (!charEl) return;
 
@@ -183,9 +196,15 @@ function dealDamage(amount) {
     if (state.enemyHP <= 0 && !wasDead) {
         playSoundEnemyDeath();
         state.enemyActive = false; // 撃破→非アクティブ（次のENEMY当選まで復活しない）
+        state.isTier2 = false;     // 高確率ゾーン終了
+        updateTier2UI();
+        
+        // 経験値獲得
+        gainExp(50); // 一律50EXPを獲得
+
         setTimeout(() => {
             if (typeof elMessage !== 'undefined') {
-                elMessage.textContent = 'ENEMY DEFEATED! CHANCE!';
+                elMessage.textContent = 'ENEMY DEFEATED! EXP GET!';
                 elMessage.classList.add('flash');
                 setTimeout(() => elMessage.classList.remove('flash'), 3000);
             }
@@ -194,6 +213,52 @@ function dealDamage(amount) {
             const enemyImgContainer = document.getElementById('enemy-img');
             if (enemyImgContainer) enemyImgContainer.style.visibility = 'hidden';
         }, 1000);
+    }
+}
+
+// 経験値獲得とレベルアップ処理
+function gainExp(amount) {
+    state.playerExp += amount;
+    let expNeeded = state.playerLevel * 100; // レベルアップに必要なEXP
+    
+    if (state.playerExp >= expNeeded) {
+        state.playerLevel++;
+        state.playerExp -= expNeeded;
+        // レベルアップ演出
+        const elMessage = document.getElementById('debug-message');
+        if (elMessage) {
+            elMessage.textContent = `LEVEL UP! Lv.${state.playerLevel}`;
+            elMessage.classList.add('flash');
+            setTimeout(() => elMessage.classList.remove('flash'), 3000);
+        }
+    }
+    updatePlayerUI();
+}
+
+// プレイヤーUI（Lv/EXP）の更新
+function updatePlayerUI() {
+    const elLevel = document.getElementById('player-level');
+    const elExpFill = document.getElementById('player-exp-fill');
+    if (elLevel) elLevel.textContent = state.playerLevel;
+    if (elExpFill) {
+        let expNeeded = state.playerLevel * 100;
+        let pct = (state.playerExp / expNeeded) * 100;
+        elExpFill.style.width = `${pct}%`;
+    }
+}
+
+// Tier2（高確率ゾーン）UIの更新
+function updateTier2UI() {
+    const elTier2 = document.getElementById('tier2-info');
+    const elTurns = document.getElementById('tier2-turns');
+    if (!elTier2 || !elTurns) return;
+    
+    if (state.isTier2) {
+        elTier2.classList.remove('hidden');
+        let remaining = (CONFIG.tier2MaxSpins || 20) - state.tier2SpinCount;
+        elTurns.textContent = remaining;
+    } else {
+        elTier2.classList.add('hidden');
     }
 }
 
@@ -381,6 +446,11 @@ function ensureLotteryTables() {
     if (CONFIG.probabilities_RB) {
         state.currentLotteryTableRB = generateTable(CONFIG.probabilities_RB[state.currentSetting]);
     }
+    
+    let tier2Probs = (typeof PROBABILITIES_TIER2 !== 'undefined') ? PROBABILITIES_TIER2 : CONFIG.probabilities_Tier2;
+    if (tier2Probs) {
+        state.currentLotteryTableTier2 = generateTable(tier2Probs); // Tier 2は設定差なし共通テーブル
+    }
 }
 
 // DOM要素
@@ -431,7 +501,7 @@ let seGain = null;
 
 const sfxAttack = new Audio('assets/sounds/attack/daviddumaisaudio-sword-slash-with-a-designed-impact-185434.mp3');
 const sfxEnemyDeath = new Audio('assets/sounds/enemy/universfield-body-fall-down-142378.mp3');
-const sfxUiJingle = new Audio('assets/sounds/materials/jvanko_2600-attack-jingle-sound-effect-jvanko-125083.mp3');
+const sfxUiJingle = new Audio('assets/sounds/materials/abhicreates-soft-subtle-ui-pop-sfx-348820.mp3');
 
 function playSoundUiJingle() {
     try {
@@ -1009,6 +1079,7 @@ function init() {
             state.credit += 50;
             playSoundCoin(); // チャリーン！というお金の追加音
             updateUI();
+            resumeAutoIfWaiting();
         });
     }
 
@@ -1194,8 +1265,33 @@ function updateLamp() {
 // モードと天井の定義
 const CEILINGS = { 'A': 999, 'B': 555, 'C': 333, 'D': 100 };
 
-// 内部抽選
+    // 内部抽選
 function drawLottery() {
+    // 毎ゲームのTier2カウント進行と失敗判定
+    if (state.isTier2 && state.bonusMode === 'NORMAL') {
+        state.tier2SpinCount++;
+        let maxSpins = CONFIG.tier2MaxSpins || 3;
+        if (state.tier2SpinCount > maxSpins && state.enemyActive) {
+            // 失敗：通常モードに戻る（ペナルティなし）
+            state.isTier2 = false;
+            state.enemyActive = false;
+            updateTier2UI();
+            
+            // 敵を消去
+            const enemyImgContainer = document.getElementById('enemy-img');
+            if (enemyImgContainer) enemyImgContainer.style.visibility = 'hidden';
+            
+            // 失敗メッセージ
+            const elMessage = document.getElementById('debug-message');
+            if (elMessage) {
+                elMessage.textContent = 'ZONE END... BACK TO NORMAL';
+                elMessage.classList.add('flash');
+                setTimeout(() => elMessage.classList.remove('flash'), 3000);
+            }
+        }
+        updateTier2UI();
+    }
+
     // デバッグ用の強制フラグ
     const debugForce = document.getElementById('debug-force-flag');
     if (debugForce && debugForce.value !== "-1") {
@@ -1262,10 +1358,17 @@ function drawLottery() {
     
     // テーブルからフラグを取得
     let targetTable;
-    if (state.mode === 'B') targetTable = state.currentLotteryTableB;
-    else if (state.mode === 'C') targetTable = state.currentLotteryTableC;
-    else if (state.mode === 'D') targetTable = state.currentLotteryTableD;
-    else targetTable = state.currentLotteryTableA;
+    if (state.isTier2 && state.currentLotteryTableTier2) {
+        targetTable = state.currentLotteryTableTier2;
+    } else if (state.mode === 'B') {
+        targetTable = state.currentLotteryTableB;
+    } else if (state.mode === 'C') {
+        targetTable = state.currentLotteryTableC;
+    } else if (state.mode === 'D') {
+        targetTable = state.currentLotteryTableD;
+    } else {
+        targetTable = state.currentLotteryTableA;
+    }
     
     state.currentFlag = targetTable[rng];
     
@@ -1846,6 +1949,8 @@ function evaluateWin() {
                 } else if (flagId >= FLAGS.SUICA_A && flagId <= FLAGS.SUICA_C) {
                     totalPayout += currentPayouts.WATERMELON;
                     if (!winType) winType = 'WATERMELON';
+                } else if (flagId === FLAGS.CHANCE_D) {
+                    if (!winType) winType = 'CHANCE';
                 }
                 // チェリーは個別で判定済みなのでライン判定での加算はしない
             }
@@ -1871,20 +1976,21 @@ function evaluateWin() {
         // モード移行
         state.mode = determineNextMode('bonus');
         
-        playSoundWin(winType);
         elMessage.textContent = `BONUS START! 0 / ${state.bonusPayoutTarget}`;
         elMessage.classList.add('flash');
         setTimeout(() => elMessage.classList.remove('flash'), CONFIG.timings.nextWin / state.autoSpeed);
+        
         updateLamp();
         
         // ボーナスアニメーション付与
         const character = document.getElementById('character-sprite');
         if (character) {
             character.classList.add('anim-bonus');
+            setTimeout(() => character.classList.remove('anim-bonus'), 3500 / state.autoSpeed);
         }
         
-        // BIG BONUS用 カットイン
         if (winType === 'BIG') {
+            // BIG BONUS用 カットイン
             const cutin = document.getElementById('bb-cutin-logo');
             if (cutin) {
                 cutin.classList.remove('hidden');
@@ -1893,16 +1999,51 @@ function evaluateWin() {
                     cutin.classList.add('hidden');
                 }, 3000);
             }
+            
+            // Juggler確定音を流し、終わるまでMAXBET等を無効化
+            btnMaxBet.disabled = true;
+            state.isGameActive = true; // これによりレバーオン（スペースキー等）も防ぐ
+            
+            // 現在のBGMを停止
+            if (bgmAudioNormal && !bgmAudioNormal.paused) {
+                bgmAudioNormal.pause();
+                bgmAudioNormal.currentTime = 0;
+            }
+            
+            const bbConfirmAudio = new Audio('assets/sounds/materials/nc263467_【ジャグラー】_B_I_G_確_定_【スーパーミラクルジャグラー】.wav');
+            const seSlider = document.getElementById('se-volume-slider');
+            if (seSlider) {
+                bbConfirmAudio.volume = Math.min(seSlider.value, 1.0);
+            }
+            
+            const onEnd = () => {
+                state.isGameActive = false;
+                btnMaxBet.disabled = false;
+                restartBGM();
+                state.bet = 0;
+                updateUI();
+                updateDebugUI();
+                if (state.isAutoMode) triggerNextAutoAction();
+            };
+            
+            bbConfirmAudio.addEventListener('ended', onEnd);
+            bbConfirmAudio.play().catch(e => {
+                console.error('BB confirm sound error:', e);
+                onEnd();
+            });
+            return;
+        } else {
+            playSoundWin(winType);
+            
+            // BGM切替のためにリスタート
+            restartBGM();
+            
+            state.bet = 0;
+            updateUI();
+            updateDebugUI();
+            if (state.isAutoMode) triggerNextAutoAction();
+            return;
         }
-        
-        // BGM切替のためにリスタート
-        restartBGM();
-        
-        state.bet = 0;
-        updateUI();
-        updateDebugUI(); // 追加: ボーナス突入時も確実にデバッグUIを更新
-        if (state.isAutoMode) triggerNextAutoAction();
-        return;
     }
 
     if (state.bonusMode !== 'NORMAL') {
@@ -1984,6 +2125,7 @@ function evaluateWin() {
         const character = document.getElementById('character-sprite');
         if (character) {
             character.classList.add('anim-replay');
+            setTimeout(() => character.classList.remove('anim-replay'), 800 / state.autoSpeed);
         }
         
         elPayout.textContent = 0;
@@ -2009,6 +2151,7 @@ function evaluateWin() {
             const enemy = document.getElementById('enemy-img');
             if (character) {
                 character.classList.add('anim-miss');
+                setTimeout(() => character.classList.remove('anim-miss'), 500 / state.autoSpeed);
             }
             if (enemy) enemy.classList.add('enemy-anim-hit'); // 敵が攻撃してきたような動きに流用
         }
@@ -2033,6 +2176,10 @@ function evaluateWin() {
     // ENEMYカテゴリが当選→未出現なら右からスライドイン登場
     if (state.lastWflResult?.category === 'ENEMY' && !state.enemyActive) {
         state.enemyActive = true;
+        state.isTier2 = true;
+        state.tier2SpinCount = 0;
+        updateTier2UI();
+        playCharacterAnimation('idle'); // 敵出現フラグ当選時に直ちにidolを実行
         setTimeout(() => spawnEnemySlideIn(), 500); // 少し間を置いて登場
     }
 }
@@ -2053,8 +2200,10 @@ function winTypeToWorkflowRole(winType, isReplay) {
 
 // WORKFLOW_CONFIG に基づいてイベントを抽選する
 function runWorkflowLottery(roleKey) {
-    if (typeof WORKFLOW_CONFIG === 'undefined') return { roleKey, category: 'NONE', variant: null };
-    const roleCfg = WORKFLOW_CONFIG[roleKey];
+    let config = (state.isTier2 && typeof WORKFLOW_CONFIG_TIER2 !== 'undefined') ? WORKFLOW_CONFIG_TIER2 : (typeof WORKFLOW_CONFIG !== 'undefined' ? WORKFLOW_CONFIG : null);
+    if (!config) return { roleKey, category: 'NONE', variant: null };
+    
+    const roleCfg = config[roleKey];
     if (!roleCfg) return { roleKey, category: 'NONE', variant: null };
 
     const roll = Math.random() * 100;
@@ -2191,18 +2340,30 @@ function triggerNextAutoAction() {
     } else {
         // 次のゲーム開始
         state.autoPlayTimeoutId = setTimeout(() => {
+            state.autoPlayTimeoutId = null; // タイマーが発火したためリセット
             if (!state.isAutoMode) return;
             
             if (!btnMaxBet.disabled) {
                 if (state.isReplay || state.credit >= 3) {
                     onMaxBet();
                 } else {
-                    // クレジット不足でオート解除
-                    onAutoToggle();
+                    // クレジット不足時はオートを維持したまま待機
+                    elMessage.textContent = 'AUTO WAIT: NEED CREDIT';
                 }
             }
         }, CONFIG.timings.next / state.autoSpeed);
     }
+}
+
+// クレジット追加時などにオート待機状態を再開する
+function resumeAutoIfWaiting() {
+    if (!state.isAutoMode) return;
+    if (state.isGameActive) return;
+    if (state.credit < 3 && !state.isReplay) return;
+    // タイマーが稼働中の場合は二重発火防止
+    if (state.autoPlayTimeoutId) return;
+    
+    triggerNextAutoAction();
 }
 
 

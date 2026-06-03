@@ -47,6 +47,21 @@
             <section id="character-area">
                 <div id="bonus-lamp" class="lamp-off">CHANCE</div>
                 
+                <!-- プレイヤー情報 (Level / EXP) -->
+                <div id="player-info" style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); border: 2px solid #55aaff; border-radius: 5px; padding: 5px 10px; z-index: 20; color: #fff; font-family: 'Press Start 2P', monospace; text-shadow: 1px 1px 2px #000; box-shadow: 0 0 10px rgba(85, 170, 255, 0.5);">
+                    <div style="font-size: 12px; margin-bottom: 5px;">Lv: <span id="player-level" style="color: #ffaa00;">1</span></div>
+                    <div style="font-size: 10px; margin-bottom: 2px;">EXP</div>
+                    <div style="width: 100px; height: 8px; background: #333; border: 1px solid #777; border-radius: 4px; overflow: hidden;">
+                        <div id="player-exp-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #00ffaa, #00aa55); transition: width 0.3s ease-out;"></div>
+                    </div>
+                </div>
+
+                <!-- Tier 2 ゾーン情報 (残りターン) -->
+                <div id="tier2-info" class="hidden" style="position: absolute; top: 10px; right: 10px; background: rgba(255,0,0,0.6); border: 2px solid #ff3333; border-radius: 5px; padding: 5px 10px; z-index: 20; color: #fff; font-family: 'Press Start 2P', monospace; text-shadow: 1px 1px 2px #000; text-align: center; box-shadow: 0 0 15px rgba(255,0,0,0.8); animation: flash 1s infinite alternate;">
+                    <div style="font-size: 11px; margin-bottom: 4px; font-weight: bold;">討伐チャレンジ</div>
+                    <div style="font-size: 14px; color: #ffeb3b;">残り: <span id="tier2-turns">3</span></div>
+                </div>
+                
                 <!-- ボーナス情報表示（左上） -->
                 <div id="bonus-info" class="hidden">
                     <span class="bonus-info-label" style="font-size: 10px; color: #aaa;">残枚数</span>
@@ -254,6 +269,7 @@
                     <option value="19">CHANCE_A (19)</option>
                     <option value="20">CHANCE_B (20)</option>
                     <option value="21">CHANCE_C (21)</option>
+                    <option value="22">CHANCE_D (22) - リリベ</option>
                 </select>
             </div>
             

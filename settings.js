@@ -1,5 +1,5 @@
-// パラメータ設定 (CONFIG)
-// このファイルはエディターツールによって自動更新されます
+﻿// 繝代Λ繝｡繝ｼ繧ｿ險ｭ螳・(CONFIG)
+// 縺薙・繝輔ぃ繧､繝ｫ縺ｯ繧ｨ繝・ぅ繧ｿ繝ｼ繝・・繝ｫ縺ｫ繧医▲縺ｦ閾ｪ蜍墓峩譁ｰ縺輔ｌ縺ｾ縺・
 let CONFIG = {
     "reelLayout": {
         "translateY": -38,
@@ -43,7 +43,7 @@ let CONFIG = {
             "SUICA_C": 200,
             "CHANCE_A": 200,
             "CHANCE_B": 200,
-            "CHANCE_C": 200
+            "CHANCE_C": 200, "CHANCE_D": 200
         },
         "2": {
             "HAZE": 56768,
@@ -67,7 +67,7 @@ let CONFIG = {
             "SUICA_C": 100,
             "CHANCE_A": 100,
             "CHANCE_B": 50,
-            "CHANCE_C": 50
+            "CHANCE_C": 50, "CHANCE_D": 50
         },
         "3": {
             "HAZE": 56768,
@@ -91,7 +91,7 @@ let CONFIG = {
             "SUICA_C": 100,
             "CHANCE_A": 100,
             "CHANCE_B": 50,
-            "CHANCE_C": 50
+            "CHANCE_C": 50, "CHANCE_D": 50
         },
         "4": {
             "HAZE": 56768,
@@ -115,7 +115,7 @@ let CONFIG = {
             "SUICA_C": 100,
             "CHANCE_A": 100,
             "CHANCE_B": 50,
-            "CHANCE_C": 50
+            "CHANCE_C": 50, "CHANCE_D": 50
         },
         "5": {
             "HAZE": 56768,
@@ -139,7 +139,7 @@ let CONFIG = {
             "SUICA_C": 100,
             "CHANCE_A": 100,
             "CHANCE_B": 50,
-            "CHANCE_C": 50
+            "CHANCE_C": 50, "CHANCE_D": 50
         },
         "6": {
             "HAZE": 37184,
@@ -163,7 +163,7 @@ let CONFIG = {
             "SUICA_C": 200,
             "CHANCE_A": 200,
             "CHANCE_B": 200,
-            "CHANCE_C": 200
+            "CHANCE_C": 200, "CHANCE_D": 200
         }
     },
     "probabilities_BB": {
@@ -189,7 +189,7 @@ let CONFIG = {
             "SUICA_C": 200,
             "CHANCE_A": 200,
             "CHANCE_B": 200,
-            "CHANCE_C": 200
+            "CHANCE_C": 200, "CHANCE_D": 200
         },
         "2": {
             "HAZE": 8632,
@@ -213,7 +213,7 @@ let CONFIG = {
             "SUICA_C": 200,
             "CHANCE_A": 200,
             "CHANCE_B": 200,
-            "CHANCE_C": 200
+            "CHANCE_C": 200, "CHANCE_D": 200
         },
         "3": {
             "HAZE": 8632,
@@ -237,7 +237,7 @@ let CONFIG = {
             "SUICA_C": 200,
             "CHANCE_A": 200,
             "CHANCE_B": 200,
-            "CHANCE_C": 200
+            "CHANCE_C": 200, "CHANCE_D": 200
         },
         "4": {
             "HAZE": 8632,
@@ -261,7 +261,7 @@ let CONFIG = {
             "SUICA_C": 200,
             "CHANCE_A": 200,
             "CHANCE_B": 200,
-            "CHANCE_C": 200
+            "CHANCE_C": 200, "CHANCE_D": 200
         },
         "5": {
             "HAZE": 8632,
@@ -285,7 +285,7 @@ let CONFIG = {
             "SUICA_C": 200,
             "CHANCE_A": 200,
             "CHANCE_B": 200,
-            "CHANCE_C": 200
+            "CHANCE_C": 200, "CHANCE_D": 200
         },
         "6": {
             "HAZE": 8632,
@@ -309,7 +309,7 @@ let CONFIG = {
             "SUICA_C": 200,
             "CHANCE_A": 200,
             "CHANCE_B": 200,
-            "CHANCE_C": 200
+            "CHANCE_C": 200, "CHANCE_D": 200
         }
     },
     "probabilities_RB": {
@@ -335,7 +335,7 @@ let CONFIG = {
             "SUICA_C": 0,
             "CHANCE_A": 25068,
             "CHANCE_B": 0,
-            "CHANCE_C": 0
+            "CHANCE_C": 0, "CHANCE_D": 0
         },
         "2": {
             "HAZE": 13068,
@@ -359,7 +359,7 @@ let CONFIG = {
             "SUICA_C": 0,
             "CHANCE_A": 25068,
             "CHANCE_B": 0,
-            "CHANCE_C": 0
+            "CHANCE_C": 0, "CHANCE_D": 0
         },
         "3": {
             "HAZE": 13068,
@@ -383,7 +383,7 @@ let CONFIG = {
             "SUICA_C": 0,
             "CHANCE_A": 25068,
             "CHANCE_B": 0,
-            "CHANCE_C": 0
+            "CHANCE_C": 0, "CHANCE_D": 0
         },
         "4": {
             "HAZE": 13068,
@@ -407,7 +407,7 @@ let CONFIG = {
             "SUICA_C": 0,
             "CHANCE_A": 25068,
             "CHANCE_B": 0,
-            "CHANCE_C": 0
+            "CHANCE_C": 0, "CHANCE_D": 0
         },
         "5": {
             "HAZE": 25068,
@@ -431,7 +431,7 @@ let CONFIG = {
             "SUICA_C": 0,
             "CHANCE_A": 25068,
             "CHANCE_B": 0,
-            "CHANCE_C": 0
+            "CHANCE_C": 0, "CHANCE_D": 0
         },
         "6": {
             "HAZE": 25068,
@@ -455,7 +455,7 @@ let CONFIG = {
             "SUICA_C": 0,
             "CHANCE_A": 25068,
             "CHANCE_B": 0,
-            "CHANCE_C": 0
+            "CHANCE_C": 0, "CHANCE_D": 0
         }
     },
     "reelStrips": [
@@ -565,7 +565,7 @@ let CONFIG = {
             "SUICA_C": 200,
             "CHANCE_A": 200,
             "CHANCE_B": 200,
-            "CHANCE_C": 200
+            "CHANCE_C": 200, "CHANCE_D": 200
         },
         "2": {
             "HAZE": 56768,
@@ -589,7 +589,7 @@ let CONFIG = {
             "SUICA_C": 100,
             "CHANCE_A": 100,
             "CHANCE_B": 50,
-            "CHANCE_C": 50
+            "CHANCE_C": 50, "CHANCE_D": 50
         },
         "3": {
             "HAZE": 56768,
@@ -613,7 +613,7 @@ let CONFIG = {
             "SUICA_C": 100,
             "CHANCE_A": 100,
             "CHANCE_B": 50,
-            "CHANCE_C": 50
+            "CHANCE_C": 50, "CHANCE_D": 50
         },
         "4": {
             "HAZE": 56768,
@@ -637,7 +637,7 @@ let CONFIG = {
             "SUICA_C": 100,
             "CHANCE_A": 100,
             "CHANCE_B": 50,
-            "CHANCE_C": 50
+            "CHANCE_C": 50, "CHANCE_D": 50
         },
         "5": {
             "HAZE": 56768,
@@ -661,7 +661,7 @@ let CONFIG = {
             "SUICA_C": 100,
             "CHANCE_A": 100,
             "CHANCE_B": 50,
-            "CHANCE_C": 50
+            "CHANCE_C": 50, "CHANCE_D": 50
         },
         "6": {
             "HAZE": 53984,
@@ -685,7 +685,7 @@ let CONFIG = {
             "SUICA_C": 200,
             "CHANCE_A": 200,
             "CHANCE_B": 200,
-            "CHANCE_C": 200
+            "CHANCE_C": 200, "CHANCE_D": 200
         }
     },
     "probabilities_C": {
@@ -711,7 +711,7 @@ let CONFIG = {
             "SUICA_C": 200,
             "CHANCE_A": 200,
             "CHANCE_B": 200,
-            "CHANCE_C": 200
+            "CHANCE_C": 200, "CHANCE_D": 200
         },
         "2": {
             "HAZE": 56768,
@@ -735,7 +735,7 @@ let CONFIG = {
             "SUICA_C": 100,
             "CHANCE_A": 100,
             "CHANCE_B": 50,
-            "CHANCE_C": 50
+            "CHANCE_C": 50, "CHANCE_D": 50
         },
         "3": {
             "HAZE": 56768,
@@ -759,7 +759,7 @@ let CONFIG = {
             "SUICA_C": 100,
             "CHANCE_A": 100,
             "CHANCE_B": 50,
-            "CHANCE_C": 50
+            "CHANCE_C": 50, "CHANCE_D": 50
         },
         "4": {
             "HAZE": 56768,
@@ -783,7 +783,7 @@ let CONFIG = {
             "SUICA_C": 100,
             "CHANCE_A": 100,
             "CHANCE_B": 50,
-            "CHANCE_C": 50
+            "CHANCE_C": 50, "CHANCE_D": 50
         },
         "5": {
             "HAZE": 56768,
@@ -807,7 +807,7 @@ let CONFIG = {
             "SUICA_C": 100,
             "CHANCE_A": 100,
             "CHANCE_B": 50,
-            "CHANCE_C": 50
+            "CHANCE_C": 50, "CHANCE_D": 50
         },
         "6": {
             "HAZE": 53984,
@@ -831,7 +831,7 @@ let CONFIG = {
             "SUICA_C": 200,
             "CHANCE_A": 200,
             "CHANCE_B": 200,
-            "CHANCE_C": 200
+            "CHANCE_C": 200, "CHANCE_D": 200
         }
     },
     "probabilities_D": {
@@ -857,7 +857,7 @@ let CONFIG = {
             "SUICA_C": 200,
             "CHANCE_A": 200,
             "CHANCE_B": 200,
-            "CHANCE_C": 200
+            "CHANCE_C": 200, "CHANCE_D": 200
         },
         "2": {
             "HAZE": 56768,
@@ -881,7 +881,7 @@ let CONFIG = {
             "SUICA_C": 100,
             "CHANCE_A": 100,
             "CHANCE_B": 50,
-            "CHANCE_C": 50
+            "CHANCE_C": 50, "CHANCE_D": 50
         },
         "3": {
             "HAZE": 56768,
@@ -905,7 +905,7 @@ let CONFIG = {
             "SUICA_C": 100,
             "CHANCE_A": 100,
             "CHANCE_B": 50,
-            "CHANCE_C": 50
+            "CHANCE_C": 50, "CHANCE_D": 50
         },
         "4": {
             "HAZE": 56768,
@@ -929,7 +929,7 @@ let CONFIG = {
             "SUICA_C": 100,
             "CHANCE_A": 100,
             "CHANCE_B": 50,
-            "CHANCE_C": 50
+            "CHANCE_C": 50, "CHANCE_D": 50
         },
         "5": {
             "HAZE": 56768,
@@ -953,7 +953,7 @@ let CONFIG = {
             "SUICA_C": 100,
             "CHANCE_A": 100,
             "CHANCE_B": 50,
-            "CHANCE_C": 50
+            "CHANCE_C": 50, "CHANCE_D": 50
         },
         "6": {
             "HAZE": 53984,
@@ -977,7 +977,7 @@ let CONFIG = {
             "SUICA_C": 200,
             "CHANCE_A": 200,
             "CHANCE_B": 200,
-            "CHANCE_C": 200
+            "CHANCE_C": 200, "CHANCE_D": 200
         }
     },
     "ceilings": {

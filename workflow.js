@@ -28,13 +28,14 @@ let WORKFLOW_CONFIG = {
             "F": 0
         },
         "ZONE": {
-            "rate": 0,
-            "A": 0,
+            "rate": 10,
+            "A": 100,
             "B": 0,
             "C": 0,
             "D": 0,
             "E": 0,
-            "F": 0
+            "F": 0,
+            "NONE": 0
         },
         "ACTION": {
             "rate": 25,
@@ -44,7 +45,8 @@ let WORKFLOW_CONFIG = {
             "D": 20,
             "E": 5,
             "F": 1
-        }
+        },
+        "NONE": 50
     },
     "BELL": {
         "SERIF": {
@@ -66,13 +68,14 @@ let WORKFLOW_CONFIG = {
             "F": 0
         },
         "ZONE": {
-            "rate": 0,
-            "A": 0,
+            "rate": 10,
+            "A": 100,
             "B": 0,
             "C": 0,
             "D": 0,
             "E": 0,
-            "F": 0
+            "F": 0,
+            "NONE": 0
         },
         "ACTION": {
             "rate": 0,
@@ -82,7 +85,8 @@ let WORKFLOW_CONFIG = {
             "D": 0,
             "E": 0,
             "F": 0
-        }
+        },
+        "NONE": 85
     },
     "REPLAY": {
         "SERIF": {
@@ -148,8 +152,7 @@ let WORKFLOW_CONFIG = {
             "C": 15,
             "D": 3,
             "E": 1,
-            "F": 1,
-            "NONE": 0
+            "F": 1
         },
         "ACTION": {
             "rate": 0,
@@ -159,8 +162,7 @@ let WORKFLOW_CONFIG = {
             "D": 0,
             "E": 0,
             "F": 0
-        },
-        "NONE": 65
+        }
     },
     "SUICA": {
         "SERIF": {
@@ -277,3 +279,15 @@ let WORKFLOW_CONFIG = {
         }
     }
 };
+
+let PROBABILITIES_TIER2 = {
+    "HAZE": 18536,
+    "BB_A": 0, "BB_B": 0, "BB_C": 0, "BB_D": 0,
+    "RB_A": 0, "RB_B": 0,
+    "REPLAY_A": 2000, "REPLAY_B": 2000, "REPLAY_C": 1000,
+    "BELL_A": 20000, "BELL_B": 5000, "BELL_C": 5000,
+    "CHERRY_A": 2000, "CHERRY_B": 2000, "CHERRY_C": 1000,
+    "SUICA_A": 2000, "SUICA_B": 2000, "SUICA_C": 1000,
+    "CHANCE_A": 500, "CHANCE_B": 500, "CHANCE_C": 500, "CHANCE_D": 500
+};
+
