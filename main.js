@@ -3,7 +3,8 @@
  */
 
 // 定数定義
-const SYMBOL_SIZE = 100; // 1コマの高さ(px)
+const SYMBOL_SIZE = 60; // 1コマの高さ(px) ※CSSの.symbol heightと合わせること
+
 const REEL_SYMBOLS = 20; // リール1周のコマ数
 const SYMBOLS = {
     'RED7': '<img src="assets/red7.png" alt="RED7">',
@@ -978,10 +979,10 @@ function updateUI() {
     // オートモード中のボタン表示
     btnAuto.textContent = state.isAutoMode ? 'AUTO: ON' : 'AUTO';
     
-    // G数表示更新
+    // G数表示更新（ゲーム数のみ）
     const gDisp = document.getElementById('g-display');
     if (gDisp) {
-        gDisp.textContent = `${state.mode} - ${state.spinCount}G`;
+        gDisp.textContent = `${state.spinCount}G`;
     }
     
     // HPバー（クレジット）の更新
@@ -1177,6 +1178,7 @@ function drawLottery() {
 function updateDebugUI() {
     const elRng = document.getElementById('debug-rng');
     const elFlag = document.getElementById('debug-flag');
+    const elGameMode = document.getElementById('debug-game-mode');
     const elMode = document.getElementById('debug-mode');
     
     if (elRng && elFlag) {
@@ -1190,10 +1192,16 @@ function updateDebugUI() {
         }
         elFlag.textContent = foundKey;
     }
+    // GM欄: 抽選に使用されているゲームモード（A〜D）を表示
+    if (elGameMode) {
+        elGameMode.textContent = `MODE_${state.mode}`;
+    }
+    // MOD欄: ボーナス中かどうかを表示（NORMAL / BB / RB）
     if (elMode) {
         elMode.textContent = state.bonusMode;
     }
 }
+
 
 // 敵の小役示唆演出を更新
 function updateEnemyColor() {
@@ -1253,7 +1261,8 @@ function updateEnemyColor() {
 function onLever() {
     if (state.bet === 0) return;
     state.isGameActive = true;
-    elMessage.textContent = 'SPINNING...';
+    elMessage.textContent = `${state.spinCount}G`;
+
     playSoundSpinStart();
     
     drawLottery();
@@ -2000,25 +2009,23 @@ function triggerNextAutoAction() {
 }
 
 
-// ウィンドウサイズに応じたスケール調整
+// 1280×720(16:9)固定比率を保ったままウィンドウにフィット（letterbox方式）
 function resizeGame() {
     const gameContainer = document.getElementById('game-container');
     if (!gameContainer) return;
-    
-    // ベースとなる解像度（現在の実際のサイズを動的に取得）
-    const baseWidth = gameContainer.offsetWidth || 770; 
-    const baseHeight = gameContainer.offsetHeight || 960; 
-    
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
-    
-    const scaleX = windowWidth / baseWidth;
-    const scaleY = windowHeight / baseHeight;
-    // 画面内に収めるためのスケール比率
-    const scale = Math.min(scaleX, scaleY) * 0.98; 
-    
+
+    const LOGICAL_WIDTH  = 1280;
+    const LOGICAL_HEIGHT = 720;
+
+    const scaleX = window.innerWidth  / LOGICAL_WIDTH;
+    const scaleY = window.innerHeight / LOGICAL_HEIGHT;
+    // 比率を維持しながら画面に収める（小さい方に合わせる）
+    const scale = Math.min(scaleX, scaleY);
+
     gameContainer.style.transform = `scale(${scale})`;
 }
+
+
 
 window.addEventListener('resize', resizeGame);
 window.addEventListener('DOMContentLoaded', resizeGame);
@@ -2058,6 +2065,32 @@ if (debugModeToggle && debugPopup) {
         saveGameState();
     });
 }
+
+// スロット枠 位置・スケール リアルタイム調整
+(function setupReelPositionDebug() {
+    const sliderY     = document.getElementById('debug-reel-y');
+    const sliderScale = document.getElementById('debug-reel-scale');
+    const valY        = document.getElementById('debug-reel-y-val');
+    const valScale    = document.getElementById('debug-reel-scale-val');
+    const reelsCont   = document.querySelector('.reels-container');
+
+    if (!sliderY || !sliderScale || !reelsCont) return;
+
+    function applyReelTransform() {
+        const y     = parseFloat(sliderY.value);
+        const scale = parseFloat(sliderScale.value);
+        reelsCont.style.transform = `translateY(${y}px) scale(${scale})`;
+        valY.textContent     = `${y}px`;
+        valScale.textContent = scale.toFixed(2);
+    }
+
+    sliderY.addEventListener('input', applyReelTransform);
+    sliderScale.addEventListener('input', applyReelTransform);
+
+    // 初期値を反映
+    applyReelTransform();
+})();
+
 
 // デバッグポップアップのドラッグ機能
 let isDraggingDebug = false;

@@ -216,14 +216,20 @@
                 <h3 class="section-title" style="margin-top:0;">モード移行確率（％）</h3>
                 <div style="display:flex; gap:20px;">
                     <div style="flex:1;">
-                        <h4 style="margin:5px 0 10px 0; color:#fff;">初回開始時（リセット時）</h4>
+                        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;">
+                            <h4 style="margin:0; color:#fff;">初回開始時（リセット時）</h4>
+                            <span id="trans-init-total" style="font-size:13px; font-weight:bold; color:#0f0;">合計: 100%</span>
+                        </div>
                         <div class="row"><label>通常A</label><div style="display:flex; align-items:center;"><input type="number" id="transInitA" class="trans-input" style="width:80px;">%</div></div>
                         <div class="row"><label>通常B</label><div style="display:flex; align-items:center;"><input type="number" id="transInitB" class="trans-input" style="width:80px;">%</div></div>
                         <div class="row"><label>通常C</label><div style="display:flex; align-items:center;"><input type="number" id="transInitC" class="trans-input" style="width:80px;">%</div></div>
                         <div class="row"><label>通常D</label><div style="display:flex; align-items:center;"><input type="number" id="transInitD" class="trans-input" style="width:80px;">%</div></div>
                     </div>
                     <div style="flex:1;">
-                        <h4 style="margin:5px 0 10px 0; color:#fff;">ボーナス当選時</h4>
+                        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;">
+                            <h4 style="margin:0; color:#fff;">ボーナス当選時</h4>
+                            <span id="trans-bonus-total" style="font-size:13px; font-weight:bold; color:#0f0;">合計: 100%</span>
+                        </div>
                         <div class="row"><label>通常A</label><div style="display:flex; align-items:center;"><input type="number" id="transBonusA" class="trans-input" style="width:80px;">%</div></div>
                         <div class="row"><label>通常B</label><div style="display:flex; align-items:center;"><input type="number" id="transBonusB" class="trans-input" style="width:80px;">%</div></div>
                         <div class="row"><label>通常C</label><div style="display:flex; align-items:center;"><input type="number" id="transBonusC" class="trans-input" style="width:80px;">%</div></div>
@@ -721,6 +727,10 @@
         document.querySelectorAll('.payout-input').forEach(input => {
             input.addEventListener('input', validateTotal);
         });
+        // モード遷移確率の入力変化もリアルタイムでバリデーション
+        document.querySelectorAll('.trans-input').forEach(input => {
+            input.addEventListener('input', validateTotal);
+        });
         
         function saveCurrentSettingInputs() {
             let p = { HAZE: parseInt(document.getElementById('probHAZE').value, 10) || 0 };
@@ -848,9 +858,33 @@
             
             const rtp = (expectedOut / (65536 * 3)) * 100;
             
+            // モード遷移確率の合計チェック（initial / bonus それぞれ 100% になっているか）
+            const initTotal = ['A','B','C','D'].reduce((acc, m) => {
+                return acc + (parseInt(document.getElementById('transInit'+m).value, 10) || 0);
+            }, 0);
+            const bonusTotal = ['A','B','C','D'].reduce((acc, m) => {
+                return acc + (parseInt(document.getElementById('transBonus'+m).value, 10) || 0);
+            }, 0);
+            
+            const elInitTotal = document.getElementById('trans-init-total');
+            const elBonusTotal = document.getElementById('trans-bonus-total');
+            if (elInitTotal) {
+                elInitTotal.textContent = `合計: ${initTotal}%`;
+                elInitTotal.style.color = initTotal === 100 ? '#0f0' : '#f55';
+            }
+            if (elBonusTotal) {
+                elBonusTotal.textContent = `合計: ${bonusTotal}%`;
+                elBonusTotal.style.color = bonusTotal === 100 ? '#0f0' : '#f55';
+            }
+            const isModeTransValid = (initTotal === 100) && (bonusTotal === 100);
+
             if (haze < 0) {
                 validationBar.className = 'validation-bar invalid';
                 validationBar.textContent = `エラー: 小役の合計が 65536 を ${Math.abs(haze)} オーバーしています！`;
+                btnSave.disabled = true;
+            } else if (!isModeTransValid) {
+                validationBar.className = 'validation-bar invalid';
+                validationBar.textContent = `エラー: モード移行確率の合計が 100% になっていません（初回: ${initTotal}% / ボーナス: ${bonusTotal}%）`;
                 btnSave.disabled = true;
             } else {
                 validationBar.className = 'validation-bar valid';

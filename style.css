@@ -32,15 +32,17 @@ body {
 }
 
 #game-container {
-    width: 1200px;
-    height: auto;
+    /* 固定サイズ・センタリング（ストレッチ・スケールなし）16:9 = 1280×720 */
+    width: 1280px;
+    height: 720px;
     background-color: #0f52ba;
     border-radius: 20px;
     display: flex;
     flex-direction: column;
-    padding: 30px;
-    box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 0 20px rgba(0,0,0,0.8);
-    transform-origin: center center;
+    padding: 20px 30px;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 0 30px rgba(0,0,0,0.8);
+    overflow: hidden;
+    flex-shrink: 0;
 }
 
 /* Header */
@@ -275,7 +277,7 @@ body {
 
 #character-area {
     width: 100%;
-    height: 350px;
+    height: 378px;
     background-color: #111;
     border: 4px solid #222;
     border-bottom: none;
@@ -283,9 +285,10 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow: hidden;
+    overflow: visible;
     position: relative;
     box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+    flex-shrink: 0;
 }
 
 .lcd-layer {
@@ -344,7 +347,7 @@ body {
    Character (Popora) Sprite Animation
    ========================================= */
 #character-sprite {
-    height: 280px;
+    height: 378px;
     position: absolute;
     bottom: 20px;
     left: 15%;
@@ -376,14 +379,14 @@ body {
 
 
 .chr-idle {
-    width: 280px;
+    width: 378px;
     background-image: url('assets/chr0001_idle_strip.png');
     background-size: 400% 100%;
     animation: chrIdle 0.8s steps(4) infinite;
 }
 @keyframes chrIdle {
     from { background-position: 0 0; }
-    to { background-position: -1120px 0; }
+    to { background-position: -1512px 0; }
 }
 
 .chr-attack {
@@ -403,14 +406,13 @@ body {
 }
 
 #enemy-img {
-    height: 150px;
-    width: 150px;
+    height: 202px;
+    width: 202px;
     position: absolute;
     bottom: 20px;
-    right: 20%; /* 右側に寄せる */
+    right: 20%;
     z-index: 4;
     animation: idleEnemyAnim 2s infinite ease-in-out;
-    
     display: flex;
     justify-content: center;
     align-items: center;
@@ -584,18 +586,21 @@ body {
 
 .reels-container {
     display: flex;
-    gap: 15px; /* リール間の隙間 */
+    gap: 9px;
     background-color: #000;
-    padding: 15px;
+    padding: 9px;
     
     /* 石枠の装飾 */
-    border: 32px solid transparent;
+    border: 19px solid transparent;
     border-image: url('assets/stone_texture.png') 40 round;
     
     /* 立体感を出すための影 */
     box-shadow: inset 0 0 25px rgba(0,0,0,0.9), 0 10px 20px rgba(0,0,0,0.7);
     position: relative;
-    overflow: hidden;
+    
+    /* ゲーム画面にはみ出して最前面に表示 */
+    z-index: 500;
+    transform: translateY(-115px);
 }
 
 .payline {
@@ -612,12 +617,12 @@ body {
 }
 
 .slip-display {
-    width: 60px;
-    height: 24px;
+    width: 36px;
+    height: 20px;
     background: #000;
     border: 2px inset #444;
     color: #ffaa00;
-    font-size: 14px;
+    font-size: 11px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -628,8 +633,8 @@ body {
 
 /* 1コマの高さ設定。3コマ表示 */
 .reel {
-    width: 190px; /* 全体で約10:5 (2:1) になるように幅を拡大 */
-    height: 300px; /* 100px * 3コマ */
+    width: 148px;
+    height: 180px; /* 60px * 3コマ */
     background-color: var(--reel-bg);
     overflow: hidden;
     position: relative;
@@ -645,19 +650,19 @@ body {
 }
 
 .symbol {
-    width: 190px; /* リール幅に合わせる */
-    height: 100px;
+    width: 148px;
+    height: 60px;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 60px;
+    font-size: 36px;
     border-bottom: 1px solid rgba(0,0,0,0.1);
     color: #333;
 }
 
 .symbol img {
-    width: 150px; /* シンボル画像も幅広に許容する */
-    height: 80px;
+    width: 117px;
+    height: 48px;
     object-fit: contain;
 }
 
@@ -682,10 +687,11 @@ body {
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    padding-top: 40px;
-    min-height: 400px;
+    padding-top: 25px;
+    flex: 1;
     position: relative;
     box-shadow: inset 0 20px 20px -20px rgba(0,0,0,0.8);
+    overflow: visible;
 }
 
 #reels-and-buttons-container {
