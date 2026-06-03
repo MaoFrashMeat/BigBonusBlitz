@@ -416,7 +416,7 @@ body {
     align-items: center;
 }
 
-.slime-sprite {
+.slime-sprite, .goblin-sprite {
     position: absolute;
     height: 100%;
     width: auto;
@@ -485,20 +485,20 @@ body {
     50% { transform: scaleY(0.9) translateY(4px); }
 }
 
-/* スライムの体色（元の16bit画像をhue-rotateで色変え） */
-.enemy-slime-blue .slime-sprite {
+/* 敵の体色（元の画像をhue-rotateで色変え） */
+.enemy-goblin-blue .goblin-sprite, .enemy-slime-blue .slime-sprite {
     filter: none;
 }
-.enemy-slime-yellow .slime-sprite {
+.enemy-goblin-yellow .goblin-sprite, .enemy-slime-yellow .slime-sprite {
     filter: hue-rotate(180deg) brightness(1.2);
 }
-.enemy-slime-green .slime-sprite {
+.enemy-goblin-green .goblin-sprite, .enemy-slime-green .slime-sprite {
     filter: hue-rotate(240deg);
 }
-.enemy-slime-red .slime-sprite {
+.enemy-goblin-red .goblin-sprite, .enemy-slime-red .slime-sprite {
     filter: hue-rotate(120deg) brightness(1.1);
 }
-.enemy-slime-rainbow .slime-sprite {
+.enemy-goblin-rainbow .goblin-sprite, .enemy-slime-rainbow .slime-sprite {
     animation: rainbowCycle 1.5s infinite linear;
 }
 

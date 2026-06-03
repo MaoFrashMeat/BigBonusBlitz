@@ -110,7 +110,8 @@ let state = {
     bonusEarned: 0,
     stockCount: 0, // 1G連ストックなどの保持数
     enemyHP: 100,
-    enemyMaxHP: 100
+    enemyMaxHP: 100,
+    currentEnemyType: 'goblin' // 'slime' or 'goblin'
 };
 
 // キャラクターアニメーション再生関数
@@ -141,6 +142,7 @@ function stopCharacterAnimation() {
 
 // ダメージ処理関数
 function dealDamage(amount) {
+    const wasDead = state.enemyHP <= 0;
     state.enemyHP -= amount;
     if (state.enemyHP < 0) state.enemyHP = 0;
     
@@ -170,7 +172,8 @@ function dealDamage(amount) {
     }
     
     // 敵撃破時の処理
-    if (state.enemyHP <= 0) {
+    if (state.enemyHP <= 0 && !wasDead) {
+        playSoundEnemyDeath();
         setTimeout(() => {
             if (typeof elMessage !== 'undefined') {
                 elMessage.textContent = 'ENEMY DEFEATED! CHANCE!';
@@ -178,14 +181,40 @@ function dealDamage(amount) {
                 setTimeout(() => elMessage.classList.remove('flash'), 3000);
             }
             
-            // 次の敵をスポーン（回復）
-            state.enemyHP = state.enemyMaxHP;
-            if (hpFill) {
-                hpFill.style.width = '100%';
-                hpFill.style.backgroundColor = '#0f0';
-            }
+            // 次の敵をスポーン
+            spawnEnemy();
         }, 1000);
     }
+}
+
+// 新しい敵をランダムにスポーンする
+function spawnEnemy() {
+    state.currentEnemyType = Math.random() < 0.5 ? 'slime' : 'goblin';
+    
+    const sprite = document.getElementById('enemy-sprite');
+    const core = document.getElementById('enemy-core');
+    const enemyImgContainer = document.getElementById('enemy-img');
+    
+    if (!sprite || !core || !enemyImgContainer) return;
+    
+    if (state.currentEnemyType === 'slime') {
+        sprite.src = 'assets/slime.png';
+        sprite.className = 'slime-sprite';
+        core.style.display = 'block';
+    } else {
+        sprite.src = 'assets/goblin.png';
+        sprite.className = 'goblin-sprite';
+        core.style.display = 'none';
+    }
+    
+    state.enemyHP = state.enemyMaxHP;
+    const hpFill = document.getElementById('enemy-hp-fill');
+    if (hpFill) {
+        hpFill.style.width = '100%';
+        hpFill.style.backgroundColor = '#0f0';
+    }
+    
+    updateEnemyColor();
 }
 
 // セーブデータ用キー
@@ -221,7 +250,17 @@ function loadGameState() {
             }
             if (savedData.bgmVolume !== undefined) {
                 const slider = document.getElementById('bgm-volume-slider');
-                if (slider) slider.value = savedData.bgmVolume;
+                if (slider) {
+                    slider.value = savedData.bgmVolume;
+                    bgmAudioNormal.volume = savedData.bgmVolume * 0.5;
+                }
+            }
+            if (savedData.selectedBgm !== undefined) {
+                const bgmSelect = document.getElementById('bgm-select');
+                if (bgmSelect) {
+                    bgmSelect.value = savedData.selectedBgm;
+                    bgmAudioNormal.src = 'assets/sounds/bgm/' + savedData.selectedBgm;
+                }
             }
             if (savedData.seVolume !== undefined) {
                 const slider = document.getElementById('se-volume-slider');
@@ -350,6 +389,21 @@ let bgmGain = null;
 let seGain = null;
 
 const sfxAttack = new Audio('assets/sounds/attack/daviddumaisaudio-sword-slash-with-a-designed-impact-185434.mp3');
+const sfxEnemyDeath = new Audio('assets/sounds/enemy/universfield-body-fall-down-142378.mp3');
+const sfxUiJingle = new Audio('assets/sounds/materials/jvanko_2600-attack-jingle-sound-effect-jvanko-125083.mp3');
+
+function playSoundUiJingle() {
+    try {
+        const audio = sfxUiJingle.cloneNode();
+        const seSlider = document.getElementById('se-volume-slider');
+        if (seSlider) {
+            audio.volume = seSlider.value;
+        }
+        audio.play().catch(e => console.error('UI jingle play error:', e));
+    } catch(e) {
+        console.error(e);
+    }
+}
 
 function playSoundAttack() {
     try {
@@ -364,6 +418,19 @@ function playSoundAttack() {
         });
     } catch(e) {
         playSoundStop();
+    }
+}
+
+function playSoundEnemyDeath() {
+    try {
+        const audio = sfxEnemyDeath.cloneNode();
+        const seSlider = document.getElementById('se-volume-slider');
+        if (seSlider) {
+            audio.volume = seSlider.value;
+        }
+        audio.play().catch(e => console.error('Enemy death sound play error:', e));
+    } catch(e) {
+        console.error(e);
     }
 }
 
@@ -386,20 +453,11 @@ function initAudio() {
     
     if (bgmSlider) {
         bgmGain.gain.value = bgmSlider.value * 0.05;
-        bgmAudioNormal.volume = bgmSlider.value * 0.5; // Web Audio APIを使わずに直接音量調整
-        bgmSlider.addEventListener('input', (e) => {
-            if (bgmGain) bgmGain.gain.value = e.target.value * 0.05;
-            bgmAudioNormal.volume = e.target.value * 0.5;
-            saveGameState();
-        });
+        bgmAudioNormal.volume = bgmSlider.value * 0.5;
     }
     
     if (seSlider) {
         seGain.gain.value = seSlider.value * 0.1;
-        seSlider.addEventListener('input', (e) => {
-            if (seGain) seGain.gain.value = e.target.value * 0.1;
-            saveGameState();
-        });
     }
 }
 
@@ -554,7 +612,7 @@ let nextNoteTime = 0;
 let currentNote = 0;
 let bgmInterval = null;
 
-const bgmAudioNormal = new Audio('assets/bgm/nocopyrightsound633-arcade-beat-323176.mp3');
+const bgmAudioNormal = new Audio('assets/sounds/bgm/nocopyrightsound633-arcade-beat-323176.mp3');
 bgmAudioNormal.loop = true;
 let bgmAudioNode = null;
 
@@ -592,10 +650,14 @@ const noteDurationRB = 0.12;
 function restartBGM() {
     if (isBgmPlaying) {
         clearInterval(bgmInterval);
-        bgmAudioNormal.pause();
-        currentNote = 0;
-        nextNoteTime = audioCtx ? audioCtx.currentTime + 0.1 : 0;
-        bgmInterval = setInterval(scheduleBGM, 50);
+        if (state.bonusMode !== 'NORMAL') {
+            bgmAudioNormal.pause();
+            currentNote = 0;
+            nextNoteTime = audioCtx ? audioCtx.currentTime + 0.1 : 0;
+            bgmInterval = setInterval(scheduleBGM, 50);
+        } else {
+            bgmAudioNormal.play().catch(e => console.warn(e));
+        }
     }
 }
 
@@ -629,10 +691,8 @@ function scheduleBGM() {
     // if (!bgmAudioNode) { ... }
 
     if (state.bonusMode === 'NORMAL') {
-        if (bgmAudioNormal.paused) {
-            bgmAudioNormal.play().catch(e => console.warn(e));
-        }
-        return; // 通常時はWAVを再生してシンセサイザーは止める
+        // 通常時はWAVを再生するためシンセサイザー処理はスキップ（playはクリックイベント等で実行済み）
+        return; 
     } else {
         if (!bgmAudioNormal.paused) {
             bgmAudioNormal.pause();
@@ -697,8 +757,12 @@ function toggleBGM() {
         btnBgm.classList.remove('btn-auto-active');
     } else {
         isBgmPlaying = true;
-        nextNoteTime = audioCtx.currentTime + 0.1;
-        bgmInterval = setInterval(scheduleBGM, 50);
+        if (state.bonusMode === 'NORMAL') {
+            bgmAudioNormal.play().catch(e => console.warn(e));
+        } else {
+            nextNoteTime = audioCtx.currentTime + 0.1;
+            bgmInterval = setInterval(scheduleBGM, 50);
+        }
         btnBgm.textContent = 'BGM ON';
         btnBgm.classList.add('btn-auto-active');
     }
@@ -734,11 +798,12 @@ function init() {
     updateUI();
     updateLamp();
     updateDebugUI();
+    spawnEnemy();
     playCharacterAnimation('idle'); // 起動直後から待機モーションを再生
     
     // イベントリスナー
-    btnAuto.addEventListener('click', () => { initAudio(); onAutoToggle(); });
-    btnMaxBet.addEventListener('click', () => { initAudio(); onMaxBet(); });
+    btnAuto.addEventListener('click', () => { initAudio(); playSoundUiJingle(); onAutoToggle(); });
+    btnMaxBet.addEventListener('click', () => { initAudio(); playSoundUiJingle(); onMaxBet(); });
     btnStops.forEach((btn, index) => {
         btn.addEventListener('click', () => { initAudio(); onStop(index); });
     });
@@ -756,7 +821,7 @@ function init() {
     });
 
     // BGM Toggle
-    btnBgm.addEventListener('click', toggleBGM);
+    btnBgm.addEventListener('click', () => { playSoundUiJingle(); toggleBGM(); });
 
     // Setting Selector
     if (settingSelect) {
@@ -772,6 +837,7 @@ function init() {
     // OPTIONS Modal
     btnOptions.addEventListener('click', () => {
         initAudio();
+        playSoundUiJingle();
         optionsModal.classList.remove('hidden');
     });
     btnCloseOptions.addEventListener('click', () => {
@@ -1129,46 +1195,57 @@ function updateDebugUI() {
     }
 }
 
-// スライムの小役示唆演出を更新
-function updateEnemySlimeColor() {
+// 敵の小役示唆演出を更新
+function updateEnemyColor() {
     const enemy = document.getElementById('enemy-img');
-    const core = enemy ? enemy.querySelector('.slime-core') : null;
-    if (!enemy || !core) return;
+    const core = document.getElementById('enemy-core');
+    if (!enemy) return;
     
     // 既存のクラスをリセットして基本の構造だけ残す
     enemy.className = '';
-    core.className = 'slime-core';
+    if (core) core.className = 'slime-core';
     
     const flag = state.currentFlag;
     
-    if (flag >= FLAGS.REPLAY_A && flag <= FLAGS.REPLAY_C) {
-        // REPLAYなら色が青いゴブリン(スライム)、コアの色が青いスライム
-        enemy.classList.add('enemy-slime-blue');
-        core.classList.add('core-blue');
-    } else if (flag >= FLAGS.BELL_A && flag <= FLAGS.BELL_C) {
-        // ベルなら色が黄色いスライム
-        enemy.classList.add('enemy-slime-yellow');
-        core.classList.add('core-yellow');
-    } else if (flag >= FLAGS.SUICA_A && flag <= FLAGS.SUICA_C) {
-        // スイカなら緑
-        enemy.classList.add('enemy-slime-green');
-        core.classList.add('core-green');
-    } else if (flag >= FLAGS.CHERRY_A && flag <= FLAGS.CHERRY_C) {
-        // チェリーなら赤
-        enemy.classList.add('enemy-slime-red');
-        core.classList.add('core-red');
-    } else if (flag === FLAGS.HAZE) {
-        // ハズレはコアの色が赤いスライム（ただのゴブリン/ベースは青）
-        enemy.classList.add('enemy-slime-blue');
-        core.classList.add('core-red');
-    } else if ((flag >= FLAGS.BB_A && flag <= FLAGS.BB_D) || (flag >= FLAGS.RB_A && flag <= FLAGS.RB_B)) {
-        // ボーナスは虹色
-        enemy.classList.add('enemy-slime-rainbow');
-        core.classList.add('core-rainbow');
+    if (state.currentEnemyType === 'slime') {
+        if (flag >= FLAGS.REPLAY_A && flag <= FLAGS.REPLAY_C) {
+            enemy.classList.add('enemy-slime-blue');
+            if (core) core.classList.add('core-blue');
+        } else if (flag >= FLAGS.BELL_A && flag <= FLAGS.BELL_C) {
+            enemy.classList.add('enemy-slime-yellow');
+            if (core) core.classList.add('core-yellow');
+        } else if (flag >= FLAGS.SUICA_A && flag <= FLAGS.SUICA_C) {
+            enemy.classList.add('enemy-slime-green');
+            if (core) core.classList.add('core-green');
+        } else if (flag >= FLAGS.CHERRY_A && flag <= FLAGS.CHERRY_C) {
+            enemy.classList.add('enemy-slime-red');
+            if (core) core.classList.add('core-red');
+        } else if (flag === FLAGS.HAZE) {
+            enemy.classList.add('enemy-slime-blue');
+            if (core) core.classList.add('core-red');
+        } else if ((flag >= FLAGS.BB_A && flag <= FLAGS.BB_D) || (flag >= FLAGS.RB_A && flag <= FLAGS.RB_B)) {
+            enemy.classList.add('enemy-slime-rainbow');
+            if (core) core.classList.add('core-rainbow');
+        } else {
+            enemy.classList.add('enemy-slime-blue');
+            if (core) core.classList.add('core-red');
+        }
     } else {
-        // デフォルト（通常）
-        enemy.classList.add('enemy-slime-blue');
-        core.classList.add('core-red');
+        if (flag >= FLAGS.REPLAY_A && flag <= FLAGS.REPLAY_C) {
+            enemy.classList.add('enemy-goblin-blue');
+        } else if (flag >= FLAGS.BELL_A && flag <= FLAGS.BELL_C) {
+            enemy.classList.add('enemy-goblin-yellow');
+        } else if (flag >= FLAGS.SUICA_A && flag <= FLAGS.SUICA_C) {
+            enemy.classList.add('enemy-goblin-green');
+        } else if (flag >= FLAGS.CHERRY_A && flag <= FLAGS.CHERRY_C) {
+            enemy.classList.add('enemy-goblin-red');
+        } else if (flag === FLAGS.HAZE) {
+            enemy.classList.add('enemy-goblin-blue');
+        } else if ((flag >= FLAGS.BB_A && flag <= FLAGS.BB_D) || (flag >= FLAGS.RB_A && flag <= FLAGS.RB_B)) {
+            enemy.classList.add('enemy-goblin-rainbow');
+        } else {
+            enemy.classList.add('enemy-goblin-blue');
+        }
     }
 }
 
@@ -1181,7 +1258,7 @@ function onLever() {
     
     drawLottery();
     updateDebugUI();
-    updateEnemySlimeColor();
+    updateEnemyColor();
     
     playCharacterAnimation('idle'); // 連番画像でのアイドル再生を開始
     
@@ -1726,9 +1803,7 @@ function evaluateWin() {
         // 小役が揃ったら攻撃モーションを再生し、ダメージを与える
         // （アニメーション処理は各リール停止時に移動したため、ここでは何もしないか、必要な処理のみ行う）
         
-        setTimeout(() => {
-            dealDamage(totalPayout * 5); // 獲得枚数x5をダメージとする
-        }, 400); // ダメージのタイミング
+        dealDamage(totalPayout * 5); // 獲得枚数x5をダメージとする
         
         const character = document.getElementById('character-sprite');
         const enemy = document.getElementById('enemy-img');
@@ -1996,7 +2071,6 @@ if (debugPopup) {
         
         isDraggingDebug = true;
         const rect = debugPopup.getBoundingClientRect();
-        // コンテナのスケールを考慮
         const gameContainer = document.getElementById('game-container');
         const transform = window.getComputedStyle(gameContainer).transform;
         let scale = 1;
@@ -2004,14 +2078,12 @@ if (debugPopup) {
             const matrix = new DOMMatrix(transform);
             scale = matrix.a;
         }
-        
         debugDragOffsetX = (e.clientX - rect.left) / scale;
         debugDragOffsetY = (e.clientY - rect.top) / scale;
     });
 
     document.addEventListener('mousemove', (e) => {
         if (!isDraggingDebug) return;
-        
         const gameContainer = document.getElementById('game-container');
         const transform = window.getComputedStyle(gameContainer).transform;
         let scale = 1;
@@ -2019,13 +2091,9 @@ if (debugPopup) {
             const matrix = new DOMMatrix(transform);
             scale = matrix.a;
         }
-        
         const containerRect = gameContainer.getBoundingClientRect();
-        
-        // コンテナ内の相対座標に変換
         let newX = (e.clientX - containerRect.left) / scale - debugDragOffsetX;
         let newY = (e.clientY - containerRect.top) / scale - debugDragOffsetY;
-        
         debugPopup.style.left = newX + 'px';
         debugPopup.style.top = newY + 'px';
     });
@@ -2035,6 +2103,78 @@ if (debugPopup) {
             isDraggingDebug = false;
             saveGameState();
         }
+    });
+}
+
+// ボリュームスライダーのリスナーをグローバルに登録（初期起動時から反映させるため）
+const globalBgmSlider = document.getElementById('bgm-volume-slider');
+if (globalBgmSlider) {
+    globalBgmSlider.addEventListener('input', (e) => {
+        if (bgmGain) bgmGain.gain.value = e.target.value * 0.05;
+        bgmAudioNormal.volume = e.target.value * 0.5;
+        saveGameState();
+    });
+}
+
+const globalSeSlider = document.getElementById('se-volume-slider');
+if (globalSeSlider) {
+    globalSeSlider.addEventListener('input', (e) => {
+        if (seGain) seGain.gain.value = e.target.value * 0.1;
+        saveGameState();
+    });
+}
+
+// BGM トラック選択のセットアップ
+const BGM_FILES = [
+    "nocopyrightsound633-arcade-beat-323176.mp3",
+    "11325622-noise-drum-loop-134bpm-245852.mp3",
+    "bgm_battle.wav",
+    "bgm_grassland.wav",
+    "bgm_poke_bicycle.wav",
+    "bgm_poke_cave.wav",
+    "bgm_poke_champion.wav",
+    "bgm_poke_champion_epic.wav",
+    "bgm_poke_gym.wav",
+    "bgm_poke_rival.wav",
+    "bgm_poke_route.wav",
+    "bgm_poke_surf.wav",
+    "bgm_poke_sync_192.wav",
+    "bgm_poke_town.wav",
+    "bgm_poke_trainer.wav",
+    "bgm_poke_trainer_epic.wav",
+    "bgm_poke_wild.wav",
+    "bgm_pokemon.wav",
+    "blackbox-loop-black-box-exciting-drum-loop-130bpm-13826.mp3",
+    "van_wiese-tekno-kick-loop-176-bpm-292894.mp3",
+    "white_records-background-music-for-mobile-casual-video-game-short-8-bit-music-164703.mp3"
+];
+
+const bgmSelect = document.getElementById('bgm-select');
+if (bgmSelect) {
+    BGM_FILES.forEach(filename => {
+        const option = document.createElement('option');
+        option.value = filename;
+        // 表示用に拡張子を除いたファイル名をラベルにする
+        let label = filename.replace(/\.(mp3|wav)$/i, '');
+        // 長すぎる場合は少し短縮する（スタイルでellipsisするのでそのままでも可）
+        option.textContent = label;
+        bgmSelect.appendChild(option);
+    });
+
+    // 初期値セットアップ（localStorageからの復元前にデフォルトとして設定）
+    bgmSelect.value = BGM_FILES[0];
+
+    bgmSelect.addEventListener('change', (e) => {
+        const selectedFile = e.target.value;
+        const newSrc = 'assets/sounds/bgm/' + selectedFile;
+        
+        const wasPlaying = !bgmAudioNormal.paused;
+        bgmAudioNormal.src = newSrc;
+        
+        if (wasPlaying && state.bonusMode === 'NORMAL') {
+            bgmAudioNormal.play().catch(err => console.error(err));
+        }
+        saveGameState();
     });
 }
 
