@@ -353,30 +353,17 @@ body {
     background-repeat: no-repeat;
 }
 
-.popora-idle {
-    width: 280px;
-    background-image: url('assets/popora_idle_strip.png');
-    background-size: 900% 100%;
-    animation: playIdle 0.9s steps(9) infinite;
-}
 
-.popora-attack {
-    width: 186px;
-    margin-left: 47px;
-    background-image: url('assets/popora_attack_strip_corrected.png');
-    background-size: 600% 100%;
-    animation: playAttack 0.6s steps(6) infinite;
-}
 
-@keyframes playIdle {
-    from { background-position: 0 0; }
+
+
+
     to { background-position: -2520px 0; }
 }
     to { background-position: 100% 0; }
 }
 
-@keyframes playAttack {
-    from { background-position: 0 0; }
+
     to { background-position: -1116px 0; }
 }
     to { background-position: -282px 0; }
@@ -386,6 +373,34 @@ body {
     to { background-position: 100% 0; }
 }
 
+
+
+.chr-idle {
+    width: 280px;
+    background-image: url('assets/chr0001_idle_strip.png');
+    background-size: 400% 100%;
+    animation: chrIdle 0.8s steps(4) infinite;
+}
+@keyframes chrIdle {
+    from { background-position: 0 0; }
+    to { background-position: -1120px 0; }
+}
+
+.chr-attack {
+    width: 502px;
+    margin-left: -111px;
+    background-image: url('assets/chr0001_attack_strip.png');
+    background-size: 400% 100%;
+}
+.chr-attack-f1 { background-position: 0 0; }
+.chr-attack-f2 { background-position: -502px 0; }
+.chr-attack-f3-4 {
+    animation: chrAttack34 0.2s steps(2) forwards;
+}
+@keyframes chrAttack34 {
+    from { background-position: -1004px 0; }
+    to { background-position: -2008px 0; }
+}
 
 #enemy-img {
     height: 150px;
@@ -972,4 +987,31 @@ body {
     10% { transform: scale(2.2) translate(30%, -10%); filter: drop-shadow(0 0 30px yellow) brightness(1.3); }
     90% { transform: scale(2.2) translate(30%, -10%); filter: drop-shadow(0 0 30px yellow) brightness(1.3); }
     100% { transform: scale(1) translate(0, 0); }
+}
+
+.chr-idle {
+    width: 280px;
+    background-image: url('assets/chr0001_idle_strip.png');
+    background-size: 400% 100%;
+    animation: chrIdle 0.6s steps(4) infinite;
+}
+@keyframes chrIdle {
+    from { background-position: 0 0; }
+    to { background-position: -1120px 0; }
+}
+
+.chr-attack {
+    width: 502px;
+    margin-left: -111px;
+    background-image: url('assets/chr0001_attack_strip.png');
+    background-size: 400% 100%;
+}
+.chr-attack-f1 { background-position: 0 0; }
+.chr-attack-f2 { background-position: -502px 0; }
+.chr-attack-f3-4 {
+    animation: chrAttack34 0.2s steps(2) forwards;
+}
+@keyframes chrAttack34 {
+    from { background-position: -1004px 0; }
+    to { background-position: -2008px 0; }
 }

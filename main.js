@@ -125,13 +125,13 @@ function playCharacterAnimation(type, onComplete = null) {
     charEl.style.backgroundPosition = '';
     
     // クラスを付け替え
-    charEl.className = `popora-${type}`;
+    charEl.className = '';
     
-    if (type === 'attack') {
-        // アタックアニメーションはCSSで0.6sに設定されている
-        setTimeout(() => {
-            if (onComplete) onComplete();
-        }, 600);
+    if (type === 'idle') {
+        charEl.classList.add('chr-idle');
+    } else if (type.startsWith('attack-f')) {
+        charEl.classList.add('chr-attack');
+        charEl.classList.add('chr-' + type);
     }
 }
 
@@ -349,6 +349,24 @@ let audioCtx = null;
 let bgmGain = null;
 let seGain = null;
 
+const sfxAttack = new Audio('assets/sounds/attack/daviddumaisaudio-sword-slash-with-metal-shield-impact-185433.mp3');
+
+function playSoundAttack() {
+    try {
+        const audio = sfxAttack.cloneNode();
+        const seSlider = document.getElementById('se-volume-slider');
+        if (seSlider) {
+            audio.volume = seSlider.value; // 0.0 ~ 1.0
+        }
+        audio.play().catch(e => {
+            console.error('Audio play error:', e);
+            playSoundStop(); // Fallback
+        });
+    } catch(e) {
+        playSoundStop();
+    }
+}
+
 function initAudio() {
     if (audioCtx) {
         if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -368,8 +386,10 @@ function initAudio() {
     
     if (bgmSlider) {
         bgmGain.gain.value = bgmSlider.value * 0.05;
+        bgmAudioNormal.volume = bgmSlider.value * 0.5; // Web Audio APIを使わずに直接音量調整
         bgmSlider.addEventListener('input', (e) => {
             if (bgmGain) bgmGain.gain.value = e.target.value * 0.05;
+            bgmAudioNormal.volume = e.target.value * 0.5;
             saveGameState();
         });
     }
@@ -605,15 +625,8 @@ function scheduleBGM() {
     
     if (audioCtx.state === 'suspended') audioCtx.resume();
 
-    // Web Audio APIへのルーティング（一度だけ実行）
-    if (!bgmAudioNode) {
-        try {
-            bgmAudioNode = audioCtx.createMediaElementSource(bgmAudioNormal);
-            bgmAudioNode.connect(bgmGain);
-        } catch(e) {
-            console.warn(e);
-        }
-    }
+    // Web Audio APIへのルーティングはfile://環境でのCORSエラーを回避するため行わない
+    // if (!bgmAudioNode) { ... }
 
     if (state.bonusMode === 'NORMAL') {
         if (bgmAudioNormal.paused) {
@@ -1088,7 +1101,11 @@ function drawLottery() {
         state.heldBonusFlag = state.currentFlag;
     }
     
-    playCharacterAnimation('idle'); // 初期状態のアイドル再生
+    if (state.currentFlag >= FLAGS.BELL_A && state.currentFlag <= FLAGS.BELL_C) {
+        playCharacterAnimation('attack-f1');
+    } else {
+        playCharacterAnimation('idle'); // 初期状態のアイドル再生
+    }
 }
 
 function updateDebugUI() {
@@ -1441,6 +1458,14 @@ function onStop(reelIndex) {
         
         // 第2停止（ベル）の砂煙演出
         const pressedCount = btnStops.filter(b => b.disabled).length;
+        if (state.currentFlag >= FLAGS.BELL_A && state.currentFlag <= FLAGS.BELL_C) {
+            if (pressedCount === 1) {
+                playCharacterAnimation('attack-f2');
+            } else if (pressedCount === 2) {
+                playCharacterAnimation('attack-f3-4');
+                playSoundAttack(); // 第2停止時に攻撃SFXを再生
+            }
+        }
         if (pressedCount === 2) {
             if (state.currentFlag >= FLAGS.BELL_A && state.currentFlag <= FLAGS.BELL_C) {
                 const dust = document.getElementById('dust-cloud-img');
@@ -1699,14 +1724,11 @@ function evaluateWin() {
         playSoundWin(winType);
         
         // 小役が揃ったら攻撃モーションを再生し、ダメージを与える
-        playCharacterAnimation('attack', () => {
-            playCharacterAnimation('idle');
-        });
+        // （アニメーション処理は各リール停止時に移動したため、ここでは何もしないか、必要な処理のみ行う）
         
         setTimeout(() => {
             dealDamage(totalPayout * 5); // 獲得枚数x5をダメージとする
-            playSoundStop(); // 打撃音の代わり
-        }, 400); // 剣を振り下ろすタイミング
+        }, 400); // ダメージのタイミング
         
         const character = document.getElementById('character-sprite');
         const enemy = document.getElementById('enemy-img');
@@ -1717,11 +1739,10 @@ function evaluateWin() {
         // 第3停止時のアクション演出（winTypeに応じて）
         
         if (winType === 'BELL') {
-            if (character) character.classList.add('anim-bell');
             if (enemy) enemy.classList.add('enemy-anim-squash');
-            // 今までの knight_win.png の代わりになるが、一応隠す
             if (knight) knight.classList.add('hidden');
             if (dust) dust.classList.add('hidden');
+            // 音声再生は第2停止時に移動済み
         } else if (winType === 'CHERRY') {
             if (character) character.classList.add('anim-cherry');
             if (enemy) enemy.classList.add('enemy-anim-hit');
