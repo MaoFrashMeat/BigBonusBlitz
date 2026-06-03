@@ -349,7 +349,7 @@ let audioCtx = null;
 let bgmGain = null;
 let seGain = null;
 
-const sfxAttack = new Audio('assets/sounds/attack/daviddumaisaudio-sword-slash-with-metal-shield-impact-185433.mp3');
+const sfxAttack = new Audio('assets/sounds/attack/daviddumaisaudio-sword-slash-with-a-designed-impact-185434.mp3');
 
 function playSoundAttack() {
     try {
@@ -554,7 +554,7 @@ let nextNoteTime = 0;
 let currentNote = 0;
 let bgmInterval = null;
 
-const bgmAudioNormal = new Audio('assets/bgm/bgm_poke_sync_192.wav');
+const bgmAudioNormal = new Audio('assets/bgm/nocopyrightsound633-arcade-beat-323176.mp3');
 bgmAudioNormal.loop = true;
 let bgmAudioNode = null;
 
