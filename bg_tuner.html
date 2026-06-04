@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BBB Background Tuner</title>
+    <style>
+        body { font-family: sans-serif; background: #222; color: #eee; padding: 20px; }
+        .layer-box { border: 1px solid #444; background: #333; margin-bottom: 15px; padding: 15px; border-radius: 5px; }
+        h2 { margin-top: 0; font-size: 16px; border-bottom: 1px solid #555; padding-bottom: 5px; color: #0f0; }
+        .control { display: flex; align-items: center; margin-bottom: 10px; }
+        .control label { width: 140px; font-size: 14px; }
+        .control input[type=range] { flex-grow: 1; margin: 0 10px; }
+        .control span { width: 50px; text-align: right; font-family: monospace; font-size: 12px; }
+        button { padding: 10px 20px; background: #0f0; color: #000; border: none; font-weight: bold; cursor: pointer; border-radius: 3px; font-size: 16px;}
+        button:hover { background: #0c0; }
+        textarea { width: 100%; height: 200px; margin-top: 10px; background: #111; color: #0f0; font-family: monospace; padding: 10px; border: 1px solid #555; }
+    </style>
+</head>
+<body>
+
+    <h1>BBB Background Tuner</h1>
+    <p>メインゲームのタブを開いたまま、この画面のスライダーを動かすとリアルタイムに背景が変化します。</p>
+
+    <div class="layer-box">
+        <h2>第1層：地面 (Layer 1)</h2>
+        <div class="control">
+            <label>マスクカット位置 (%)</label>
+            <input type="range" id="l1-mask" min="50" max="100" step="0.1" value="78.0">
+            <span id="l1-mask-val">78.0%</span>
+        </div>
+    </div>
+
+    <div class="layer-box">
+        <h2>第2層：小物・雑草 (Layer 2)</h2>
+        <div class="control">
+            <label>着地ライン(Height) (%)</label>
+            <input type="range" id="l2-height" min="50" max="100" step="0.1" value="78.0">
+            <span id="l2-height-val">78.0%</span>
+        </div>
+        <div class="control">
+            <label>画像の大きさ (px)</label>
+            <input type="range" id="l2-size" min="10" max="300" step="1" value="60">
+            <span id="l2-size-val">60px</span>
+        </div>
+        <div class="control">
+            <label>上下オフセット (px)</label>
+            <input type="range" id="l2-offset" min="-100" max="100" step="1" value="0">
+            <span id="l2-offset-val">0px</span>
+        </div>
+    </div>
+
+    <div class="layer-box">
+        <h2>第3層：雑木林 (Layer 3)</h2>
+        <div class="control">
+            <label>着地ライン(Height) (%)</label>
+            <input type="range" id="l3-height" min="50" max="100" step="0.1" value="76.0">
+            <span id="l3-height-val">76.0%</span>
+        </div>
+        <div class="control">
+            <label>画像の大きさ (px)</label>
+            <input type="range" id="l3-size" min="50" max="500" step="1" value="150">
+            <span id="l3-size-val">150px</span>
+        </div>
+        <div class="control">
+            <label>上下オフセット (px)</label>
+            <input type="range" id="l3-offset" min="-100" max="100" step="1" value="0">
+            <span id="l3-offset-val">0px</span>
+        </div>
+    </div>
+
+    <div class="layer-box">
+        <h2>第4層：遠景草原 (Layer 4)</h2>
+        <div class="control">
+            <label>着地ライン(Height) (%)</label>
+            <input type="range" id="l4-height" min="50" max="100" step="0.1" value="78.0">
+            <span id="l4-height-val">78.0%</span>
+        </div>
+        <div class="control">
+            <label>画像の大きさ (%)</label>
+            <input type="range" id="l4-size" min="10" max="200" step="1" value="80">
+            <span id="l4-size-val">80%</span>
+        </div>
+        <div class="control">
+            <label>上下オフセット (px)</label>
+            <input type="range" id="l4-offset" min="-200" max="200" step="1" value="0">
+            <span id="l4-offset-val">0px</span>
+        </div>
+    </div>
+
+    <div class="layer-box">
+        <h2>第5層：雲 (Layer 5)</h2>
+        <div class="control">
+            <label>画像の大きさ (%)</label>
+            <input type="range" id="l5-size" min="10" max="200" step="1" value="100">
+            <span id="l5-size-val">100%</span>
+        </div>
+        <div class="control">
+            <label>上下位置 (px)</label>
+            <input type="range" id="l5-pos" min="0" max="500" step="1" value="0">
+            <span id="l5-pos-val">0px</span>
+        </div>
+    </div>
+
+    <button id="btn-generate">最終設定のCSSコードを生成</button>
+    <textarea id="output" readonly placeholder="ボタンを押すとここにCSSが生成されます。これをAIに送信してください。"></textarea>
+
+    <script>
+        const bc = new BroadcastChannel('bg_tuner');
+
+        const state = {
+            l1_mask: 78.0,
+            l2_height: 78.0, l2_size: 60, l2_offset: 0,
+            l3_height: 76.0, l3_size: 150, l3_offset: 0,
+            l4_height: 78.0, l4_size: 80, l4_offset: 0,
+            l5_size: 100, l5_pos: 0
+        };
+
+        function sendUpdate() {
+            bc.postMessage(state);
+            generateCSS();
+        }
+
+        function bindSlider(id, stateKey, suffix) {
+            const el = document.getElementById(id);
+            const valEl = document.getElementById(id + '-val');
+            el.addEventListener('input', (e) => {
+                const v = parseFloat(e.target.value);
+                state[stateKey] = v;
+                valEl.innerText = v + suffix;
+                sendUpdate();
+            });
+        }
+
+        bindSlider('l1-mask', 'l1_mask', '%');
+        bindSlider('l2-height', 'l2_height', '%');
+        bindSlider('l2-size', 'l2_size', 'px');
+        bindSlider('l2-offset', 'l2_offset', 'px');
+        
+        bindSlider('l3-height', 'l3_height', '%');
+        bindSlider('l3-size', 'l3_size', 'px');
+        bindSlider('l3-offset', 'l3_offset', 'px');
+
+        bindSlider('l4-height', 'l4_height', '%');
+        bindSlider('l4-size', 'l4_size', '%');
+        bindSlider('l4-offset', 'l4_offset', 'px');
+
+        bindSlider('l5-size', 'l5_size', '%');
+        bindSlider('l5-pos', 'l5_pos', 'px');
+
+        function generateCSS() {
+            const css = `
+#lcd-layer-1 {
+    -webkit-mask-image: linear-gradient(to bottom, transparent ${state.l1_mask}%, black ${state.l1_mask + 0.1}%);
+    mask-image: linear-gradient(to bottom, transparent ${state.l1_mask}%, black ${state.l1_mask + 0.1}%);
+}
+
+#lcd-layer-2 {
+    height: ${state.l2_height}%;
+    background-size: auto ${state.l2_size}px;
+    background-position: center calc(100% + ${state.l2_offset}px);
+}
+
+#lcd-layer-3 {
+    height: ${state.l3_height}%;
+    background-size: auto ${state.l3_size}px;
+    background-position: center calc(100% + ${state.l3_offset}px);
+}
+
+#lcd-layer-4 {
+    height: ${state.l4_height}%;
+    background-size: auto ${state.l4_size}%;
+    background-position: center calc(100% + ${state.l4_offset}px);
+}
+
+#lcd-layer-5 {
+    background-size: auto ${state.l5_size}%;
+    background-position: center ${state.l5_pos}px;
+}
+`;
+            document.getElementById('output').value = css.trim();
+        }
+
+        document.getElementById('btn-generate').addEventListener('click', generateCSS);
+        
+        // Initial send
+        setTimeout(sendUpdate, 500);
+    </script>
+</body>
+</html>

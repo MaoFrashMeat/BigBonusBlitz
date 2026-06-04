@@ -77,12 +77,18 @@
                 <!-- RB MODE 突入ロゴ（右下） -->
                 <div id="rb-mode-logo" class="hidden">RB<br>MODE</div>
                 
-                <!-- 背景層 (遠景: 空など) -->
-                <div id="lcd-layer-bg" class="lcd-layer"></div>
-                <!-- 中景層 (舞台: 草原など) -->
-                <div id="lcd-layer-mg" class="lcd-layer"></div>
-                <!-- 前景層 (キャラ・エフェクト: 後ほど追加予定) -->
-                <div id="lcd-layer-fg" class="lcd-layer"></div>
+                <!-- 第6層: 空 -->
+                <div id="lcd-layer-6" class="lcd-layer"></div>
+                <!-- 第5層: 雲 -->
+                <div id="lcd-layer-5" class="lcd-layer"></div>
+                <!-- 第4層: 遠景草原 -->
+                <div id="lcd-layer-4" class="lcd-layer"></div>
+                <!-- 第3層: 雑木林 -->
+                <div id="lcd-layer-3" class="lcd-layer"></div>
+                <!-- 第2層: 小物・雑草 -->
+                <div id="lcd-layer-2" class="lcd-layer"></div>
+                <!-- 第1層: 地面 -->
+                <div id="lcd-layer-1" class="lcd-layer"></div>
                 
                 <!-- キャラクター（前景） -->
                 <div id="character-sprite" class="popora-idle"></div>
@@ -304,5 +310,44 @@
     <script src="workflow.js?v=1"></script>
     <script>window.addEventListener('error', function(e) { fetch('http://127.0.0.1:9999/?error=' + encodeURIComponent(e.message + ' at ' + e.lineno)); });</script>
     <script src="main.js?v=2"></script>
+    <script>
+        // 背景微調整ツール受信用
+        const bgTunerChannel = new BroadcastChannel('bg_tuner');
+        bgTunerChannel.onmessage = (e) => {
+            const state = e.data;
+            const l1 = document.getElementById('lcd-layer-1');
+            if(l1) {
+                l1.style.webkitMaskImage = `linear-gradient(to bottom, transparent ${state.l1_mask}%, black ${state.l1_mask + 0.1}%)`;
+                l1.style.maskImage = `linear-gradient(to bottom, transparent ${state.l1_mask}%, black ${state.l1_mask + 0.1}%)`;
+            }
+            
+            const l2 = document.getElementById('lcd-layer-2');
+            if(l2) {
+                l2.style.height = `${state.l2_height}%`;
+                l2.style.backgroundSize = `auto ${state.l2_size}px`;
+                l2.style.backgroundPosition = `center calc(100% + ${state.l2_offset}px)`;
+            }
+
+            const l3 = document.getElementById('lcd-layer-3');
+            if(l3) {
+                l3.style.height = `${state.l3_height}%`;
+                l3.style.backgroundSize = `auto ${state.l3_size}px`;
+                l3.style.backgroundPosition = `center calc(100% + ${state.l3_offset}px)`;
+            }
+
+            const l4 = document.getElementById('lcd-layer-4');
+            if(l4) {
+                l4.style.height = `${state.l4_height}%`;
+                l4.style.backgroundSize = `auto ${state.l4_size}%`;
+                l4.style.backgroundPosition = `center calc(100% + ${state.l4_offset}px)`;
+            }
+
+            const l5 = document.getElementById('lcd-layer-5');
+            if(l5) {
+                l5.style.backgroundSize = `auto ${state.l5_size}%`;
+                l5.style.backgroundPosition = `center ${state.l5_pos}px`;
+            }
+        };
+    </script>
 </body>
 </html>

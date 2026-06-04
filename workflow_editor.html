@@ -444,21 +444,37 @@ function renderAll() {
 
 function renderSidebar() {
     const sb = document.querySelector('.sidebar');
-    sb.innerHTML = '<div class="sidebar-lbl">役の種類</div>';
+    // innerHTML の一括代入はリスナーを消すため、全て createElement で構築する
+    sb.innerHTML = '';
+
+    // 「役の種類」ラベル
+    const lbl1 = document.createElement('div');
+    lbl1.className = 'sidebar-lbl';
+    lbl1.textContent = '役の種類';
+    sb.appendChild(lbl1);
+
+    // 各役タブ
     for (const r of ROLES) {
         const t = catRateTotal(r.key);
         const cls = t > 100 ? 'over' : t === 100 ? 'ok' : t === 0 ? 'zero' : 'warn';
         const txt = t > 100 ? `⚠ ${t}%` : t === 100 ? '✅ 100%' : t === 0 ? '未設定' : `${t}%`;
         const tab = document.createElement('div');
         tab.className = `role-tab ${r.key === currentRole ? 'active' : ''}`;
-        tab.dataset.roleKey = r.key;  // refreshTotalsOnly で参照するため
+        tab.dataset.roleKey = r.key;
         tab.innerHTML = `<span class="rn" style="color:${r.color}">${r.emoji} ${r.label}</span><span class="rt ${cls}">${txt}</span>`;
+        // クリックで currentRole を更新して全体再描画
         tab.addEventListener('click', () => { currentRole = r.key; renderAll(); });
         sb.appendChild(tab);
     }
-    
-    // Tier2 Probs Tab
-    sb.innerHTML += '<div class="sidebar-lbl" style="margin-top:10px;">スロット設定</div>';
+
+    // 「スロット設定」ラベル
+    const lbl2 = document.createElement('div');
+    lbl2.className = 'sidebar-lbl';
+    lbl2.style.marginTop = '10px';
+    lbl2.textContent = 'スロット設定';
+    sb.appendChild(lbl2);
+
+    // Tier2小役確率タブ
     const t2Tab = document.createElement('div');
     t2Tab.className = `role-tab ${currentRole === 'TIER2_PROBS' ? 'active' : ''}`;
     t2Tab.innerHTML = `<span class="rn" style="color:#f59e0b">🎰 Tier2小役確率</span><span class="rt">確率調整</span>`;
@@ -548,9 +564,9 @@ function renderMain() {
         <div class="tier2">
             <div class="tier2-lbl">
                 <span>↳ どのバリアントが選ばれるか（Tier2）</span>
-                <span class="tier2-total" style="color:${t2Color};">合計 ${t2}%${t2 > 100 ? ' ⚠' : t2 === 100 ? ' ✅' : ''}</span>
+                <span class="tier2-total" data-cat="${c.key}" style="color:${t2Color};">合計 ${t2}%${t2 > 100 ? ' ⚠' : t2 === 100 ? ' ✅' : ''}</span>
             </div>
-            <div class="tier2-grid">`;
+            <div class="tier2-grid" data-cat="${c.key}">`;
 
         for (const v of VARIANTS) {
             const val   = catData[v] || 0;
@@ -571,10 +587,10 @@ function renderMain() {
         // Tier2 何もなし（自動計算・読み取り専用）
         const t2None = calcTier2None(currentRole, c.key);
         html += `
-                <div class="v-item" style="opacity:${t2None===0?0.35:1};">
+                <div class="v-item" style="opacity:${t2None===0?0.35:1};" data-none-cat="${c.key}">
                     <div class="v-lbl" style="color:#475569;">何もなし</div>
                     <div class="v-input-box">
-                        <div style="width:100%;padding:7px 8px;background:rgba(71,85,105,.15);
+                        <div class="tier2-none-disp" data-cat="${c.key}" style="width:100%;padding:7px 8px;background:rgba(71,85,105,.15);
                              border:1px dashed #37415180;border-radius:7px;
                              font-size:14px;font-weight:900;text-align:center;
                              color:${t2None===0?'#475569':'#e2e8f0'};">
@@ -602,11 +618,9 @@ function renderMain() {
             if (isNaN(v) || v < 0) v = 0;
             if (v > 100) v = 100;
             workflow[el.dataset.role][el.dataset.cat].rate = v;
-            workflow[el.dataset.role].NONE = calcNone(el.dataset.role);
-            // 入力中はサイドバーと合計バーだけ軽量更新（入力欄は再描画しない）
+            // 軽量更新（フォーカス中はDOM再構築しない）
             refreshTotalsOnly();
         });
-        el.addEventListener('blur', () => renderAll());  // フォーカスを外したら全更新
         el.addEventListener('focus', () => el.select());
     });
 
@@ -617,11 +631,9 @@ function renderMain() {
             if (isNaN(v) || v < 0) v = 0;
             if (v > 100) v = 100;
             workflow[el.dataset.role][el.dataset.cat][el.dataset.var] = v;
-            workflow[el.dataset.role][el.dataset.cat].NONE = calcTier2None(el.dataset.role, el.dataset.cat);
-            // 入力中は合計表示だけ軽量更新
+            // 軽量更新（フォーカス中はDOM再構築しない）
             refreshTotalsOnly();
         });
-        el.addEventListener('blur', () => renderAll());  // フォーカスを外したら全更新
         el.addEventListener('focus', () => el.select());
     });
 }
@@ -695,7 +707,7 @@ function renderTier2Probs() {
    合計表示だけを軽量更新（入力欄はそのまま）
 ===================================================== */
 function refreshTotalsOnly() {
-    // サイドバーの各役の合計%を更新
+    // ── サイドバー：各役の合計%を更新 ──────────────────────
     document.querySelectorAll('.role-tab').forEach(tab => {
         const key = tab.dataset.roleKey;
         if (!key) return;
@@ -706,7 +718,7 @@ function refreshTotalsOnly() {
         if (rtEl) { rtEl.className = `rt ${cls}`; rtEl.textContent = txt; }
     });
 
-    // 合計バーを更新
+    // ── Tier1 合計バー ────────────────────────────────────
     const catTotal = catRateTotal(currentRole);
     const noneVal  = calcNone(currentRole);
     const barColor = catTotal > 100 ? '#ef4444' : catTotal === 100 ? '#f59e0b' : '#10b981';
@@ -714,12 +726,38 @@ function refreshTotalsOnly() {
                    : `イベント合計 ${catTotal}%　／　何もなし ${noneVal}%`;
     const fill = document.querySelector('.total-fill');
     const lbl  = document.querySelector('.total-lbl');
-    const noneDisp = document.querySelector('.none-display');
     if (fill) { fill.style.width = `${Math.min(catTotal,100)}%`; fill.style.background = barColor; }
     if (lbl)  { lbl.style.color = barColor; lbl.textContent = t1Msg; }
+
+    // 「何もなし」大数字（innerHTML で小さな % スパンを維持）
+    const noneDisp = document.querySelector('.none-display');
     if (noneDisp) {
-        noneDisp.textContent = `${noneVal}%`;
+        noneDisp.innerHTML = `${noneVal}<span style="font-size:18px;">%</span>`;
         noneDisp.style.color = noneVal === 0 ? '#475569' : '#e2e8f0';
+    }
+
+    // ── Tier2 各カテゴリの合計・「何もなし」をリアルタイム更新 ──
+    for (const c of CATS) {
+        const t2     = tier2Total(currentRole, c.key);
+        const t2None = calcTier2None(currentRole, c.key);
+        const t2Color = t2 > 100 ? '#ef4444' : t2 === 100 ? '#10b981' : t2 === 0 ? '#475569' : '#f59e0b';
+        const suffix  = t2 > 100 ? ' ⚠' : t2 === 100 ? ' ✅' : '';
+
+        // Tier2合計ラベル
+        const totalLbl = document.querySelector(`.tier2-total[data-cat="${c.key}"]`);
+        if (totalLbl) {
+            totalLbl.textContent = `合計 ${t2}%${suffix}`;
+            totalLbl.style.color = t2Color;
+        }
+
+        // 「何もなし」表示欄
+        const noneItem = document.querySelector(`.tier2-none-disp[data-cat="${c.key}"]`);
+        if (noneItem) {
+            noneItem.textContent = `${t2None}%`;
+            noneItem.style.color = t2None === 0 ? '#475569' : '#e2e8f0';
+            const vItem = document.querySelector(`.v-item[data-none-cat="${c.key}"]`);
+            if (vItem) vItem.style.opacity = t2None === 0 ? '0.35' : '1';
+        }
     }
 }
 

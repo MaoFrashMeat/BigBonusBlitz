@@ -183,129 +183,73 @@
                     </div>
                 </div>
 
-                <div class="tabs" style="border-bottom: 2px solid #e94560; margin-top:10px; padding-bottom:0; gap:5px; justify-content:flex-start;">
-                    <button class="state-tab-btn active" data-state="NORMAL_A" style="background:#e94560; color:#fff; border:none; padding:8px 15px; cursor:pointer; border-radius:5px 5px 0 0; font-weight:bold; opacity:1;">通常A</button>
-                    <button class="state-tab-btn" data-state="NORMAL_B" style="background:#e94560; color:#fff; border:none; padding:8px 15px; cursor:pointer; border-radius:5px 5px 0 0; font-weight:bold; opacity:0.6;">通常B</button>
-                    <button class="state-tab-btn" data-state="NORMAL_C" style="background:#e94560; color:#fff; border:none; padding:8px 15px; cursor:pointer; border-radius:5px 5px 0 0; font-weight:bold; opacity:0.6;">通常C</button>
-                    <button class="state-tab-btn" data-state="NORMAL_D" style="background:#e94560; color:#fff; border:none; padding:8px 15px; cursor:pointer; border-radius:5px 5px 0 0; font-weight:bold; opacity:0.6;">通常D</button>
-                    <button class="state-tab-btn" data-state="BB" style="background:#0f3460; color:#fff; border:none; padding:8px 15px; cursor:pointer; border-radius:5px 5px 0 0; font-weight:bold; opacity:0.6;">BB中</button>
-                    <button class="state-tab-btn" data-state="RB" style="background:#0f3460; color:#fff; border:none; padding:8px 15px; cursor:pointer; border-radius:5px 5px 0 0; font-weight:bold; opacity:0.6;">RB中</button>
-                </div>
-                <div style="display:flex; gap:20px; margin-top:20px;">
-                <div style="flex:1;">
-                    <h3 class="section-title">払い出し枚数（各設定共通）</h3>
-                    <div class="row"><label>ビッグボーナス</label><input type="number" id="payoutBig" class="payout-input"></div>
-                    <div class="row"><label>レギュラーボーナス</label><input type="number" id="payoutReg" class="payout-input"></div>
-                    <div class="row"><label>星（ベル）</label><input type="number" id="payoutStar" class="payout-input"></div>
-                    <div class="row"><label>スイカ</label><input type="number" id="payoutWatermelon" class="payout-input"></div>
-                    <div class="row"><label>チェリー</label><input type="number" id="payoutCherry" class="payout-input"></div>
-                </div>
-                <div style="flex:1;">
-                    <h3 class="section-title">天井ゲーム数</h3>
-                    <div class="row"><label>通常A</label><input type="number" id="ceilingA"></div>
-                    <div class="row"><label>通常B</label><input type="number" id="ceilingB"></div>
-                    <div class="row"><label>通常C</label><input type="number" id="ceilingC"></div>
-                    <div class="row"><label>通常D</label><input type="number" id="ceilingD"></div>
-                </div>
-            </div>
-
+                
             <h3 class="section-title" style="margin-top:30px;">確率設定（各役の当選数 / 65536）</h3>
-            <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom: 2px solid #e94560; padding-bottom: 2px; margin-top: 15px;">
-                <div class="tabs" id="tabs" style="border-bottom:none; margin-top:0; padding-bottom:0;">
-                    <button class="tab-btn active" data-setting="1">設定 1</button>
-                    <button class="tab-btn" data-setting="2">設定 2</button>
-                    <button class="tab-btn" data-setting="3">設定 3</button>
-                    <button class="tab-btn" data-setting="4">設定 4</button>
-                    <button class="tab-btn" data-setting="5">設定 5</button>
-                    <button class="tab-btn" data-setting="6">設定 6</button>
-                </div>
-                <div style="display:flex; gap:5px; margin-bottom: 2px;">
-                    <button id="btn-copy-setting" class="btn" style="background:#007bff; margin-top:0; padding:4px 10px; font-size:16px; width:auto;" title="コピー">📄</button>
-                    <button id="btn-paste-setting" class="btn" style="background:#28a745; margin-top:0; padding:4px 10px; font-size:16px; width:auto;" disabled title="貼り付け">📋</button>
-                </div>
-            </div>
-            
-            <div id="mode-trans-container" style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 5px 5px 0 0; margin-top: 15px;">
-                <h3 class="section-title" style="margin-top:0;">モード移行確率（％）</h3>
-                <div style="display:flex; gap:20px;">
-                    <div style="flex:1;">
-                        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;">
-                            <h4 style="margin:0; color:#fff;">初回開始時（リセット時）</h4>
-                            <span id="trans-init-total" style="font-size:13px; font-weight:bold; color:#0f0;">合計: 100%</span>
-                        </div>
-                        <div class="row"><label>通常A</label><div style="display:flex; align-items:center;"><input type="number" id="transInitA" class="trans-input" style="width:80px;">%</div></div>
-                        <div class="row"><label>通常B</label><div style="display:flex; align-items:center;"><input type="number" id="transInitB" class="trans-input" style="width:80px;">%</div></div>
-                        <div class="row"><label>通常C</label><div style="display:flex; align-items:center;"><input type="number" id="transInitC" class="trans-input" style="width:80px;">%</div></div>
-                        <div class="row"><label>通常D</label><div style="display:flex; align-items:center;"><input type="number" id="transInitD" class="trans-input" style="width:80px;">%</div></div>
-                    </div>
-                    <div style="flex:1;">
-                        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;">
-                            <h4 style="margin:0; color:#fff;">ボーナス当選時</h4>
-                            <span id="trans-bonus-total" style="font-size:13px; font-weight:bold; color:#0f0;">合計: 100%</span>
-                        </div>
-                        <div class="row"><label>通常A</label><div style="display:flex; align-items:center;"><input type="number" id="transBonusA" class="trans-input" style="width:80px;">%</div></div>
-                        <div class="row"><label>通常B</label><div style="display:flex; align-items:center;"><input type="number" id="transBonusB" class="trans-input" style="width:80px;">%</div></div>
-                        <div class="row"><label>通常C</label><div style="display:flex; align-items:center;"><input type="number" id="transBonusC" class="trans-input" style="width:80px;">%</div></div>
-                        <div class="row"><label>通常D</label><div style="display:flex; align-items:center;"><input type="number" id="transBonusD" class="trans-input" style="width:80px;">%</div></div>
-                    </div>
-                </div>
-            </div>
             
             <style> .desc-span { font-size:12px; color:#aaa; font-family:monospace; text-align:right; width: 110px; } </style>
-            <div id="prob-container" style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 0 0 5px 5px; margin-top: 2px;">
-                <div class="row" style="background: rgba(255,0,0,0.1); margin-bottom: 15px;">
-                    <label>ハズレ (自動計算)</label>
-                    <div style="display:flex; align-items:center; gap:10px;"><span id="descHAZE" class="desc-span"></span><input type="number" class="prob-input" id="probHAZE" readonly style="background:#333; color:#aaa; border-color:#555;"></div>
+            
+            <!-- ボーナス設定 -->
+            <div id="bonus-container" style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 5px; margin-top: 15px; border-left: 4px solid #e94560;">
+                <h4 style="margin:0 0 10px 0; color:#e94560; font-size: 18px;">モード設定高確率 <span id="total-bonus" style="float:right; font-size:14px; color:#ddd; font-weight:normal;"></span></h4>
+                
+                <div class="tabs" style="border-bottom: 2px solid #e94560; gap:5px; justify-content:flex-start; margin-bottom:5px;">
+                    <button class="bonus-state-btn active" data-state="NORMAL_A" style="background:#e94560; color:#fff; border:none; padding:6px 12px; cursor:pointer; border-radius:5px 5px 0 0; font-weight:bold; opacity:1;">通常A</button>
+                    <button class="bonus-state-btn" data-state="NORMAL_B" style="background:#e94560; color:#fff; border:none; padding:6px 12px; cursor:pointer; border-radius:5px 5px 0 0; font-weight:bold; opacity:0.6;">通常B</button>
+                    <button class="bonus-state-btn" data-state="NORMAL_C" style="background:#e94560; color:#fff; border:none; padding:6px 12px; cursor:pointer; border-radius:5px 5px 0 0; font-weight:bold; opacity:0.6;">通常C</button>
+                    <button class="bonus-state-btn" data-state="NORMAL_D" style="background:#e94560; color:#fff; border:none; padding:6px 12px; cursor:pointer; border-radius:5px 5px 0 0; font-weight:bold; opacity:0.6;">通常D</button>
                 </div>
                 
+                <div class="tabs" style="border-bottom:none; gap:5px; justify-content:flex-start; margin-bottom:15px;">
+                    <button class="bonus-setting-btn active" data-setting="1" style="background:#0f3460; color:#fff; border:none; padding:6px 12px; cursor:pointer; border-radius:5px 5px 0 0; font-weight:bold; opacity:1;">設定 1</button>
+                    <button class="bonus-setting-btn" data-setting="2" style="background:#0f3460; color:#fff; border:none; padding:6px 12px; cursor:pointer; border-radius:5px 5px 0 0; font-weight:bold; opacity:0.6;">設定 2</button>
+                    <button class="bonus-setting-btn" data-setting="3" style="background:#0f3460; color:#fff; border:none; padding:6px 12px; cursor:pointer; border-radius:5px 5px 0 0; font-weight:bold; opacity:0.6;">設定 3</button>
+                    <button class="bonus-setting-btn" data-setting="4" style="background:#0f3460; color:#fff; border:none; padding:6px 12px; cursor:pointer; border-radius:5px 5px 0 0; font-weight:bold; opacity:0.6;">設定 4</button>
+                    <button class="bonus-setting-btn" data-setting="5" style="background:#0f3460; color:#fff; border:none; padding:6px 12px; cursor:pointer; border-radius:5px 5px 0 0; font-weight:bold; opacity:0.6;">設定 5</button>
+                    <button class="bonus-setting-btn" data-setting="6" style="background:#0f3460; color:#fff; border:none; padding:6px 12px; cursor:pointer; border-radius:5px 5px 0 0; font-weight:bold; opacity:0.6;">設定 6</button>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="row"><label>BB_A (赤7揃い)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descBB_A" class="desc-span"></span><input type="number" class="prob-input" id="probBB_A"></div></div>
+                    <div class="row"><label>BB_B (青7揃い)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descBB_B" class="desc-span"></span><input type="number" class="prob-input" id="probBB_B"></div></div>
+                    <div class="row"><label>BB_C (BAR揃い中)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descBB_C" class="desc-span"></span><input type="number" class="prob-input" id="probBB_C"></div></div>
+                    <div class="row"><label>BB_D (青赤青中)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descBB_D" class="desc-span"></span><input type="number" class="prob-input" id="probBB_D"></div></div>
+                    <div class="row"><label>RB_A (赤赤BAR)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descRB_A" class="desc-span"></span><input type="number" class="prob-input" id="probRB_A"></div></div>
+                    <div class="row"><label>RB_B (青青BAR)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descRB_B" class="desc-span"></span><input type="number" class="prob-input" id="probRB_B"></div></div>
+                </div>
+            </div>
+
+            <!-- 小役設定 -->
+            <div id="small-container" style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 5px; margin-top: 25px; border-left: 4px solid #00d2ff;">
+                <h4 style="margin:0 0 10px 0; color:#00d2ff; font-size: 18px;">小役、レア役確率</h4>
+                
+                <div class="tabs" style="border-bottom: 2px solid #00d2ff; gap:5px; justify-content:flex-start; margin-bottom:5px;">
+                    <button class="small-state-btn active" data-state="NORMAL_A" style="background:#00d2ff; color:#000; border:none; padding:6px 12px; cursor:pointer; border-radius:5px 5px 0 0; font-weight:bold; opacity:1;">通常A</button>
+                    <button class="small-state-btn" data-state="NORMAL_B" style="background:#00d2ff; color:#000; border:none; padding:6px 12px; cursor:pointer; border-radius:5px 5px 0 0; font-weight:bold; opacity:0.6;">通常B</button>
+                    <button class="small-state-btn" data-state="NORMAL_C" style="background:#00d2ff; color:#000; border:none; padding:6px 12px; cursor:pointer; border-radius:5px 5px 0 0; font-weight:bold; opacity:0.6;">通常C</button>
+                    <button class="small-state-btn" data-state="NORMAL_D" style="background:#00d2ff; color:#000; border:none; padding:6px 12px; cursor:pointer; border-radius:5px 5px 0 0; font-weight:bold; opacity:0.6;">通常D</button>
+                    <button class="small-state-btn" data-state="BB" style="background:#ffaa00; color:#000; border:none; padding:6px 12px; cursor:pointer; border-radius:5px 5px 0 0; font-weight:bold; opacity:0.6;">BB中</button>
+                    <button class="small-state-btn" data-state="RB" style="background:#ffaa00; color:#000; border:none; padding:6px 12px; cursor:pointer; border-radius:5px 5px 0 0; font-weight:bold; opacity:0.6;">RB中</button>
+                </div>
+                
+                <div class="tabs" style="border-bottom:none; gap:5px; justify-content:flex-start; margin-bottom:15px;">
+                    <button class="small-setting-btn active" data-setting="1" style="background:#0f3460; color:#fff; border:none; padding:6px 12px; cursor:pointer; border-radius:5px 5px 0 0; font-weight:bold; opacity:1;">設定 1</button>
+                    <button class="small-setting-btn" data-setting="2" style="background:#0f3460; color:#fff; border:none; padding:6px 12px; cursor:pointer; border-radius:5px 5px 0 0; font-weight:bold; opacity:0.6;">設定 2</button>
+                    <button class="small-setting-btn" data-setting="3" style="background:#0f3460; color:#fff; border:none; padding:6px 12px; cursor:pointer; border-radius:5px 5px 0 0; font-weight:bold; opacity:0.6;">設定 3</button>
+                    <button class="small-setting-btn" data-setting="4" style="background:#0f3460; color:#fff; border:none; padding:6px 12px; cursor:pointer; border-radius:5px 5px 0 0; font-weight:bold; opacity:0.6;">設定 4</button>
+                    <button class="small-setting-btn" data-setting="5" style="background:#0f3460; color:#fff; border:none; padding:6px 12px; cursor:pointer; border-radius:5px 5px 0 0; font-weight:bold; opacity:0.6;">設定 5</button>
+                    <button class="small-setting-btn" data-setting="6" style="background:#0f3460; color:#fff; border:none; padding:6px 12px; cursor:pointer; border-radius:5px 5px 0 0; font-weight:bold; opacity:0.6;">設定 6</button>
+                </div>
+
+                <div class="row" style="background: rgba(255,0,0,0.1); margin-bottom: 15px;">
+                    <label>ハズレ (※選択中の状態での自動計算)</label>
+                    <div style="display:flex; align-items:center; gap:10px;"><span id="descHAZE" class="desc-span"></span><input type="number" class="prob-input" id="probHAZE" readonly style="background:#333; color:#aaa; border-color:#555;"></div>
+                </div>
+
                 <div style="display:grid; grid-template-columns: 1fr; gap: 15px;">
                     
-                    <!-- ボーナス -->
-                    <div style="background: rgba(0, 0, 0, 0.2); padding: 10px; border-radius: 5px; border-left: 4px solid #e94560;">
-                        <h4 style="margin:5px 0 10px 0; color:#e94560; font-size: 16px;">【モード設定高確率】<span id="total-bonus" style="float:right; font-size:14px; color:#ddd; font-weight:normal;"></span></h4>
-                        <!-- ボーナス確率専用タブ（通常A〜D のみ。BB/RBにボーナス抽選は存在しない） -->
-                        <div style="display:flex; gap:4px; flex-wrap:wrap; margin-bottom:6px; border-bottom:1px solid #e94560; padding-bottom:4px;">
-                            <button class="bonus-state-btn active" data-state="NORMAL_A" style="background:#e94560; color:#fff; border:none; padding:4px 10px; cursor:pointer; border-radius:4px 4px 0 0; font-weight:bold; opacity:1; font-size:13px;">通常A</button>
-                            <button class="bonus-state-btn" data-state="NORMAL_B" style="background:#e94560; color:#fff; border:none; padding:4px 10px; cursor:pointer; border-radius:4px 4px 0 0; font-weight:bold; opacity:0.5; font-size:13px;">通常B</button>
-                            <button class="bonus-state-btn" data-state="NORMAL_C" style="background:#e94560; color:#fff; border:none; padding:4px 10px; cursor:pointer; border-radius:4px 4px 0 0; font-weight:bold; opacity:0.5; font-size:13px;">通常C</button>
-                            <button class="bonus-state-btn" data-state="NORMAL_D" style="background:#e94560; color:#fff; border:none; padding:4px 10px; cursor:pointer; border-radius:4px 4px 0 0; font-weight:bold; opacity:0.5; font-size:13px;">通常D</button>
-                            <span style="margin-left:auto; display:flex; gap:4px;">
-                                <button class="bonus-setting-btn active" data-setting="1" style="background:#0f3460; color:#fff; border:none; padding:4px 8px; cursor:pointer; border-radius:4px; font-size:12px; opacity:1;">設定1</button>
-                                <button class="bonus-setting-btn" data-setting="2" style="background:#0f3460; color:#fff; border:none; padding:4px 8px; cursor:pointer; border-radius:4px; font-size:12px; opacity:0.5;">設定2</button>
-                                <button class="bonus-setting-btn" data-setting="3" style="background:#0f3460; color:#fff; border:none; padding:4px 8px; cursor:pointer; border-radius:4px; font-size:12px; opacity:0.5;">設定3</button>
-                                <button class="bonus-setting-btn" data-setting="4" style="background:#0f3460; color:#fff; border:none; padding:4px 8px; cursor:pointer; border-radius:4px; font-size:12px; opacity:0.5;">設定4</button>
-                                <button class="bonus-setting-btn" data-setting="5" style="background:#0f3460; color:#fff; border:none; padding:4px 8px; cursor:pointer; border-radius:4px; font-size:12px; opacity:0.5;">設定5</button>
-                                <button class="bonus-setting-btn" data-setting="6" style="background:#0f3460; color:#fff; border:none; padding:4px 8px; cursor:pointer; border-radius:4px; font-size:12px; opacity:0.5;">設定6</button>
-                            </span>
-                        </div>
-                        <div class="row"><label>BB_A (赤7揃い)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descBB_A" class="desc-span"></span><input type="number" class="prob-input" id="probBB_A"></div></div>
-                        <div class="row"><label>BB_B (青7揃い)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descBB_B" class="desc-span"></span><input type="number" class="prob-input" id="probBB_B"></div></div>
-                        <div class="row"><label>BB_C (BAR揃い中)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descBB_C" class="desc-span"></span><input type="number" class="prob-input" id="probBB_C"></div></div>
-                        <div class="row"><label>BB_D (青赤青中)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descBB_D" class="desc-span"></span><input type="number" class="prob-input" id="probBB_D"></div></div>
-                        <div class="row"><label>RB_A (赤赤BAR)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descRB_A" class="desc-span"></span><input type="number" class="prob-input" id="probRB_A"></div></div>
-                        <div class="row"><label>RB_B (青青BAR)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descRB_B" class="desc-span"></span><input type="number" class="prob-input" id="probRB_B"></div></div>
-                    </div>
-
                     <!-- 小役 -->
-                    <div style="background: rgba(0, 0, 0, 0.2); padding: 10px; border-radius: 5px; border-left: 4px solid #00d2ff;">
-                        <h4 style="margin:5px 0 10px 0; color:#00d2ff; font-size: 16px;">【小役、レア役確率】<span id="total-koyaku" style="float:right; font-size:14px; color:#ddd; font-weight:normal;"></span></h4>
-                        <!-- 小役確率専用タブ（通常A〜D + BB中 + RB中） -->
-                        <div style="display:flex; gap:4px; flex-wrap:wrap; margin-bottom:6px; border-bottom:1px solid #00d2ff; padding-bottom:4px;">
-                            <button class="small-state-btn active" data-state="NORMAL_A" style="background:#00d2ff; color:#000; border:none; padding:4px 10px; cursor:pointer; border-radius:4px 4px 0 0; font-weight:bold; opacity:1; font-size:13px;">通常A</button>
-                            <button class="small-state-btn" data-state="NORMAL_B" style="background:#00d2ff; color:#000; border:none; padding:4px 10px; cursor:pointer; border-radius:4px 4px 0 0; font-weight:bold; opacity:0.5; font-size:13px;">通常B</button>
-                            <button class="small-state-btn" data-state="NORMAL_C" style="background:#00d2ff; color:#000; border:none; padding:4px 10px; cursor:pointer; border-radius:4px 4px 0 0; font-weight:bold; opacity:0.5; font-size:13px;">通常C</button>
-                            <button class="small-state-btn" data-state="NORMAL_D" style="background:#00d2ff; color:#000; border:none; padding:4px 10px; cursor:pointer; border-radius:4px 4px 0 0; font-weight:bold; opacity:0.5; font-size:13px;">通常D</button>
-                            <button class="small-state-btn" data-state="BB" style="background:#ffaa00; color:#000; border:none; padding:4px 10px; cursor:pointer; border-radius:4px 4px 0 0; font-weight:bold; opacity:0.5; font-size:13px;">BB中</button>
-                            <button class="small-state-btn" data-state="RB" style="background:#ffaa00; color:#000; border:none; padding:4px 10px; cursor:pointer; border-radius:4px 4px 0 0; font-weight:bold; opacity:0.5; font-size:13px;">RB中</button>
-                            <span style="margin-left:auto; display:flex; gap:4px;">
-                                <button class="small-setting-btn active" data-setting="1" style="background:#0f3460; color:#fff; border:none; padding:4px 8px; cursor:pointer; border-radius:4px; font-size:12px; opacity:1;">設定1</button>
-                                <button class="small-setting-btn" data-setting="2" style="background:#0f3460; color:#fff; border:none; padding:4px 8px; cursor:pointer; border-radius:4px; font-size:12px; opacity:0.5;">設定2</button>
-                                <button class="small-setting-btn" data-setting="3" style="background:#0f3460; color:#fff; border:none; padding:4px 8px; cursor:pointer; border-radius:4px; font-size:12px; opacity:0.5;">設定3</button>
-                                <button class="small-setting-btn" data-setting="4" style="background:#0f3460; color:#fff; border:none; padding:4px 8px; cursor:pointer; border-radius:4px; font-size:12px; opacity:0.5;">設定4</button>
-                                <button class="small-setting-btn" data-setting="5" style="background:#0f3460; color:#fff; border:none; padding:4px 8px; cursor:pointer; border-radius:4px; font-size:12px; opacity:0.5;">設定5</button>
-                                <button class="small-setting-btn" data-setting="6" style="background:#0f3460; color:#fff; border:none; padding:4px 8px; cursor:pointer; border-radius:4px; font-size:12px; opacity:0.5;">設定6</button>
-                            </span>
-                        </div>
+                    <div style="background: rgba(0, 0, 0, 0.2); padding: 10px; border-radius: 5px;">
+                        <h4 style="margin:5px 0 10px 0; color:#aaa; font-size: 15px;">【一般小役】<span id="total-koyaku" style="float:right; font-size:14px; color:#ddd; font-weight:normal;"></span></h4>
                         
                         <h5 style="margin:10px 0 5px 0; color:#aaa;">リプレイ<span id="total-replay" style="float:right; font-size:14px; color:#ddd; font-weight:normal;"></span></h5>
                         <div class="row"><label>REPLAY_A (上段)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descREPLAY_A" class="desc-span"></span><input type="number" class="prob-input" id="probREPLAY_A"></div></div>
@@ -319,8 +263,8 @@
                     </div>
                     
                     <!-- レア役 -->
-                    <div style="background: rgba(0, 0, 0, 0.2); padding: 10px; border-radius: 5px; border-left: 4px solid #ffaa00;">
-                        <h4 style="margin:5px 0 10px 0; color:#ffaa00; font-size: 16px;">【レア役】<span id="total-rare" style="float:right; font-size:14px; color:#ddd; font-weight:normal;"></span></h4>
+                    <div style="background: rgba(0, 0, 0, 0.2); padding: 10px; border-radius: 5px;">
+                        <h4 style="margin:5px 0 10px 0; color:#ffaa00; font-size: 15px;">【レア役】<span id="total-rare" style="float:right; font-size:14px; color:#ddd; font-weight:normal;"></span></h4>
                         
                         <h5 style="margin:10px 0 5px 0; color:#aaa;">チェリー<span id="total-cherry" style="float:right; font-size:14px; color:#ddd; font-weight:normal;"></span></h5>
                         <div class="row"><label>CHERRY_A (角)</label><div style="display:flex; align-items:center; gap:10px;"><span id="descCHERRY_A" class="desc-span"></span><input type="number" class="prob-input" id="probCHERRY_A"></div></div>
@@ -340,10 +284,11 @@
                 </div>
                 
                 <div class="validation-bar" id="validation-bar">
-                    合計: 0 / 65536
+                    選択中の状態での合計: 0 / 65536
                 </div>
             </div>
             </div> <!-- end tab-prob -->
+
             
             <div id="tab-reel" class="tab-content" style="display:none;">
                 <h3 class="section-title">リール図柄配列（1〜20コマ）</h3>
@@ -370,26 +315,20 @@
                 });
             },
             async get(key) {
-                try {
-                    const db = await this.open();
-                    return new Promise((resolve) => {
-                        const tx = db.transaction('store', 'readonly');
-                        const req = tx.objectStore('store').get(key);
-                        req.onsuccess = () => resolve(req.result);
-                        req.onerror   = () => resolve(null);
-                    });
-                } catch(e) { return null; }
+                const db = await this.open();
+                return new Promise((resolve) => {
+                    const tx = db.transaction('store', 'readonly');
+                    const req = tx.objectStore('store').get(key);
+                    req.onsuccess = () => resolve(req.result);
+                });
             },
             async set(key, val) {
-                try {
-                    const db = await this.open();
-                    return new Promise((resolve) => {
-                        const tx = db.transaction('store', 'readwrite');
-                        tx.objectStore('store').put(val, key);
-                        tx.oncomplete = resolve;
-                        tx.onerror    = () => resolve();
-                    });
-                } catch(e) { /* 保存失敗はサイレントに無視 */ }
+                const db = await this.open();
+                return new Promise((resolve) => {
+                    const tx = db.transaction('store', 'readwrite');
+                    tx.objectStore('store').put(val, key);
+                    tx.oncomplete = resolve;
+                });
             }
         };
 
@@ -429,8 +368,6 @@
         if (!currentConfig.probabilities_B) currentConfig.probabilities_B = JSON.parse(JSON.stringify(currentConfig.probabilities_A));
         if (!currentConfig.probabilities_C) currentConfig.probabilities_C = JSON.parse(JSON.stringify(currentConfig.probabilities_A));
         if (!currentConfig.probabilities_D) currentConfig.probabilities_D = JSON.parse(JSON.stringify(currentConfig.probabilities_A));
-        if (!currentConfig.probabilities_BB) currentConfig.probabilities_BB = JSON.parse(JSON.stringify(currentConfig.probabilities_A));
-        if (!currentConfig.probabilities_RB) currentConfig.probabilities_RB = JSON.parse(JSON.stringify(currentConfig.probabilities_A));
         
         if (!currentConfig.ceilings) {
             currentConfig.ceilings = { A: 999, B: 555, C: 333, D: 100 };
@@ -444,12 +381,10 @@
         }
         
         let activeSetting = 1;
-        // ボーナスセクション専用の状態・設定番号
-        let bonusState = 'NORMAL_A';
         let bonusSetting = 1;
-        // 小役セクション専用の状態・設定番号
-        let smallState = 'NORMAL_A';
+        let bonusState = 'NORMAL_A';
         let smallSetting = 1;
+        let smallState = 'NORMAL_A';
         let currentState = 'NORMAL_A';
         let clipboardSetting = null;
 
@@ -643,73 +578,93 @@
                 btnOpen.style.background = '#0a0';
             }
             
+            
+            // General State Tabs
             document.querySelectorAll('.state-tab-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    saveCurrentSettingInputs();
+                    saveGeneralInputs();
                     document.querySelectorAll('.state-tab-btn').forEach(b => {
                         b.style.background = '#0f3460';
                         b.style.opacity = '0.6';
                         b.classList.remove('active');
                     });
-                    e.target.style.background = '#e94560';
-                    e.target.style.opacity = '1';
-                    e.target.classList.add('active');
-                    currentState = e.target.dataset.state;
-                    loadSettingUI(activeSetting);
+                    
+                    const clickedState = e.currentTarget.dataset.state;
+                    document.querySelectorAll(`.state-tab-btn[data-state="${clickedState}"]`).forEach(b => {
+                        b.style.background = '#e94560';
+                        b.style.opacity = '1';
+                        b.classList.add('active');
+                    });
+                    
+                    currentState = clickedState;
+                    loadGeneralSettingUI(activeSetting);
+                    validateTotal();
                 });
             });
 
-            // ボーナス確率セクションの状態タブ
+            // Bonus State Tabs
             document.querySelectorAll('.bonus-state-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    saveCurrentSettingInputs();
-                    document.querySelectorAll('.bonus-state-btn').forEach(b => { b.style.opacity = '0.5'; b.classList.remove('active'); });
-                    e.target.style.opacity = '1';
-                    e.target.classList.add('active');
-                    bonusState = e.target.dataset.state;
-                    loadBonusSectionUI();
-                    validateTotal();
+                    saveBonusInputs();
+                    document.querySelectorAll('.bonus-state-btn').forEach(b => {
+                        b.style.background = '#e94560';
+                        b.style.opacity = '0.6';
+                        b.classList.remove('active');
+                    });
+                    e.currentTarget.style.opacity = '1';
+                    e.currentTarget.classList.add('active');
+                    bonusState = e.currentTarget.dataset.state;
+                    loadBonusUI();
                 });
             });
 
-            // ボーナス確率セクションの設定番号タブ
+            // Bonus Setting Tabs
             document.querySelectorAll('.bonus-setting-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    saveCurrentSettingInputs();
-                    document.querySelectorAll('.bonus-setting-btn').forEach(b => { b.style.opacity = '0.5'; b.classList.remove('active'); });
-                    e.target.style.opacity = '1';
-                    e.target.classList.add('active');
-                    bonusSetting = parseInt(e.target.dataset.setting);
-                    loadBonusSectionUI();
-                    validateTotal();
+                    saveBonusInputs();
+                    document.querySelectorAll('.bonus-setting-btn').forEach(b => {
+                        b.style.background = '#0f3460';
+                        b.style.opacity = '0.6';
+                        b.classList.remove('active');
+                    });
+                    e.currentTarget.style.opacity = '1';
+                    e.currentTarget.classList.add('active');
+                    bonusSetting = parseInt(e.currentTarget.dataset.setting);
+                    loadBonusUI();
                 });
             });
 
-            // 小役確率セクションの状態タブ
+            // Small State Tabs
             document.querySelectorAll('.small-state-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    saveCurrentSettingInputs();
-                    document.querySelectorAll('.small-state-btn').forEach(b => { b.style.opacity = '0.5'; b.classList.remove('active'); });
-                    e.target.style.opacity = '1';
-                    e.target.classList.add('active');
-                    smallState = e.target.dataset.state;
-                    loadSmallSectionUI();
-                    validateTotal();
+                    saveSmallInputs();
+                    document.querySelectorAll('.small-state-btn').forEach(b => {
+                        b.style.opacity = '0.6';
+                        b.classList.remove('active');
+                    });
+                    e.currentTarget.style.opacity = '1';
+                    e.currentTarget.classList.add('active');
+                    smallState = e.currentTarget.dataset.state;
+                    loadSmallUI();
                 });
             });
 
-            // 小役確率セクションの設定番号タブ
+            // Small Setting Tabs
             document.querySelectorAll('.small-setting-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    saveCurrentSettingInputs();
-                    document.querySelectorAll('.small-setting-btn').forEach(b => { b.style.opacity = '0.5'; b.classList.remove('active'); });
-                    e.target.style.opacity = '1';
-                    e.target.classList.add('active');
-                    smallSetting = parseInt(e.target.dataset.setting);
-                    loadSmallSectionUI();
-                    validateTotal();
+                    saveSmallInputs();
+                    document.querySelectorAll('.small-setting-btn').forEach(b => {
+                        b.style.background = '#0f3460';
+                        b.style.opacity = '0.6';
+                        b.classList.remove('active');
+                    });
+                    e.currentTarget.style.opacity = '1';
+                    e.currentTarget.classList.add('active');
+                    smallSetting = parseInt(e.currentTarget.dataset.setting);
+                    loadSmallUI();
                 });
             });
+});
         });
 
         btnOpen.addEventListener('click', async () => {
@@ -732,7 +687,6 @@
             document.getElementById('timeAutoNext').value = currentConfig.timings.next;
             document.getElementById('timeAutoNextWin').value = currentConfig.timings.nextWin;
 
-            // リールレイアウト設定の読み込み
             const rl = currentConfig.reelLayout || { translateY: -38, scale: 1.41 };
             document.getElementById('reelLayoutY').value     = rl.translateY;
             document.getElementById('reelLayoutScale').value = rl.scale;
@@ -743,199 +697,158 @@
             document.getElementById('ceilingD').value = currentConfig.ceilings.D;
         }
 
-        // 指定した state / setting の probabilities オブジェクトを返すヘルパー
-        function getProbByState(state, setting) {
-            if (state === 'BB')       return currentConfig.probabilities_BB[setting];
-            if (state === 'RB')       return currentConfig.probabilities_RB[setting];
+        function getProbObj(state, setting) {
+            if (state === 'BB') return currentConfig.probabilities_BB[setting];
+            if (state === 'RB') return currentConfig.probabilities_RB[setting];
             if (state === 'NORMAL_B') return currentConfig.probabilities_B[setting];
             if (state === 'NORMAL_C') return currentConfig.probabilities_C[setting];
             if (state === 'NORMAL_D') return currentConfig.probabilities_D[setting];
             return currentConfig.probabilities_A[setting];
         }
 
-        // 上部の「設定1〜6」タブ切り替え時に呼ばれる関数
-        // 払い出し/天井/モード遷移は currentState に従い、ボーナス/小役は各専用状態に従う
-        function loadSettingUI(settingNum) {
+        function getPayoutsObj(state) {
+            if (state === 'BB') return currentConfig.payouts_BB || currentConfig.payouts;
+            if (state === 'RB') return currentConfig.payouts_RB || currentConfig.payouts;
+            return currentConfig.payouts;
+        }
+
+        function loadGeneralSettingUI(settingNum) {
             activeSetting = settingNum;
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.toggle('active', parseInt(btn.dataset.setting) === settingNum);
-            });
+            let payoutsObj = getPayoutsObj(currentState);
             
-            let payoutsObj;
-            if (currentState === 'BB')       payoutsObj = currentConfig.payouts_BB || currentConfig.payouts;
-            else if (currentState === 'RB')  payoutsObj = currentConfig.payouts_RB || currentConfig.payouts;
-            else                             payoutsObj = currentConfig.payouts;
-            
-            document.getElementById('payoutBig').value       = payoutsObj.BIG;
-            document.getElementById('payoutReg').value       = payoutsObj.REG;
-            document.getElementById('payoutStar').value      = payoutsObj.STAR;
+            document.getElementById('payoutBig').value = payoutsObj.BIG;
+            document.getElementById('payoutReg').value = payoutsObj.REG;
+            document.getElementById('payoutStar').value = payoutsObj.STAR;
             document.getElementById('payoutWatermelon').value = payoutsObj.WATERMELON;
-            document.getElementById('payoutCherry').value    = payoutsObj.CHERRY;
+            document.getElementById('payoutCherry').value = payoutsObj.CHERRY;
             
-            const transInit  = currentConfig.modeTransitions.initial[settingNum]  || {A:25, B:25, C:25, D:25};
-            const transBonus = currentConfig.modeTransitions.bonus[settingNum]    || {A:25, B:25, C:25, D:25};
-            document.getElementById('transInitA').value  = transInit.A;
-            document.getElementById('transInitB').value  = transInit.B;
-            document.getElementById('transInitC').value  = transInit.C;
-            document.getElementById('transInitD').value  = transInit.D;
+            const transInit = currentConfig.modeTransitions.initial[settingNum] || {A:25, B:25, C:25, D:25};
+            const transBonus = currentConfig.modeTransitions.bonus[settingNum] || {A:25, B:25, C:25, D:25};
+            
+            document.getElementById('transInitA').value = transInit.A;
+            document.getElementById('transInitB').value = transInit.B;
+            document.getElementById('transInitC').value = transInit.C;
+            document.getElementById('transInitD').value = transInit.D;
+            
             document.getElementById('transBonusA').value = transBonus.A;
             document.getElementById('transBonusB').value = transBonus.B;
             document.getElementById('transBonusC').value = transBonus.C;
             document.getElementById('transBonusD').value = transBonus.D;
+        }
+
+        function loadBonusUI() {
+            let p = getProbObj(bonusState, bonusSetting);
             
-            // ボーナス確率: 専用タブ（bonusState / bonusSetting）に従って読み込む
-            loadBonusSectionUI();
-            // 小役確率: 専用タブ（smallState / smallSetting）に従って読み込む
-            loadSmallSectionUI();
+            document.getElementById('probBB_A').value = p.BB_A || 0;
+            document.getElementById('probBB_B').value = p.BB_B || 0;
+            document.getElementById('probBB_C').value = p.BB_C || 0;
+            document.getElementById('probBB_D').value = p.BB_D || 0;
+            document.getElementById('probRB_A').value = p.RB_A || 0;
+            document.getElementById('probRB_B').value = p.RB_B || 0;
             
             validateTotal();
         }
 
-        // ボーナスセクションの表示を bonusState / bonusSetting で更新
-        function loadBonusSectionUI() {
-            const p = getProbByState(bonusState, bonusSetting);
-            ['BB_A','BB_B','BB_C','BB_D','RB_A','RB_B'].forEach(f => {
+        function loadSmallUI() {
+            let p = getProbObj(smallState, smallSetting);
+            
+            const smallRoles = [
+                'REPLAY_A', 'REPLAY_B', 'REPLAY_C',
+                'BELL_A', 'BELL_B', 'BELL_C',
+                'CHERRY_A', 'CHERRY_B', 'CHERRY_C',
+                'SUICA_A', 'SUICA_B', 'SUICA_C',
+                'CHANCE_A', 'CHANCE_B', 'CHANCE_C'
+            ];
+            for (let f of smallRoles) {
                 const el = document.getElementById('prob' + f);
                 if (el) el.value = p[f] || 0;
-            });
+            }
+            
+            validateTotal();
         }
 
-        // 小役セクションの表示を smallState / smallSetting で更新
-        function loadSmallSectionUI() {
-            const p = getProbByState(smallState, smallSetting);
-            const smallFlags = SUB_FLAGS.filter(f =>
-                !f.startsWith('BB') && !f.startsWith('RB') && f !== 'HAZE'
-            );
-            smallFlags.forEach(f => {
-                const el = document.getElementById('prob' + f);
-                if (el) el.value = p[f] || 0;
-            });
-            // ハズレも小役コンテキストで再計算
-            const bonusSum = ['BB_A','BB_B','BB_C','BB_D','RB_A','RB_B'].reduce((s,f) => s + (p[f]||0), 0);
-            const smallSum = smallFlags.reduce((s,f) => s + (p[f]||0), 0);
-            const hazeEl = document.getElementById('probHAZE');
-            if (hazeEl) hazeEl.value = 65536 - bonusSum - smallSum;
+        function loadSettingUI(settingNum) {
+            loadGeneralSettingUI(settingNum);
+            loadBonusUI();
+            loadSmallUI();
         }
-        
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                saveCurrentSettingInputs();
-                loadSettingUI(parseInt(e.target.dataset.setting));
-            });
-        });
-        
-        const btnCopy = document.getElementById('btn-copy-setting');
-        const btnPaste = document.getElementById('btn-paste-setting');
-        
-        btnCopy.addEventListener('click', () => {
-            saveCurrentSettingInputs();
-            // ボーナス確率と小役確率を各専用 state/setting からまとめてコピー
-            const bProb = getProbByState(bonusState, bonusSetting);
-            const sProb = getProbByState(smallState, smallSetting);
-            // 両方をマージして1つのclipboardオブジェクトに
-            clipboardSetting = Object.assign(
-                {},
-                JSON.parse(JSON.stringify(bProb)),
-                JSON.parse(JSON.stringify(sProb))
-            );
-            btnPaste.disabled = false;
-            showToast(`ボーナス(${bonusState} 設定${bonusSetting}) / 小役(${smallState} 設定${smallSetting}) をコピーしました`);
-        });
-        
-        btnPaste.addEventListener('click', () => {
-            if (!clipboardSetting) return;
-            // ボーナス確率を bonusState/bonusSetting に貼り付け
-            const bDst = getProbByState(bonusState, bonusSetting);
-            ['BB_A','BB_B','BB_C','BB_D','RB_A','RB_B'].forEach(f => {
-                if (clipboardSetting[f] !== undefined) bDst[f] = clipboardSetting[f];
-            });
-            // 小役確率を smallState/smallSetting に貼り付け
-            const sDst = getProbByState(smallState, smallSetting);
-            const smallFlags = SUB_FLAGS.filter(f =>
-                !f.startsWith('BB') && !f.startsWith('RB') && f !== 'HAZE'
-            );
-            smallFlags.forEach(f => {
-                if (clipboardSetting[f] !== undefined) sDst[f] = clipboardSetting[f];
-            });
-            loadBonusSectionUI();
-            loadSmallSectionUI();
-            validateTotal();
-            showToast(`ボーナス(${bonusState} 設定${bonusSetting}) / 小役(${smallState} 設定${smallSetting}) に貼り付けました`);
-        });
-        
-        document.querySelectorAll('.prob-input').forEach(input => {
-            input.addEventListener('input', validateTotal);
-        });
-        document.querySelectorAll('.payout-input').forEach(input => {
-            input.addEventListener('input', validateTotal);
-        });
-        // モード遷移確率の入力変化もリアルタイムでバリデーション
-        document.querySelectorAll('.trans-input').forEach(input => {
-            input.addEventListener('input', validateTotal);
-        });
-        
-        function saveCurrentSettingInputs() {
-            // 払い出し / 天井 / モード遷移を保存
-            const payoutsObj = {
-                BIG:        parseInt(document.getElementById('payoutBig').value,        10) || 0,
-                REG:        parseInt(document.getElementById('payoutReg').value,        10) || 0,
-                STAR:       parseInt(document.getElementById('payoutStar').value,       10) || 0,
+
+        function saveGeneralInputs() {
+            let payoutsObj = {
+                BIG: parseInt(document.getElementById('payoutBig').value, 10) || 0,
+                REG: parseInt(document.getElementById('payoutReg').value, 10) || 0,
+                STAR: parseInt(document.getElementById('payoutStar').value, 10) || 0,
                 WATERMELON: parseInt(document.getElementById('payoutWatermelon').value, 10) || 0,
-                CHERRY:     parseInt(document.getElementById('payoutCherry').value,     10) || 0
+                CHERRY: parseInt(document.getElementById('payoutCherry').value, 10) || 0,
+                REPLAY: 3
             };
-
+            
             currentConfig.ceilings = {
                 A: parseInt(document.getElementById('ceilingA').value, 10) || 999,
                 B: parseInt(document.getElementById('ceilingB').value, 10) || 555,
                 C: parseInt(document.getElementById('ceilingC').value, 10) || 333,
                 D: parseInt(document.getElementById('ceilingD').value, 10) || 100
             };
-
+            
             currentConfig.modeTransitions.initial[activeSetting] = {
-                A: parseInt(document.getElementById('transInitA').value,  10) || 0,
-                B: parseInt(document.getElementById('transInitB').value,  10) || 0,
-                C: parseInt(document.getElementById('transInitC').value,  10) || 0,
-                D: parseInt(document.getElementById('transInitD').value,  10) || 0
+                A: parseInt(document.getElementById('transInitA').value, 10) || 0,
+                B: parseInt(document.getElementById('transInitB').value, 10) || 0,
+                C: parseInt(document.getElementById('transInitC').value, 10) || 0,
+                D: parseInt(document.getElementById('transInitD').value, 10) || 0
             };
+            
             currentConfig.modeTransitions.bonus[activeSetting] = {
                 A: parseInt(document.getElementById('transBonusA').value, 10) || 0,
                 B: parseInt(document.getElementById('transBonusB').value, 10) || 0,
                 C: parseInt(document.getElementById('transBonusC').value, 10) || 0,
                 D: parseInt(document.getElementById('transBonusD').value, 10) || 0
             };
+            
+            if (currentState === 'BB') { currentConfig.payouts_BB = payoutsObj; }
+            else if (currentState === 'RB') { currentConfig.payouts_RB = payoutsObj; }
+            else { currentConfig.payouts = payoutsObj; }
+        }
 
-            // currentState の payouts に反映
-            if (currentState === 'BB') {
-                payoutsObj.REPLAY = currentConfig.payouts_BB ? currentConfig.payouts_BB.REPLAY : 3;
-                currentConfig.payouts_BB = payoutsObj;
-            } else if (currentState === 'RB') {
-                payoutsObj.REPLAY = currentConfig.payouts_RB ? currentConfig.payouts_RB.REPLAY : 3;
-                currentConfig.payouts_RB = payoutsObj;
-            } else {
-                payoutsObj.REPLAY = currentConfig.payouts ? currentConfig.payouts.REPLAY : 3;
-                currentConfig.payouts = payoutsObj;
+        function saveBonusInputs() {
+            let p = getProbObj(bonusState, bonusSetting);
+            p.BB_A = parseInt(document.getElementById('probBB_A').value, 10) || 0;
+            p.BB_B = parseInt(document.getElementById('probBB_B').value, 10) || 0;
+            p.BB_C = parseInt(document.getElementById('probBB_C').value, 10) || 0;
+            p.BB_D = parseInt(document.getElementById('probBB_D').value, 10) || 0;
+            p.RB_A = parseInt(document.getElementById('probRB_A').value, 10) || 0;
+            p.RB_B = parseInt(document.getElementById('probRB_B').value, 10) || 0;
+            // update HAZE internally based on current bonusState
+            recalcHazeFor(bonusState, bonusSetting);
+        }
+
+        function saveSmallInputs() {
+            let p = getProbObj(smallState, smallSetting);
+            const smallRoles = [
+                'REPLAY_A', 'REPLAY_B', 'REPLAY_C',
+                'BELL_A', 'BELL_B', 'BELL_C',
+                'CHERRY_A', 'CHERRY_B', 'CHERRY_C',
+                'SUICA_A', 'SUICA_B', 'SUICA_C',
+                'CHANCE_A', 'CHANCE_B', 'CHANCE_C'
+            ];
+            for (let f of smallRoles) {
+                p[f] = parseInt(document.getElementById('prob' + f).value, 10) || 0;
             }
-
-            // ボーナス確率を bonusState / bonusSetting に保存
-            const bProb = getProbByState(bonusState, bonusSetting);
-            ['BB_A','BB_B','BB_C','BB_D','RB_A','RB_B'].forEach(f => {
-                const el = document.getElementById('prob' + f);
-                bProb[f] = el ? (parseInt(el.value, 10) || 0) : 0;
-            });
-
-            // 小役確率を smallState / smallSetting に保存
-            const sProb = getProbByState(smallState, smallSetting);
-            const smallFlags = SUB_FLAGS.filter(f =>
-                !f.startsWith('BB') && !f.startsWith('RB') && f !== 'HAZE'
-            );
-            smallFlags.forEach(f => {
-                const el = document.getElementById('prob' + f);
-                sProb[f] = el ? (parseInt(el.value, 10) || 0) : 0;
-            });
-            // HAZE を再計算して保存
-            const bSum = ['BB_A','BB_B','BB_C','BB_D','RB_A','RB_B'].reduce((s,f) => s + (sProb[f]||0), 0);
-            const sSum = smallFlags.reduce((s,f) => s + (sProb[f]||0), 0);
-            sProb.HAZE = 65536 - bSum - sSum;
+            recalcHazeFor(smallState, smallSetting);
+        }
+        
+        function saveCurrentSettingInputs() {
+            saveGeneralInputs();
+            saveBonusInputs();
+            saveSmallInputs();
+        }
+        
+        function recalcHazeFor(state, setting) {
+            let p = getProbObj(state, setting);
+            let sum = 0;
+            for (let f of SUB_FLAGS) {
+                sum += (p[f] || 0);
+            }
+            p.HAZE = 65536 - sum;
         }
 
         function formatProb(val) {
@@ -946,29 +859,48 @@
         }
 
         function validateTotal() {
-            // ── 画面上の各 prob-input の値を読んで合計を計算 ──────────────
-            let totalBonus = 0;
-            let totalReplay = 0;
-            let totalBell = 0;
-            let totalCherry = 0;
-            let totalSuica = 0;
-            let totalChance = 0;
+            // HAZE logic: Since we have TWO separate visible contexts (Bonus and Small),
+            // The validation bar needs to reflect the SMALL state context because it's at the bottom.
+            // Or better yet, we calculate what the total WOULD be for the `smallState` and `smallSetting`.
+            // Because the user sees Small roles for `smallState`/`smallSetting`, and they might be seeing 
+            // Bonus roles for a DIFFERENT `bonusState`/`bonusSetting`!
             
-            for (let f of SUB_FLAGS) {
-                const el = document.getElementById('prob' + f);
-                const val = el ? (parseInt(el.value, 10) || 0) : 0;
-                const desc = document.getElementById('desc' + f);
-                if (desc) desc.textContent = formatProb(val);
+            // However, to keep it consistent, we'll calculate the sum of whatever is CURRENTLY on the screen.
+            // Wait, if they are viewing Bonus for NormalA and Small for NormalB, the sum doesn't make sense!
+            // But we must show SOMETHING. Let's calculate the true sum for the `smallState` and `smallSetting` 
+            // by combining the on-screen Small roles + the background Bonus roles for `smallState`.
+            
+            let onScreenBonusSum = 0;
+            ['BB_A', 'BB_B', 'BB_C', 'BB_D', 'RB_A', 'RB_B'].forEach(f => {
+                const val = parseInt(document.getElementById('prob'+f).value, 10) || 0;
+                onScreenBonusSum += val;
+                document.getElementById('desc'+f).textContent = formatProb(val);
+            });
+            
+            let onScreenSmallSum = 0;
+            const smallRoles = [
+                'REPLAY_A', 'REPLAY_B', 'REPLAY_C',
+                'BELL_A', 'BELL_B', 'BELL_C',
+                'CHERRY_A', 'CHERRY_B', 'CHERRY_C',
+                'SUICA_A', 'SUICA_B', 'SUICA_C',
+                'CHANCE_A', 'CHANCE_B', 'CHANCE_C'
+            ];
+            
+            let totalReplay=0, totalBell=0, totalCherry=0, totalSuica=0, totalChance=0;
+            
+            smallRoles.forEach(f => {
+                const val = parseInt(document.getElementById('prob'+f).value, 10) || 0;
+                onScreenSmallSum += val;
+                document.getElementById('desc'+f).textContent = formatProb(val);
                 
-                if (f.startsWith('BB') || f.startsWith('RB')) totalBonus += val;
-                else if (f.startsWith('REPLAY')) totalReplay += val;
+                if (f.startsWith('REPLAY')) totalReplay += val;
                 else if (f.startsWith('BELL')) totalBell += val;
                 else if (f.startsWith('CHERRY')) totalCherry += val;
                 else if (f.startsWith('SUICA')) totalSuica += val;
                 else if (f.startsWith('CHANCE')) totalChance += val;
-            }
+            });
             
-            if(document.getElementById('total-bonus')) document.getElementById('total-bonus').textContent = '合算: ' + formatProb(totalBonus);
+            if(document.getElementById('total-bonus')) document.getElementById('total-bonus').textContent = '合算: ' + formatProb(onScreenBonusSum);
             if(document.getElementById('total-replay')) document.getElementById('total-replay').textContent = '合算: ' + formatProb(totalReplay);
             if(document.getElementById('total-bell')) document.getElementById('total-bell').textContent = '合算: ' + formatProb(totalBell);
             if(document.getElementById('total-koyaku')) document.getElementById('total-koyaku').textContent = '合算: ' + formatProb(totalReplay + totalBell);
@@ -976,14 +908,19 @@
             if(document.getElementById('total-suica')) document.getElementById('total-suica').textContent = '合算: ' + formatProb(totalSuica);
             if(document.getElementById('total-chance')) document.getElementById('total-chance').textContent = '合算: ' + formatProb(totalChance);
             if(document.getElementById('total-rare')) document.getElementById('total-rare').textContent = '合算: ' + formatProb(totalCherry + totalSuica + totalChance);
-
-            // ── HAZE を正確に計算 ─────────────────────────────────────────
-            // ボーナスと小役が独立した state/setting を参照しているため、
-            // 表示中の画面の値だけを使って HAZE を求める（両セクションの画面値の合計）
-            const otherTotal = totalBonus + totalReplay + totalBell + totalCherry + totalSuica + totalChance;
-            const haze = 65536 - otherTotal;
-            document.getElementById('probHAZE').value = haze;
-            document.getElementById('descHAZE').textContent = formatProb(haze);
+            
+            // To calculate HAZE correctly for the SMALL view:
+            // HAZE = 65536 - (True Bonus for smallState/smallSetting) - onScreenSmallSum
+            let pSmallContext = getProbObj(smallState, smallSetting);
+            let backgroundBonusSum = 0;
+            ['BB_A', 'BB_B', 'BB_C', 'BB_D', 'RB_A', 'RB_B'].forEach(f => {
+                backgroundBonusSum += (pSmallContext[f] || 0);
+            });
+            
+            let hazeForSmallContext = 65536 - backgroundBonusSum - onScreenSmallSum;
+            
+            document.getElementById('probHAZE').value = hazeForSmallContext;
+            document.getElementById('descHAZE').textContent = formatProb(hazeForSmallContext);
             
             const payoutBig = parseInt(document.getElementById('payoutBig').value, 10) || 0;
             const payoutReg = parseInt(document.getElementById('payoutReg').value, 10) || 0;
@@ -992,25 +929,24 @@
             const payoutCherry = parseInt(document.getElementById('payoutCherry').value, 10) || 0;
             
             let expectedOut = 0;
-            for (let f of SUB_FLAGS) {
+            smallRoles.forEach(f => {
                 const val = parseInt(document.getElementById('prob' + f).value, 10) || 0;
                 if (f.startsWith('REPLAY')) expectedOut += val * 3;
                 else if (f.startsWith('CHERRY')) expectedOut += val * payoutCherry;
                 else if (f.startsWith('SUICA') || f.startsWith('CHANCE')) expectedOut += val * payoutWatermelon;
                 else if (f.startsWith('BELL')) expectedOut += val * payoutStar;
-                else if (f.startsWith('BB')) expectedOut += val * payoutBig;
+            });
+            ['BB_A', 'BB_B', 'BB_C', 'BB_D', 'RB_A', 'RB_B'].forEach(f => {
+                // RTP calculation should ideally use the exact matched state, but we approximate using screen sum
+                const val = parseInt(document.getElementById('prob' + f).value, 10) || 0;
+                if (f.startsWith('BB')) expectedOut += val * payoutBig;
                 else if (f.startsWith('RB')) expectedOut += val * payoutReg;
-            }
+            });
             
             const rtp = (expectedOut / (65536 * 3)) * 100;
             
-            // モード遷移確率の合計チェック（initial / bonus それぞれ 100% になっているか）
-            const initTotal = ['A','B','C','D'].reduce((acc, m) => {
-                return acc + (parseInt(document.getElementById('transInit'+m).value, 10) || 0);
-            }, 0);
-            const bonusTotal = ['A','B','C','D'].reduce((acc, m) => {
-                return acc + (parseInt(document.getElementById('transBonus'+m).value, 10) || 0);
-            }, 0);
+            const initTotal = ['A','B','C','D'].reduce((acc, m) => acc + (parseInt(document.getElementById('transInit'+m).value, 10) || 0), 0);
+            const bonusTotal = ['A','B','C','D'].reduce((acc, m) => acc + (parseInt(document.getElementById('transBonus'+m).value, 10) || 0), 0);
             
             const elInitTotal = document.getElementById('trans-init-total');
             const elBonusTotal = document.getElementById('trans-bonus-total');
@@ -1024,22 +960,21 @@
             }
             const isModeTransValid = (initTotal === 100) && (bonusTotal === 100);
 
-            if (haze < 0) {
+            if (hazeForSmallContext < 0) {
                 validationBar.className = 'validation-bar invalid';
-                validationBar.textContent = `エラー: 小役の合計が 65536 を ${Math.abs(haze)} オーバーしています！`;
+                validationBar.textContent = `エラー: 小役の合計が 65536 を ${Math.abs(hazeForSmallContext)} オーバーしています！ (選択中状態)`;
                 btnSave.disabled = true;
             } else if (!isModeTransValid) {
                 validationBar.className = 'validation-bar invalid';
-                validationBar.textContent = `エラー: モード移行確率の合計が 100% になっていません（初回: ${initTotal}% / ボーナス: ${bonusTotal}%）`;
+                validationBar.textContent = `エラー: モード移行確率の合計が 100% になっていません`;
                 btnSave.disabled = true;
             } else {
                 validationBar.className = 'validation-bar valid';
-                validationBar.textContent = `合計: 65536 / 65536 ｜ 推定機械割: ${rtp.toFixed(2)}%`;
+                validationBar.textContent = `選択中状態の合計: 65536 / 65536 ｜ 推定機械割: ${rtp.toFixed(2)}%`;
                 btnSave.disabled = false;
             }
         }
-
-        function generateCode() {
+function generateCode() {
             saveCurrentSettingInputs();
             const copyConfig = JSON.parse(JSON.stringify(currentConfig));
             let code = '// パラメータ設定 (CONFIG)\n// このファイルはエディターツールによって自動更新されます\n';

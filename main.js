@@ -155,6 +155,16 @@ function playCharacterAnimation(type, onComplete = null) {
         charEl.classList.add('chr-attack');
         charEl.classList.add('chr-' + type);
     }
+    
+    // 背景のスクロール制御
+    const charArea = document.getElementById('character-area');
+    if (charArea) {
+        if (type === 'walk') {
+            charArea.classList.add('is-walking');
+        } else {
+            charArea.classList.remove('is-walking');
+        }
+    }
 }
 
 function stopCharacterAnimation() {

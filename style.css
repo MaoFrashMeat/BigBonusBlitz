@@ -301,44 +301,97 @@ body {
     background-repeat: repeat-x;
 }
 
-#lcd-layer-bg {
+/* =========================================
+   6-Layer Parallax Background
+   ========================================= */
+
+#lcd-layer-6 {
     z-index: 1;
-    background-image: url('assets/bg_sky.png');
+    background-image: url('assets/bg_layer6_sky.png');
     background-position: center center;
-    /* ゆっくりスクロール */
-    
+    /* 空は固定 */
 }
 
-#lcd-layer-mg {
+#lcd-layer-5 {
     z-index: 2;
-    background-image: url('assets/bg_grass.png');
-    background-position: center bottom;
-    /* 草原より上の空部分を削るためのグラデーションマスク */
-    -webkit-mask-image: linear-gradient(to bottom, transparent 15%, black 40%);
-    mask-image: linear-gradient(to bottom, transparent 15%, black 40%);
-    /* BGより少し速くスクロールしてパララックスを表現 */
-    
+    background-image: url('assets/bg_layer5_clouds.png');
+    background-position: center center;
+    animation: scrollLayer5 120s linear infinite;
+    animation-play-state: paused;
 }
 
-#lcd-layer-fg {
+#lcd-layer-4 {
     z-index: 3;
+    background-image: url('assets/bg_layer4_distant.png');
+    height: 78%;
+    background-position: center bottom;
+    background-size: auto 80%;
+    animation: scrollLayer4 60s linear infinite;
+    animation-play-state: paused;
+}
+
+#lcd-layer-3 {
+    z-index: 4;
+    background-image: url('assets/bg_layer3_woods.png');
+    height: 76%; /* 地面より少し上に配置（奥行きのため） */
+    background-position: center bottom;
+    background-size: auto 150px;
+    animation: scrollLayer3 30s linear infinite;
+    animation-play-state: paused;
+}
+
+#lcd-layer-2 {
+    z-index: 5;
+    background-image: url('assets/bg_layer2_debris.png');
+    height: 78%; /* 底辺をぴったり地面の境界（78%）に合わせる */
+    background-position: center bottom;
+    background-size: auto 60px;
+    animation: scrollLayer2 20s linear infinite;
+    animation-play-state: paused;
+}
+
+#lcd-layer-1 {
+    z-index: 6;
     background-image: url('assets/bg_ground.png');
     background-position: center bottom;
-    background-size: auto 100%;
     
+    /* 青いライン（元画像の空）を隠すためにマスク位置を78%に下げる */
+    -webkit-mask-image: linear-gradient(to bottom, transparent 78%, black 78.1%);
+    mask-image: linear-gradient(to bottom, transparent 78%, black 78.1%);
+    
+    animation: scrollLayer1 15s linear infinite;
+    animation-play-state: paused;
 }
 
-@keyframes scrollSky {
+#character-area.is-walking #lcd-layer-5,
+#character-area.is-walking #lcd-layer-4,
+#character-area.is-walking #lcd-layer-3,
+#character-area.is-walking #lcd-layer-2,
+#character-area.is-walking #lcd-layer-1 {
+    animation-play-state: running;
+}
+
+@keyframes scrollLayer5 {
     from { background-position-x: 0; }
     to { background-position-x: -1000px; }
 }
 
-@keyframes scrollGrass {
+@keyframes scrollLayer4 {
     from { background-position-x: 0; }
     to { background-position-x: -1000px; }
 }
 
-@keyframes scrollGround {
+@keyframes scrollLayer3 {
+    from { background-position-x: 0; }
+    to { background-position-x: -1000px; }
+}
+
+@keyframes scrollLayer2 {
+    from { background-position-x: 0; }
+    to { background-position-x: -1000px; }
+}
+
+@keyframes scrollLayer1 {
     from { background-position-x: 0; }
     to { background-position-x: -1000px; }
 }
