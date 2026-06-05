@@ -285,7 +285,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow: visible;
+    overflow: hidden;
     position: relative;
     box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
     flex-shrink: 0;
@@ -293,75 +293,97 @@ body {
 
 .lcd-layer {
     position: absolute;
-    top: 0;
-    left: 0;
     width: 100%;
     height: 100%;
-    background-size: auto 100%;
+    top: 0;
+    left: 0;
+    background-size: cover;
     background-repeat: repeat-x;
+    background-image: var(--bg-image, none);
+    filter: blur(var(--bg-blur, 0px));
+}
+.lcd-layer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: var(--bg-overlay, transparent);
+    pointer-events: none;
 }
 
 /* =========================================
    6-Layer Parallax Background
    ========================================= */
 
+/* --- BG_TUNER_START --- */
 #lcd-layer-6 {
     z-index: 1;
-    background-image: url('assets/bg_layer6_sky.png');
-    background-position: center center;
-    /* 空は固定 */
+    --bg-image: url('assets/bg_layer6_sky.png');
+    --bg-blur: 0px;
+    --bg-overlay: rgba(0,0,0,0);
+    background-size: auto 107%;
+    background-position: center calc(100% + 3px);
 }
 
 #lcd-layer-5 {
     z-index: 2;
-    background-image: url('assets/bg_layer5_clouds.png');
-    background-position: center center;
+    --bg-image: url('assets/bg_layer5_clouds.png');
+    --bg-blur: 2px;
+    --bg-overlay: rgba(100,150,255,0.3);
+    background-size: auto 150%;
+    background-position: center calc(100% + -19px);
     animation: scrollLayer5 120s linear infinite;
     animation-play-state: paused;
 }
 
 #lcd-layer-4 {
     z-index: 3;
-    background-image: url('assets/bg_layer4_distant.png');
-    height: 78%;
-    background-position: center bottom;
-    background-size: auto 80%;
+    --bg-image: url('assets/layer5_mountains_transparent.png');
+    --bg-blur: 2px;
+    --bg-overlay: rgba(100,150,255,0.1);
+    height: 58.9%;
+    background-size: auto 198%;
+    background-position: center calc(100% + 186px);
     animation: scrollLayer4 60s linear infinite;
     animation-play-state: paused;
 }
 
 #lcd-layer-3 {
     z-index: 4;
-    background-image: url('assets/bg_layer3_woods.png');
-    height: 76%; /* 地面より少し上に配置（奥行きのため） */
-    background-position: center bottom;
+    --bg-image: url('assets/bg_layer3_woods.png');
+    --bg-blur: 0px;
+    --bg-overlay: rgba(0,0,0,0);
+    height: 76%;
     background-size: auto 150px;
+    background-position: center calc(100% + 0px);
     animation: scrollLayer3 30s linear infinite;
     animation-play-state: paused;
 }
 
 #lcd-layer-2 {
     z-index: 5;
-    background-image: url('assets/bg_layer2_debris.png');
-    height: 78%; /* 底辺をぴったり地面の境界（78%）に合わせる */
-    background-position: center bottom;
-    background-size: auto 60px;
+    --bg-image: url('assets/bg_layer2_debris.png');
+    --bg-blur: 0px;
+    --bg-overlay: rgba(0,0,0,0);
+    height: 75.7%;
+    background-size: auto 81px;
+    background-position: center calc(100% + 0px);
     animation: scrollLayer2 20s linear infinite;
     animation-play-state: paused;
 }
 
 #lcd-layer-1 {
     z-index: 6;
-    background-image: url('assets/bg_ground.png');
-    background-position: center bottom;
-    
-    /* 青いライン（元画像の空）を隠すためにマスク位置を78%に下げる */
-    -webkit-mask-image: linear-gradient(to bottom, transparent 78%, black 78.1%);
-    mask-image: linear-gradient(to bottom, transparent 78%, black 78.1%);
-    
+    --bg-image: url('assets/bg_ground.png');
+    --bg-blur: 0px;
+    --bg-overlay: rgba(0,0,0,0);
+    background-size: auto 211%;
+    background-position: center calc(100% + 62px);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 50%, black 50.1%);
+    mask-image: linear-gradient(to bottom, transparent 50%, black 50.1%);
     animation: scrollLayer1 15s linear infinite;
     animation-play-state: paused;
 }
+/* --- BG_TUNER_END --- */
 
 #character-area.is-walking #lcd-layer-5,
 #character-area.is-walking #lcd-layer-4,
@@ -404,7 +426,7 @@ body {
     position: absolute;
     bottom: 20px;
     left: 15%;
-    z-index: 5;
+    z-index: 10;
     transform-origin: bottom center;
     background-repeat: no-repeat;
 }
@@ -453,20 +475,28 @@ body {
     position: absolute;
     bottom: 20px;
     right: 20%;
-    z-index: 4;
+    z-index: 10;
     animation: idleEnemyAnim 2s infinite ease-in-out;
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-.slime-sprite, .goblin-sprite {
+.slime-sprite, .goblin-sprite, .bat-sprite {
     position: absolute;
     height: 100%;
     width: auto;
     object-fit: contain;
     transition: filter 0.3s ease, opacity 0.3s ease;
     z-index: 1;
+}
+
+.bat-sprite {
+    animation: batFloat 1.5s infinite alternate ease-in-out;
+}
+@keyframes batFloat {
+    from { transform: translateY(-30px); }
+    to { transform: translateY(-10px); }
 }
 
 #dust-cloud-img {
@@ -540,19 +570,19 @@ body {
 }
 
 /* 敵の体色（元の画像をhue-rotateで色変え） */
-.enemy-goblin-blue .goblin-sprite, .enemy-slime-blue .slime-sprite {
+.enemy-goblin-blue .goblin-sprite, .enemy-slime-blue .slime-sprite, .enemy-bat-blue .bat-sprite {
     filter: none;
 }
-.enemy-goblin-yellow .goblin-sprite, .enemy-slime-yellow .slime-sprite {
+.enemy-goblin-yellow .goblin-sprite, .enemy-slime-yellow .slime-sprite, .enemy-bat-yellow .bat-sprite {
     filter: hue-rotate(180deg) brightness(1.2);
 }
-.enemy-goblin-green .goblin-sprite, .enemy-slime-green .slime-sprite {
+.enemy-goblin-green .goblin-sprite, .enemy-slime-green .slime-sprite, .enemy-bat-green .bat-sprite {
     filter: hue-rotate(240deg);
 }
-.enemy-goblin-red .goblin-sprite, .enemy-slime-red .slime-sprite {
+.enemy-goblin-red .goblin-sprite, .enemy-slime-red .slime-sprite, .enemy-bat-red .bat-sprite {
     filter: hue-rotate(120deg) brightness(1.1);
 }
-.enemy-goblin-rainbow .goblin-sprite, .enemy-slime-rainbow .slime-sprite {
+.enemy-goblin-rainbow .goblin-sprite, .enemy-slime-rainbow .slime-sprite, .enemy-bat-rainbow .bat-sprite {
     animation: rainbowCycle 1.5s infinite linear;
 }
 
@@ -1040,11 +1070,73 @@ body {
     animation: animBonus 3.5s ease-in-out forwards;
     z-index: 1001 !important;
 }
+
+/* --- BANNER_TUNER_START --- */
+.enemy-banner {
+    --bg-normal: rgba(0, 76, 255, 0.6);
+    --bg-flash: rgba(0, 76, 255, 0.09999999999999998);
+    position: absolute;
+    left: -50%;
+    width: 200%;
+    height: 50px;
+    background: var(--bg-normal);
+    color: #fff;
+    font-family: 'DotGothic16', monospace;
+    font-size: 25px;
+    line-height: 50px;
+    font-weight: bold;
+    text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+    overflow: hidden;
+    white-space: nowrap;
+    z-index: 11;
+    box-shadow: 0 0 15px rgba(0, 76, 255, 0.8);
+    display: flex;
+    align-items: center;
+    animation: none;
+}
+
+@keyframes bannerFlash {
+    0% { background: var(--bg-normal); }
+    100% { background: var(--bg-flash); }
+}
+
+#enemy-banner-top {
+    top: -18px;
+    transform: rotate(-7deg);
+}
+
+#enemy-banner-bottom {
+    bottom: -4px;
+    transform: rotate(-7deg);
+}
+
+.enemy-banner.hidden {
+    display: none !important;
+}
+
+.banner-text {
+    display: inline-block;
+    animation: marqueeText 1500s linear infinite;
+}
+
+#enemy-banner-bottom .banner-text {
+    animation-delay: -795s;
+}
+
+@keyframes marqueeText {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+}
+
+@keyframes textFlash {
+    0% { color: #fff; text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
+    100% { color: transparent; text-shadow: none; }
+}
+/* --- BANNER_TUNER_END --- */
+
 @keyframes animBonus {
     0% { transform: scale(1) translate(0, 0); }
     10% { transform: scale(2.2) translate(30%, -10%); filter: drop-shadow(0 0 30px yellow) brightness(1.3); }
     90% { transform: scale(2.2) translate(30%, -10%); filter: drop-shadow(0 0 30px yellow) brightness(1.3); }
     100% { transform: scale(1) translate(0, 0); }
-}
-
 

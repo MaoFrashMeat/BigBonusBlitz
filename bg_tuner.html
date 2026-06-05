@@ -5,184 +5,417 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BBB Background Tuner</title>
     <style>
-        body { font-family: sans-serif; background: #222; color: #eee; padding: 20px; }
-        .layer-box { border: 1px solid #444; background: #333; margin-bottom: 15px; padding: 15px; border-radius: 5px; }
-        h2 { margin-top: 0; font-size: 16px; border-bottom: 1px solid #555; padding-bottom: 5px; color: #0f0; }
-        .control { display: flex; align-items: center; margin-bottom: 10px; }
-        .control label { width: 140px; font-size: 14px; }
-        .control input[type=range] { flex-grow: 1; margin: 0 10px; }
-        .control span { width: 50px; text-align: right; font-family: monospace; font-size: 12px; }
-        button { padding: 10px 20px; background: #0f0; color: #000; border: none; font-weight: bold; cursor: pointer; border-radius: 3px; font-size: 16px;}
-        button:hover { background: #0c0; }
-        textarea { width: 100%; height: 200px; margin-top: 10px; background: #111; color: #0f0; font-family: monospace; padding: 10px; border: 1px solid #555; }
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #e2e8f0;
+            --accent: #38bdf8;
+            --accent-hover: #0284c7;
+            --border: #334155;
+            --input-bg: #0f172a;
+        }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: var(--bg-color); 
+            color: var(--text-color); 
+            padding: 20px; 
+            margin: 0;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: var(--accent);
+            margin: 0 0 10px 0;
+            font-size: 28px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+        }
+        .header p {
+            margin: 0;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .layer-box { 
+            background: var(--card-bg); 
+            padding: 20px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .layer-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        }
+        .layer-box h2 { 
+            margin: 0 0 15px 0; 
+            font-size: 18px; 
+            border-bottom: 2px solid var(--border); 
+            padding-bottom: 8px; 
+            color: var(--accent); 
+        }
+        .control { 
+            display: flex; 
+            align-items: center; 
+            margin-bottom: 12px; 
+        }
+        .control label { 
+            width: 140px; 
+            font-size: 13px; 
+            font-weight: 600;
+            color: #cbd5e1;
+        }
+        .control input[type=range] { 
+            flex-grow: 1; 
+            margin: 0 10px; 
+            accent-color: var(--accent);
+        }
+        .control input[type=text], .control input[type=number], .control select {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            color: var(--text-color);
+            padding: 6px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            outline: none;
+        }
+        .control input[type=text]:focus, .control input[type=number]:focus, .control select:focus {
+            border-color: var(--accent);
+        }
+        .control input[type=text] { flex-grow: 1; }
+        .control span { 
+            width: 55px; 
+            text-align: right; 
+            font-family: monospace; 
+            font-size: 12px; 
+            background: #000;
+            padding: 4px;
+            border-radius: 4px;
+            color: var(--accent);
+        }
+        .actions {
+            text-align: center;
+            margin: 40px 0 20px;
+        }
+        button { 
+            padding: 12px 30px; 
+            background: var(--accent); 
+            color: #fff; 
+            border: none; 
+            font-weight: bold; 
+            cursor: pointer; 
+            border-radius: 8px; 
+            font-size: 16px;
+            box-shadow: 0 4px 10px rgba(56, 189, 248, 0.4);
+            transition: all 0.2s;
+        }
+        button:hover { 
+            background: var(--accent-hover); 
+            transform: scale(1.05);
+        }
+        textarea { 
+            width: 100%; 
+            max-width: 1400px;
+            height: 300px; 
+            margin: 0 auto;
+            display: block;
+            background: #020617; 
+            color: var(--accent); 
+            font-family: 'Fira Code', monospace; 
+            padding: 15px; 
+            border: 1px solid var(--border); 
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
     </style>
 </head>
 <body>
 
-    <h1>BBB Background Tuner</h1>
-    <p>メインゲームのタブを開いたまま、この画面のスライダーを動かすとリアルタイムに背景が変化します。</p>
-
-    <div class="layer-box">
-        <h2>第1層：地面 (Layer 1)</h2>
-        <div class="control">
-            <label>マスクカット位置 (%)</label>
-            <input type="range" id="l1-mask" min="50" max="100" step="0.1" value="78.0">
-            <span id="l1-mask-val">78.0%</span>
-        </div>
+    <div class="header">
+        <h1>BBB Background Tuner</h1>
+        <p>メインゲームのタブを開いたままスライダーを動かすと、空気遠近法や位置がリアルタイムに変化します。</p>
     </div>
 
-    <div class="layer-box">
-        <h2>第2層：小物・雑草 (Layer 2)</h2>
-        <div class="control">
-            <label>着地ライン(Height) (%)</label>
-            <input type="range" id="l2-height" min="50" max="100" step="0.1" value="78.0">
-            <span id="l2-height-val">78.0%</span>
-        </div>
-        <div class="control">
-            <label>画像の大きさ (px)</label>
-            <input type="range" id="l2-size" min="10" max="300" step="1" value="60">
-            <span id="l2-size-val">60px</span>
-        </div>
-        <div class="control">
-            <label>上下オフセット (px)</label>
-            <input type="range" id="l2-offset" min="-100" max="100" step="1" value="0">
-            <span id="l2-offset-val">0px</span>
-        </div>
+    <div class="container" id="layers-container">
+        <!-- JS generates layers here -->
     </div>
 
-    <div class="layer-box">
-        <h2>第3層：雑木林 (Layer 3)</h2>
-        <div class="control">
-            <label>着地ライン(Height) (%)</label>
-            <input type="range" id="l3-height" min="50" max="100" step="0.1" value="76.0">
-            <span id="l3-height-val">76.0%</span>
-        </div>
-        <div class="control">
-            <label>画像の大きさ (px)</label>
-            <input type="range" id="l3-size" min="50" max="500" step="1" value="150">
-            <span id="l3-size-val">150px</span>
-        </div>
-        <div class="control">
-            <label>上下オフセット (px)</label>
-            <input type="range" id="l3-offset" min="-100" max="100" step="1" value="0">
-            <span id="l3-offset-val">0px</span>
-        </div>
+    <div class="actions">
+        <button id="btn-generate">✨ 最終設定のCSSコードを生成 ✨</button>
+        <button id="btn-attach" style="background:#6366f1;">📁 style.css を紐付け</button>
+        <button id="btn-save" style="background:#10b981;" disabled>💾 style.css に保存</button>
     </div>
-
-    <div class="layer-box">
-        <h2>第4層：遠景草原 (Layer 4)</h2>
-        <div class="control">
-            <label>着地ライン(Height) (%)</label>
-            <input type="range" id="l4-height" min="50" max="100" step="0.1" value="78.0">
-            <span id="l4-height-val">78.0%</span>
-        </div>
-        <div class="control">
-            <label>画像の大きさ (%)</label>
-            <input type="range" id="l4-size" min="10" max="200" step="1" value="80">
-            <span id="l4-size-val">80%</span>
-        </div>
-        <div class="control">
-            <label>上下オフセット (px)</label>
-            <input type="range" id="l4-offset" min="-200" max="200" step="1" value="0">
-            <span id="l4-offset-val">0px</span>
-        </div>
-    </div>
-
-    <div class="layer-box">
-        <h2>第5層：雲 (Layer 5)</h2>
-        <div class="control">
-            <label>画像の大きさ (%)</label>
-            <input type="range" id="l5-size" min="10" max="200" step="1" value="100">
-            <span id="l5-size-val">100%</span>
-        </div>
-        <div class="control">
-            <label>上下位置 (px)</label>
-            <input type="range" id="l5-pos" min="0" max="500" step="1" value="0">
-            <span id="l5-pos-val">0px</span>
-        </div>
-    </div>
-
-    <button id="btn-generate">最終設定のCSSコードを生成</button>
-    <textarea id="output" readonly placeholder="ボタンを押すとここにCSSが生成されます。これをAIに送信してください。"></textarea>
+    <div id="status" style="text-align: center; margin-bottom: 20px; color: #a7f3d0; font-weight: bold;"></div>
+    <textarea id="output" readonly placeholder="ボタンを押すとここにCSSが生成されます。"></textarea>
 
     <script>
         const bc = new BroadcastChannel('bg_tuner');
 
-        const state = {
-            l1_mask: 78.0,
-            l2_height: 78.0, l2_size: 60, l2_offset: 0,
-            l3_height: 76.0, l3_size: 150, l3_offset: 0,
-            l4_height: 78.0, l4_size: 80, l4_offset: 0,
-            l5_size: 100, l5_pos: 0
-        };
+        const state = {};
+        let fileHandle = null;
+        
+        // Initial defaults
+        const defaults = [
+            { id: 1, name: "地面 (Layer 1)", img: 'assets/bg_ground.png', blur: 0, ovl: 'rgba(0,0,0,0)', height: 0, size: 211, sizeUnit: '%', offset: 62, mask: 50.0, speed: 15 },
+            { id: 2, name: "小物・雑草 (Layer 2)", img: 'assets/bg_layer2_debris.png', blur: 0, ovl: 'rgba(0,0,0,0)', height: 75.7, size: 81, sizeUnit: 'px', offset: 0, speed: 20 },
+            { id: 3, name: "雑木林 (Layer 3)", img: 'assets/bg_layer3_woods.png', blur: 0, ovl: 'rgba(0,0,0,0)', height: 76.0, size: 150, sizeUnit: 'px', offset: 0, speed: 30 },
+            { id: 4, name: "遠景草原 (Layer 4)", img: 'assets/layer5_mountains_transparent.png', blur: 2, ovl: 'rgba(100,150,255,0.1)', height: 58.9, size: 198, sizeUnit: '%', offset: 186, speed: 60 },
+            { id: 5, name: "山・雲 (Layer 5)", img: 'assets/bg_layer5_clouds.png', blur: 2, ovl: 'rgba(100,150,255,0.3)', height: 0, size: 150, sizeUnit: '%', offset: -19, speed: 120 },
+            { id: 6, name: "空 (Layer 6)", img: 'assets/bg_layer6_sky.png', blur: 0, ovl: 'rgba(0,0,0,0)', height: 0, size: 107, sizeUnit: '%', offset: 3, speed: 0 }
+        ];
+
+        // Load from localStorage if available
+        let savedState = null;
+        try {
+            const str = localStorage.getItem('bg_tuner_state');
+            if (str) savedState = JSON.parse(str);
+        } catch (e) {}
+
+        defaults.forEach(d => {
+            state[`l${d.id}_img`] = savedState && savedState[`l${d.id}_img`] !== undefined ? savedState[`l${d.id}_img`] : d.img;
+            state[`l${d.id}_blur`] = savedState && savedState[`l${d.id}_blur`] !== undefined ? savedState[`l${d.id}_blur`] : d.blur;
+            state[`l${d.id}_ovl`] = savedState && savedState[`l${d.id}_ovl`] !== undefined ? savedState[`l${d.id}_ovl`] : d.ovl;
+            state[`l${d.id}_height`] = savedState && savedState[`l${d.id}_height`] !== undefined ? savedState[`l${d.id}_height`] : d.height;
+            state[`l${d.id}_size`] = savedState && savedState[`l${d.id}_size`] !== undefined ? savedState[`l${d.id}_size`] : d.size;
+            state[`l${d.id}_sizeUnit`] = savedState && savedState[`l${d.id}_sizeUnit`] !== undefined ? savedState[`l${d.id}_sizeUnit`] : d.sizeUnit;
+            state[`l${d.id}_offset`] = savedState && savedState[`l${d.id}_offset`] !== undefined ? savedState[`l${d.id}_offset`] : d.offset;
+            state[`l${d.id}_speed`] = savedState && savedState[`l${d.id}_speed`] !== undefined ? savedState[`l${d.id}_speed`] : d.speed;
+            if (d.id === 1) state[`l${d.id}_mask`] = savedState && savedState[`l${d.id}_mask`] !== undefined ? savedState[`l${d.id}_mask`] : d.mask;
+        });
 
         function sendUpdate() {
             bc.postMessage(state);
             generateCSS();
+            try {
+                localStorage.setItem('bg_tuner_state', JSON.stringify(state));
+            } catch(e) {}
         }
 
-        function bindSlider(id, stateKey, suffix) {
-            const el = document.getElementById(id);
-            const valEl = document.getElementById(id + '-val');
-            el.addEventListener('input', (e) => {
-                const v = parseFloat(e.target.value);
-                state[stateKey] = v;
-                valEl.innerText = v + suffix;
-                sendUpdate();
+        const container = document.getElementById('layers-container');
+
+        defaults.forEach(d => {
+            const i = d.id;
+            let html = `
+            <div class="layer-box">
+                <h2>第${i}層：${d.name}</h2>
+                <div class="control">
+                    <label>画像 (assets/ 内のファイル)</label>
+                    <div style="display: flex; gap: 5px;">
+                        <input type="text" id="l${i}-img" value="${state[`l${i}_img`]}" style="flex: 1;">
+                        <button class="btn-select-file" onclick="document.getElementById('l${i}-file').click()" style="background:#4b5563; border:none; color:white; border-radius:3px; padding:0 10px; cursor:pointer;">📁 選択</button>
+                        <input type="file" id="l${i}-file" accept="image/png, image/jpeg, image/webp" style="display:none;">
+                    </div>
+                </div>
+                <div class="control">
+                    <label>スクロール速度 (秒)</label>
+                    <input type="range" id="l${i}-speed" min="0" max="300" step="1" value="${state[`l${i}_speed`]}">
+                    <span id="l${i}-speed-val">${state[`l${i}_speed`]}s</span>
+                </div>
+                <div class="control">
+                    <label>Blur (ぼかし)</label>
+                    <input type="range" id="l${i}-blur" min="0" max="20" step="1" value="${state[`l${i}_blur`]}">
+                    <span id="l${i}-blur-val">${state[`l${i}_blur`]}px</span>
+                </div>
+                <div class="control">
+                    <label>Overlay (色被せ)</label>
+                    <input type="text" id="l${i}-ovl" value="${state[`l${i}_ovl`]}">
+                </div>
+                <div class="control">
+                    <label>着地ライン (Height)</label>
+                    <input type="range" id="l${i}-height" min="0" max="100" step="0.1" value="${state[`l${i}_height`]}">
+                    <span id="l${i}-height-val">${state[`l${i}_height`]}%</span>
+                </div>
+                <div class="control">
+                    <label>画像の大きさ (Size)</label>
+                    <input type="range" id="l${i}-size" min="10" max="500" step="1" value="${state[`l${i}_size`]}">
+                    <select id="l${i}-sizeUnit">
+                        <option value="px" ${state[`l${i}_sizeUnit`] === 'px' ? 'selected' : ''}>px</option>
+                        <option value="%" ${state[`l${i}_sizeUnit`] === '%' ? 'selected' : ''}>%</option>
+                        <option value="cover" ${state[`l${i}_sizeUnit`] === 'cover' ? 'selected' : ''}>cover</option>
+                        <option value="contain" ${state[`l${i}_sizeUnit`] === 'contain' ? 'selected' : ''}>contain</option>
+                    </select>
+                    <span id="l${i}-size-val" style="margin-left:5px;">${state[`l${i}_size`]}</span>
+                </div>
+                <div class="control">
+                    <label>上下オフセット</label>
+                    <input type="range" id="l${i}-offset" min="-500" max="500" step="1" value="${state[`l${i}_offset`]}">
+                    <span id="l${i}-offset-val">${state[`l${i}_offset`]}px</span>
+                </div>
+            `;
+            
+            if (i === 1) {
+                html += `
+                <div class="control" style="border-top:1px solid var(--border); padding-top:10px; margin-top:10px;">
+                    <label style="color:#f43f5e;">マスクカット位置</label>
+                    <input type="range" id="l1-mask" min="50" max="100" step="0.1" value="${state.l1_mask}">
+                    <span id="l1-mask-val">${state.l1_mask}%</span>
+                </div>`;
+            }
+            html += `</div>`;
+            container.innerHTML += html;
+        });
+
+        // Add event listeners after DOM generation
+        defaults.forEach(d => {
+            const i = d.id;
+
+            // Text inputs
+            document.getElementById(`l${i}-img`).addEventListener('input', e => { state[`l${i}_img`] = e.target.value; sendUpdate(); });
+            
+            // File input logic
+            document.getElementById(`l${i}-file`).addEventListener('change', e => {
+                if (e.target.files && e.target.files[0]) {
+                    // Extract filename and prepend assets/
+                    const filename = e.target.files[0].name;
+                    const path = `assets/${filename}`;
+                    document.getElementById(`l${i}-img`).value = path;
+                    state[`l${i}_img`] = path;
+                    sendUpdate();
+                }
             });
-        }
+            document.getElementById(`l${i}-ovl`).addEventListener('input', e => { state[`l${i}_ovl`] = e.target.value; sendUpdate(); });
+            document.getElementById(`l${i}-sizeUnit`).addEventListener('change', e => { state[`l${i}_sizeUnit`] = e.target.value; sendUpdate(); });
 
-        bindSlider('l1-mask', 'l1_mask', '%');
-        bindSlider('l2-height', 'l2_height', '%');
-        bindSlider('l2-size', 'l2_size', 'px');
-        bindSlider('l2-offset', 'l2_offset', 'px');
-        
-        bindSlider('l3-height', 'l3_height', '%');
-        bindSlider('l3-size', 'l3_size', 'px');
-        bindSlider('l3-offset', 'l3_offset', 'px');
+            // Slider binding helper
+            const bindSlider = (id, key, suffixEl, unitKey = null) => {
+                const el = document.getElementById(id);
+                const valEl = document.getElementById(suffixEl);
+                if (!el) return;
+                el.addEventListener('input', e => {
+                    const v = parseFloat(e.target.value);
+                    state[key] = v;
+                    valEl.innerText = unitKey ? v : v + suffixEl.replace(`l${i}-`,'').replace('-val','').replace('blur','px').replace('height','%').replace('offset','px').replace('mask','%').replace('speed','s');
+                    if (unitKey) valEl.innerText = v; // unit handled by select box visually for size
+                    else valEl.innerText = v + (id.includes('blur') || id.includes('offset') ? 'px' : id.includes('speed') ? 's' : '%');
+                    sendUpdate();
+                });
+            };
 
-        bindSlider('l4-height', 'l4_height', '%');
-        bindSlider('l4-size', 'l4_size', '%');
-        bindSlider('l4-offset', 'l4_offset', 'px');
+            bindSlider(`l${i}-speed`, `l${i}_speed`, `l${i}-speed-val`);
+            bindSlider(`l${i}-blur`, `l${i}_blur`, `l${i}-blur-val`);
+            bindSlider(`l${i}-height`, `l${i}_height`, `l${i}-height-val`);
+            bindSlider(`l${i}-size`, `l${i}_size`, `l${i}-size-val`, `l${i}_sizeUnit`);
+            bindSlider(`l${i}-offset`, `l${i}_offset`, `l${i}-offset-val`);
 
-        bindSlider('l5-size', 'l5_size', '%');
-        bindSlider('l5-pos', 'l5_pos', 'px');
+            if (i === 1) bindSlider(`l1-mask`, `l1_mask`, `l1-mask-val`);
+        });
 
         function generateCSS() {
-            const css = `
-#lcd-layer-1 {
-    -webkit-mask-image: linear-gradient(to bottom, transparent ${state.l1_mask}%, black ${state.l1_mask + 0.1}%);
-    mask-image: linear-gradient(to bottom, transparent ${state.l1_mask}%, black ${state.l1_mask + 0.1}%);
-}
+            let css = '';
+            // Layer 6 to 1 (reverse order to match z-index structure in style.css logically if needed, but here outputting 6 to 1 to match target)
+            for (let i = 6; i >= 1; i--) {
+                css += `
+#lcd-layer-${i} {
+    z-index: ${7 - i};
+    --bg-image: url('${state[`l${i}_img`]}');
+    --bg-blur: ${state[`l${i}_blur`]}px;
+    --bg-overlay: ${state[`l${i}_ovl`]};
+`;              
+                // Output height if > 0
+                if (state[`l${i}_height`] > 0) {
+                    css += `    height: ${state[`l${i}_height`]}%;\n`;
+                }
 
-#lcd-layer-2 {
-    height: ${state.l2_height}%;
-    background-size: auto ${state.l2_size}px;
-    background-position: center calc(100% + ${state.l2_offset}px);
-}
-
-#lcd-layer-3 {
-    height: ${state.l3_height}%;
-    background-size: auto ${state.l3_size}px;
-    background-position: center calc(100% + ${state.l3_offset}px);
-}
-
-#lcd-layer-4 {
-    height: ${state.l4_height}%;
-    background-size: auto ${state.l4_size}%;
-    background-position: center calc(100% + ${state.l4_offset}px);
-}
-
-#lcd-layer-5 {
-    background-size: auto ${state.l5_size}%;
-    background-position: center ${state.l5_pos}px;
-}
-`;
-            document.getElementById('output').value = css.trim();
+                // Size
+                if (state[`l${i}_sizeUnit`] === 'cover' || state[`l${i}_sizeUnit`] === 'contain') {
+                    css += `    background-size: ${state[`l${i}_sizeUnit`]};\n`;
+                } else {
+                    css += `    background-size: auto ${state[`l${i}_size`]}${state[`l${i}_sizeUnit`]};\n`;
+                }
+                
+                // Position offset
+                css += `    background-position: center calc(100% + ${state[`l${i}_offset`]}px);\n`;
+                
+                // Special mask for L1
+                if (i === 1) {
+                    css += `    -webkit-mask-image: linear-gradient(to bottom, transparent ${state.l1_mask}%, black ${state.l1_mask + 0.1}%);\n`;
+                    css += `    mask-image: linear-gradient(to bottom, transparent ${state.l1_mask}%, black ${state.l1_mask + 0.1}%);\n`;
+                }
+                
+                // Animation Speed
+                if (i !== 6) { // Layer 6 is sky (static)
+                    css += `    animation: scrollLayer${i} ${state[`l${i}_speed`]}s linear infinite;\n`;
+                    css += `    animation-play-state: paused;\n`;
+                }
+                css += `}`;
+                if (i !== 1) css += '\n';
+            }
+            const out = css.trim();
+            document.getElementById('output').value = out;
+            return out;
         }
 
         document.getElementById('btn-generate').addEventListener('click', generateCSS);
         
+        // --- File System Access API Logic ---
+        document.getElementById('btn-attach').addEventListener('click', async () => {
+            try {
+                const [handle] = await window.showOpenFilePicker({
+                    types: [{ description: 'CSS Files', accept: {'text/css': ['.css']} }],
+                    multiple: false
+                });
+                fileHandle = handle;
+                document.getElementById('status').textContent = `✅ 紐付け完了: ${fileHandle.name}`;
+                document.getElementById('btn-save').disabled = false;
+            } catch (e) {
+                console.error(e);
+            }
+        });
+
+        document.getElementById('btn-save').addEventListener('click', async () => {
+            if (!fileHandle) return;
+            try {
+                if ((await fileHandle.queryPermission({ mode: 'readwrite' })) !== 'granted') {
+                    if ((await fileHandle.requestPermission({ mode: 'readwrite' })) !== 'granted') {
+                        throw new Error('Permission denied');
+                    }
+                }
+                
+                const file = await fileHandle.getFile();
+                let content = await file.text();
+                
+                const generated = generateCSS();
+                
+                const startMarker = "/* --- BG_TUNER_START --- */";
+                const endMarker = "/* --- BG_TUNER_END --- */";
+                
+                const startIndex = content.indexOf(startMarker);
+                const endIndex = content.indexOf(endMarker);
+                
+                if (startIndex === -1 || endIndex === -1) {
+                    throw new Error("style.css にマーカー (BG_TUNER_START / END) が見つかりません。");
+                }
+                
+                const before = content.substring(0, startIndex + startMarker.length);
+                const after = content.substring(endIndex);
+                
+                const newContent = before + "\n" + generated + "\n" + after;
+                
+                const writable = await fileHandle.createWritable();
+                await writable.write(newContent);
+                await writable.close();
+                
+                document.getElementById('status').textContent = `💾 保存完了! style.css を更新しました。`;
+                setTimeout(() => {
+                    document.getElementById('status').textContent = `✅ 紐付け完了: ${fileHandle.name}`;
+                }, 3000);
+            } catch (e) {
+                console.error(e);
+                alert("保存に失敗しました: " + e.message);
+            }
+        });
+
         // Initial send
         setTimeout(sendUpdate, 500);
     </script>

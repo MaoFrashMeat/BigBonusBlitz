@@ -222,6 +222,7 @@ function dealDamage(amount) {
             // 敵を非表示（次のワークフローENEMY当選で登場）
             const enemyImgContainer = document.getElementById('enemy-img');
             if (enemyImgContainer) enemyImgContainer.style.visibility = 'hidden';
+            hideEnemyBanners();
         }, 1000);
     }
 }
@@ -274,7 +275,14 @@ function updateTier2UI() {
 
 // 新しい敵をランダムにスポーンする
 function spawnEnemy() {
-    state.currentEnemyType = Math.random() < 0.5 ? 'slime' : 'goblin';
+    const rand = Math.random();
+    if (rand < 0.33) {
+        state.currentEnemyType = 'slime';
+    } else if (rand < 0.66) {
+        state.currentEnemyType = 'goblin';
+    } else {
+        state.currentEnemyType = 'bat';
+    }
     
     const sprite = document.getElementById('enemy-sprite');
     const core = document.getElementById('enemy-core');
@@ -287,11 +295,17 @@ function spawnEnemy() {
         sprite.className = 'slime-sprite';
         core.style.display = 'block';
         enemyImgContainer.style.bottom = '20px';
-    } else {
+    } else if (state.currentEnemyType === 'goblin') {
         sprite.src = 'assets/goblin.png';
         sprite.className = 'goblin-sprite';
         core.style.display = 'none';
         enemyImgContainer.style.bottom = '42px';
+    } else {
+        // bat
+        sprite.src = 'assets/bat.png';
+        sprite.className = 'bat-sprite';
+        core.style.display = 'none';
+        enemyImgContainer.style.bottom = '50px';
     }
     
     state.enemyHP = state.enemyMaxHP;
@@ -304,6 +318,39 @@ function spawnEnemy() {
     updateEnemyColor();
 }
 
+// バナー表示・非表示
+function showEnemyBanners() {
+    try {
+        const saved = localStorage.getItem('banner_tuner_state');
+        let textStr = '3ゲーム以内に小役を引ければ...CHANCE!?';
+        let spaceStr = '　'.repeat(5);
+        if (saved) {
+            const st = JSON.parse(saved);
+            if (st.text !== undefined) textStr = st.text;
+            if (st.spacing !== undefined) {
+                let sp = parseInt(st.spacing);
+                if (!isNaN(sp) && sp >= 0) spaceStr = '　'.repeat(sp);
+            }
+        }
+        const contentStr = (textStr + spaceStr).repeat(50);
+        
+        const tTop = document.querySelector('#enemy-banner-top .banner-text');
+        if (tTop) tTop.textContent = contentStr;
+        const tBottom = document.querySelector('#enemy-banner-bottom .banner-text');
+        if (tBottom) tBottom.textContent = contentStr;
+    } catch(e) {
+        console.error("Banner text generation error:", e);
+    }
+    
+    document.getElementById('enemy-banner-top')?.classList.remove('hidden');
+    document.getElementById('enemy-banner-bottom')?.classList.remove('hidden');
+}
+
+function hideEnemyBanners() {
+    document.getElementById('enemy-banner-top')?.classList.add('hidden');
+    document.getElementById('enemy-banner-bottom')?.classList.add('hidden');
+}
+
 // 右からスライドインして敵をスポーンする
 function spawnEnemySlideIn() {
     const enemyImgContainer = document.getElementById('enemy-img');
@@ -311,6 +358,9 @@ function spawnEnemySlideIn() {
 
     // まず内容を更新
     spawnEnemy();
+
+    // バナー表示
+    showEnemyBanners();
 
     // 右外からスライドインアニメーション
     enemyImgContainer.style.visibility = 'visible';
@@ -359,6 +409,7 @@ function loadGameState() {
                 if (slider) {
                     slider.value = savedData.bgmVolume;
                     bgmAudioNormal.volume = Math.min(savedData.bgmVolume, 1.0);
+                    slider.dispatchEvent(new Event('input'));
                 }
             }
             if (savedData.selectedBgm !== undefined) {
@@ -366,11 +417,15 @@ function loadGameState() {
                 if (bgmSelect) {
                     bgmSelect.value = savedData.selectedBgm;
                     bgmAudioNormal.src = 'assets/sounds/bgm/' + savedData.selectedBgm;
+                    bgmSelect.dispatchEvent(new Event('change'));
                 }
             }
             if (savedData.seVolume !== undefined) {
                 const slider = document.getElementById('se-volume-slider');
-                if (slider) slider.value = savedData.seVolume;
+                if (slider) {
+                    slider.value = savedData.seVolume;
+                    slider.dispatchEvent(new Event('input'));
+                }
             }
             if (savedData.heldBonusFlag !== undefined) {
                 state.heldBonusFlag = savedData.heldBonusFlag;
@@ -571,12 +626,13 @@ function initAudio() {
     const bgmSlider = document.getElementById('bgm-volume-slider');
     const seSlider = document.getElementById('se-volume-slider');
     if (bgmSlider) {
-        bgmGain.gain.value = bgmSlider.value;
-        bgmAudioNormal.volume = Math.min(bgmSlider.value, 1.0);
+        const bgmVol = parseFloat(bgmSlider.value) || 0;
+        bgmGain.gain.value = bgmVol;
+        bgmAudioNormal.volume = Math.min(bgmVol, 1.0);
     }
     
     if (seSlider) {
-        seGain.gain.value = seSlider.value;
+        seGain.gain.value = parseFloat(seSlider.value) || 0;
     }
 }
 
@@ -584,6 +640,13 @@ function initAudio() {
 function playTone(freq, type, duration, vol = 1, slideDown = false) {
     if (!audioCtx || !seGain) return;
     if (audioCtx.state === 'suspended') audioCtx.resume();
+    
+    // 常に最新のスライダー値を適用
+    const seSlider = document.getElementById('se-volume-slider');
+    if (seSlider) {
+        const currentVol = Number(seSlider.value);
+        seGain.gain.value = isNaN(currentVol) ? 0.1 : currentVol;
+    }
     
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
@@ -617,6 +680,12 @@ function playSoundCoin() {
     // 「チャリーン！」というお金の音 (Cha-ching)
     if (!audioCtx || !seGain) return;
     if (audioCtx.state === 'suspended') audioCtx.resume();
+    
+    const seSlider = document.getElementById('se-volume-slider');
+    if (seSlider) {
+        const currentVol = Number(seSlider.value);
+        seGain.gain.value = isNaN(currentVol) ? 0.1 : currentVol;
+    }
     
     // 最初の「チャッ」部分
     const osc1 = audioCtx.createOscillator();
@@ -918,6 +987,7 @@ function init() {
     // 初回起動時は敵なし（役でENEMY当選してから登場させる）
     const enemyImgContainer = document.getElementById('enemy-img');
     if (enemyImgContainer) enemyImgContainer.style.visibility = 'hidden';
+    hideEnemyBanners();
     state.enemyActive = false;
     playCharacterAnimation('walk'); // 起動直後から歩行モーションを再生
     
@@ -1290,6 +1360,7 @@ function drawLottery() {
             // 敵を消去
             const enemyImgContainer = document.getElementById('enemy-img');
             if (enemyImgContainer) enemyImgContainer.style.visibility = 'hidden';
+            hideEnemyBanners();
             
             // 失敗メッセージ
             const elMessage = document.getElementById('debug-message');
@@ -1466,7 +1537,7 @@ function updateEnemyColor() {
             enemy.classList.add('enemy-slime-blue');
             if (core) core.classList.add('core-red');
         }
-    } else {
+    } else if (state.currentEnemyType === 'goblin') {
         if (flag >= FLAGS.REPLAY_A && flag <= FLAGS.REPLAY_C) {
             enemy.classList.add('enemy-goblin-blue');
         } else if (flag >= FLAGS.BELL_A && flag <= FLAGS.BELL_C) {
@@ -1481,6 +1552,23 @@ function updateEnemyColor() {
             enemy.classList.add('enemy-goblin-rainbow');
         } else {
             enemy.classList.add('enemy-goblin-blue');
+        }
+    } else {
+        // bat
+        if (flag >= FLAGS.REPLAY_A && flag <= FLAGS.REPLAY_C) {
+            enemy.classList.add('enemy-bat-blue');
+        } else if (flag >= FLAGS.BELL_A && flag <= FLAGS.BELL_C) {
+            enemy.classList.add('enemy-bat-yellow');
+        } else if (flag >= FLAGS.SUICA_A && flag <= FLAGS.SUICA_C) {
+            enemy.classList.add('enemy-bat-green');
+        } else if (flag >= FLAGS.CHERRY_A && flag <= FLAGS.CHERRY_C) {
+            enemy.classList.add('enemy-bat-red');
+        } else if (flag === FLAGS.HAZE) {
+            enemy.classList.add('enemy-bat-blue');
+        } else if ((flag >= FLAGS.BB_A && flag <= FLAGS.BB_D) || (flag >= FLAGS.RB_A && flag <= FLAGS.RB_B)) {
+            enemy.classList.add('enemy-bat-rainbow');
+        } else {
+            enemy.classList.add('enemy-bat-blue');
         }
     }
 }
@@ -2446,6 +2534,7 @@ if (debugModeToggle && debugPopup) {
     reelsCont.style.transform = `translateY(${rl.translateY}px) scale(${rl.scale})`;
 })();
 
+// 背景設定の適用は style.css の設定を正とするため、JSからの上書き（CONFIG.backgrounds の適用）は廃止しました。
 
 // デバッグポップアップのドラッグ機能
 let isDraggingDebug = false;
@@ -2500,8 +2589,9 @@ if (debugPopup) {
 const globalBgmSlider = document.getElementById('bgm-volume-slider');
 if (globalBgmSlider) {
     globalBgmSlider.addEventListener('input', (e) => {
-        if (bgmGain) bgmGain.gain.value = e.target.value;
-        bgmAudioNormal.volume = Math.min(e.target.value, 1.0);
+        const val = parseFloat(e.target.value) || 0;
+        if (bgmGain) bgmGain.gain.value = val;
+        bgmAudioNormal.volume = Math.min(val, 1.0);
         saveGameState();
     });
 }
@@ -2509,7 +2599,8 @@ if (globalBgmSlider) {
 const globalSeSlider = document.getElementById('se-volume-slider');
 if (globalSeSlider) {
     globalSeSlider.addEventListener('input', (e) => {
-        if (seGain) seGain.gain.value = e.target.value;
+        const val = parseFloat(e.target.value) || 0;
+        if (seGain) seGain.gain.value = val;
         saveGameState();
     });
 }

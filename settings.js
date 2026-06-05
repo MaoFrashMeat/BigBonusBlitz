@@ -1,9 +1,17 @@
-﻿// 繝代Λ繝｡繝ｼ繧ｿ險ｭ螳・(CONFIG)
+// 繝代Λ繝｡繝ｼ繧ｿ險ｭ螳・(CONFIG)
 // 縺薙・繝輔ぃ繧､繝ｫ縺ｯ繧ｨ繝・ぅ繧ｿ繝ｼ繝・・繝ｫ縺ｫ繧医▲縺ｦ閾ｪ蜍墓峩譁ｰ縺輔ｌ縺ｾ縺・
 let CONFIG = {
     "reelLayout": {
         "translateY": -38,
         "scale": 1.41
+    },
+    "backgrounds": {
+        "1": { "image": "assets/bg_ground.png", "blur": 0, "overlay": "rgba(0,0,0,0)" },
+        "2": { "image": "assets/bg_layer2_debris.png", "blur": 0, "overlay": "rgba(0,0,0,0)" },
+        "3": { "image": "assets/bg_layer3_woods.png", "blur": 0, "overlay": "rgba(0,0,0,0)" },
+        "4": { "image": "assets/bg_layer4_distant.png", "blur": 1, "overlay": "rgba(100,150,255,0.1)" },
+        "5": { "image": "assets/layer5_mountains_transparent.png", "blur": 2, "overlay": "rgba(100,150,255,0.3)" },
+        "6": { "image": "assets/bg_layer6_sky.png", "blur": 0, "overlay": "rgba(0,0,0,0)" }
     },
     "payouts": {
         "BIG": 300,

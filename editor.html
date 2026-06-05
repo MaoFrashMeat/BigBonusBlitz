@@ -155,6 +155,7 @@
             <div class="main-tabs" id="main-tabs" style="display:flex; gap:10px; margin-top:10px; margin-bottom:20px; border-bottom:2px solid #ff477e; justify-content:center;">
                 <button class="main-tab-btn active" data-target="tab-prob" style="background:#ff477e; color:#fff; border:none; padding:10px 20px; cursor:pointer; border-radius:5px 5px 0 0; font-weight:bold; font-size:16px;">基本 / 確率設定</button>
                 <button class="main-tab-btn" data-target="tab-reel" style="background:#0f3460; color:#fff; border:none; padding:10px 20px; cursor:pointer; border-radius:5px 5px 0 0; font-weight:bold; font-size:16px;">リール配列設定</button>
+                <button class="main-tab-btn" data-target="tab-bg" style="background:#0f3460; color:#fff; border:none; padding:10px 20px; cursor:pointer; border-radius:5px 5px 0 0; font-weight:bold; font-size:16px;">背景設定 (空気遠近法)</button>
             </div>
             
             <div id="tab-prob" class="tab-content active" style="display:block;">
@@ -353,6 +354,17 @@
                     <!-- JS generated -->
                 </div>
             </div> <!-- end tab-reel -->
+
+            <div id="tab-bg" class="tab-content" style="display:none;">
+                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                    <h3 class="section-title" style="margin-top:0;">🖼️ 背景レイヤー設定（空気遠近法）</h3>
+                    <p style="font-size:12px; color:#aaa; margin-bottom:15px;">※ 1層が一番手前、6層が一番奥（空）です。遠近感を出すために、遠くのレイヤーに「ぼかし」や「オーバーレイ色（青みなど）」を加えることができます。</p>
+                    
+                    <div id="bg-layers-container" style="display:flex; flex-direction:column; gap:10px;">
+                        <!-- JSで動的生成 -->
+                    </div>
+                </div>
+            </div> <!-- end tab-bg -->
             
         </div>
     </div>
@@ -434,6 +446,17 @@
         
         if (!currentConfig.ceilings) {
             currentConfig.ceilings = { A: 999, B: 555, C: 333, D: 100 };
+        }
+        
+        if (!currentConfig.backgrounds) {
+            currentConfig.backgrounds = {
+                1: { image: 'assets/bg_layer1_ground.png', blur: 0, overlay: 'rgba(0,0,0,0)' },
+                2: { image: 'assets/bg_layer2_trees.png', blur: 0, overlay: 'rgba(0,0,0,0)' },
+                3: { image: 'assets/bg_layer3_mid.png', blur: 0, overlay: 'rgba(0,0,0,0)' },
+                4: { image: 'assets/bg_layer4_distant.png', blur: 1, overlay: 'rgba(100,150,255,0.1)' },
+                5: { image: 'assets/layer5_mountains_transparent.png', blur: 2, overlay: 'rgba(100,150,255,0.3)' },
+                6: { image: 'assets/bg_layer6_sky.png', blur: 0, overlay: 'rgba(0,0,0,0)' }
+            };
         }
         
         if (!currentConfig.modeTransitions) {
@@ -631,6 +654,7 @@
                 });
             });
 
+            initBackgroundUI();
             loadCommonUI();
             loadSettingUI(1);
             loadReelsUI();
@@ -741,6 +765,70 @@
             document.getElementById('ceilingB').value = currentConfig.ceilings.B;
             document.getElementById('ceilingC').value = currentConfig.ceilings.C;
             document.getElementById('ceilingD').value = currentConfig.ceilings.D;
+
+            for (let i = 1; i <= 6; i++) {
+                const conf = currentConfig.backgrounds[i] || { image: '', blur: 0, overlay: 'rgba(0,0,0,0)' };
+                document.getElementById(`bg-img-${i}`).value = conf.image;
+                document.getElementById(`bg-blur-${i}`).value = conf.blur;
+                document.getElementById(`bg-ovl-${i}`).value = conf.overlay;
+                updateBgPreview(i);
+            }
+        }
+
+        function initBackgroundUI() {
+            const container = document.getElementById('bg-layers-container');
+            container.innerHTML = '';
+            for (let i = 6; i >= 1; i--) {
+                const row = document.createElement('div');
+                row.style.display = 'flex';
+                row.style.gap = '10px';
+                row.style.alignItems = 'center';
+                row.style.background = 'rgba(255,255,255,0.05)';
+                row.style.padding = '10px';
+                row.style.borderRadius = '5px';
+                
+                row.innerHTML = `
+                    <div style="flex: 0 0 60px; font-weight:bold; color:#ffaa00;">Layer ${i}</div>
+                    <div style="flex: 2; display:flex; flex-direction:column; gap:5px;">
+                        <input type="text" id="bg-img-${i}" placeholder="画像URL (assets/bg_layer.png)" style="background:#0f3460; color:#fff; border:1px solid #e94560; padding:5px; border-radius:3px; width:100%; box-sizing:border-box;">
+                    </div>
+                    <div style="flex: 1; display:flex; align-items:center; gap:5px;">
+                        <label style="font-size:12px;">Blur:</label>
+                        <input type="number" id="bg-blur-${i}" value="0" min="0" max="20" style="background:#0f3460; color:#fff; border:1px solid #e94560; padding:5px; border-radius:3px; width:50px;">
+                        <span style="font-size:12px;">px</span>
+                    </div>
+                    <div style="flex: 1.5; display:flex; align-items:center; gap:5px;">
+                        <label style="font-size:12px;">Ovl:</label>
+                        <input type="text" id="bg-ovl-${i}" placeholder="rgba(0,0,0,0)" style="background:#0f3460; color:#fff; border:1px solid #e94560; padding:5px; border-radius:3px; width:130px;">
+                    </div>
+                    <div style="flex: 0 0 80px; height: 50px; background: #000; position:relative; overflow:hidden; border:1px solid #fff; border-radius:3px;">
+                        <div id="bg-prev-${i}" style="width:100%; height:100%; background-size:cover; background-position:center; position:absolute;"></div>
+                        <div id="bg-ovl-prev-${i}" style="width:100%; height:100%; position:absolute; pointer-events:none;"></div>
+                    </div>
+                `;
+                container.appendChild(row);
+
+                const updateFn = () => updateBgPreview(i);
+                document.getElementById(`bg-img-${i}`).addEventListener('input', updateFn);
+                document.getElementById(`bg-blur-${i}`).addEventListener('input', updateFn);
+                document.getElementById(`bg-ovl-${i}`).addEventListener('input', updateFn);
+            }
+        }
+
+        function updateBgPreview(i) {
+            const img = document.getElementById(`bg-img-${i}`).value;
+            const blur = document.getElementById(`bg-blur-${i}`).value;
+            const ovl = document.getElementById(`bg-ovl-${i}`).value;
+            
+            const prevImg = document.getElementById(`bg-prev-${i}`);
+            const prevOvl = document.getElementById(`bg-ovl-prev-${i}`);
+            if (prevImg) {
+                prevImg.style.backgroundImage = \`url('\${img}')\`;
+                prevImg.style.filter = \`blur(\${blur || 0}px)\`;
+            }
+            if (prevOvl) {
+                prevOvl.style.backgroundColor = ovl || 'transparent';
+            }
         }
 
         // 指定した state / setting の probabilities オブジェクトを返すヘルパー
@@ -890,6 +978,15 @@
                 C: parseInt(document.getElementById('ceilingC').value, 10) || 333,
                 D: parseInt(document.getElementById('ceilingD').value, 10) || 100
             };
+            
+            if (!currentConfig.backgrounds) currentConfig.backgrounds = {};
+            for (let i = 1; i <= 6; i++) {
+                currentConfig.backgrounds[i] = {
+                    image: document.getElementById(`bg-img-${i}`).value || '',
+                    blur: parseFloat(document.getElementById(`bg-blur-${i}`).value) || 0,
+                    overlay: document.getElementById(`bg-ovl-${i}`).value || 'rgba(0,0,0,0)'
+                };
+            }
 
             currentConfig.modeTransitions.initial[activeSetting] = {
                 A: parseInt(document.getElementById('transInitA').value,  10) || 0,
