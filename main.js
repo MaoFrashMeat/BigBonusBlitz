@@ -114,8 +114,7 @@ let state = {
     bonusPayoutTarget: 0,
     bonusEarned: 0,
     stockCount: 0, // 1G連ストックなどの保持数
-    enemyHP: 100,
-    enemyMaxHP: 100,
+    activeEnemyTable: null,
     currentEnemyType: 'goblin',
     pendingEnemySpawn: false,
     enemyActive: false,        // 現在敵が画面上に存在するか
@@ -123,6 +122,7 @@ let state = {
     
     // RPG要素・Tier2(高確率ゾーン)管理
     isTier2: false,
+    pendingTier2: false,
     tier2SpinCount: 0,
     playerLevel: 1,
     playerExp: 0,
@@ -171,61 +171,6 @@ function stopCharacterAnimation() {
     // CSSアニメーションを使用するため、ここでは何もしない
 }
 
-// ダメージ処理関数
-function dealDamage(amount) {
-    const wasDead = state.enemyHP <= 0;
-    state.enemyHP -= amount;
-    if (state.enemyHP < 0) state.enemyHP = 0;
-    
-    // UI Update
-    const hpFill = document.getElementById('enemy-hp-fill');
-    if (hpFill) {
-        const pct = (state.enemyHP / state.enemyMaxHP) * 100;
-        hpFill.style.width = `${pct}%`;
-        if (pct < 30) hpFill.style.backgroundColor = '#f00';
-        else if (pct < 60) hpFill.style.backgroundColor = '#ff0';
-        else hpFill.style.backgroundColor = '#0f0';
-    }
-    
-    // Damage text
-    const dmgContainer = document.getElementById('damage-container');
-    if (dmgContainer) {
-        const el = document.createElement('div');
-        el.className = 'damage-text';
-        el.textContent = amount;
-        
-        // Randomize slight position
-        el.style.left = `${(Math.random() - 0.5) * 60}px`;
-        el.style.top = `${(Math.random() - 0.5) * 60}px`;
-        
-        dmgContainer.appendChild(el);
-        setTimeout(() => el.remove(), 1000);
-    }
-    
-    // 敵撃破時の処理
-    if (state.enemyHP <= 0 && !wasDead) {
-        playSoundEnemyDeath();
-        state.enemyActive = false; // 撃破→非アクティブ（次のENEMY当選まで復活しない）
-        state.isTier2 = false;     // 高確率ゾーン終了
-        updateTier2UI();
-        
-        // 経験値獲得
-        gainExp(50); // 一律50EXPを獲得
-
-        setTimeout(() => {
-            if (typeof elMessage !== 'undefined') {
-                elMessage.textContent = 'ENEMY DEFEATED! EXP GET!';
-                elMessage.classList.add('flash');
-                setTimeout(() => elMessage.classList.remove('flash'), 3000);
-            }
-
-            // 敵を非表示（次のワークフローENEMY当選で登場）
-            const enemyImgContainer = document.getElementById('enemy-img');
-            if (enemyImgContainer) enemyImgContainer.style.visibility = 'hidden';
-            hideEnemyBanners();
-        }, 1000);
-    }
-}
 
 // 経験値獲得とレベルアップ処理
 function gainExp(amount) {
@@ -275,8 +220,11 @@ function updateTier2UI() {
 
 // 新しい敵をランダムにスポーンする
 function spawnEnemy() {
-    const rand = Math.random();
-    if (rand < 0.33) {
+    if (state.activeEnemyTable) {
+        state.currentEnemyType = state.activeEnemyTable.enemyType;
+    } else {
+        const rand = Math.random();
+        if (rand < 0.33) {
         state.currentEnemyType = 'slime';
     } else if (rand < 0.66) {
         state.currentEnemyType = 'goblin';
@@ -308,12 +256,7 @@ function spawnEnemy() {
         enemyImgContainer.style.bottom = '50px';
     }
     
-    state.enemyHP = state.enemyMaxHP;
-    const hpFill = document.getElementById('enemy-hp-fill');
-    if (hpFill) {
-        hpFill.style.width = '100%';
-        hpFill.style.backgroundColor = '#0f0';
-    }
+
     
     updateEnemyColor();
 }
@@ -1347,6 +1290,13 @@ const CEILINGS = { 'A': 999, 'B': 555, 'C': 333, 'D': 100 };
 
     // 内部抽選
 function drawLottery() {
+    if (state.pendingTier2) {
+        state.isTier2 = true;
+        state.tier2SpinCount = 0;
+        state.pendingTier2 = false;
+        updateTier2UI();
+    }
+    
     // 毎ゲームのTier2カウント進行と失敗判定
     if (state.isTier2 && state.bonusMode === 'NORMAL') {
         state.tier2SpinCount++;
@@ -1961,6 +1911,33 @@ function checkAllStopped() {
 }
 
 // 役判定
+
+function checkEnemyDefeat(winType) {
+    if (!state.isTier2 || !state.activeEnemyTable || !state.enemyActive) return false;
+    const prob = state.activeEnemyTable.defeatProbabilities[winType] || 0;
+    if (prob > 0 && (Math.random() * 100 < prob)) {
+        if (typeof playSoundEnemyDeath === 'function') playSoundEnemyDeath();
+        state.enemyActive = false;
+        state.isTier2 = false;
+        updateTier2UI();
+        
+        const enemyImgContainer = document.getElementById('enemy-img');
+        if (enemyImgContainer) enemyImgContainer.style.visibility = 'hidden';
+        if (typeof hideEnemyBanners === 'function') hideEnemyBanners();
+        
+        if (typeof gainExp === 'function') gainExp(50);
+        
+        const elMessage = document.getElementById('message-display');
+        if (elMessage) {
+            elMessage.textContent = 'ENEMY DEFEATED! EXP GET!';
+            elMessage.classList.add('flash');
+            setTimeout(() => elMessage.classList.remove('flash'), 3000);
+        }
+        return true;
+    }
+    return false;
+}
+
 function evaluateWin() {
     state.isGameActive = false;
     btnMaxBet.disabled = false;
@@ -2179,7 +2156,7 @@ function evaluateWin() {
         // 小役が揃ったら攻撃モーションを再生し、ダメージを与える
         // （アニメーション処理は各リール停止時に移動したため、ここでは何もしないか、必要な処理のみ行う）
         
-        dealDamage(totalPayout * 5); // 獲得枚数x5をダメージとする
+
         
         const character = document.getElementById('character-sprite');
         const enemy = document.getElementById('enemy-img');
@@ -2215,6 +2192,7 @@ function evaluateWin() {
             setTimeout(() => elMessage.classList.remove('flash'), CONFIG.timings.nextWin / state.autoSpeed);
         }
         
+        checkEnemyDefeat(winType);
         if (state.isAutoMode) triggerNextAutoAction();
     } else if (isReplay) {
         playSoundReplay();
@@ -2237,6 +2215,7 @@ function evaluateWin() {
         btnMaxBet.textContent = 'SPIN (REPLAY)';
         updateUI();
         setTimeout(() => elMessage.classList.remove('flash'), CONFIG.timings.nextWin / state.autoSpeed);
+        checkEnemyDefeat('REPLAY');
         if (state.isAutoMode) triggerNextAutoAction();
         return; 
     } else {
@@ -2274,9 +2253,12 @@ function evaluateWin() {
     // ENEMYカテゴリが当選→未出現なら右からスライドイン登場
     if (state.lastWflResult?.category === 'ENEMY' && !state.enemyActive) {
         state.enemyActive = true;
-        state.isTier2 = true;
-        state.tier2SpinCount = 0;
-        updateTier2UI();
+        state.pendingTier2 = true; // 次ゲームからTier2(帯)開始
+        if (typeof ENEMY_ENGAGE_TABLES !== 'undefined' && ENEMY_ENGAGE_TABLES.length > 0) {
+            state.activeEnemyTable = ENEMY_ENGAGE_TABLES[Math.floor(Math.random() * ENEMY_ENGAGE_TABLES.length)];
+            state.currentEnemyType = state.activeEnemyTable.enemyType;
+        }
+
         playCharacterAnimation('idle'); // 敵出現フラグ当選時に直ちにidolを実行
         setTimeout(() => spawnEnemySlideIn(), 500); // 少し間を置いて登場
     }

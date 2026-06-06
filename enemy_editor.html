@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>BigBonusBlitz - エネミーエンゲージエディター</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep:  #0d0d1a;
+            --bg-card:  #141428;
+            --bg-panel: #1a1a35;
+            --bg-input: #0f0f22;
+            --accent:   #f43f5e;
+            --accent-lt:#fb7185;
+            --gold:     #f59e0b;
+            --green:    #10b981;
+            --yellow:   #f59e0b;
+            --red:      #ef4444;
+            --text:     #e2e8f0;
+            --muted:    #64748b;
+            --border:   #2d2d55;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg-deep); color: var(--text);
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh; display: flex; flex-direction: column;
+        }
+
+        /* HEADER */
+        header {
+            background: linear-gradient(135deg,#330510,#2b0d14);
+            border-bottom: 2px solid var(--accent);
+            padding: 14px 28px;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 4px 20px rgba(244,63,94,.3);
+        }
+        header h1 {
+            font-size: 20px; font-weight: 900;
+            background: linear-gradient(135deg,var(--accent-lt),var(--gold));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .hdr-right { display:flex; gap:12px; align-items:center; }
+        #status { font-size:13px; color:var(--muted); }
+        .btn-hdr {
+            padding:8px 18px; border-radius:8px; font-size:13px;
+            font-weight:700; cursor:pointer; border:none; transition:all .2s;
+        }
+        .btn-open { background:var(--bg-panel); color:var(--accent-lt); border:1px solid var(--accent); }
+        .btn-open:hover { background:var(--accent); color:#fff; }
+        .btn-save { background:var(--accent); color:#fff; }
+        .btn-save:hover { background:#be123c; }
+        .btn-save:disabled { background:#333; color:#555; cursor:not-allowed; }
+
+        /* LAYOUT */
+        .workspace { display:flex; flex:1; overflow:hidden; }
+
+        /* SIDEBAR */
+        .sidebar {
+            width:220px; flex-shrink:0;
+            background:var(--bg-card); border-right:2px solid var(--border);
+            display:flex; flex-direction:column; padding:12px 0; overflow-y:auto;
+        }
+        .sidebar-lbl {
+            font-size:10px; font-weight:700; color:var(--muted);
+            letter-spacing:2px; padding:4px 14px 10px; text-transform:uppercase;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .table-tab {
+            padding:11px 14px; cursor:pointer;
+            border-left:3px solid transparent; transition:all .15s;
+            display:flex; flex-direction:column; gap:3px;
+        }
+        .table-tab:hover { background:rgba(244,63,94,.1); border-left-color:var(--accent); }
+        .table-tab.active { background:rgba(244,63,94,.2); border-left-color:var(--accent-lt); }
+        .table-tab .rn { font-size:14px; font-weight:700; color: #fff; }
+        .table-tab .rt { font-size:11px; font-weight:600; color: var(--muted); }
+        .btn-add {
+            background: var(--green); color: #fff; border: none; border-radius: 4px;
+            padding: 2px 6px; font-size: 10px; cursor: pointer; font-weight: bold;
+        }
+        .btn-add:hover { background: #059669; }
+
+        /* MAIN */
+        .main { flex:1; overflow-y:auto; padding:14px 20px; display:flex; flex-direction:column; gap:20px; }
+
+        /* ROLE HEADER */
+        .role-hdr { display:flex; align-items:center; justify-content: space-between; }
+        .role-badge {
+            font-size:18px; font-weight:900; padding:4px 12px;
+            border-radius:8px; border:2px solid; white-space:nowrap;
+            color: var(--accent-lt); border-color: rgba(244,63,94,.3); background: rgba(244,63,94,.1);
+        }
+        .role-sub { color:var(--muted); font-size:12px; margin-top: 5px; }
+
+        .btn-delete {
+            background: transparent; color: var(--red); border: 1px solid var(--red);
+            padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: bold;
+        }
+        .btn-delete:hover { background: var(--red); color: #fff; }
+
+        /* SECTION */
+        .section {
+            background:var(--bg-card); border:1px solid var(--border);
+            border-radius:14px; overflow:hidden; padding: 14px;
+        }
+        .sec-title {
+            font-size: 16px; font-weight: 700; color: var(--accent-lt); margin-bottom: 10px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .input-group {
+            display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px;
+        }
+        .input-group label {
+            font-size: 12px; font-weight: 600; color: var(--muted);
+        }
+        .input-text {
+            width: 100%; max-width: 300px; padding: 8px 12px;
+            background: var(--bg-input); border: 1px solid var(--border);
+            border-radius: 6px; color: var(--text); font-size: 14px;
+            font-family: 'Outfit', sans-serif;
+        }
+        .input-select {
+            width: 100%; max-width: 300px; padding: 8px 12px;
+            background: var(--bg-input); border: 1px solid var(--border);
+            border-radius: 6px; color: var(--text); font-size: 14px;
+        }
+        .input-text:focus, .input-select:focus { outline:none; border-color:var(--accent); }
+        
+        .grid-3col { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+
+        .v-input-box { position:relative; display:flex; align-items:center; }
+        .v-input {
+            width:100%; padding:5px 16px 5px 6px;
+            background:var(--bg-input); border:1px solid var(--border);
+            border-radius:5px; color:var(--text); font-size:13px;
+            font-weight:700; font-family:'Outfit',sans-serif; text-align:right;
+        }
+        .v-input:focus { outline:none; border-color:var(--accent); }
+        .v-sfx { position:absolute; right:6px; font-size:10px; color:var(--muted); pointer-events:none; }
+
+        /* TOAST */
+        #toast {
+            position:fixed; top:18px; right:18px;
+            background:var(--bg-panel); border-left:4px solid var(--green);
+            color:var(--text); padding:11px 18px; border-radius:8px;
+            font-weight:700; font-size:13px;
+            box-shadow:0 8px 30px rgba(0,0,0,.5);
+            transform:translateX(120%); transition:transform .3s; z-index:9999;
+        }
+        #toast.show { transform:translateX(0); }
+        #toast.err  { border-left-color:var(--red); }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>👾 エネミーエンゲージエディター</h1>
+    <div class="hdr-right">
+        <span id="status">ファイルを読み込んでください</span>
+        <button id="btn-open" class="btn-hdr btn-open">📂 ファイル紐付け</button>
+        <button id="btn-save" class="btn-hdr btn-save" disabled>💾 保存</button>
+    </div>
+</header>
+
+<div class="workspace">
+    <nav class="sidebar">
+        <div class="sidebar-lbl">
+            <span>テーブル一覧</span>
+            <button class="btn-add" id="btn-add-table">+ 追加</button>
+        </div>
+        <div id="sidebar-list"></div>
+    </nav>
+    <main class="main" id="main">
+        <div style="color:var(--muted);text-align:center;margin-top:80px;font-size:15px;">
+            📂「ファイル紐付け」から <strong>enemy_tables.js</strong> を選択<br>
+        </div>
+    </main>
+</div>
+<div id="toast"></div>
+
+<script>
+let tables = [];
+let currentIndex = -1;
+let fileHandle = null;
+
+const WINS = [
+    { key:'BELL', label:'ベル' },
+    { key:'CHERRY', label:'チェリー' },
+    { key:'WATERMELON', label:'スイカ' },
+    { key:'CHANCE', label:'チャンス' },
+    { key:'REPLAY', label:'リプレイ' }
+];
+
+const T2_KEYS = [
+    'REPLAY_A', 'REPLAY_B', 'REPLAY_C', 
+    'BELL_A', 'BELL_B', 'BELL_C', 
+    'CHERRY_A', 'CHERRY_B', 'CHERRY_C', 
+    'SUICA_A', 'SUICA_B', 'SUICA_C', 
+    'CHANCE_A', 'CHANCE_B', 'CHANCE_C', 'CHANCE_D',
+    'BB_A', 'BB_B', 'BB_C', 'BB_D', 'RB_A', 'RB_B'
+];
+
+function createDefaultTable() {
+    return {
+        id: "table_" + Date.now(),
+        name: "新規テーブル",
+        enemyType: "slime",
+        defeatProbabilities: { "BELL": 5, "CHERRY": 20, "WATERMELON": 40, "CHANCE": 100, "REPLAY": 1 },
+        tier2Probabilities: {
+            "HAZE": 18536,
+            "BB_A": 0, "BB_B": 0, "BB_C": 0, "BB_D": 0,
+            "RB_A": 0, "RB_B": 0,
+            "REPLAY_A": 2000, "REPLAY_B": 2000, "REPLAY_C": 1000,
+            "BELL_A": 20000, "BELL_B": 5000, "BELL_C": 5000,
+            "CHERRY_A": 2000, "CHERRY_B": 2000, "CHERRY_C": 1000,
+            "SUICA_A": 2000, "SUICA_B": 2000, "SUICA_C": 1000,
+            "CHANCE_A": 500, "CHANCE_B": 500, "CHANCE_C": 500, "CHANCE_D": 500
+        }
+    };
+}
+
+/* =====================================================
+   IndexedDB によるファイルハンドル永続化
+===================================================== */
+const IDB_NAME    = 'EnemyEditor';
+const IDB_STORE   = 'handles';
+const IDB_KEY     = 'enemyFileHandle';
+
+function openIDB() {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open(IDB_NAME, 1);
+        req.onupgradeneeded = e => e.target.result.createObjectStore(IDB_STORE);
+        req.onsuccess = e => resolve(e.target.result);
+        req.onerror   = e => reject(e.target.error);
+    });
+}
+async function saveHandleToIDB(handle) {
+    const db = await openIDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(IDB_STORE, 'readwrite');
+        tx.objectStore(IDB_STORE).put(handle, IDB_KEY);
+        tx.oncomplete = resolve;
+        tx.onerror    = e => reject(e.target.error);
+    });
+}
+async function loadHandleFromIDB() {
+    const db = await openIDB();
+    return new Promise((resolve, reject) => {
+        const tx  = db.transaction(IDB_STORE, 'readonly');
+        const req = tx.objectStore(IDB_STORE).get(IDB_KEY);
+        req.onsuccess = e => resolve(e.target.result || null);
+        req.onerror   = e => reject(e.target.error);
+    });
+}
+
+async function loadFromHandle(handle) {
+    const file = await handle.getFile();
+    const text = await file.text();
+    try {
+        const fn = new Function(text + '; return typeof ENEMY_ENGAGE_TABLES !== "undefined" ? ENEMY_ENGAGE_TABLES : [];');
+        tables = fn() || [];
+        if (tables.length > 0) currentIndex = 0;
+    } catch(e) { console.warn('解析失敗:', e); }
+    document.getElementById('status').textContent = `✅ ${file.name}`;
+    document.getElementById('btn-save').disabled = false;
+    renderAll();
+}
+
+document.getElementById('btn-open').addEventListener('click', async () => {
+    try {
+        [fileHandle] = await window.showOpenFilePicker({
+            types:[{ description:'JavaScript', accept:{'text/javascript':['.js']} }]
+        });
+        await saveHandleToIDB(fileHandle);
+        await loadFromHandle(fileHandle);
+        showToast('読み込みました');
+    } catch(e) {
+        if (e.name !== 'AbortError') showToast('読み込み失敗: ' + e.message, true);
+    }
+});
+
+(async () => {
+    try {
+        const saved = await loadHandleFromIDB();
+        if (!saved) return;
+        let perm = await saved.queryPermission({ mode: 'readwrite' });
+        if (perm === 'prompt') {
+            document.getElementById('status').textContent = '🔗 前回のファイルを復元できます';
+            document.getElementById('btn-open').textContent = '🔗 前回のファイルを再接続';
+            document.getElementById('btn-open').addEventListener('click', async () => {
+                perm = await saved.requestPermission({ mode: 'readwrite' });
+                if (perm === 'granted') {
+                    fileHandle = saved;
+                    await loadFromHandle(fileHandle);
+                    showToast('前回のファイルを復元しました');
+                    document.getElementById('btn-open').textContent = '📂 ファイル紐付け';
+                }
+            }, { once: true });
+        } else if (perm === 'granted') {
+            fileHandle = saved;
+            await loadFromHandle(fileHandle);
+            showToast('前回のファイルを自動復元しました');
+        }
+    } catch(e) {}
+})();
+
+document.getElementById('btn-save').addEventListener('click', async () => {
+    if (!fileHandle) return;
+    try {
+        const perm = await fileHandle.queryPermission({ mode:'readwrite' });
+        if (perm !== 'granted') await fileHandle.requestPermission({ mode:'readwrite' });
+        const w = await fileHandle.createWritable();
+        const code = `// エネミーエンゲージ専用テーブル (ENEMY_ENGAGE_TABLES)
+// このファイルはエネミーエディターによって自動更新されます
+
+let ENEMY_ENGAGE_TABLES = ${JSON.stringify(tables, null, 4)};
+`;
+        await w.write(code);
+        await w.close();
+        showToast('保存しました ✅');
+    } catch(e) { showToast('保存失敗: ' + e.message, true); }
+});
+
+document.getElementById('btn-add-table').addEventListener('click', () => {
+    if (!fileHandle) { showToast('先にファイルを開いてください', true); return; }
+    tables.push(createDefaultTable());
+    currentIndex = tables.length - 1;
+    renderAll();
+});
+
+function deleteTable(index) {
+    if (confirm('本当にこのテーブルを削除しますか？')) {
+        tables.splice(index, 1);
+        if (currentIndex >= tables.length) currentIndex = tables.length - 1;
+        renderAll();
+    }
+}
+
+function renderAll() {
+    const sb = document.getElementById('sidebar-list');
+    sb.innerHTML = '';
+    
+    if (tables.length === 0) {
+        document.getElementById('main').innerHTML = '<div style="color:var(--muted);text-align:center;margin-top:80px;">テーブルがありません。+追加ボタンから作成してください。</div>';
+        return;
+    }
+
+    tables.forEach((t, i) => {
+        const tab = document.createElement('div');
+        tab.className = `table-tab ${i === currentIndex ? 'active' : ''}`;
+        tab.innerHTML = `<span class="rn">${t.name}</span><span class="rt">敵: ${t.enemyType}</span>`;
+        tab.addEventListener('click', () => { currentIndex = i; renderAll(); });
+        sb.appendChild(tab);
+    });
+
+    const t = tables[currentIndex];
+    const main = document.getElementById('main');
+
+    let totalT2 = 0;
+    T2_KEYS.forEach(k => totalT2 += (t.tier2Probabilities[k] || 0));
+    t.tier2Probabilities.HAZE = Math.max(0, 65536 - totalT2);
+
+    let html = `
+        <div>
+            <div class="role-hdr">
+                <div>
+                    <div class="role-badge">⚔️ ${t.name}</div>
+                    <div class="role-sub">ID: ${t.id}</div>
+                </div>
+                <button class="btn-delete" onclick="deleteTable(${currentIndex})">削除</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="sec-title">📖 基本設定</div>
+            <div style="display:flex; gap:20px;">
+                <div class="input-group">
+                    <label>テーブル名</label>
+                    <input type="text" class="input-text" id="inp-name" value="${t.name}">
+                </div>
+                <div class="input-group">
+                    <label>敵キャラクター</label>
+                    <select class="input-select" id="inp-enemy">
+                        <option value="slime" ${t.enemyType==='slime'?'selected':''}>スライム</option>
+                        <option value="goblin" ${t.enemyType==='goblin'?'selected':''}>ゴブリン</option>
+                        <option value="bat" ${t.enemyType==='bat'?'selected':''}>コウモリ</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="sec-title">🎯 討伐確率 (0〜100%)</div>
+            <div style="color:var(--muted); font-size:12px; margin-bottom:10px;">小役を引いた際、何%の確率で一撃討伐するかを設定します。</div>
+            <div class="grid-3col">
+                ${WINS.map(w => `
+                    <div class="input-group">
+                        <label>${w.label}</label>
+                        <div class="v-input-box">
+                            <input type="number" class="v-input prob-input" data-key="${w.key}" value="${t.defeatProbabilities[w.key]||0}" min="0" max="100">
+                            <span class="v-sfx">%</span>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="sec-title">🎰 小役確率（Tier2状態）</div>
+            <div style="color:var(--muted); font-size:12px; margin-bottom:10px;">
+                このテーブル（敵）と対峙している3ゲーム間の小役確率を設定します。（分母: 65536）<br>
+                <strong style="color:var(--green)">小役合計: ${totalT2} / 65536 (ハズレ: ${t.tier2Probabilities.HAZE})</strong>
+            </div>
+            <div class="grid-3col">
+                ${T2_KEYS.map(k => `
+                    <div class="input-group">
+                        <label>${k}</label>
+                        <div class="v-input-box">
+                            <input type="number" class="v-input t2-input" data-key="${k}" value="${t.tier2Probabilities[k]||0}" min="0" max="65536">
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+
+    main.innerHTML = html;
+
+    // Listeners
+    document.getElementById('inp-name').addEventListener('input', (e) => {
+        tables[currentIndex].name = e.target.value;
+        refreshSidebar();
+    });
+    document.getElementById('inp-enemy').addEventListener('change', (e) => {
+        tables[currentIndex].enemyType = e.target.value;
+        refreshSidebar();
+    });
+    document.querySelectorAll('.prob-input').forEach(el => {
+        el.addEventListener('input', (e) => {
+            let v = parseInt(e.target.value);
+            if(isNaN(v)) v = 0; if(v>100) v = 100; if(v<0) v=0;
+            tables[currentIndex].defeatProbabilities[e.target.dataset.key] = v;
+        });
+    });
+    document.querySelectorAll('.t2-input').forEach(el => {
+        el.addEventListener('input', (e) => {
+            let v = parseInt(e.target.value);
+            if(isNaN(v)) v = 0; if(v>65536) v = 65536; if(v<0) v=0;
+            tables[currentIndex].tier2Probabilities[e.target.dataset.key] = v;
+        });
+        el.addEventListener('blur', () => renderAll());
+    });
+}
+
+function refreshSidebar() {
+    const sb = document.getElementById('sidebar-list');
+    const tabs = sb.querySelectorAll('.table-tab');
+    if (tabs[currentIndex]) {
+        tabs[currentIndex].querySelector('.rn').textContent = tables[currentIndex].name;
+        tabs[currentIndex].querySelector('.rt').textContent = '敵: ' + tables[currentIndex].enemyType;
+    }
+}
+
+function showToast(msg, isErr = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = isErr ? 'show err' : 'show';
+    setTimeout(() => t.className = '', 2600);
+}
+
+</script>
+</body>
+</html>
