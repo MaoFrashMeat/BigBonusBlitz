@@ -2255,7 +2255,19 @@ function evaluateWin() {
         state.enemyActive = true;
         state.pendingTier2 = true; // 次ゲームからTier2(帯)開始
         if (typeof ENEMY_ENGAGE_TABLES !== 'undefined' && ENEMY_ENGAGE_TABLES.length > 0) {
-            state.activeEnemyTable = ENEMY_ENGAGE_TABLES[Math.floor(Math.random() * ENEMY_ENGAGE_TABLES.length)];
+            const variant = state.lastWflResult.variant || 'ANY';
+            let matchingTables = ENEMY_ENGAGE_TABLES.filter(t => t.variant === variant);
+            
+            // バリアントに一致するテーブルがない場合は「ANY（指定なし）」のテーブルを探す
+            if (matchingTables.length === 0) {
+                matchingTables = ENEMY_ENGAGE_TABLES.filter(t => !t.variant || t.variant === 'ANY');
+            }
+            // それでもなければ全体からランダム
+            if (matchingTables.length === 0) {
+                matchingTables = ENEMY_ENGAGE_TABLES;
+            }
+            
+            state.activeEnemyTable = matchingTables[Math.floor(Math.random() * matchingTables.length)];
             state.currentEnemyType = state.activeEnemyTable.enemyType;
         }
 

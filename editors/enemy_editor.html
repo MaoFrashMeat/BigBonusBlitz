@@ -99,6 +99,12 @@
         }
         .btn-delete:hover { background: var(--red); color: #fff; }
 
+        .btn-action {
+            background: transparent; color: var(--accent-lt); border: 1px solid var(--accent-lt);
+            padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: bold;
+        }
+        .btn-action:hover { background: var(--accent-lt); color: #000; }
+
         /* SECTION */
         .section {
             background:var(--bg-card); border:1px solid var(--border);
@@ -151,15 +157,16 @@
         #toast.show { transform:translateX(0); }
         #toast.err  { border-left-color:var(--red); }
     </style>
+    <script src="../enemy_tables.js"></script>
 </head>
 <body>
 
 <header>
     <h1>👾 エネミーエンゲージエディター</h1>
     <div class="hdr-right">
-        <span id="status">ファイルを読み込んでください</span>
-        <button id="btn-open" class="btn-hdr btn-open">📂 ファイル紐付け</button>
-        <button id="btn-save" class="btn-hdr btn-save" disabled>💾 保存</button>
+        <span id="status">✅ データロード完了 (上書き保存には紐付けが必要です)</span>
+        <button id="btn-open" class="btn-hdr btn-open">📂 保存先を紐付け</button>
+        <button id="btn-save" class="btn-hdr btn-save">💾 保存</button>
     </div>
 </header>
 
@@ -173,15 +180,15 @@
     </nav>
     <main class="main" id="main">
         <div style="color:var(--muted);text-align:center;margin-top:80px;font-size:15px;">
-            📂「ファイル紐付け」から <strong>enemy_tables.js</strong> を選択<br>
+            左側の「＋追加」ボタンからテーブルを作成してください。<br>
         </div>
     </main>
 </div>
 <div id="toast"></div>
 
 <script>
-let tables = [];
-let currentIndex = -1;
+let tables = typeof ENEMY_ENGAGE_TABLES !== 'undefined' ? ENEMY_ENGAGE_TABLES : [];
+let currentIndex = tables.length > 0 ? 0 : -1;
 let fileHandle = null;
 
 const WINS = [
@@ -206,6 +213,7 @@ function createDefaultTable() {
         id: "table_" + Date.now(),
         name: "新規テーブル",
         enemyType: "slime",
+        variant: "ANY",
         defeatProbabilities: { "BELL": 5, "CHERRY": 20, "WATERMELON": 40, "CHANCE": 100, "REPLAY": 1 },
         tier2Probabilities: {
             "HAZE": 18536,
@@ -306,24 +314,30 @@ document.getElementById('btn-open').addEventListener('click', async () => {
 })();
 
 document.getElementById('btn-save').addEventListener('click', async () => {
-    if (!fileHandle) return;
     try {
+        if (!fileHandle) {
+            [fileHandle] = await window.showOpenFilePicker({
+                types:[{ description:'JavaScript', accept:{'text/javascript':['.js']} }]
+            });
+            await saveHandleToIDB(fileHandle);
+        }
         const perm = await fileHandle.queryPermission({ mode:'readwrite' });
-        if (perm !== 'granted') await fileHandle.requestPermission({ mode:'readwrite' });
+        if (perm !== 'granted') {
+            const req = await fileHandle.requestPermission({ mode:'readwrite' });
+            if (req !== 'granted') return;
+        }
         const w = await fileHandle.createWritable();
-        const code = `// エネミーエンゲージ専用テーブル (ENEMY_ENGAGE_TABLES)
-// このファイルはエネミーエディターによって自動更新されます
-
-let ENEMY_ENGAGE_TABLES = ${JSON.stringify(tables, null, 4)};
-`;
+        const code = `// エネミーエンゲージ専用テーブル (ENEMY_ENGAGE_TABLES)\n// このファイルはエネミーエディターによって自動更新されます\n\nlet ENEMY_ENGAGE_TABLES = ${JSON.stringify(tables, null, 4)};\n`;
         await w.write(code);
         await w.close();
+        document.getElementById('status').textContent = '✅ 保存完了 (' + fileHandle.name + ')';
         showToast('保存しました ✅');
-    } catch(e) { showToast('保存失敗: ' + e.message, true); }
+    } catch(e) {
+        if (e.name !== 'AbortError') showToast('保存失敗: ' + e.message, true);
+    }
 });
 
 document.getElementById('btn-add-table').addEventListener('click', () => {
-    if (!fileHandle) { showToast('先にファイルを開いてください', true); return; }
     tables.push(createDefaultTable());
     currentIndex = tables.length - 1;
     renderAll();
@@ -334,6 +348,46 @@ function deleteTable(index) {
         tables.splice(index, 1);
         if (currentIndex >= tables.length) currentIndex = tables.length - 1;
         renderAll();
+    }
+}
+
+function copyTable(index) {
+    const data = JSON.stringify(tables[index], null, 4);
+    navigator.clipboard.writeText(data)
+        .then(() => showToast('パラメータをコピーしました📋'))
+        .catch(() => showToast('コピーに失敗しました', true));
+}
+
+async function pasteTable(index) {
+    try {
+        const text = await navigator.clipboard.readText();
+        const data = JSON.parse(text);
+        if (data && data.defeatProbabilities) {
+            const oldId = tables[index].id;
+            tables[index] = { ...data, id: oldId };
+            renderAll();
+            showToast('パラメータを貼り付けました✅');
+        } else {
+            showToast('無効なテーブルデータです', true);
+        }
+    } catch(e) {
+        // clipboard.readTextが使えない環境向けフォールバック
+        const fallbackText = prompt('クリップボードからの読み取りに失敗しました。ここにJSONデータを貼り付けてください:');
+        if (fallbackText) {
+            try {
+                const data = JSON.parse(fallbackText);
+                if (data && data.defeatProbabilities) {
+                    const oldId = tables[index].id;
+                    tables[index] = { ...data, id: oldId };
+                    renderAll();
+                    showToast('パラメータを貼り付けました✅');
+                } else {
+                    showToast('無効なテーブルデータです', true);
+                }
+            } catch(e2) {
+                showToast('データの解析に失敗しました', true);
+            }
+        }
     }
 }
 
@@ -349,7 +403,8 @@ function renderAll() {
     tables.forEach((t, i) => {
         const tab = document.createElement('div');
         tab.className = `table-tab ${i === currentIndex ? 'active' : ''}`;
-        tab.innerHTML = `<span class="rn">${t.name}</span><span class="rt">敵: ${t.enemyType}</span>`;
+        const v = t.variant && t.variant !== 'ANY' ? ' (' + t.variant + ')' : '';
+        tab.innerHTML = `<span class="rn">${t.name}</span><span class="rt">敵: ${t.enemyType}${v}</span>`;
         tab.addEventListener('click', () => { currentIndex = i; renderAll(); });
         sb.appendChild(tab);
     });
@@ -368,7 +423,11 @@ function renderAll() {
                     <div class="role-badge">⚔️ ${t.name}</div>
                     <div class="role-sub">ID: ${t.id}</div>
                 </div>
-                <button class="btn-delete" onclick="deleteTable(${currentIndex})">削除</button>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn-action" onclick="copyTable(${currentIndex})">📋 コピー</button>
+                    <button class="btn-action" onclick="pasteTable(${currentIndex})">📋 ペースト</button>
+                    <button class="btn-delete" onclick="deleteTable(${currentIndex})">🗑️ 削除</button>
+                </div>
             </div>
         </div>
 
@@ -385,6 +444,18 @@ function renderAll() {
                         <option value="slime" ${t.enemyType==='slime'?'selected':''}>スライム</option>
                         <option value="goblin" ${t.enemyType==='goblin'?'selected':''}>ゴブリン</option>
                         <option value="bat" ${t.enemyType==='bat'?'selected':''}>コウモリ</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>対応バリアント (出現契機)</label>
+                    <select class="input-select" id="inp-variant">
+                        <option value="ANY" ${!t.variant || t.variant==='ANY'?'selected':''}>ANY (すべて)</option>
+                        <option value="A" ${t.variant==='A'?'selected':''}>Variant A</option>
+                        <option value="B" ${t.variant==='B'?'selected':''}>Variant B</option>
+                        <option value="C" ${t.variant==='C'?'selected':''}>Variant C</option>
+                        <option value="D" ${t.variant==='D'?'selected':''}>Variant D</option>
+                        <option value="E" ${t.variant==='E'?'selected':''}>Variant E</option>
+                        <option value="F" ${t.variant==='F'?'selected':''}>Variant F</option>
                     </select>
                 </div>
             </div>
@@ -436,6 +507,10 @@ function renderAll() {
         tables[currentIndex].enemyType = e.target.value;
         refreshSidebar();
     });
+    document.getElementById('inp-variant').addEventListener('change', (e) => {
+        tables[currentIndex].variant = e.target.value;
+        refreshSidebar();
+    });
     document.querySelectorAll('.prob-input').forEach(el => {
         el.addEventListener('input', (e) => {
             let v = parseInt(e.target.value);
@@ -458,7 +533,8 @@ function refreshSidebar() {
     const tabs = sb.querySelectorAll('.table-tab');
     if (tabs[currentIndex]) {
         tabs[currentIndex].querySelector('.rn').textContent = tables[currentIndex].name;
-        tabs[currentIndex].querySelector('.rt').textContent = '敵: ' + tables[currentIndex].enemyType;
+        const v = tables[currentIndex].variant && tables[currentIndex].variant !== 'ANY' ? ' (' + tables[currentIndex].variant + ')' : '';
+        tabs[currentIndex].querySelector('.rt').textContent = '敵: ' + tables[currentIndex].enemyType + v;
     }
 }
 
@@ -469,6 +545,7 @@ function showToast(msg, isErr = false) {
     setTimeout(() => t.className = '', 2600);
 }
 
+renderAll();
 </script>
 </body>
 </html>
