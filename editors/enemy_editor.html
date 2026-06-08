@@ -224,6 +224,14 @@ function createDefaultTable() {
             "CHERRY_A": 2000, "CHERRY_B": 2000, "CHERRY_C": 1000,
             "SUICA_A": 2000, "SUICA_B": 2000, "SUICA_C": 1000,
             "CHANCE_A": 500, "CHANCE_B": 500, "CHANCE_C": 500, "CHANCE_D": 500
+        },
+        hintConfig: {
+            appearanceRate: 70,
+            distribution: {
+                redGlow: 40,
+                textOnly: 30,
+                both: 30
+            }
         }
     };
 }
@@ -478,6 +486,35 @@ function renderAll() {
         </div>
 
         <div class="section">
+            <div class="sec-title">🎬 示唆演出（違和感演出）設定</div>
+            <div style="color:var(--muted); font-size:12px; margin-bottom:10px;">内部討伐当選中に、レバーオンで演出が発生する確率と、その振り分け（占有率）を設定します。</div>
+            
+            <div class="input-group" style="margin-bottom:15px;">
+                <label>毎ゲームの演出発生率 (0〜100%)</label>
+                <div class="v-input-box" style="max-width:150px;">
+                    <input type="number" class="v-input hint-input" data-key="appearanceRate" value="${t.hintConfig?.appearanceRate ?? 70}" min="0" max="100">
+                    <span class="v-sfx">%</span>
+                </div>
+            </div>
+
+            <label style="font-size:12px; font-weight:600; color:var(--muted);">演出パターンの占有率（合計が100になるように比率で計算されます）</label>
+            <div class="grid-3col" style="margin-top:5px;">
+                <div class="input-group">
+                    <label>赤エフェクトのみ</label>
+                    <input type="number" class="input-text hint-dist-input" data-key="redGlow" value="${t.hintConfig?.distribution?.redGlow ?? 40}" min="0">
+                </div>
+                <div class="input-group">
+                    <label>セリフのみ「もらった…！」</label>
+                    <input type="number" class="input-text hint-dist-input" data-key="textOnly" value="${t.hintConfig?.distribution?.textOnly ?? 30}" min="0">
+                </div>
+                <div class="input-group">
+                    <label>複合「激熱ッ！」</label>
+                    <input type="number" class="input-text hint-dist-input" data-key="both" value="${t.hintConfig?.distribution?.both ?? 30}" min="0">
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
             <div class="sec-title">🎰 小役確率（Tier2状態）</div>
             <div style="color:var(--muted); font-size:12px; margin-bottom:10px;">
                 このテーブル（敵）と対峙している3ゲーム間の小役確率を設定します。（分母: 65536）<br>
@@ -518,13 +555,25 @@ function renderAll() {
             tables[currentIndex].defeatProbabilities[e.target.dataset.key] = v;
         });
     });
-    document.querySelectorAll('.t2-input').forEach(el => {
-        el.addEventListener('input', (e) => {
-            let v = parseInt(e.target.value);
-            if(isNaN(v)) v = 0; if(v>65536) v = 65536; if(v<0) v=0;
-            tables[currentIndex].tier2Probabilities[e.target.dataset.key] = v;
+    document.querySelectorAll('.t2-input').forEach(inp => {
+        inp.addEventListener('input', (e) => {
+            const k = e.target.dataset.key;
+            tables[currentIndex].tier2Probabilities[k] = parseInt(e.target.value) || 0;
+            renderAll();
         });
-        el.addEventListener('blur', () => renderAll());
+    });
+    document.querySelectorAll('.hint-input').forEach(inp => {
+        inp.addEventListener('input', (e) => {
+            if (!tables[currentIndex].hintConfig) tables[currentIndex].hintConfig = { appearanceRate: 70, distribution: { redGlow: 40, textOnly: 30, both: 30 } };
+            tables[currentIndex].hintConfig[e.target.dataset.key] = parseInt(e.target.value) || 0;
+        });
+    });
+    document.querySelectorAll('.hint-dist-input').forEach(inp => {
+        inp.addEventListener('input', (e) => {
+            if (!tables[currentIndex].hintConfig) tables[currentIndex].hintConfig = { appearanceRate: 70, distribution: { redGlow: 40, textOnly: 30, both: 30 } };
+            if (!tables[currentIndex].hintConfig.distribution) tables[currentIndex].hintConfig.distribution = { redGlow: 40, textOnly: 30, both: 30 };
+            tables[currentIndex].hintConfig.distribution[e.target.dataset.key] = parseInt(e.target.value) || 0;
+        });
     });
 }
 

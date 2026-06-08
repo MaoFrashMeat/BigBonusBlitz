@@ -124,6 +124,7 @@ let state = {
     isTier2: false,
     pendingTier2: false,
     tier2SpinCount: 0,
+    enemyDefeatWon: false,     // 討伐当選フラグ（後告知用）
     playerLevel: 1,
     playerExp: 0,
 };
@@ -1297,29 +1298,9 @@ function drawLottery() {
         updateTier2UI();
     }
     
-    // 毎ゲームのTier2カウント進行と失敗判定
+    // 毎ゲームのTier2カウント進行
     if (state.isTier2 && state.bonusMode === 'NORMAL') {
         state.tier2SpinCount++;
-        let maxSpins = CONFIG.tier2MaxSpins || 3;
-        if (state.tier2SpinCount > maxSpins && state.enemyActive) {
-            // 失敗：通常モードに戻る（ペナルティなし）
-            state.isTier2 = false;
-            state.enemyActive = false;
-            updateTier2UI();
-            
-            // 敵を消去
-            const enemyImgContainer = document.getElementById('enemy-img');
-            if (enemyImgContainer) enemyImgContainer.style.visibility = 'hidden';
-            hideEnemyBanners();
-            
-            // 失敗メッセージ
-            const elMessage = document.getElementById('debug-message');
-            if (elMessage) {
-                elMessage.textContent = 'ZONE END... BACK TO NORMAL';
-                elMessage.classList.add('flash');
-                setTimeout(() => elMessage.classList.remove('flash'), 3000);
-            }
-        }
         updateTier2UI();
     }
 
@@ -1528,6 +1509,52 @@ function onLever() {
     if (state.bet === 0) return;
     state.isGameActive = true;
     // elMessage.textContent = `${state.spinCount}G`;
+
+    // 示唆演出 (Hints)
+    if (state.isTier2 && state.enemyDefeatWon && state.activeEnemyTable) {
+        // Fallback for tables without hintConfig
+        const hintConf = state.activeEnemyTable.hintConfig || { appearanceRate: 70, distribution: { redGlow: 40, textOnly: 30, both: 30 } };
+        const dist = hintConf.distribution || { redGlow: 40, textOnly: 30, both: 30 };
+        
+        // 1. 発生抽選 (Appearance check)
+        if (Math.random() * 100 < hintConf.appearanceRate) {
+            // 2. 占有率 (Distribution weights)
+            const wGlow = dist.redGlow || 0;
+            const wText = dist.textOnly || 0;
+            const wBoth = dist.both || 0;
+            const totalWeight = wGlow + wText + wBoth;
+            
+            if (totalWeight > 0) {
+                const roll = Math.random() * totalWeight;
+                
+                if (roll < wGlow) {
+                    // Hint 1: Red Glow
+                    document.body.classList.add('hint-red-glow');
+                    setTimeout(() => document.body.classList.remove('hint-red-glow'), 1500);
+                } else if (roll < wGlow + wText) {
+                    // Hint 2: Text "もらった…！"
+                    const elMessage = document.getElementById('message-display');
+                    if (elMessage) {
+                        elMessage.textContent = '「もらった…！」';
+                        elMessage.classList.add('text-red');
+                        setTimeout(() => elMessage.classList.remove('text-red'), 2000);
+                    }
+                } else {
+                    // Hint 3: Both "激熱ッ！"
+                    document.body.classList.add('hint-red-glow');
+                    const elMessage = document.getElementById('message-display');
+                    if (elMessage) {
+                        elMessage.textContent = '「激熱ッ！」';
+                        elMessage.classList.add('text-red', 'flash');
+                        setTimeout(() => {
+                            elMessage.classList.remove('text-red', 'flash');
+                            document.body.classList.remove('hint-red-glow');
+                        }, 2000);
+                    }
+                }
+            }
+        }
+    }
 
     playSoundSpinStart();
     
@@ -1914,28 +1941,13 @@ function checkAllStopped() {
 
 function checkEnemyDefeat(winType) {
     if (!state.isTier2 || !state.activeEnemyTable || !state.enemyActive) return false;
-    const prob = state.activeEnemyTable.defeatProbabilities[winType] || 0;
-    if (prob > 0 && (Math.random() * 100 < prob)) {
-        if (typeof playSoundEnemyDeath === 'function') playSoundEnemyDeath();
-        state.enemyActive = false;
-        state.isTier2 = false;
-        updateTier2UI();
-        
-        const enemyImgContainer = document.getElementById('enemy-img');
-        if (enemyImgContainer) enemyImgContainer.style.visibility = 'hidden';
-        if (typeof hideEnemyBanners === 'function') hideEnemyBanners();
-        
-        if (typeof gainExp === 'function') gainExp(50);
-        
-        const elMessage = document.getElementById('message-display');
-        if (elMessage) {
-            elMessage.textContent = 'ENEMY DEFEATED! EXP GET!';
-            elMessage.classList.add('flash');
-            setTimeout(() => elMessage.classList.remove('flash'), 3000);
+    if (!state.enemyDefeatWon) {
+        const prob = state.activeEnemyTable.defeatProbabilities[winType] || 0;
+        if (prob > 0 && (Math.random() * 100 < prob)) {
+            state.enemyDefeatWon = true; // 即告知せず内部フラグのみ立てる
         }
-        return true;
     }
-    return false;
+    return false; // 即座に勝利処理を実行させないため常にfalseを返す
 }
 
 function evaluateWin() {
@@ -2245,6 +2257,47 @@ function evaluateWin() {
     state.bet = 0;
     updateUI();
 
+    // --- エネミーエンゲージの完全告知（3ゲーム目の終わり） ---
+    let maxSpins = typeof CONFIG !== 'undefined' && CONFIG.tier2MaxSpins ? CONFIG.tier2MaxSpins : 3;
+    if (state.isTier2 && state.tier2SpinCount >= maxSpins) {
+        if (state.enemyDefeatWon) {
+            // 勝利告知
+            if (typeof playSoundEnemyDeath === 'function') playSoundEnemyDeath();
+            state.enemyActive = false;
+            state.isTier2 = false;
+            updateTier2UI();
+            
+            const enemyImgContainer = document.getElementById('enemy-img');
+            if (enemyImgContainer) enemyImgContainer.style.visibility = 'hidden';
+            if (typeof hideEnemyBanners === 'function') hideEnemyBanners();
+            
+            if (typeof gainExp === 'function') gainExp(50);
+            
+            const elMessage = document.getElementById('message-display');
+            if (elMessage) {
+                elMessage.textContent = 'ENEMY DEFEATED! EXP GET!';
+                elMessage.classList.add('flash', 'text-red');
+                setTimeout(() => elMessage.classList.remove('flash', 'text-red'), 3000);
+            }
+        } else {
+            // 敗北告知（逃走）
+            state.isTier2 = false;
+            state.enemyActive = false;
+            updateTier2UI();
+            
+            const enemyImgContainer = document.getElementById('enemy-img');
+            if (enemyImgContainer) enemyImgContainer.style.visibility = 'hidden';
+            if (typeof hideEnemyBanners === 'function') hideEnemyBanners();
+            
+            const elMessage = document.getElementById('debug-message');
+            if (elMessage) {
+                elMessage.textContent = 'ENEMY ESCAPED... ZONE END';
+                elMessage.classList.add('flash');
+                setTimeout(() => elMessage.classList.remove('flash'), 3000);
+            }
+        }
+    }
+
     // ワークフロー抽選を実行してデバッグ表示を更新
     const wflRoleKey = winTypeToWorkflowRole(winType, isReplay);
     state.lastWflResult = runWorkflowLottery(wflRoleKey);
@@ -2254,6 +2307,7 @@ function evaluateWin() {
     if (state.lastWflResult?.category === 'ENEMY' && !state.enemyActive) {
         state.enemyActive = true;
         state.pendingTier2 = true; // 次ゲームからTier2(帯)開始
+        state.enemyDefeatWon = false; // 討伐状態のリセット
         if (typeof ENEMY_ENGAGE_TABLES !== 'undefined' && ENEMY_ENGAGE_TABLES.length > 0) {
             const variant = state.lastWflResult.variant || 'ANY';
             let matchingTables = ENEMY_ENGAGE_TABLES.filter(t => t.variant === variant);
