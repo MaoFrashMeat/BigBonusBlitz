@@ -380,8 +380,27 @@ function mergeLoaded(loaded) {
 }
 
 document.getElementById('btn-save').addEventListener('click', async () => {
-    if (!fileHandle) return;
     try {
+        if (!fileHandle) {
+            // IDBに前回のハンドルがあれば、ファイルピッカーを開く前に権限リクエストを試みる
+            const saved = await loadHandleFromIDB();
+            if (saved) {
+                const perm = await saved.requestPermission({ mode: 'readwrite' });
+                if (perm === 'granted') {
+                    fileHandle = saved;
+                    document.getElementById('status').textContent = '🔗 復元して保存しました';
+                    document.getElementById('btn-open').textContent = '📂 ファイル紐付け';
+                }
+            }
+            
+            // それでもダメならファイルピッカーを開く
+            if (!fileHandle) {
+                [fileHandle] = await window.showOpenFilePicker({
+                    types:[{ description:'JavaScript', accept:{'text/javascript':['.js']} }]
+                });
+                await saveHandleToIDB(fileHandle);
+            }
+        }
         const perm = await fileHandle.queryPermission({ mode:'readwrite' });
         if (perm !== 'granted') await fileHandle.requestPermission({ mode:'readwrite' });
         const w = await fileHandle.createWritable();
