@@ -227,10 +227,11 @@ function spawnEnemy() {
         const rand = Math.random();
         if (rand < 0.33) {
         state.currentEnemyType = 'slime';
-    } else if (rand < 0.66) {
-        state.currentEnemyType = 'goblin';
-    } else {
-        state.currentEnemyType = 'bat';
+        } else if (rand < 0.66) {
+            state.currentEnemyType = 'goblin';
+        } else {
+            state.currentEnemyType = 'bat';
+        }
     }
     
     const sprite = document.getElementById('enemy-sprite');
