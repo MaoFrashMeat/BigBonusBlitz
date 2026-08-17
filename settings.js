@@ -30,7 +30,7 @@ let CONFIG = {
     },
     "probabilities_A": {
         "1": {
-            "HAZE": 54594,
+            "HAZE": 54394,
             "BB_A": 250,
             "BB_B": 80,
             "BB_C": 100,
@@ -54,7 +54,7 @@ let CONFIG = {
             "CHANCE_C": 200, "CHANCE_D": 200
         },
         "2": {
-            "HAZE": 56768,
+            "HAZE": 56718,
             "BB_A": 280,
             "BB_B": 80,
             "BB_C": 100,
@@ -78,7 +78,7 @@ let CONFIG = {
             "CHANCE_C": 50, "CHANCE_D": 50
         },
         "3": {
-            "HAZE": 56768,
+            "HAZE": 56718,
             "BB_A": 280,
             "BB_B": 80,
             "BB_C": 100,
@@ -102,7 +102,7 @@ let CONFIG = {
             "CHANCE_C": 50, "CHANCE_D": 50
         },
         "4": {
-            "HAZE": 56768,
+            "HAZE": 56718,
             "BB_A": 280,
             "BB_B": 80,
             "BB_C": 100,
@@ -126,7 +126,7 @@ let CONFIG = {
             "CHANCE_C": 50, "CHANCE_D": 50
         },
         "5": {
-            "HAZE": 56768,
+            "HAZE": 56718,
             "BB_A": 280,
             "BB_B": 80,
             "BB_C": 100,
@@ -150,7 +150,7 @@ let CONFIG = {
             "CHANCE_C": 50, "CHANCE_D": 50
         },
         "6": {
-            "HAZE": 37184,
+            "HAZE": 36984,
             "BB_A": 500,
             "BB_B": 120,
             "BB_C": 120,
@@ -176,7 +176,7 @@ let CONFIG = {
     },
     "probabilities_BB": {
         "1": {
-            "HAZE": 8632,
+            "HAZE": 8432,
             "BB_A": 0,
             "BB_B": 0,
             "BB_C": 0,
@@ -200,7 +200,7 @@ let CONFIG = {
             "CHANCE_C": 200, "CHANCE_D": 200
         },
         "2": {
-            "HAZE": 8632,
+            "HAZE": 8432,
             "BB_A": 0,
             "BB_B": 0,
             "BB_C": 0,
@@ -224,7 +224,7 @@ let CONFIG = {
             "CHANCE_C": 200, "CHANCE_D": 200
         },
         "3": {
-            "HAZE": 8632,
+            "HAZE": 8432,
             "BB_A": 0,
             "BB_B": 0,
             "BB_C": 0,
@@ -248,7 +248,7 @@ let CONFIG = {
             "CHANCE_C": 200, "CHANCE_D": 200
         },
         "4": {
-            "HAZE": 8632,
+            "HAZE": 8432,
             "BB_A": 0,
             "BB_B": 0,
             "BB_C": 0,
@@ -272,7 +272,7 @@ let CONFIG = {
             "CHANCE_C": 200, "CHANCE_D": 200
         },
         "5": {
-            "HAZE": 8632,
+            "HAZE": 8432,
             "BB_A": 0,
             "BB_B": 0,
             "BB_C": 0,
@@ -296,7 +296,7 @@ let CONFIG = {
             "CHANCE_C": 200, "CHANCE_D": 200
         },
         "6": {
-            "HAZE": 8632,
+            "HAZE": 8432,
             "BB_A": 0,
             "BB_B": 0,
             "BB_C": 0,
@@ -552,7 +552,7 @@ let CONFIG = {
     },
     "probabilities_B": {
         "1": {
-            "HAZE": 54594,
+            "HAZE": 54394,
             "BB_A": 250,
             "BB_B": 80,
             "BB_C": 100,
@@ -576,7 +576,7 @@ let CONFIG = {
             "CHANCE_C": 200, "CHANCE_D": 200
         },
         "2": {
-            "HAZE": 56768,
+            "HAZE": 56718,
             "BB_A": 280,
             "BB_B": 80,
             "BB_C": 100,
@@ -600,7 +600,7 @@ let CONFIG = {
             "CHANCE_C": 50, "CHANCE_D": 50
         },
         "3": {
-            "HAZE": 56768,
+            "HAZE": 56718,
             "BB_A": 280,
             "BB_B": 80,
             "BB_C": 100,
@@ -624,7 +624,7 @@ let CONFIG = {
             "CHANCE_C": 50, "CHANCE_D": 50
         },
         "4": {
-            "HAZE": 56768,
+            "HAZE": 56718,
             "BB_A": 280,
             "BB_B": 80,
             "BB_C": 100,
@@ -648,7 +648,7 @@ let CONFIG = {
             "CHANCE_C": 50, "CHANCE_D": 50
         },
         "5": {
-            "HAZE": 56768,
+            "HAZE": 56718,
             "BB_A": 280,
             "BB_B": 80,
             "BB_C": 100,
@@ -672,7 +672,7 @@ let CONFIG = {
             "CHANCE_C": 50, "CHANCE_D": 50
         },
         "6": {
-            "HAZE": 53984,
+            "HAZE": 53784,
             "BB_A": 300,
             "BB_B": 120,
             "BB_C": 120,
@@ -698,7 +698,7 @@ let CONFIG = {
     },
     "probabilities_C": {
         "1": {
-            "HAZE": 54594,
+            "HAZE": 54394,
             "BB_A": 250,
             "BB_B": 80,
             "BB_C": 100,
@@ -722,7 +722,7 @@ let CONFIG = {
             "CHANCE_C": 200, "CHANCE_D": 200
         },
         "2": {
-            "HAZE": 56768,
+            "HAZE": 56718,
             "BB_A": 280,
             "BB_B": 80,
             "BB_C": 100,
@@ -746,7 +746,7 @@ let CONFIG = {
             "CHANCE_C": 50, "CHANCE_D": 50
         },
         "3": {
-            "HAZE": 56768,
+            "HAZE": 56718,
             "BB_A": 280,
             "BB_B": 80,
             "BB_C": 100,
@@ -770,7 +770,7 @@ let CONFIG = {
             "CHANCE_C": 50, "CHANCE_D": 50
         },
         "4": {
-            "HAZE": 56768,
+            "HAZE": 56718,
             "BB_A": 280,
             "BB_B": 80,
             "BB_C": 100,
@@ -794,7 +794,7 @@ let CONFIG = {
             "CHANCE_C": 50, "CHANCE_D": 50
         },
         "5": {
-            "HAZE": 56768,
+            "HAZE": 56718,
             "BB_A": 280,
             "BB_B": 80,
             "BB_C": 100,
@@ -818,7 +818,7 @@ let CONFIG = {
             "CHANCE_C": 50, "CHANCE_D": 50
         },
         "6": {
-            "HAZE": 53984,
+            "HAZE": 53784,
             "BB_A": 300,
             "BB_B": 120,
             "BB_C": 120,
@@ -844,7 +844,7 @@ let CONFIG = {
     },
     "probabilities_D": {
         "1": {
-            "HAZE": 54594,
+            "HAZE": 54394,
             "BB_A": 250,
             "BB_B": 80,
             "BB_C": 100,
@@ -868,7 +868,7 @@ let CONFIG = {
             "CHANCE_C": 200, "CHANCE_D": 200
         },
         "2": {
-            "HAZE": 56768,
+            "HAZE": 56718,
             "BB_A": 280,
             "BB_B": 80,
             "BB_C": 100,
@@ -892,7 +892,7 @@ let CONFIG = {
             "CHANCE_C": 50, "CHANCE_D": 50
         },
         "3": {
-            "HAZE": 56768,
+            "HAZE": 56718,
             "BB_A": 280,
             "BB_B": 80,
             "BB_C": 100,
@@ -916,7 +916,7 @@ let CONFIG = {
             "CHANCE_C": 50, "CHANCE_D": 50
         },
         "4": {
-            "HAZE": 56768,
+            "HAZE": 56718,
             "BB_A": 280,
             "BB_B": 80,
             "BB_C": 100,
@@ -940,7 +940,7 @@ let CONFIG = {
             "CHANCE_C": 50, "CHANCE_D": 50
         },
         "5": {
-            "HAZE": 56768,
+            "HAZE": 56718,
             "BB_A": 280,
             "BB_B": 80,
             "BB_C": 100,
@@ -964,7 +964,7 @@ let CONFIG = {
             "CHANCE_C": 50, "CHANCE_D": 50
         },
         "6": {
-            "HAZE": 53984,
+            "HAZE": 53784,
             "BB_A": 300,
             "BB_B": 120,
             "BB_C": 120,

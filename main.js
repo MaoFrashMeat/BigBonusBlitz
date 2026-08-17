@@ -40,21 +40,6 @@ const FLAGS = {
     CHANCE_D: 22
 };
 
-// 役のグループ化定義
-const ROLE_GROUPS = {
-    SMALL: [FLAGS.REPLAY_A, FLAGS.REPLAY_B, FLAGS.REPLAY_C, FLAGS.BELL_A, FLAGS.BELL_B, FLAGS.BELL_C], // 小役（リプレイ・ベル）
-    RARE: [FLAGS.CHERRY_A, FLAGS.CHERRY_B, FLAGS.CHERRY_C, FLAGS.SUICA_A, FLAGS.SUICA_B, FLAGS.SUICA_C, FLAGS.CHANCE_A, FLAGS.CHANCE_B, FLAGS.CHANCE_C, FLAGS.CHANCE_D], // レア役（チェリー・スイカ・チャンス目）
-    BONUS: [FLAGS.BB_A, FLAGS.BB_B, FLAGS.BB_C, FLAGS.BB_D, FLAGS.RB_A, FLAGS.RB_B] // ボーナス
-};
-
-// 該当する役のグループを取得する関数
-function getRoleGroup(flag) {
-    if (ROLE_GROUPS.SMALL.includes(flag)) return 'SMALL';
-    if (ROLE_GROUPS.RARE.includes(flag)) return 'RARE';
-    if (ROLE_GROUPS.BONUS.includes(flag)) return 'BONUS';
-    return 'HAZE';
-}
-
 // サブフラグごとの揃い方定義
 // validLines: 0=上段, 1=中段, 2=下段, 3=右下がり斜め, 4=右上がり斜め
 const WIN_COMBOS = {
@@ -79,7 +64,7 @@ const WIN_COMBOS = {
     [FLAGS.CHANCE_A]: { isReachMe: true, type: 'SUICA_MISS' }, // スイカハズレ
     [FLAGS.CHANCE_B]: { isReachMe: true, type: 'CHERRY_MISS' }, // チェリー付きリーチ目
     [FLAGS.CHANCE_C]: { isReachMe: true, type: 'REPLAY_V' }, // リプレイ小V
-    [FLAGS.CHANCE_D]: { symbols: ['REPLAY', 'REPLAY', 'BELL'], validLines: [1] } // チャンス目（リリベ・中段限定）
+    [FLAGS.CHANCE_D]: { symbols: ['REPLAY', 'REPLAY', 'STAR'], validLines: [1] } // チャンス目（リリベ・中段限定）
 };
 
 // 状態管理
@@ -476,7 +461,7 @@ const elCredit = document.getElementById('credit-display');
 const elPayout = document.getElementById('payout-display');
 const elHeaderCredit = document.getElementById('header-credit');
 const elHeaderPayout = document.getElementById('header-payout');
-const elMessage = document.createElement('div'); // ダミーエレメントを使って既存のコードをエラーにしない
+const elMessage = document.getElementById('message-display');
 const strips = [
     document.getElementById('strip-left'),
     document.getElementById('strip-center'),
@@ -1435,73 +1420,31 @@ function updateDebugUI() {
 
 
 // 敵の小役示唆演出を更新
+// フラグ区分ごとの敵表示色（本体・コア）を返す
+// HAZE・未定義フラグは本体は青のままコアだけ赤く光らせる特殊ケース
+function getEnemyVisualState(flag) {
+    if (flag >= FLAGS.REPLAY_A && flag <= FLAGS.REPLAY_C) return { enemy: 'blue', core: 'blue' };
+    if (flag >= FLAGS.BELL_A && flag <= FLAGS.BELL_C) return { enemy: 'yellow', core: 'yellow' };
+    if (flag >= FLAGS.SUICA_A && flag <= FLAGS.SUICA_C) return { enemy: 'green', core: 'green' };
+    if (flag >= FLAGS.CHERRY_A && flag <= FLAGS.CHERRY_C) return { enemy: 'red', core: 'red' };
+    if ((flag >= FLAGS.BB_A && flag <= FLAGS.BB_D) || (flag >= FLAGS.RB_A && flag <= FLAGS.RB_B)) return { enemy: 'rainbow', core: 'rainbow' };
+    return { enemy: 'blue', core: 'red' };
+}
+
 function updateEnemyColor() {
     const enemy = document.getElementById('enemy-img');
     const core = document.getElementById('enemy-core');
     if (!enemy) return;
-    
+
     // 既存のクラスをリセットして基本の構造だけ残す
     enemy.className = '';
     if (core) core.className = 'slime-core';
-    
-    const flag = state.currentFlag;
-    
-    if (state.currentEnemyType === 'slime') {
-        if (flag >= FLAGS.REPLAY_A && flag <= FLAGS.REPLAY_C) {
-            enemy.classList.add('enemy-slime-blue');
-            if (core) core.classList.add('core-blue');
-        } else if (flag >= FLAGS.BELL_A && flag <= FLAGS.BELL_C) {
-            enemy.classList.add('enemy-slime-yellow');
-            if (core) core.classList.add('core-yellow');
-        } else if (flag >= FLAGS.SUICA_A && flag <= FLAGS.SUICA_C) {
-            enemy.classList.add('enemy-slime-green');
-            if (core) core.classList.add('core-green');
-        } else if (flag >= FLAGS.CHERRY_A && flag <= FLAGS.CHERRY_C) {
-            enemy.classList.add('enemy-slime-red');
-            if (core) core.classList.add('core-red');
-        } else if (flag === FLAGS.HAZE) {
-            enemy.classList.add('enemy-slime-blue');
-            if (core) core.classList.add('core-red');
-        } else if ((flag >= FLAGS.BB_A && flag <= FLAGS.BB_D) || (flag >= FLAGS.RB_A && flag <= FLAGS.RB_B)) {
-            enemy.classList.add('enemy-slime-rainbow');
-            if (core) core.classList.add('core-rainbow');
-        } else {
-            enemy.classList.add('enemy-slime-blue');
-            if (core) core.classList.add('core-red');
-        }
-    } else if (state.currentEnemyType === 'goblin') {
-        if (flag >= FLAGS.REPLAY_A && flag <= FLAGS.REPLAY_C) {
-            enemy.classList.add('enemy-goblin-blue');
-        } else if (flag >= FLAGS.BELL_A && flag <= FLAGS.BELL_C) {
-            enemy.classList.add('enemy-goblin-yellow');
-        } else if (flag >= FLAGS.SUICA_A && flag <= FLAGS.SUICA_C) {
-            enemy.classList.add('enemy-goblin-green');
-        } else if (flag >= FLAGS.CHERRY_A && flag <= FLAGS.CHERRY_C) {
-            enemy.classList.add('enemy-goblin-red');
-        } else if (flag === FLAGS.HAZE) {
-            enemy.classList.add('enemy-goblin-blue');
-        } else if ((flag >= FLAGS.BB_A && flag <= FLAGS.BB_D) || (flag >= FLAGS.RB_A && flag <= FLAGS.RB_B)) {
-            enemy.classList.add('enemy-goblin-rainbow');
-        } else {
-            enemy.classList.add('enemy-goblin-blue');
-        }
-    } else {
-        // bat
-        if (flag >= FLAGS.REPLAY_A && flag <= FLAGS.REPLAY_C) {
-            enemy.classList.add('enemy-bat-blue');
-        } else if (flag >= FLAGS.BELL_A && flag <= FLAGS.BELL_C) {
-            enemy.classList.add('enemy-bat-yellow');
-        } else if (flag >= FLAGS.SUICA_A && flag <= FLAGS.SUICA_C) {
-            enemy.classList.add('enemy-bat-green');
-        } else if (flag >= FLAGS.CHERRY_A && flag <= FLAGS.CHERRY_C) {
-            enemy.classList.add('enemy-bat-red');
-        } else if (flag === FLAGS.HAZE) {
-            enemy.classList.add('enemy-bat-blue');
-        } else if ((flag >= FLAGS.BB_A && flag <= FLAGS.BB_D) || (flag >= FLAGS.RB_A && flag <= FLAGS.RB_B)) {
-            enemy.classList.add('enemy-bat-rainbow');
-        } else {
-            enemy.classList.add('enemy-bat-blue');
-        }
+
+    const visual = getEnemyVisualState(state.currentFlag);
+    enemy.classList.add(`enemy-${state.currentEnemyType}-${visual.enemy}`);
+    // コア表示はスライムのみ
+    if (state.currentEnemyType === 'slime' && core) {
+        core.classList.add(`core-${visual.core}`);
     }
 }
 
@@ -2027,10 +1970,8 @@ function evaluateWin() {
                         if (winType !== 'BIG') winType = 'REG';
                     }
                 } else if (flagId >= FLAGS.REPLAY_A && flagId <= FLAGS.REPLAY_C) {
+                    // リプレイはクレジットを払い出さず次ゲーム無料権のみ付与するため totalPayout には加算しない
                     isReplay = true;
-                    if (typeof CONFIG !== 'undefined' && currentPayouts && currentPayouts.REPLAY) {
-                        totalPayout += currentPayouts.REPLAY;
-                    }
                 } else if (flagId >= FLAGS.BELL_A && flagId <= FLAGS.BELL_C) {
                     totalPayout += currentPayouts.STAR;
                     if (!winType) winType = 'BELL';
@@ -2165,7 +2106,7 @@ function evaluateWin() {
     
     if (totalPayout > 0) {
         playSoundWin(winType);
-        
+
         // 小役が揃ったら攻撃モーションを再生し、ダメージを与える
         // （アニメーション処理は各リール停止時に移動したため、ここでは何もしないか、必要な処理のみ行う）
         

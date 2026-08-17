@@ -124,7 +124,8 @@ let WORKFLOW_CONFIG = {
             "D": 15,
             "E": 5,
             "F": 5
-        }
+        },
+        "NONE": 34
     },
     "CHERRY": {
         "SERIF": {
@@ -162,7 +163,8 @@ let WORKFLOW_CONFIG = {
             "D": 0,
             "E": 0,
             "F": 0
-        }
+        },
+        "NONE": 65
     },
     "SUICA": {
         "SERIF": {
@@ -200,7 +202,8 @@ let WORKFLOW_CONFIG = {
             "D": 0,
             "E": 0,
             "F": 0
-        }
+        },
+        "NONE": 100
     },
     "CHANCE": {
         "SERIF": {
@@ -238,7 +241,8 @@ let WORKFLOW_CONFIG = {
             "D": 0,
             "E": 0,
             "F": 0
-        }
+        },
+        "NONE": 100
     },
     "BONUS": {
         "SERIF": {
@@ -276,7 +280,8 @@ let WORKFLOW_CONFIG = {
             "D": 0,
             "E": 0,
             "F": 0
-        }
+        },
+        "NONE": 100
     }
 };
 
