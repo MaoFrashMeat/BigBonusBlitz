@@ -115,10 +115,12 @@ namespace BBB.Tests
             m.Credit = 1_000_000;
             var push = new SystemRandom(4);
             GameResult r = null;
+            int started = -1;
             for (int g = 0; g < 200_000; g++)
             {
                 r = PlayOne(m, push);
-                if (r.enemySpawned) break;
+                if (r.precursorStarted) started = g;
+                if (r.enemySpawned) { Assert.AreEqual(m.Config.enemyPrecursorSpins, g - started, "前兆G数"); break; }
             }
             Assert.IsTrue(r.enemySpawned, "敵が出現しない");
             Assert.IsNotNull(m.ActiveEnemyTable);

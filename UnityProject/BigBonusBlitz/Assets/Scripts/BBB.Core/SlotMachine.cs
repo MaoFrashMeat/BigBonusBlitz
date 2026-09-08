@@ -3,9 +3,27 @@ using System.Collections.Generic;
 
 namespace BBB.Core
 {
+    public enum BellCommand { None, Success, Fail }
+
+    /// <summary>ベル択ナビ。first（中）を第一停止した後、残り2リールのどちらが正解かを当てる。</summary>
+    public struct BellNavi
+    {
+        public int first;        // ナビ指定の第一停止リール（常に 1=中）
+        public int correctReel;  // 第二停止でこれを押すと正解
+        public bool Active;
+        /// <summary>第一停止がナビ通りで、いま択の最中か。</summary>
+        public bool InChoice;
+    }
+
     /// <summary>1ゲームの結果（表示・演出側が読む）。</summary>
     public sealed class GameResult
     {
+        /// <summary>このGで実行されたコマンド。</summary>
+        public BellCommand command;
+        /// <summary>正解で討伐が内部確定した（告知は3G目）。</summary>
+        public bool naviDefeatGuaranteed;
+        /// <summary>正解で得た EXP。</summary>
+        public int naviExp;
         public Flag flag;
         public WinResult win;
         public bool bonusStarted;
@@ -14,6 +32,10 @@ namespace BBB.Core
         public WorkflowResult workflow;
         public bool enemySpawned;
         public EnemyTable enemyTable;
+        /// <summary>このGで前兆が始まった（ENEMY 当選）。</summary>
+        public bool precursorStarted;
+        /// <summary>このGの前兆段階（1..N）。前兆中でなければ 0。出現Gは N。</summary>
+        public int precursorStage;
         /// <summary>Tier2 決着: null=未決着, true=討伐, false=逃走。</summary>
         public bool? enemyResolved;
         public bool levelUp;
@@ -55,6 +77,16 @@ namespace BBB.Core
         public int Tier2SpinCount;
         public bool EnemyActive;
         public bool EnemyDefeatWon;
+        /// <summary>前兆の残りG（0 なら前兆中でない）。</summary>
+        public int PrecursorRemaining;
+        /// <summary>前兆の総G数（演出の段階計算用）。</summary>
+        public int PrecursorTotal;
+        /// <summary>今Gのベル択ナビ（Active=false なら無し）。</summary>
+        public BellNavi Navi;
+        /// <summary>今Gの押し順（停止した順にリール番号）。</summary>
+        public readonly List<int> PressOrder = new List<int>();
+        /// <summary>今Gの択結果（第二停止時点で決まる）。</summary>
+        public BellCommand CurrentCommand;
         public EnemyTable ActiveEnemyTable;
         public int PlayerLevel = 1;
         public int PlayerExp;
@@ -138,12 +170,22 @@ namespace BBB.Core
             if (Bet == 0) throw new InvalidOperationException("BET されていない");
             IsGameActive = true;
             for (int i = 0; i < 3; i++) { Stopped[i] = null; Slip[i] = 0; }
+            PressOrder.Clear();
+            CurrentCommand = BellCommand.None;
+            Navi = default;
 
             var hint = HintKind.None;
             if (IsTier2 && EnemyDefeatWon && ActiveEnemyTable != null)
                 hint = EnemyEngage.RollHint(ActiveEnemyTable, Config.defaultHintConfig, _rng);
 
             DrawLottery();
+
+            // ベル択ナビ: エンゲージ中のベル当選時だけ
+            if (IsTier2 && EnemyActive && BonusMode == BonusMode.NORMAL && CurrentFlag.IsBell())
+            {
+                // 第一停止は常に「中」。左右のどちらが正解かはランダム（隠し）
+                Navi = new BellNavi { first = 1, correctReel = _rng.NextDouble() < 0.5 ? 0 : 2, Active = true, InChoice = false };
+            }
             return hint;
         }
 
@@ -227,6 +269,16 @@ namespace BBB.Core
             Stopped[reelIndex] = res.symbols;
             StopIndex[reelIndex] = res.stopIndex;
             Slip[reelIndex] = res.slip;
+            PressOrder.Add(reelIndex);
+            if (Navi.Active)
+            {
+                if (PressOrder.Count == 1) Navi.InChoice = reelIndex == Navi.first;
+                else if (PressOrder.Count == 2 && Navi.InChoice)
+                {
+                    Navi.InChoice = false;
+                    CurrentCommand = reelIndex == Navi.correctReel ? BellCommand.Success : BellCommand.Fail;
+                }
+            }
             return res;
         }
 
@@ -275,7 +327,19 @@ namespace BBB.Core
             {
                 Credit += win.payout;
                 Bet = 0;
-                if (RollDefeat(win.winType)) { }
+                if (win.winType == WinType.BELL && Navi.Active && CurrentCommand != BellCommand.None)
+                {
+                    result.command = CurrentCommand;
+                    if (CurrentCommand == BellCommand.Success)
+                    {
+                        var bc = Config.bellCommand;
+                        if (bc == null || bc.successGuaranteesDefeat) { result.naviDefeatGuaranteed = !EnemyDefeatWon; EnemyDefeatWon = true; }
+                        int exp = bc?.successExp ?? 25;
+                        if (exp > 0) { result.naviExp = exp; if (GainExp(exp)) result.levelUp = true; }
+                    }
+                    else RollDefeat(win.winType);   // 失敗: 通常の討伐抽選だけ
+                }
+                else RollDefeat(win.winType);
             }
             else if (win.isReplay)
             {
@@ -300,29 +364,44 @@ namespace BBB.Core
             // ワークフロー抽選（JS: リプレイ時も実行される）
             var roleKey = WorkflowLottery.RoleKey(win.winType, win.isReplay);
             result.workflow = WorkflowLottery.Run(Workflow, roleKey, _rng);
-            if (DebugForceEnemy && !EnemyActive)
+            if (DebugForceEnemy && !EnemyActive && PrecursorRemaining == 0)
             {
                 result.workflow = new WorkflowResult { roleKey = roleKey, category = "ENEMY", variant = "A" };
                 DebugForceEnemy = false;
             }
 
-            if (result.workflow.category == "ENEMY" && !EnemyActive)
+            // 前兆の進行（ENEMY 当選 → N G 煽って N G 目の終わりに出現）
+            if (PrecursorRemaining > 0)
             {
-                EnemyActive = true;
-                PendingTier2 = true;
-                EnemyDefeatWon = false;
+                PrecursorRemaining--;
+                result.precursorStage = PrecursorTotal - PrecursorRemaining;
+                if (PrecursorRemaining == 0)
+                {
+                    EnemyActive = true;
+                    PendingTier2 = true;
+                    EnemyDefeatWon = false;
+                    result.enemySpawned = true;
+                    result.enemyTable = ActiveEnemyTable;
+                }
+            }
+            else if (result.workflow.category == "ENEMY" && !EnemyActive)
+            {
                 ActiveEnemyTable = EnemyEngage.SelectTable(EnemyTables, result.workflow.variant, _rng);
-                result.enemySpawned = true;
                 result.enemyTable = ActiveEnemyTable;
+                int n = Math.Max(1, Config.enemyPrecursorSpins);
+                PrecursorTotal = n;
+                PrecursorRemaining = n;
+                result.precursorStarted = true;
+                result.precursorStage = 0;
             }
             return result;
         }
 
-        private bool RollDefeat(WinType winType)
+        private bool RollDefeat(WinType winType, float multiplier = 1f)
         {
             if (!IsTier2 || ActiveEnemyTable == null || !EnemyActive) return false;
             if (EnemyDefeatWon) return false;
-            if (EnemyEngage.RollDefeat(ActiveEnemyTable, winType, _rng)) EnemyDefeatWon = true;
+            if (EnemyEngage.RollDefeat(ActiveEnemyTable, winType, _rng, multiplier)) EnemyDefeatWon = true;
             return EnemyDefeatWon;
         }
 

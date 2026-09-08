@@ -1172,5 +1172,122 @@
         "hot": 5
       }
     }
+  },
+  "enemyPrecursorSpins": 3,
+  "bellCommand": {
+    "successGuaranteesDefeat": true,
+    "successExp": 25,
+    "failPenalty": 0
+  },
+  "travelers": {
+    "appearanceRate": 6,
+    "travelers": [
+      {
+        "id": "A",
+        "name": "行商人",
+        "weight": 30,
+        "walkSeconds": 7.0,
+        "serifRate": 35,
+        "modeHintRate": 15,
+        "color": "#c8a060",
+        "chatter": [
+          "よいしょ、よいしょ…",
+          "今日も荷が重い…",
+          "いい天気だ"
+        ]
+      },
+      {
+        "id": "B",
+        "name": "巡礼者",
+        "weight": 25,
+        "walkSeconds": 8.0,
+        "serifRate": 45,
+        "modeHintRate": 30,
+        "color": "#8fb0d8",
+        "chatter": [
+          "……",
+          "祈りを捧げよう",
+          "道は続く"
+        ]
+      },
+      {
+        "id": "C",
+        "name": "狩人",
+        "weight": 20,
+        "walkSeconds": 5.0,
+        "serifRate": 40,
+        "modeHintRate": 40,
+        "color": "#7ab060",
+        "chatter": [
+          "獲物の気配がない",
+          "足跡だ…",
+          "静かすぎる"
+        ]
+      },
+      {
+        "id": "D",
+        "name": "占い師",
+        "weight": 15,
+        "walkSeconds": 9.0,
+        "serifRate": 70,
+        "modeHintRate": 70,
+        "color": "#b080d0",
+        "chatter": [
+          "星が囁いている…",
+          "運命は動く",
+          "ふふ…"
+        ]
+      },
+      {
+        "id": "E",
+        "name": "王の使者",
+        "weight": 10,
+        "walkSeconds": 4.0,
+        "serifRate": 80,
+        "modeHintRate": 90,
+        "color": "#e8c040",
+        "chatter": [
+          "急ぎの用だ！",
+          "道を空けよ！"
+        ]
+      }
+    ],
+    "modeSerifs": [
+      {
+        "text": "この先の道は長いぞ…",
+        "A": 60,
+        "B": 25,
+        "C": 10,
+        "D": 5
+      },
+      {
+        "text": "風向きが変わってきたな",
+        "A": 20,
+        "B": 50,
+        "C": 25,
+        "D": 5
+      },
+      {
+        "text": "ここは良い土地だ",
+        "A": 10,
+        "B": 25,
+        "C": 50,
+        "D": 15
+      },
+      {
+        "text": "宝の匂いがする…！",
+        "A": 2,
+        "B": 8,
+        "C": 30,
+        "D": 60
+      },
+      {
+        "text": "嵐が来る。備えよ",
+        "A": 0,
+        "B": 5,
+        "C": 25,
+        "D": 70
+      }
+    ]
   }
 }

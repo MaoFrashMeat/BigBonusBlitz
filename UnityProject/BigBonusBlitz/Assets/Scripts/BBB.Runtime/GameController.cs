@@ -49,6 +49,15 @@ namespace BBB.Runtime
         private CanvasGroup _enemyCg;
         private Coroutine _enemyIdle;
         private Coroutine _enemyRainbow;
+        private Image _darken;            // 前兆: 画面を段階的に暗くする
+        private RectTransform _shadowRt;  // 前兆: 敵のシルエット
+        private Image _shadowImg;
+        private Coroutine _precursorRoutine;
+        private TravelerView _traveler;
+        private readonly SystemRandom _fxRng = new SystemRandom();
+        private GameObject _naviBox;
+        private Text[] _naviLabels = new Text[3];
+        private Image[] _naviBg = new Image[3];
         private bool _hotStopSound;
         private int _stopCountThisGame;
         private RectTransform _dustRt;
@@ -156,6 +165,13 @@ namespace BBB.Runtime
             _charRt.GetComponent<Image>().color = Color.white;
             _charAnim = _charRt.gameObject.AddComponent<SpriteAnimator>();
 
+            // 前兆: 暗幕（背景の上・キャラの下）とシルエット
+            _darken = UiFactory.Panel(_area, "Darken", Vector2.zero, new Vector2(AreaW, areaH), new Color(0, 0, 0, 0)).GetComponent<Image>();
+            _darken.raycastTarget = false;
+            _shadowRt = MakeImage(_area, "EnemyShadow", new Vector2(AreaW * 0.5f + 90f, -areaH * 0.5f + 15f + 75f), new Vector2(150, 150), null);
+            _shadowImg = _shadowRt.GetComponent<Image>();
+            _shadowImg.color = new Color(0, 0, 0, 0);
+
             // 敵（Web: 202px, right 20%, bottom 20px）
             _enemyRt = MakeImage(_area, "Enemy", new Vector2(AreaW * 0.5f - 0.2f * AreaW - 75f, -areaH * 0.5f + 15f + 75f), new Vector2(150, 150), null);
             _enemyImg = _enemyRt.GetComponent<Image>();
@@ -208,6 +224,20 @@ namespace BBB.Runtime
                 _reels[i] = ReelView.Create(cabinet, strips[i], new Vector2((i - 1) * reelPitch, 0));
                 _reels[i].Stopped += OnReelStopped;
             }
+            // ベル択ナビ（筐体の上に重ねる。既定は非表示）
+            var navi = UiFactory.Panel(_stage, "Navi", new Vector2(0, midY + panelH * 0.5f + 16), new Vector2(cabW, 28), new Color(0, 0, 0, 0));
+            navi.GetComponent<Image>().raycastTarget = false;
+            for (int i = 0; i < 3; i++)
+            {
+                var cell = UiFactory.Panel(navi, "Cell" + i, new Vector2((i - 1) * reelPitch, 0), new Vector2(ReelView.ReelWidth, 26), ColBtn);
+                cell.GetComponent<Image>().raycastTarget = false;
+                _naviBg[i] = cell.GetComponent<Image>();
+                _naviLabels[i] = UiFactory.Label(cell, "L", Vector2.zero, new Vector2(ReelView.ReelWidth, 26), "", 14, TextAnchor.MiddleCenter, ColText);
+                _naviLabels[i].fontStyle = FontStyle.Bold;
+            }
+            _naviBox = navi.gameObject;
+            _naviBox.SetActive(false);
+
             // 中段ラインの目印
             UiFactory.Panel(cabinet, "LineMarkL", new Vector2(-cabW * 0.5f + 6, 0), new Vector2(6, 4), ColGold).GetComponent<Image>().raycastTarget = false;
             UiFactory.Panel(cabinet, "LineMarkR", new Vector2(cabW * 0.5f - 6, 0), new Vector2(6, 4), ColGold).GetComponent<Image>().raycastTarget = false;
@@ -266,6 +296,7 @@ namespace BBB.Runtime
             DbgBtn("スイカ強制", () => _m.DebugForceFlag = Flag.SUICA_A, -46);
             DbgBtn("チェリー強制", () => _m.DebugForceFlag = Flag.CHERRY_A, 46); by -= 28;
             DbgBtn("+1000枚", () => _m.Credit += 1000, -46);
+            DbgBtn("旅人", () => { var c = _m.Config.travelers ?? TravelerConfig.Default(); var t = c.travelers[_fxRng.Next(c.travelers.Count)]; if (_traveler == null) _traveler = TravelerView.Spawn(_area, t, t.chatter.Count > 0 ? t.chatter[0] : null, false, AreaW, -270f * 0.5f + 15f + 55f); }, 46); by -= 28;
             DbgBtn("ハズレ強制", () => _m.DebugForceFlag = Flag.HAZE, 46);
             _debugBox = dbg.parent.gameObject;
             _debugBox.SetActive(false);
@@ -290,6 +321,9 @@ namespace BBB.Runtime
             StyleButton(_btnAuto, ColBtn);
             UiFactory.Label(_stage, "Help", new Vector2(0, -262), new Vector2(AreaW, 16),
                 "Ctrl / Space: BET＋レバー     Z X C / ← ↓ →: 停止     Space: 順送り     A: オート", 11, TextAnchor.MiddleCenter, ColTextSub);
+
+            // エフェクト層（UI の上、発光オーバーレイの下）
+            UiFx.Init(root);
 
             // 赤発光オーバーレイ（最前面）
             var glow = UiFactory.Panel(root, "RedGlow", Vector2.zero, new Vector2(4000, 4000), new Color(1, 0.1f, 0.1f, 0));
@@ -329,7 +363,7 @@ namespace BBB.Runtime
 
             string enemy = _m.ActiveEnemyTable != null && _m.EnemyActive ? _m.ActiveEnemyTable.name : "";
             _status.text = (_autoMode ? "AUTO ON\n" : "") + (inBonus ? "ボーナス中\n" : "")
-                + (_m.IsTier2 ? $"敵: {enemy}\n残り {_m.Config.tier2MaxSpins - _m.Tier2SpinCount} G\n" : _m.PendingTier2 ? "次G から敵戦闘\n" : "")
+                + (_m.IsTier2 ? $"敵: {enemy}\n残り {_m.Config.tier2MaxSpins - _m.Tier2SpinCount} G\n" : _m.PendingTier2 ? "次G から敵戦闘\n" : _m.PrecursorRemaining > 0 ? $"前兆 残り {_m.PrecursorRemaining} G\n" : "")
                 + (_m.IsReplay ? "リプレイ\n" : "");
             _debug.text = $"FLAG {_m.CurrentFlag}\nRNG {_m.CurrentRng}\nHELD {_m.HeldBonusFlag}\nMODE {_m.Mode}\nSLIP {_m.Slip[0]},{_m.Slip[1]},{_m.Slip[2]}\n{enemy}{(_m.EnemyDefeatWon ? " ●" : "")}\n{_fps:F0} fps{(_m.DebugForceFlag.HasValue ? $"\n次G強制: {_m.DebugForceFlag}" : "")}{(_m.DebugForceEnemy ? "\n次判定: 敵出現" : "")}";
             _player.text = $"Lv {_m.PlayerLevel}";
@@ -338,6 +372,7 @@ namespace BBB.Runtime
             _tier2Box.SetActive(_m.IsTier2 || _m.PendingTier2);
             _tier2.text = _m.IsTier2 ? $"ENEMY ENGAGE\n残り {_m.Config.tier2MaxSpins - _m.Tier2SpinCount} G" : "NEXT: ENGAGE";
 
+            RefreshNavi();
             bool spinning = _m.IsGameActive;
             _btnBet.interactable = !spinning && !_inputLocked;
             _btnBet.GetComponentInChildren<Text>().text = _m.IsReplay ? "REPLAY" : "MAX BET";
@@ -353,13 +388,149 @@ namespace BBB.Runtime
             _messageFlashUntil = flash ? Time.time + _m.Config.timings.nextWin / 1000f : 0f;
         }
 
+        // ---------------------------------------------------------------- NAVI
+        /// <summary>ナビ表示: 第一停止は「1」、残り2つは「? ATTACK」「? GUARD」。第一停止後に選択肢だけ残す。</summary>
+        private void RefreshNavi()
+        {
+            if (!_m.Navi.Active || !_m.IsGameActive) { _naviBox.SetActive(false); return; }
+            _naviBox.SetActive(true);
+            var n = _m.Navi;
+            int pressed = _m.PressOrder.Count;
+            for (int i = 0; i < 3; i++)
+            {
+                string txt; Color bg = ColBtn, fg = ColText;
+                if (i == n.first) { txt = pressed == 0 ? "① ここから" : "①"; bg = ColGold; fg = ColBg; }
+                else { txt = "?"; bg = new Color(0.2f, 0.25f, 0.4f); }
+                if (pressed >= 2 && _m.CurrentCommand != BellCommand.None)
+                {
+                    if (i == n.correctReel) { txt = _m.CurrentCommand == BellCommand.Success ? "SUCCESS!" : "正解はこっち"; bg = _m.CurrentCommand == BellCommand.Success ? ColGold : ColBtnDisabled; fg = _m.CurrentCommand == BellCommand.Success ? ColBg : ColTextSub; }
+                    else if (i != n.first) { txt = _m.CurrentCommand == BellCommand.Fail ? "MISS" : "-"; bg = _m.CurrentCommand == BellCommand.Fail ? ColAccent : ColBtnDisabled; }
+                }
+                else if (pressed == 1 && !n.InChoice)
+                {
+                    if (i != n.first) { txt = "-"; bg = ColBtnDisabled; fg = ColTextSub; }
+                }
+                _naviLabels[i].text = txt; _naviLabels[i].color = fg; _naviBg[i].color = bg;
+            }
+        }
+
+        /// <summary>択の最中: BGM がこもり（水中）、画面が少し沈む＝集中。</summary>
+        private void EnterFocus()
+        {
+            _audio.SetFocus(true);
+            _darken.color = new Color(0.02f, 0.05f, 0.12f, 0.35f);
+            UiFx.Burst(_charRt, UiFx.Preset.Focus, new Vector2(0, 40));
+            _hint.text = "……";
+            _hint.color = ColTextSub;
+        }
+
+        private void ExitFocus()
+        {
+            _audio.SetFocus(false);
+            if (_m.PrecursorRemaining == 0) _darken.color = new Color(0, 0, 0, 0);
+        }
+
+        private IEnumerator NaviSuccessRoutine()
+        {
+            ExitFocus();
+            _audio.NaviSuccess();
+            UiFx.Burst(_area, UiFx.Preset.SuccessStars, new Vector2(0, 20));
+            UiFx.Ring(_area, new Color(1f, 0.9f, 0.4f, 0.9f), 50, 600, 0.6f);
+            UiFx.PopText(_area, "SUCCESS!", ColGold, 34, new Vector2(0, 30));
+            _hint.text = "サクセス！";
+            _hint.color = ColGold;
+            // 白フラッシュ → 金の余韻
+            float t = 0;
+            while (t < 0.6f)
+            {
+                t += Time.deltaTime;
+                float a = t < 0.1f ? 0.7f : 0.35f * (1f - (t - 0.1f) / 0.5f);
+                _redGlow.color = new Color(1f, 0.95f, 0.6f, Mathf.Max(0, a));
+                yield return null;
+            }
+            _redGlow.color = new Color(1f, 0.1f, 0.1f, 0f);
+        }
+
+        private IEnumerator NaviFailRoutine()
+        {
+            ExitFocus();
+            _audio.NaviFail();
+            UiFx.Burst(_charRt, UiFx.Preset.RedShards, new Vector2(10, 30));
+            UiFx.Slash(_charRt, 30f, 200f, new Color(1f, 0.3f, 0.3f));
+            _hint.text = "……外した";
+            _hint.color = ColAccent;
+            // 敵の攻撃を食らう: 敵が前に出て、キャラが仰け反り、赤い縁光
+            StartCoroutine(Effects.Hit(_enemyRt, 0.35f));
+            StartCoroutine(Effects.Miss(_charRt, 0.6f));
+            StartCoroutine(Effects.Shake(_stage, 0.3f, 6f));
+            yield return Effects.RedGlow(_redGlow, 0.8f);
+        }
+
+        // ---------------------------------------------------------- PRECURSOR
+        /// <summary>
+        /// 前兆（ENEMY 当選〜出現までの煽り）。stage 0=当選G（かすかな違和感）, 1..N-1=段階的に強く。
+        ///   ・画面が段階的に暗くなる
+        ///   ・右端から敵のシルエットがじわじわ近づく
+        ///   ・キャラが足を止めて構える（idle）
+        ///   ・段階ごとに小さな揺れ＋低い音
+        /// </summary>
+        private void StartPrecursor(int stage)
+        {
+            int total = Mathf.Max(1, _m.PrecursorTotal);
+            float k = Mathf.Clamp01((stage + 1f) / (total + 1f));   // 0.25, 0.5, 0.75 ...
+            if (_precursorRoutine != null) StopCoroutine(_precursorRoutine);
+            _precursorRoutine = StartCoroutine(PrecursorRoutine(k, stage));
+        }
+
+        private IEnumerator PrecursorRoutine(float k, int stage)
+        {
+            PlayCharacter("idle");
+            _bg.IsWalking = false;
+            _audio.EnemyEscape();   // 低いポップ音を「気配」に流用
+            StartCoroutine(Effects.Shake(_stage, 0.25f, 2f + 4f * k));
+            // 暗幕とシルエットを目標値へ 0.4 秒でなめらかに
+            float a0 = _darken.color.a, a1 = 0.55f * k;
+            var p0 = _shadowRt.anchoredPosition;
+            float baseX = AreaW * 0.5f - 0.2f * AreaW - 75f;    // 敵の定位置
+            var p1 = new Vector2(Mathf.Lerp(AreaW * 0.5f + 90f, baseX + 40f, k), p0.y);
+            float s0 = _shadowImg.color.a, s1 = 0.85f * k;
+            float t = 0;
+            while (t < 0.4f)
+            {
+                t += Time.deltaTime;
+                float u = Mathf.SmoothStep(0, 1, t / 0.4f);
+                _darken.color = new Color(0, 0, 0, Mathf.Lerp(a0, a1, u));
+                _shadowRt.anchoredPosition = Vector2.Lerp(p0, p1, u);
+                _shadowImg.color = new Color(0, 0, 0, Mathf.Lerp(s0, s1, u));
+                yield return null;
+            }
+            _hint.text = stage == 0 ? "…？" : stage == 1 ? "……なにかいる" : "……来る！";
+            _hint.color = stage >= 2 ? ColAccent : ColTextSub;
+            // 段階が上がるほど暗幕が脈打つ
+            float pulse = 0.08f * k;
+            while (true)
+            {
+                _darken.color = new Color(0, 0, 0, a1 + pulse * Mathf.Sin(Time.time * (3f + 4f * k)));
+                yield return null;
+            }
+        }
+
+        private void StopPrecursor()
+        {
+            if (_precursorRoutine != null) { StopCoroutine(_precursorRoutine); _precursorRoutine = null; }
+            _darken.color = new Color(0, 0, 0, 0);
+            _shadowImg.color = new Color(0, 0, 0, 0);
+            _shadowRt.anchoredPosition = new Vector2(AreaW * 0.5f + 90f, _shadowRt.anchoredPosition.y);
+            _hint.text = "";
+        }
+
         // ------------------------------------------------------ ENGAGE HINTS
         /// <summary>案B: 1G目=敵の色 / 2G目=セリフ / 3G目=停止音。レバーオン時に抽選して適用。</summary>
         private void ApplyEngageHint()
         {
             _hotStopSound = false;
             _stopCountThisGame = 0;
-            if (!_m.IsTier2 || !_m.EnemyActive || _m.BonusMode != BonusMode.NORMAL) { _hint.text = ""; return; }
+            if (!_m.IsTier2 || !_m.EnemyActive || _m.BonusMode != BonusMode.NORMAL) { if (_m.PrecursorRemaining == 0) _hint.text = ""; return; }
             var h = EngageDirector.Roll(_m.Config.engageHints, _m.Tier2SpinCount, _m.EnemyDefeatWon, new SystemRandom());
             switch (h.stage)
             {
@@ -402,7 +573,7 @@ namespace BBB.Runtime
         /// <summary>main.js playCharacterAnimation。敵がいる間は walk を idle に置き換える。</summary>
         private void PlayCharacter(string type)
         {
-            if (type == "walk" && _m.EnemyActive) type = "idle";
+            if (type == "walk" && (_m.EnemyActive || _m.PrecursorRemaining > 0)) type = "idle";
             _bg.IsWalking = type == "walk";
             switch (type)
             {
@@ -418,6 +589,7 @@ namespace BBB.Runtime
 
         private void ShowEnemy(EnemyTable table)
         {
+            if (_traveler != null) { Destroy(_traveler.gameObject); _traveler = null; }
             _enemyImg.sprite = ArtLoader.EnemySprite(table?.enemyType);
             SetEnemyColor("none");
             _hint.text = "ENEMY ENGAGE!";
@@ -430,6 +602,8 @@ namespace BBB.Runtime
         {
             yield return new WaitForSeconds(0.5f);
             yield return Effects.SlideIn(_enemyRt, _enemyCg);
+            UiFx.Burst(_enemyRt, UiFx.Preset.Dust, new Vector2(0, -60));
+            UiFx.Ring(_enemyRt, new Color(1f, 0.3f, 0.3f, 0.8f), 40, 240, 0.4f);
             _enemyIdle = StartCoroutine(Effects.IdleBob(_enemyRt));
         }
 
@@ -480,6 +654,7 @@ namespace BBB.Runtime
             int setting = _m.Setting;
             _m = GameDataLoader.CreateMachine(new SystemRandom(), setting);
             HideEnemy();
+            StopPrecursor();
             _lastPayout = 0;
             _lastWasReplay = false;
             SetMessage("SAVE RESET", true);
@@ -516,6 +691,7 @@ namespace BBB.Runtime
             _dustRt.gameObject.SetActive(false);
             if (_m.EnemyActive) _enemyCg.alpha = 1f;   // JS onLever: 潰した敵を戻す
             _charRt.localRotation = Quaternion.identity;
+            ExitFocus();
             var legacyHint = _m.Lever();   // 抽選はレバーオン時点で確定（旧示唆は使わない）
             var hint = HintKind.None;
             ApplyEngageHint();
@@ -562,6 +738,13 @@ namespace BBB.Runtime
             var res = _m.Stop(i, _reels[i].TopIndex);
             _reels[i].StopAt(res.stopIndex);
             _btnStops[i].interactable = false;
+            if (_m.Navi.Active)
+            {
+                if (_m.PressOrder.Count == 1 && _m.Navi.InChoice) EnterFocus();
+                else if (_m.PressOrder.Count == 2 && _m.CurrentCommand == BellCommand.Success) StartCoroutine(NaviSuccessRoutine());
+                else if (_m.PressOrder.Count == 2 && _m.CurrentCommand == BellCommand.Fail) StartCoroutine(NaviFailRoutine());
+            }
+            RefreshNavi();
 
             // JS onStop: ベル時の第1/第2停止演出
             int pressed = 0;
@@ -578,9 +761,14 @@ namespace BBB.Runtime
             }
         }
 
-        private void OnReelStopped(ReelView _)
+        private void OnReelStopped(ReelView reel)
         {
-            if (_hotStopSound) _audio.StopHot(_stopCountThisGame++); else _audio.Stop();
+            if (_hotStopSound)
+            {
+                _audio.StopHot(_stopCountThisGame++);
+                UiFx.Burst(reel.GetComponent<RectTransform>(), UiFx.Preset.Sparks);
+            }
+            else _audio.Stop();
             foreach (var r in _reels) if (r.IsSpinning) return;
             Evaluate();
         }
@@ -590,7 +778,7 @@ namespace BBB.Runtime
             var r = _m.Evaluate();
             _lastPayout = r.win.payout;
             _lastWasReplay = r.win.isReplay;
-            _hint.text = "";
+            if (_m.PrecursorRemaining == 0) _hint.text = "";
             PlayCharacter("walk");
 
             if (r.bonusStarted)
@@ -608,20 +796,24 @@ namespace BBB.Runtime
             if (r.win.payout > 0)
             {
                 _audio.Win();
+                UiFx.Burst(_payoutNum.rectTransform, UiFx.Preset.Coins, new Vector2(0, -10));
+                UiFx.PopText(_payoutNum.rectTransform, $"+{r.win.payout}", ColGold, 24, new Vector2(0, 20));
                 switch (r.win.winType)
                 {
                     case WinType.BELL:
                         // 1〜2G目に「死んだように見える」演出は禁止。ヒット＋砂煙のみ。決着は3G目終了時の判定だけ
-                        if (_m.EnemyActive) StartCoroutine(BellHit());
+                        if (_m.EnemyActive && r.command != BellCommand.Fail) StartCoroutine(BellHit());
                         break;
                     case WinType.CHERRY:
                         StartCoroutine(Effects.Cherry(_charRt));
-                        if (_m.EnemyActive) StartCoroutine(Effects.Hit(_enemyRt));
+                        if (_m.EnemyActive) { StartCoroutine(Effects.Hit(_enemyRt)); UiFx.Slash(_enemyRt, 10f, 200f, new Color(1f, 0.5f, 0.7f)); }
+                        else UiFx.Slash(_charRt, 10f, 180f, new Color(1f, 0.5f, 0.7f));
                         break;
                     case WinType.WATERMELON:
                         StartCoroutine(Effects.Watermelon(_charRt));
                         if (_m.EnemyActive) StartCoroutine(Effects.Hit(_enemyRt));
                         StartCoroutine(Effects.Shake(_stage));
+                        StartCoroutine(DelayedFx(0.36f, () => { UiFx.Burst(_charRt, UiFx.Preset.Dust, new Vector2(0, -100)); UiFx.Ring(_charRt, new Color(0.6f, 1f, 0.5f, 0.8f), 40, 260, 0.45f); }));
                         break;
                 }
                 SetMessage(_m.BonusMode != BonusMode.NORMAL ? $"BONUS: {_m.BonusEarned} / {_m.BonusPayoutTarget}" : $"WIN! +{r.win.payout}", true);
@@ -630,6 +822,7 @@ namespace BBB.Runtime
             {
                 _audio.Replay();
                 StartCoroutine(Effects.Replay(_charRt));
+                UiFx.Ring(_charRt, new Color(0.5f, 0.8f, 1f, 0.7f), 60, 160, 0.4f);
                 SetMessage("REPLAY!", true);
             }
             else
@@ -637,7 +830,7 @@ namespace BBB.Runtime
                 if (_m.BonusMode == BonusMode.NORMAL)
                 {
                     StartCoroutine(Effects.Miss(_charRt));
-                    if (_m.EnemyActive) StartCoroutine(Effects.Hit(_enemyRt));
+                    if (_m.EnemyActive) { StartCoroutine(Effects.Hit(_enemyRt)); UiFx.Burst(_charRt, UiFx.Preset.RedShards, new Vector2(20, 20)); }
                 }
                 SetMessage(_m.BonusMode != BonusMode.NORMAL ? $"BONUS: {_m.BonusEarned} / {_m.BonusPayoutTarget}" : (r.win.winType == WinType.CHANCE ? "CHANCE!" : "..."));
             }
@@ -657,15 +850,38 @@ namespace BBB.Runtime
                 StartCoroutine(EscapeRoutine());
                 SetMessage("ENEMY ESCAPED...", false, ColTextSub);
             }
+            if (r.precursorStarted)
+            {
+                _shadowImg.sprite = ArtLoader.EnemySprite(r.enemyTable?.enemyType);
+                StartPrecursor(0);
+            }
+            else if (r.precursorStage > 0 && !r.enemySpawned)
+            {
+                StartPrecursor(r.precursorStage);
+            }
             if (r.enemySpawned)
             {
+                StopPrecursor();
                 PlayCharacter("idle");
                 ShowEnemy(r.enemyTable);
             }
 
+            RollTraveler();
             SaveData.Save(_m, _audio);
             RefreshUi();
             if (_autoMode) StartAuto();
+        }
+
+        /// <summary>通常時（敵なし・前兆なし・ボーナスなし）に旅人を抽選して通す。</summary>
+        private void RollTraveler()
+        {
+            if (_traveler != null) return;
+            if (_m.BonusMode != BonusMode.NORMAL || _m.EnemyActive || _m.PrecursorRemaining > 0 || _m.IsTier2 || _m.PendingTier2) return;
+            var ev = TravelerDirector.Roll(_m.Config.travelers, _m.Mode, _fxRng);
+            if (ev == null) return;
+            float groundY = -270f * 0.5f + 15f + 55f;
+            _traveler = TravelerView.Spawn(_area, ev.Value.traveler, ev.Value.serif, ev.Value.isModeHint, AreaW, groundY);
+            _traveler.transform.SetSiblingIndex(_charRt.GetSiblingIndex());   // キャラの後ろ
         }
 
         private IEnumerator DefeatRoutine()
@@ -675,7 +891,10 @@ namespace BBB.Runtime
             _dustRt.gameObject.SetActive(false);
             _enemyCg.alpha = 1f;
             _enemyImg.color = Color.white;
+            UiFx.Ring(_enemyRt, new Color(1f, 1f, 1f, 0.9f), 40, 320, 0.4f);
             yield return Effects.Defeat(_enemyRt, _enemyImg, _enemyCg);
+            UiFx.Burst(_enemyRt, UiFx.Preset.Explode);
+            UiFx.PopText(_enemyRt, $"EXP +{_m.Config.expPerDefeat}", ColGold, 22, new Vector2(0, 60));
             HideEnemy();
         }
 
@@ -686,13 +905,37 @@ namespace BBB.Runtime
             _dustRt.gameObject.SetActive(false);
             _enemyCg.alpha = 1f;
             _enemyImg.color = Color.white;
+            UiFx.Burst(_enemyRt, UiFx.Preset.Dust, new Vector2(-20, -50));
             yield return Effects.SlideOut(_enemyRt, _enemyCg);
             HideEnemy();
+        }
+
+        private IEnumerator DelayedFx(float delay, System.Action act)
+        {
+            yield return new WaitForSeconds(delay);
+            act?.Invoke();
+        }
+
+        private IEnumerator GuardFlash()
+        {
+            // 青い縁光: 敵の攻撃を弾いたイメージ
+            float t = 0;
+            while (t < 0.5f)
+            {
+                t += Time.deltaTime;
+                float a = 0.3f * (1f - t / 0.5f);
+                _redGlow.color = new Color(0.3f, 0.6f, 1f, a);
+                yield return null;
+            }
+            _redGlow.color = new Color(1f, 0.1f, 0.1f, 0f);
         }
 
         private IEnumerator BellHit()
         {
             _enemyCg.alpha = 1f;
+            UiFx.Slash(_enemyRt, -35f, 240f);
+            UiFx.Burst(_enemyRt, UiFx.Preset.Sparks);
+            UiFx.Ring(_enemyRt, new Color(1f, 0.9f, 0.6f, 0.8f), 30, 180, 0.35f);
             yield return Effects.Hit(_enemyRt, 0.35f);
             yield return new WaitForSeconds(0.15f);
             _dustRt.gameObject.SetActive(false);

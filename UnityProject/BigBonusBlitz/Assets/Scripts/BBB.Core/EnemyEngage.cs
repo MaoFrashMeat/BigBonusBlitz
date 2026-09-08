@@ -27,12 +27,13 @@ namespace BBB.Core
         }
 
         /// <summary>checkEnemyDefeat: 役ごとの討伐率（%）で内部当選。</summary>
-        public static bool RollDefeat(EnemyTable table, WinType winType, IRandom rng)
+        public static bool RollDefeat(EnemyTable table, WinType winType, IRandom rng, float multiplier = 1f)
         {
             if (table == null) return false;
             string key = winType.ToString();
             if (!table.defeatProbabilities.TryGetValue(key, out var prob) || prob <= 0) return false;
-            return rng.NextDouble() * 100 < prob;
+            double p = System.Math.Min(100.0, prob * multiplier);
+            return rng.NextDouble() * 100 < p;
         }
 
         /// <summary>onLever の示唆演出抽選。</summary>

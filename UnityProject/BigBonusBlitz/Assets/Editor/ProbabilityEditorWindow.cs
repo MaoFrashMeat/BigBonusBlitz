@@ -20,7 +20,7 @@ public sealed class ProbabilityEditorWindow : EditorWindow
     private const string EnemyPath = "Assets/Resources/Data/enemy_tables.json";
     private const int Denom = 65536;
 
-    private static readonly string[] Tabs = { "小役確率", "天井・モード移行", "ワークフロー", "エネミー", "エンゲージ示唆" };
+    private static readonly string[] Tabs = { "小役確率", "天井・モード移行", "ワークフロー", "エネミー", "エンゲージ示唆", "旅人" };
     private static readonly string[] TableKeys = { "probabilities_A", "probabilities_B", "probabilities_C", "probabilities_D", "probabilities_BB", "probabilities_RB" };
     private static readonly string[] TableNames = { "モードA", "モードB", "モードC", "モードD", "BB中", "RB中" };
     private static readonly string[] FlagKeys = Enum.GetNames(typeof(Flag));
@@ -82,7 +82,7 @@ public sealed class ProbabilityEditorWindow : EditorWindow
             if (GUILayout.Button("再読込", GUILayout.Width(70))) { if (!_dirty || EditorUtility.DisplayDialog("再読込", "未保存の変更を捨てますか？", "捨てる", "戻る")) Load(); }
             using (new EditorGUI.DisabledScope(!_dirty)) if (GUILayout.Button("保存", GUILayout.Width(70))) Save();
             GUILayout.Space(12);
-            _tab = GUILayout.Toolbar(_tab, Tabs, GUILayout.Width(540));
+            _tab = GUILayout.Toolbar(_tab, Tabs, GUILayout.Width(620));
         }
         EditorGUILayout.HelpBox(_status + (_dirty ? "  [未保存]" : ""), MessageType.None);
 
@@ -94,6 +94,7 @@ public sealed class ProbabilityEditorWindow : EditorWindow
             case 2: DrawWorkflow(); break;
             case 3: DrawEnemies(); break;
             case 4: DrawEngageHints(); break;
+            case 5: DrawTravelers(); break;
         }
         EditorGUILayout.EndScrollView();
     }
@@ -210,6 +211,19 @@ public sealed class ProbabilityEditorWindow : EditorWindow
         int t2 = _game["tier2MaxSpins"]?.Value<int>() ?? 3;
         int nt2 = EditorGUILayout.IntField(t2, _num, GUILayout.Width(70));
         if (nt2 != t2) { _game["tier2MaxSpins"] = Math.Max(1, nt2); _dirty = true; }
+        int pre = _game["enemyPrecursorSpins"]?.Value<int>() ?? 3;
+        int npre = EditorGUILayout.IntField("敵出現までの前兆G数", pre, GUILayout.Width(260));
+        if (npre != pre) { _game["enemyPrecursorSpins"] = Math.Max(1, npre); _dirty = true; }
+        var bc = (JObject)_game["bellCommand"];
+        if (bc == null) { bc = new JObject { ["successGuaranteesDefeat"] = true, ["successExp"] = 25, ["failPenalty"] = 0 }; _game["bellCommand"] = bc; }
+        EditorGUILayout.LabelField("ベル択ナビ（エンゲージ中・第一停止=中・左右どちらかが正解）", EditorStyles.boldLabel);
+        bool sg = bc["successGuaranteesDefeat"]?.Value<bool>() ?? true;
+        bool nsg = EditorGUILayout.ToggleLeft("正解で討伐を内部確定（告知は3G目）", sg);
+        if (nsg != sg) { bc["successGuaranteesDefeat"] = nsg; _dirty = true; }
+        int se = bc["successExp"]?.Value<int>() ?? 25;
+        int nse = EditorGUILayout.IntField("正解時 EXP", se, GUILayout.Width(260));
+        if (nse != se) { bc["successExp"] = Math.Max(0, nse); _dirty = true; }
+        EditorGUILayout.Space(6);
         int exp = _game["expPerDefeat"]?.Value<int>() ?? 50;
         int nexp = EditorGUILayout.IntField("討伐時 EXP", exp, GUILayout.Width(200));
         if (nexp != exp) { _game["expPerDefeat"] = Math.Max(0, nexp); _dirty = true; }
@@ -325,6 +339,69 @@ public sealed class ProbabilityEditorWindow : EditorWindow
                 }
             }
         }
+    }
+
+    // ---------------------------------------------------------------- 旅人
+    private void DrawTravelers()
+    {
+        var tv = (JObject)_game["travelers"];
+        if (tv == null) { EditorGUILayout.HelpBox("travelers が無い。一度 Play すると既定値で動く。保存するには game_config.json に travelers を追加してください。", MessageType.Warning); return; }
+        int ar = tv["appearanceRate"]?.Value<int>() ?? 6;
+        int nar = EditorGUILayout.IntField("通常時の出現率 %/G", ar, GUILayout.Width(260));
+        if (nar != ar) { tv["appearanceRate"] = Mathf.Clamp(nar, 0, 100); _dirty = true; }
+        EditorGUILayout.Space(6);
+        EditorGUILayout.LabelField("旅人", EditorStyles.boldLabel);
+        var list = (JArray)tv["travelers"];
+        using (new EditorGUILayout.HorizontalScope())
+        {
+            GUILayout.Label("id", EditorStyles.boldLabel, GUILayout.Width(30));
+            GUILayout.Label("名前", EditorStyles.boldLabel, GUILayout.Width(90));
+            GUILayout.Label("重み", EditorStyles.boldLabel, GUILayout.Width(50));
+            GUILayout.Label("秒", EditorStyles.boldLabel, GUILayout.Width(50));
+            GUILayout.Label("喋る%", EditorStyles.boldLabel, GUILayout.Width(50));
+            GUILayout.Label("示唆%", EditorStyles.boldLabel, GUILayout.Width(50));
+            GUILayout.Label("色", EditorStyles.boldLabel, GUILayout.Width(80));
+            GUILayout.Label("雑談（; 区切り）", EditorStyles.boldLabel, GUILayout.Width(300));
+        }
+        foreach (JObject t in list)
+        {
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.Label((string)t["id"], GUILayout.Width(30));
+                string nm = (string)t["name"] ?? ""; string nnm = EditorGUILayout.TextField(nm, GUILayout.Width(90)); if (nnm != nm) { t["name"] = nnm; _dirty = true; }
+                int w = t["weight"]?.Value<int>() ?? 0; int nw = EditorGUILayout.IntField(w, _num, GUILayout.Width(50)); if (nw != w) { t["weight"] = Math.Max(0, nw); _dirty = true; }
+                float ws = t["walkSeconds"]?.Value<float>() ?? 6f; float nws = EditorGUILayout.FloatField(ws, _num, GUILayout.Width(50)); if (Math.Abs(nws - ws) > 1e-3f) { t["walkSeconds"] = Math.Max(1f, nws); _dirty = true; }
+                int sr = t["serifRate"]?.Value<int>() ?? 0; int nsr = EditorGUILayout.IntField(sr, _num, GUILayout.Width(50)); if (nsr != sr) { t["serifRate"] = Mathf.Clamp(nsr, 0, 100); _dirty = true; }
+                int mh = t["modeHintRate"]?.Value<int>() ?? 0; int nmh = EditorGUILayout.IntField(mh, _num, GUILayout.Width(50)); if (nmh != mh) { t["modeHintRate"] = Mathf.Clamp(nmh, 0, 100); _dirty = true; }
+                string col = (string)t["color"] ?? "#ffffff"; string ncol = EditorGUILayout.TextField(col, GUILayout.Width(80)); if (ncol != col) { t["color"] = ncol; _dirty = true; }
+                string ch = string.Join(";", ((JArray)t["chatter"] ?? new JArray()).Select(x => (string)x));
+                string nch = EditorGUILayout.TextField(ch, GUILayout.Width(300));
+                if (nch != ch) { t["chatter"] = new JArray(nch.Split(';').Select(x => x.Trim()).Where(x => x.Length > 0)); _dirty = true; }
+            }
+        }
+        EditorGUILayout.Space(8);
+        EditorGUILayout.LabelField("モード示唆セリフ（各モードでの重み。比率で抽選）", EditorStyles.boldLabel);
+        var ms = (JArray)tv["modeSerifs"];
+        using (new EditorGUILayout.HorizontalScope())
+        {
+            GUILayout.Label("セリフ", EditorStyles.boldLabel, GUILayout.Width(260));
+            foreach (var m in new[] { "A", "B", "C", "D" }) GUILayout.Label("モード" + m, EditorStyles.boldLabel, GUILayout.Width(60));
+        }
+        for (int i = 0; i < ms.Count; i++)
+        {
+            var o = (JObject)ms[i];
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                string tx = (string)o["text"] ?? ""; string ntx = EditorGUILayout.TextField(tx, GUILayout.Width(260)); if (ntx != tx) { o["text"] = ntx; _dirty = true; }
+                foreach (var m in new[] { "A", "B", "C", "D" })
+                {
+                    int v = o[m]?.Value<int>() ?? 0; int nv = EditorGUILayout.IntField(v, _num, GUILayout.Width(60)); if (nv != v) { o[m] = Math.Max(0, nv); _dirty = true; }
+                }
+                if (GUILayout.Button("×", GUILayout.Width(24))) { ms.RemoveAt(i); _dirty = true; return; }
+            }
+        }
+        if (GUILayout.Button("セリフを追加", GUILayout.Width(120))) { ms.Add(new JObject { ["text"] = "新しいセリフ", ["A"] = 25, ["B"] = 25, ["C"] = 25, ["D"] = 25 }); _dirty = true; }
+        EditorGUILayout.HelpBox("信頼度の目安: そのセリフの重みが特定モードに偏るほど強い示唆。モードD 100 / 他 0 なら「D 確定」。", MessageType.None);
     }
 
     // ------------------------------------------------------- エンゲージ示唆

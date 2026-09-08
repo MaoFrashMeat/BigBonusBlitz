@@ -12,9 +12,12 @@ namespace BBB.Runtime
         private AudioSource _bgm;
         private AudioSource _se;
         private AudioSource _sePitched;   // ピッチを変える SE 用
+        private AudioLowPassFilter _bgmLpf;
+        private float _bgmBaseVolume = 0.5f;
+        private Coroutine _focusRoutine;
         private AudioClip _bgmNormal, _bet, _spin, _stop, _win, _replay, _attack, _enemyDeath, _bbConfirm, _uiPop;
 
-        public float BgmVolume { get => _bgm.volume; set => _bgm.volume = value; }
+        public float BgmVolume { get => _bgmBaseVolume; set { _bgmBaseVolume = value; _bgm.volume = value; } }
         public float SeVolume { get => _se.volume; set { _se.volume = value; _sePitched.volume = value; } }
         public bool BgmEnabled { get; private set; } = true;
 
@@ -25,6 +28,9 @@ namespace BBB.Runtime
             am._bgm = go.AddComponent<AudioSource>();
             am._bgm.loop = true;
             am._bgm.playOnAwake = false;
+            am._bgmLpf = go.AddComponent<AudioLowPassFilter>();
+            am._bgmLpf.cutoffFrequency = 22000f;
+            am._bgmLpf.lowpassResonanceQ = 1f;
             am._se = go.AddComponent<AudioSource>();
             am._se.playOnAwake = false;
             am._sePitched = go.AddComponent<AudioSource>();
@@ -58,6 +64,48 @@ namespace BBB.Runtime
             _sePitched.volume = _se.volume;
             _sePitched.PlayOneShot(_stop, 0.7f);
         }
+        /// <summary>択の最中: BGM を水中のようにこもらせる（ローパス 500Hz、音量 60%）。</summary>
+        public void SetFocus(bool on)
+        {
+            if (_focusRoutine != null) StopCoroutine(_focusRoutine);
+            _focusRoutine = StartCoroutine(FocusRoutine(on));
+        }
+
+        private System.Collections.IEnumerator FocusRoutine(bool on)
+        {
+            float c0 = _bgmLpf.cutoffFrequency, c1 = on ? 500f : 22000f;
+            float v0 = _bgm.volume, v1 = on ? _bgmBaseVolume * 0.6f : _bgmBaseVolume;
+            float t = 0, d = on ? 0.25f : 0.15f;
+            while (t < d)
+            {
+                t += Time.deltaTime;
+                float u = t / d;
+                // 対数で補間すると自然
+                _bgmLpf.cutoffFrequency = Mathf.Exp(Mathf.Lerp(Mathf.Log(c0), Mathf.Log(c1), u));
+                _bgm.volume = Mathf.Lerp(v0, v1, u);
+                yield return null;
+            }
+            _bgmLpf.cutoffFrequency = c1;
+            _bgm.volume = v1;
+        }
+
+        /// <summary>択 正解: 爽快な上昇音（パワーアップ音を高めに＋コイン）。</summary>
+        public void NaviSuccess()
+        {
+            _sePitched.pitch = 1.25f;
+            _sePitched.volume = _se.volume;
+            if (_replay != null) _sePitched.PlayOneShot(_replay, 1f);
+            if (_win != null) _se.PlayOneShot(_win, 0.8f);
+        }
+
+        /// <summary>択 失敗: 攻撃を食らう（斬撃音を低く）。</summary>
+        public void NaviFail()
+        {
+            _sePitched.pitch = 0.7f;
+            _sePitched.volume = _se.volume;
+            if (_attack != null) _sePitched.PlayOneShot(_attack, 0.9f);
+        }
+
         /// <summary>敵が逃げる（低いポップ音）。</summary>
         public void EnemyEscape()
         {

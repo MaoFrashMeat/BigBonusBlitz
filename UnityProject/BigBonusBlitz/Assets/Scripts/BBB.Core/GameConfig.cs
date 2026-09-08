@@ -20,10 +20,16 @@ namespace BBB.Core
         public Dictionary<string, int> ceilings;
         public Dictionary<string, Dictionary<string, Dictionary<string, int>>> modeTransitions;
         public int tier2MaxSpins = 3;
+        /// <summary>ENEMY 当選から敵が出現するまでの前兆G数（このG数目の終わりに出現）。</summary>
+        public int enemyPrecursorSpins = 3;
         public int expPerDefeat = 50;
         public HintConfig defaultHintConfig;
         /// <summary>敵エンゲージ中の段階示唆（案B）。null なら既定値。</summary>
         public EngageHintConfig engageHints;
+        /// <summary>ベル択ナビ（ATTACK / GUARD）の設定。</summary>
+        public BellCommandConfig bellCommand = new BellCommandConfig();
+        /// <summary>通常時に通り過ぎる旅人（モード示唆）。null なら既定。</summary>
+        public TravelerConfig travelers;
 
         public Payouts PayoutsFor(BonusMode m)
         {
@@ -61,6 +67,17 @@ namespace BBB.Core
             }
             return r;
         }
+    }
+
+    /// <summary>ベル択ナビ（第一停止=中、残り2つのどちらかが正解の 2 択）。</summary>
+    public sealed class BellCommandConfig
+    {
+        /// <summary>正解で討伐が内部確定する（告知は3G目）。</summary>
+        public bool successGuaranteesDefeat = true;
+        /// <summary>正解時の EXP ボーナス。</summary>
+        public int successExp = 25;
+        /// <summary>失敗時にプレイヤーが受けるペナルティ（今は演出のみ。将来 HP 等に使う）。</summary>
+        public int failPenalty = 0;
     }
 
     public sealed class Payouts

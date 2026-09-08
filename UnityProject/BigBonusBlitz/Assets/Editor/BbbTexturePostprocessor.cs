@@ -10,7 +10,7 @@ public sealed class BbbTexturePostprocessor : AssetPostprocessor
     private const string ArtRoot = "Assets/Resources/Art/";
 
     // 版を上げると該当アセットが再インポートされる（既に Default で取り込まれた png を Sprite に直すため）
-    public override uint GetVersion() => 1;
+    public override uint GetVersion() => 2;
 
     private void OnPreprocessTexture()
     {
@@ -24,5 +24,7 @@ public sealed class BbbTexturePostprocessor : AssetPostprocessor
         imp.textureCompression = TextureImporterCompression.Uncompressed;
         imp.spritePixelsPerUnit = 100;
         imp.wrapMode = assetPath.Contains("/Backgrounds/") ? TextureWrapMode.Repeat : TextureWrapMode.Clamp;
+        // ピクセルアート（旅人）はにじませない
+        imp.filterMode = assetPath.Contains("/Travelers/") ? FilterMode.Point : FilterMode.Bilinear;
     }
 }
