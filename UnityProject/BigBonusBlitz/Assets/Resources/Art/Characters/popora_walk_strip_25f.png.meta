@@ -1,0 +1,768 @@
+fileFormatVersion: 2
+guid: 449a317ec6135fa469f019cf1048a895
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -8198243961196990866
+    second: popora_walk_strip_25f_0
+  - first:
+      213: 4957264547700219611
+    second: popora_walk_strip_25f_1
+  - first:
+      213: 1409496099527951325
+    second: popora_walk_strip_25f_2
+  - first:
+      213: 3835289095500066947
+    second: popora_walk_strip_25f_3
+  - first:
+      213: -6143586233418336351
+    second: popora_walk_strip_25f_4
+  - first:
+      213: 368991787002284773
+    second: popora_walk_strip_25f_5
+  - first:
+      213: 4040697555826580206
+    second: popora_walk_strip_25f_6
+  - first:
+      213: 3898602299322789865
+    second: popora_walk_strip_25f_7
+  - first:
+      213: -6455575627982611210
+    second: popora_walk_strip_25f_8
+  - first:
+      213: 5642339368596698098
+    second: popora_walk_strip_25f_9
+  - first:
+      213: 2332279199460813635
+    second: popora_walk_strip_25f_10
+  - first:
+      213: -8723472872464812023
+    second: popora_walk_strip_25f_11
+  - first:
+      213: -2009104611299128169
+    second: popora_walk_strip_25f_12
+  - first:
+      213: -1598805511950958448
+    second: popora_walk_strip_25f_13
+  - first:
+      213: -2099372059673157995
+    second: popora_walk_strip_25f_14
+  - first:
+      213: -8698510494818602523
+    second: popora_walk_strip_25f_15
+  - first:
+      213: -5873854665192464765
+    second: popora_walk_strip_25f_16
+  - first:
+      213: 659691885779797189
+    second: popora_walk_strip_25f_17
+  - first:
+      213: -619582475059972737
+    second: popora_walk_strip_25f_18
+  - first:
+      213: -2099703852421154923
+    second: popora_walk_strip_25f_19
+  - first:
+      213: -8314213409410945347
+    second: popora_walk_strip_25f_20
+  - first:
+      213: 4574676379457405690
+    second: popora_walk_strip_25f_21
+  - first:
+      213: -3886087609688007318
+    second: popora_walk_strip_25f_22
+  - first:
+      213: -7585282937603550842
+    second: popora_walk_strip_25f_23
+  - first:
+      213: 7810648903225029242
+    second: popora_walk_strip_25f_24
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 8192
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: popora_walk_strip_25f_0
+      rect:
+        serializedVersion: 2
+        x: 76
+        y: 27
+        width: 107
+        height: 209
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e6eacdead8cf93e80800000000000000
+      internalID: -8198243961196990866
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popora_walk_strip_25f_1
+      rect:
+        serializedVersion: 2
+        x: 331
+        y: 25
+        width: 108
+        height: 210
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bde1f4767ddbbc440800000000000000
+      internalID: 4957264547700219611
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popora_walk_strip_25f_2
+      rect:
+        serializedVersion: 2
+        x: 586
+        y: 25
+        width: 105
+        height: 210
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dd389a41c398f8310800000000000000
+      internalID: 1409496099527951325
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popora_walk_strip_25f_3
+      rect:
+        serializedVersion: 2
+        x: 842
+        y: 25
+        width: 96
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 380f534bc1fa93530800000000000000
+      internalID: 3835289095500066947
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popora_walk_strip_25f_4
+      rect:
+        serializedVersion: 2
+        x: 1099
+        y: 26
+        width: 87
+        height: 213
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1a7be1eeed89dbaa0800000000000000
+      internalID: -6143586233418336351
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popora_walk_strip_25f_5
+      rect:
+        serializedVersion: 2
+        x: 1356
+        y: 27
+        width: 87
+        height: 213
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5eace45431cee1500800000000000000
+      internalID: 368991787002284773
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popora_walk_strip_25f_6
+      rect:
+        serializedVersion: 2
+        x: 1612
+        y: 28
+        width: 101
+        height: 210
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eea15dbb401731830800000000000000
+      internalID: 4040697555826580206
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popora_walk_strip_25f_7
+      rect:
+        serializedVersion: 2
+        x: 1868
+        y: 27
+        width: 106
+        height: 208
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9efe7a3b22e9a1630800000000000000
+      internalID: 3898602299322789865
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popora_walk_strip_25f_8
+      rect:
+        serializedVersion: 2
+        x: 2122
+        y: 26
+        width: 102
+        height: 207
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6fc5d616b203966a0800000000000000
+      internalID: -6455575627982611210
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popora_walk_strip_25f_9
+      rect:
+        serializedVersion: 2
+        x: 2382
+        y: 27
+        width: 87
+        height: 209
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2f37867e2cd9d4e40800000000000000
+      internalID: 5642339368596698098
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popora_walk_strip_25f_10
+      rect:
+        serializedVersion: 2
+        x: 2638
+        y: 26
+        width: 84
+        height: 213
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 34be4e0339bed5020800000000000000
+      internalID: 2332279199460813635
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popora_walk_strip_25f_11
+      rect:
+        serializedVersion: 2
+        x: 2893
+        y: 28
+        width: 84
+        height: 211
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9087af434afffe680800000000000000
+      internalID: -8723472872464812023
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popora_walk_strip_25f_12
+      rect:
+        serializedVersion: 2
+        x: 3148
+        y: 28
+        width: 105
+        height: 210
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 79c8aee200a3e14e0800000000000000
+      internalID: -2009104611299128169
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popora_walk_strip_25f_13
+      rect:
+        serializedVersion: 2
+        x: 3403
+        y: 25
+        width: 109
+        height: 210
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0900a339bd6efc9e0800000000000000
+      internalID: -1598805511950958448
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popora_walk_strip_25f_14
+      rect:
+        serializedVersion: 2
+        x: 3658
+        y: 26
+        width: 105
+        height: 209
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 59e1dc31c388dd2e0800000000000000
+      internalID: -2099372059673157995
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popora_walk_strip_25f_15
+      rect:
+        serializedVersion: 2
+        x: 3915
+        y: 25
+        width: 95
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5e17459aacea84780800000000000000
+      internalID: -8698510494818602523
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popora_walk_strip_25f_16
+      rect:
+        serializedVersion: 2
+        x: 4171
+        y: 26
+        width: 87
+        height: 213
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 38e9ee29d40eb7ea0800000000000000
+      internalID: -5873854665192464765
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popora_walk_strip_25f_17
+      rect:
+        serializedVersion: 2
+        x: 4428
+        y: 27
+        width: 87
+        height: 213
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5c4cc116642b72900800000000000000
+      internalID: 659691885779797189
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popora_walk_strip_25f_18
+      rect:
+        serializedVersion: 2
+        x: 4684
+        y: 28
+        width: 101
+        height: 210
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f753ef8850dc667f0800000000000000
+      internalID: -619582475059972737
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popora_walk_strip_25f_19
+      rect:
+        serializedVersion: 2
+        x: 4940
+        y: 27
+        width: 106
+        height: 208
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 597faee887a5cd2e0800000000000000
+      internalID: -2099703852421154923
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popora_walk_strip_25f_20
+      rect:
+        serializedVersion: 2
+        x: 5194
+        y: 26
+        width: 102
+        height: 207
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dbe654964fafd9c80800000000000000
+      internalID: -8314213409410945347
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popora_walk_strip_25f_21
+      rect:
+        serializedVersion: 2
+        x: 5453
+        y: 26
+        width: 87
+        height: 210
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: af2cdefede38c7f30800000000000000
+      internalID: 4574676379457405690
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popora_walk_strip_25f_22
+      rect:
+        serializedVersion: 2
+        x: 5710
+        y: 26
+        width: 84
+        height: 213
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a6ddf7a88e7d11ac0800000000000000
+      internalID: -3886087609688007318
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popora_walk_strip_25f_23
+      rect:
+        serializedVersion: 2
+        x: 5965
+        y: 28
+        width: 90
+        height: 210
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6811f475b59abb690800000000000000
+      internalID: -7585282937603550842
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popora_walk_strip_25f_24
+      rect:
+        serializedVersion: 2
+        x: 6220
+        y: 27
+        width: 107
+        height: 209
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a72b50e7bcff46c60800000000000000
+      internalID: 7810648903225029242
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable: {}
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
