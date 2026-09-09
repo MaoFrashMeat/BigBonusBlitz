@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>ENEMY ENGAGE 文字演出 比較</title>
+<style>
+  :root { --bg:#0a0d16; --panel:#151b2b; --edge:#2a3554; --text:#f4f6fa; --sub:#98a3b8; --accent:#ff4d6d; --gold:#ffcf3f; --gold2:#c8961e; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family: system-ui, "Segoe UI", sans-serif; display:flex; flex-direction:column; align-items:center; padding:16px; }
+  h1 { font-size:16px; margin:0 0 10px; color:var(--sub); font-weight:600; }
+  .bar { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:12px; }
+  button { background:#27304a; color:var(--text); border:1px solid var(--edge); border-radius:10px; padding:10px 14px; font-size:14px; cursor:pointer; }
+  button:hover { background:#33405f; }
+  button.sel { background:var(--accent); border-color:var(--accent); }
+  .stage { position:relative; width:960px; height:540px; background:var(--bg); border-radius:14px; overflow:hidden; box-shadow:0 10px 40px #000a; }
+  .card { position:absolute; background:var(--panel); border:1px solid var(--edge); border-radius:12px; }
+  .area { left:8px; top:8px; width:944px; height:252px; overflow:hidden; background:linear-gradient(#3a5a8a 0%, #7aa0c8 45%, #557a3a 60%, #2f4a22 100%); }
+  .band { position:absolute; left:1px; top:1px; right:1px; height:28px; background:#0c1019; border-radius:12px 12px 0 0; display:flex; align-items:center; gap:8px; padding:0 8px; font-size:12px; font-weight:700; box-sizing:border-box; }
+  .chip { padding:2px 10px; border-radius:10px; background:#27304a; }
+  .chip.red { background:#d91e33; }
+  .hero { position:absolute; left:120px; bottom:6px; width:110px; height:170px; background:#e8c37a; border-radius:40px 40px 10px 10px; }
+  .enemy { position:absolute; right:180px; bottom:14px; width:120px; height:120px; background:#7b3fb0; border-radius:50%; opacity:0; transform:translateX(220px); }
+  .mid { top:268px; height:196px; }
+  .disp { left:8px; width:218px; } .side { right:8px; width:218px; }
+  .cab { left:234px; width:492px; border:3px solid var(--gold2); background:#1c2438; }
+  .reel { position:absolute; top:8px; width:148px; height:180px; background:#f2f2f2; border-radius:6px; }
+  .reel::after { content:""; position:absolute; left:0; right:0; top:60px; height:60px; border-top:2px solid #ffcf3f88; border-bottom:2px solid #ffcf3f88; }
+  .ctrl { top:476px; height:56px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-weight:700; }
+  .bet { left:8px; width:218px; background:var(--accent); } .stop { width:148px; background:#27304a; } .auto { right:8px; width:218px; background:#27304a; }
+  .label { position:absolute; top:6px; left:12px; font-size:11px; color:var(--sub); font-weight:700; }
+  /* ---- 演出レイヤー（表示域の中だけに出す。筐体・ナビには被せない §16.3） ---- */
+  .fx { position:absolute; left:8px; top:36px; width:944px; height:224px; pointer-events:none; overflow:hidden; }
+  .engage { position:absolute; left:0; right:0; top:50%; transform:translateY(-50%); text-align:center; font-weight:900; font-size:56px; letter-spacing:6px; color:#fff; text-shadow:0 3px 0 #7a0016, 0 0 24px #ff4d6d; opacity:0; font-family: Impact, "Arial Black", sans-serif; }
+  .darkband { position:absolute; left:-10%; right:-10%; top:50%; height:96px; transform:translateY(-50%) scaleX(0); background:linear-gradient(90deg, transparent, #000c 15%, #000c 85%, transparent); }
+  .flash { position:absolute; inset:0; background:#ff4d6d; opacity:0; }
+  .slash { position:absolute; left:-20%; top:50%; width:140%; height:6px; background:#fff; transform:rotate(-12deg) scaleX(0); transform-origin:left center; box-shadow:0 0 18px #fff; opacity:0; }
+  .crack { position:absolute; inset:0; opacity:0; background:
+    linear-gradient(115deg, transparent 49.6%, #fff 49.8%, #fff 50.2%, transparent 50.4%),
+    linear-gradient(60deg, transparent 49.7%, #fff 49.9%, #fff 50.1%, transparent 50.3%),
+    linear-gradient(160deg, transparent 49.7%, #fff 49.9%, #fff 50.1%, transparent 50.3%),
+    linear-gradient(20deg, transparent 49.7%, #fff 49.9%, #fff 50.1%, transparent 50.3%); }
+  .letter { display:inline-block; opacity:0; }
+  .note { max-width:960px; color:var(--sub); font-size:13px; line-height:1.6; margin-top:12px; }
+  .note b { color:var(--text); }
+  .shake { animation: shake .3s linear; }
+  @keyframes shake { 0%,100%{transform:translate(0,0)} 20%{transform:translate(-6px,4px)} 40%{transform:translate(5px,-5px)} 60%{transform:translate(-4px,-3px)} 80%{transform:translate(4px,3px)} }
+</style>
+</head>
+<body>
+<h1>ENEMY ENGAGE 文字演出 比較（ボタンで再生。前兆 3G → 出現 の流れを 1 回分）</h1>
+<div class="bar">
+  <button data-k="1">1 叩きつけ</button>
+  <button data-k="2">2 一文字ずつ</button>
+  <button data-k="3">3 斬撃</button>
+  <button data-k="4">4 割れガラス</button>
+  <button data-k="5">5 前兆で増える</button>
+  <button data-k="6">推奨 1+5 複合</button>
+  <label style="display:flex;align-items:center;gap:6px;color:var(--sub);font-size:13px;margin-left:12px"><input type="checkbox" id="slow"> 0.5倍速</label>
+</div>
+<div class="stage" id="stage">
+  <div class="card area">
+    <div class="band"><span class="chip" id="mode">通常</span><span class="chip red" id="eng" style="display:none">ENGAGE 残り 3 G</span><span style="flex:1;text-align:center" id="msg"></span><span style="color:var(--gold)">123 G</span></div>
+    <div class="hero"></div>
+    <div class="enemy" id="enemy"></div>
+  </div>
+  <div class="fx" id="fx">
+    <div class="darkband" id="darkband"></div>
+    <div class="slash" id="slash"></div>
+    <div class="crack" id="crack"></div>
+    <div class="flash" id="flash"></div>
+    <div class="engage" id="engage"></div>
+  </div>
+  <div class="card mid disp"><div class="label">CREDIT</div></div>
+  <div class="card mid cab"><div class="reel" style="left:12px"></div><div class="reel" style="left:168px"></div><div class="reel" style="left:324px"></div></div>
+  <div class="card mid side"><div class="label">PLAYER</div></div>
+  <div class="ctrl bet" style="position:absolute">MAX BET</div>
+  <div class="ctrl stop" style="position:absolute;left:246px">STOP</div>
+  <div class="ctrl stop" style="position:absolute;left:402px">STOP</div>
+  <div class="ctrl stop" style="position:absolute;left:558px">STOP</div>
+  <div class="ctrl auto" style="position:absolute">AUTO</div>
+</div>
+<div class="note" id="note">案を選んでください。文字は表示域（上段）の中だけに出し、リール・ナビには被せません。</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const notes = {
+  1: "<b>叩きつけ</b>: 黒帯が横切り、文字が 1.4 倍→1.0 に着地。着地で揺れ＋赤フラッシュ。出現音の「ドンッ」と同期。0.7 秒",
+  2: "<b>一文字ずつ</b>: 敵の歩幅に合わせ E・N・E・M・Y…を刻む。最後の「!」で赤フラッシュ。0.9 秒",
+  3: "<b>斬撃</b>: 白い斬撃線が走り、その跡から文字が上下に割れて現れる。0.7 秒",
+  4: "<b>割れガラス</b>: 画面にヒビ→白フラッシュ→文字。通常時が終わる感触。0.8 秒",
+  5: "<b>前兆で増える</b>: 前兆 1G 目 E、2G 目 ENE、3G 目 ENEMY…と増え、出現 G で ENGAGE が揃う。前兆と一体。出現時は 0.5 秒",
+  6: "<b>推奨 1+5</b>: 前兆中に文字が増え、出現 G で叩きつけ着地＋揺れ。前兆の期待と出現の衝撃を両取り"
+};
+const sleep = ms => new Promise(r => setTimeout(r, ms * ($('slow').checked ? 2 : 1)));
+let busy = false;
+
+function reset() {
+  const e = $('engage'); e.style.opacity = 0; e.style.transform = 'translateY(-50%) scale(1)'; e.innerHTML = ''; e.style.transition = 'none';
+  $('darkband').style.transition = 'none'; $('darkband').style.transform = 'translateY(-50%) scaleX(0)';
+  $('flash').style.opacity = 0; $('slash').style.opacity = 0; $('slash').style.transform = 'rotate(-12deg) scaleX(0)'; $('crack').style.opacity = 0;
+  $('enemy').style.transition = 'none'; $('enemy').style.opacity = 0; $('enemy').style.transform = 'translateX(220px)';
+  $('eng').style.display = 'none'; $('mode').textContent = '通常'; $('msg').textContent = '';
+}
+async function flash(color, ms) { const f = $('flash'); f.style.background = color; f.style.transition = 'none'; f.style.opacity = 0.55; await sleep(40); f.style.transition = `opacity ${ms}ms`; f.style.opacity = 0; }
+function shake() { const s = $('stage'); s.classList.remove('shake'); void s.offsetWidth; s.classList.add('shake'); }
+async function enemyIn() { const en = $('enemy'); en.style.transition = 'transform .5s cubic-bezier(.2,.8,.2,1), opacity .5s'; en.style.opacity = 1; en.style.transform = 'translateX(0)'; await sleep(500); shake(); }
+async function precursor(stageTexts) {
+  // 前兆 3G: 画面が段階的に暗く、右から影が寄る（本実装と同じ）。stageTexts があれば文字も増やす
+  for (let g = 0; g < 3; g++) {
+    $('mode').textContent = '前兆'; $('msg').textContent = `前兆 ${g + 1} / 3 G`;
+    $('fx').style.background = `rgba(0,0,0,${0.18 * (g + 1)})`;
+    if (stageTexts) { const e = $('engage'); e.style.transition = 'opacity .3s'; e.style.opacity = 0.55 + 0.15 * g; e.style.fontSize = (34 + g * 6) + 'px'; e.textContent = stageTexts[g]; }
+    await sleep(700);
+  }
+}
+async function finish() {
+  $('eng').style.display = ''; $('mode').textContent = 'ENGAGE'; $('msg').textContent = '';
+  await sleep(1500);
+  $('fx').style.background = 'transparent';
+  const e = $('engage'); e.style.transition = 'opacity .3s'; e.style.opacity = 0;
+  await sleep(300); reset();
+}
+async function slam(text) {
+  const e = $('engage'), b = $('darkband');
+  b.style.transition = 'transform .18s cubic-bezier(.2,.9,.2,1)'; b.style.transform = 'translateY(-50%) scaleX(1)';
+  await sleep(120);
+  e.textContent = text; e.style.fontSize = '64px'; e.style.transition = 'none'; e.style.opacity = 1; e.style.transform = 'translateY(-50%) scale(1.5)';
+  await sleep(20);
+  e.style.transition = 'transform .16s cubic-bezier(.3,1.4,.5,1)'; e.style.transform = 'translateY(-50%) scale(1)';
+  await sleep(160); shake(); flash('#ff4d6d', 500);
+}
+
+const plays = {
+  async 1() { await precursor(null); await enemyIn(); await slam('ENEMY ENGAGE!'); },
+  async 2() {
+    await precursor(null); enemyIn();
+    const e = $('engage'); e.style.opacity = 1; e.style.fontSize = '60px';
+    const chars = 'ENEMY ENGAGE!'.split('');
+    e.innerHTML = chars.map(c => `<span class="letter">${c === ' ' ? '&nbsp;' : c}</span>`).join('');
+    const ls = e.querySelectorAll('.letter');
+    for (let i = 0; i < ls.length; i++) { ls[i].style.transition = 'opacity .05s, transform .08s'; ls[i].style.transform = 'scale(1.6)'; ls[i].style.opacity = 1; await sleep(15); ls[i].style.transform = 'scale(1)'; await sleep(chars[i] === ' ' ? 20 : 55); }
+    shake(); flash('#ff4d6d', 500);
+  },
+  async 3() {
+    await precursor(null); enemyIn();
+    const s = $('slash'); s.style.opacity = 1; s.style.transition = 'transform .16s linear'; s.style.transform = 'rotate(-12deg) scaleX(1)';
+    await sleep(160); flash('#ffffff', 300); shake();
+    const e = $('engage'); e.style.fontSize = '60px';
+    e.innerHTML = `<span style="display:block;transform:translateY(-14px);transition:transform .25s">ENEMY</span><span style="display:block;transform:translateY(14px);transition:transform .25s;color:#ff4d6d">ENGAGE!</span>`;
+    e.style.transition = 'opacity .1s'; e.style.opacity = 1; e.style.lineHeight = '0.95';
+    await sleep(30); e.querySelectorAll('span').forEach(x => x.style.transform = 'translateY(0)');
+    s.style.transition = 'opacity .3s'; s.style.opacity = 0;
+    await sleep(300); e.style.lineHeight = '';
+  },
+  async 4() {
+    await precursor(null);
+    const c = $('crack'); c.style.transition = 'opacity .12s'; c.style.opacity = 0.9; await sleep(140); shake();
+    await sleep(160); flash('#ffffff', 350); c.style.transition = 'opacity .4s'; c.style.opacity = 0;
+    enemyIn();
+    const e = $('engage'); e.textContent = 'ENEMY ENGAGE!'; e.style.fontSize = '62px'; e.style.transition = 'none'; e.style.transform = 'translateY(-50%) scale(1.2)'; e.style.opacity = 1;
+    await sleep(20); e.style.transition = 'transform .25s ease-out'; e.style.transform = 'translateY(-50%) scale(1)';
+    await sleep(250);
+  },
+  async 5() {
+    await precursor(['E', 'ENE', 'ENEMY']);
+    await enemyIn();
+    const e = $('engage'); e.style.transition = 'font-size .2s, opacity .2s'; e.style.fontSize = '60px'; e.style.opacity = 1; e.textContent = 'ENEMY ENGAGE!';
+    await sleep(200); flash('#ff4d6d', 400);
+  },
+  async 6() {
+    await precursor(['E', 'ENE', 'ENEMY']);
+    await enemyIn();
+    $('engage').style.opacity = 0;
+    await slam('ENEMY ENGAGE!');
+  },
+};
+
+document.querySelectorAll('button[data-k]').forEach(b => b.addEventListener('click', async () => {
+  if (busy) return; busy = true;
+  document.querySelectorAll('button').forEach(x => x.classList.remove('sel')); b.classList.add('sel');
+  $('note').innerHTML = notes[b.dataset.k];
+  reset(); $('fx').style.background = 'transparent';
+  await plays[b.dataset.k](); await finish(); busy = false;
+}));
+</script>
+</body>
+</html>

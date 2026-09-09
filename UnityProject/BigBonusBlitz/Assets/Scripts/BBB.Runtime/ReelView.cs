@@ -74,21 +74,53 @@ namespace BBB.Runtime
             _remainingSlip = -1f;
         }
 
-        /// <summary>停止指示。finalIdx が上段に来るまで進んで止まる。</summary>
-        public void StopAt(int finalIdx)
+        /// <summary>直前の停止の滑りコマ数（制御側の値）。</summary>
+        public int LastSlip { get; private set; }
+        /// <summary>直前の停止が「引き込み」（通常の最大滑りを超える。持ち越しボーナス狙い）だったか。</summary>
+        public bool LastWasPullIn { get; private set; }
+        /// <summary>引き込み時に余分に回す周回数。1 = もう一周してから止まる（「引き込まれている」のを見せる）。</summary>
+        public static int PullInExtraLaps = 1;
+
+        private float _pullInTotal;      // 引き込み時の総移動コマ数（減速カーブ用）
+        private float _bounceT = -1f;    // 停止後の小さな跳ね（秒）。負なら無し
+        private float _bounceOffset;
+
+        /// <summary>停止指示。finalIdx が上段に来るまで進んで止まる。slip は制御側が決めた滑りコマ数。</summary>
+        public void StopAt(int finalIdx, int slip = 0)
         {
             int len = Strip.Length;
             float cur = ((_pos % len) + len) % len;
             float dist = cur - finalIdx;
             if (dist < 0) dist += len;
+            LastSlip = slip;
+            LastWasPullIn = slip > SlipController.DefaultMaxSlip;
+            // 引き込み: 目的のコマまでの距離に加えて一周余分に回し、終盤で減速して「吸い込まれる」ように止める
+            if (LastWasPullIn) dist += len * Mathf.Max(0, PullInExtraLaps);
             _remainingSlip = dist;
+            _pullInTotal = dist;
         }
 
         private void Update()
         {
-            if (!IsSpinning) return;
+            if (!IsSpinning)
+            {
+                // 引き込み停止後の跳ね（1〜2 フレームの余韻）
+                if (_bounceT >= 0f)
+                {
+                    _bounceT += Time.deltaTime;
+                    const float d = 0.22f;
+                    _bounceOffset = _bounceT >= d ? 0f : 6f * Mathf.Sin(_bounceT / d * Mathf.PI) * (1f - _bounceT / d);
+                    if (_bounceT >= d) { _bounceT = -1f; _bounceOffset = 0f; }
+                    Redraw();
+                }
+                return;
+            }
             float dt = Mathf.Min(Time.deltaTime, 0.1f) * SpeedScale;
-            float move = SymbolsPerSecond * dt;
+            float speed = SymbolsPerSecond;
+            // 引き込み中の終盤 6 コマは 100% → 30% へ滑らかに減速（ガコン、と吸い込まれる感じ）
+            if (LastWasPullIn && _remainingSlip >= 0f && _remainingSlip < 6f)
+                speed *= Mathf.Lerp(0.3f, 1f, Mathf.SmoothStep(0f, 1f, _remainingSlip / 6f));
+            float move = speed * dt;
             if (_remainingSlip >= 0f)
             {
                 if (_remainingSlip <= move) { move = _remainingSlip; _remainingSlip = 0f; }
@@ -101,9 +133,10 @@ namespace BBB.Runtime
             if (_remainingSlip == 0f)
             {
                 _pos = Mathf.Round(_pos) % len;
-                Redraw();
                 IsSpinning = false;
                 _remainingSlip = -1f;
+                if (LastWasPullIn) _bounceT = 0f;
+                Redraw();
                 Stopped?.Invoke(this);
             }
         }
@@ -114,7 +147,7 @@ namespace BBB.Runtime
             int top = TopIndex;
             // 上段コマの「余り」分だけ下にずらして描くと連続スクロールになる
             float frac = _pos - Mathf.Floor(_pos);
-            float shift = frac * SymbolHeight;
+            float shift = frac * SymbolHeight + _bounceOffset;
             for (int i = 0; i < Rows; i++)
             {
                 // i=0 は上段の1つ上、i=1 が上段、i=2 中段、i=3 下段、i=4 は下段の1つ下

@@ -37,6 +37,14 @@ namespace BBB.Runtime
             public static Preset Confetti => new Preset { shape = Shape.Shard, count = 60, sizeMin = 6, sizeMax = 12, speedMin = 200, speedMax = 600, gravity = -350, life = 2.2f, spread = 120, direction = 90, spin = 900, drag = 2.5f, colors = new[] { new Color(1f, 0.3f, 0.4f), new Color(1f, 0.85f, 0.3f), new Color(0.3f, 0.8f, 1f), new Color(0.5f, 1f, 0.5f), Color.white } };
             public static Preset Dust => new Preset { shape = Shape.Circle, count = 10, sizeMin = 14, sizeMax = 28, speedMin = 60, speedMax = 180, gravity = 60, life = 0.6f, spread = 160, direction = 90, colors = new[] { new Color(0.8f, 0.75f, 0.6f, 0.7f) } };
             public static Preset Focus => new Preset { shape = Shape.Circle, count = 12, sizeMin = 4, sizeMax = 8, speedMin = 40, speedMax = 90, gravity = 120, life = 1.4f, spread = 360, direction = 90, drag = 0.5f, colors = new[] { new Color(0.6f, 0.8f, 1f, 0.8f) } };
+            /// <summary>チェリー: 桜色の花びらがひらひら落ちる（Rain で上から降らせる）。</summary>
+            public static Preset Petals => new Preset { shape = Shape.Circle, count = 1, sizeMin = 7, sizeMax = 12, speedMin = 70, speedMax = 140, gravity = -90, life = 1.9f, spread = 50, direction = 270, drag = 0.6f, spin = 240, colors = new[] { new Color(1f, 0.6f, 0.75f), new Color(1f, 0.8f, 0.88f), new Color(1f, 0.45f, 0.6f) } };
+            /// <summary>スイカ: 緑のしぶきが弾ける。</summary>
+            public static Preset Splash => new Preset { shape = Shape.Circle, count = 24, sizeMin = 6, sizeMax = 13, speedMin = 260, speedMax = 560, gravity = -1300, life = 0.75f, spread = 120, direction = 90, colors = new[] { new Color(0.45f, 1f, 0.5f), new Color(0.2f, 0.85f, 0.35f), new Color(0.85f, 1f, 0.85f) } };
+            /// <summary>リプレイ: 青い小さな星がふわっと舞う。</summary>
+            public static Preset Sparkle => new Preset { shape = Shape.Star, count = 14, sizeMin = 8, sizeMax = 15, speedMin = 60, speedMax = 170, gravity = 40, life = 1.0f, spread = 360, direction = 90, drag = 0.8f, spin = 420, colors = new[] { new Color(0.55f, 0.8f, 1f), Color.white, new Color(0.35f, 0.6f, 1f) } };
+            /// <summary>チャンス目: 虹色の星＋紙吹雪。</summary>
+            public static Preset RainbowStars => new Preset { shape = Shape.Star, count = 32, sizeMin = 12, sizeMax = 28, speedMin = 180, speedMax = 520, gravity = -300, life = 1.3f, spread = 360, direction = 90, spin = 600, colors = new[] { new Color(1f, 0.35f, 0.4f), new Color(1f, 0.85f, 0.3f), new Color(0.4f, 1f, 0.5f), new Color(0.4f, 0.75f, 1f), new Color(0.8f, 0.5f, 1f), Color.white } };
         }
 
         private sealed class P
@@ -92,6 +100,23 @@ namespace BBB.Runtime
             _inst.StartCoroutine(_inst.PopTextRoutine(_inst.ToLayer(at) + offset, text, color, fontSize));
         }
 
+        /// <summary>幅 width の範囲の上端（offsetY）から duration 秒間、毎秒 perSecond 個を降らせる（花びら等）。</summary>
+        public static void Rain(RectTransform at, Preset preset, float width, float offsetY, float duration, float perSecond)
+        {
+            if (_inst == null) return;
+            _inst.StartCoroutine(_inst.RainRoutine(_inst.ToLayer(at), preset, width, offsetY, duration, perSecond));
+        }
+
+        /// <summary>
+        /// 役名カットイン: 角丸の帯にアイコン＋文字。ポップイン → 保持 → 右へ流れて消える。
+        /// scale で大きさ、rainbow=true で縁と文字の色相が回る（チャンス目）。
+        /// </summary>
+        public static void Cutin(RectTransform at, string text, Color color, Sprite icon, float scale = 1f, float hold = 0.8f, bool rainbow = false, Vector2 offset = default)
+        {
+            if (_inst == null) return;
+            _inst.StartCoroutine(_inst.CutinRoutine(_inst.ToLayer(at) + offset, text, color, icon, scale, hold, rainbow));
+        }
+
         // ------------------------------------------------------- internals
         private Vector2 ToLayer(RectTransform at)
         {
@@ -117,7 +142,11 @@ namespace BBB.Runtime
 
         private void Spawn(Vector2 pos, Preset pr)
         {
-            for (int i = 0; i < pr.count; i++)
+            for (int i = 0; i < pr.count; i++) SpawnOne(pos, pr);
+        }
+
+        private void SpawnOne(Vector2 pos, Preset pr)
+        {
             {
                 var img = Get(pr.shape);
                 var rt = img.rectTransform;
@@ -208,6 +237,80 @@ namespace BBB.Runtime
             }
             img.gameObject.SetActive(false);
             _pool.Push(img);
+        }
+
+        private IEnumerator RainRoutine(Vector2 origin, Preset pr, float width, float offsetY, float duration, float perSecond)
+        {
+            float t = 0, acc = 0;
+            while (t < duration)
+            {
+                float dt = Time.deltaTime;
+                t += dt;
+                acc += perSecond * dt;
+                while (acc >= 1f)
+                {
+                    acc -= 1f;
+                    SpawnOne(origin + new Vector2(Random.Range(-width * 0.5f, width * 0.5f), offsetY), pr);
+                }
+                yield return null;
+            }
+        }
+
+        private IEnumerator CutinRoutine(Vector2 pos, string text, Color color, Sprite icon, float scale, float hold, bool rainbow)
+        {
+            float w = 320f * scale, h = 66f * scale;
+            var root = UiSkin.Rect(_layer, "cutin", pos, new Vector2(w, h));
+            var cg = root.gameObject.AddComponent<CanvasGroup>();
+            cg.blocksRaycasts = false;
+            int r = Mathf.RoundToInt(h * 0.5f);
+            UiSkin.Img(root, "Shadow", new Vector2(0, -5), new Vector2(w + 24, h + 24), UiSkin.Shadow(r, 12), new Color(0, 0, 0, 0.55f));
+            var glow = UiSkin.Img(root, "Glow", Vector2.zero, new Vector2(w + 60, h + 60), UiSkin.Shadow(r, 30), new Color(color.r, color.g, color.b, 0.35f));
+            var edge = UiSkin.Img(root, "Edge", Vector2.zero, new Vector2(w, h), UiSkin.Rounded(r), color);
+            UiSkin.Img(root, "Body", Vector2.zero, new Vector2(w - 6, h - 6), UiSkin.Rounded(r - 3), new Color(color.r * 0.18f, color.g * 0.18f, color.b * 0.18f, 0.96f));
+            UiSkin.Img(root, "Sheen", new Vector2(0, h * 0.22f), new Vector2(w - 10, h * 0.42f), UiSkin.GradientV(true), new Color(1, 1, 1, 0.12f)).type = Image.Type.Simple;
+            float textX = 0;
+            if (icon != null)
+            {
+                var ic = UiSkin.Img(root, "Icon", new Vector2(-w * 0.5f + h * 0.5f + 8, 0), new Vector2(h - 18, h - 18), icon, Color.white);
+                ic.preserveAspect = true;
+                textX = h * 0.32f;
+            }
+            var label = UiFactory.Label(root, "Text", new Vector2(textX, 1), new Vector2(w - (icon != null ? h : 0) - 20, h), text, Mathf.RoundToInt(28 * scale), TextAnchor.MiddleCenter, Color.white);
+            label.fontStyle = FontStyle.Bold;
+            var sh = label.gameObject.AddComponent<Shadow>();
+            sh.effectColor = new Color(0, 0, 0, 0.8f); sh.effectDistance = new Vector2(1, -2);
+
+            float t = 0, pop = 0.22f, outT = 0.28f;
+            float total = pop + hold + outT;
+            while (t < total)
+            {
+                t += Time.deltaTime;
+                if (t < pop)
+                {
+                    float u = t / pop;
+                    float s = u < 0.7f ? Mathf.Lerp(0.3f, 1.12f, u / 0.7f) : Mathf.Lerp(1.12f, 1f, (u - 0.7f) / 0.3f);
+                    root.localScale = Vector3.one * s;
+                    cg.alpha = Mathf.Clamp01(u * 2f);
+                }
+                else if (t < pop + hold)
+                {
+                    root.localScale = Vector3.one * (1f + 0.02f * Mathf.Sin((t - pop) * 12f));
+                    cg.alpha = 1f;
+                }
+                else
+                {
+                    float u = (t - pop - hold) / outT;
+                    root.anchoredPosition = pos + new Vector2(160f * u * u, 0);
+                    cg.alpha = 1f - u;
+                }
+                if (rainbow)
+                {
+                    var c = Color.HSVToRGB((t * 1.2f) % 1f, 0.75f, 1f);
+                    edge.color = c; glow.color = new Color(c.r, c.g, c.b, 0.4f); label.color = Color.Lerp(Color.white, c, 0.6f);
+                }
+                yield return null;
+            }
+            Destroy(root.gameObject);
         }
 
         private IEnumerator PopTextRoutine(Vector2 pos, string text, Color color, int fontSize)

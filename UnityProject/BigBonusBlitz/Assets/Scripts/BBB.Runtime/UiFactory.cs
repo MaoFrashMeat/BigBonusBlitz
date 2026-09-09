@@ -17,7 +17,7 @@ namespace BBB.Runtime
             var scaler = go.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(960, 540);
-            scaler.matchWidthOrHeight = 0.5f;
+            scaler.matchWidthOrHeight = 1f;   // 高さ 540 を固定し、横は端末の比率どおり伸ばす（舞台は SafeStage で縮尺）
             return canvas;
         }
 

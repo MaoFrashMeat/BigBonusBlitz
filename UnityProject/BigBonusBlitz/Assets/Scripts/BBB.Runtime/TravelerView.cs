@@ -6,16 +6,25 @@ using UnityEngine.UI;
 namespace BBB.Runtime
 {
     /// <summary>
-    /// 旅人（仮ビジュアル）: 体・頭・荷物を Image で組んだシルエットが右→左へ「よいしょよいしょ」と通り過ぎる。
-    /// セリフがあれば中央付近で吹き出しを出す。本番のスプライトに差し替えるときは Build() だけ置き換える。
+    /// 旅人: 右→左へ「よいしょよいしょ」と通り過ぎる。
+    /// セリフがあれば主人公の手前で足を止め、OnSpeak を発火して（会話 UI は GameController 側）、
+    /// PauseSeconds だけ立ち止まってから再び歩き出す。吹き出しは持たない（セリフは UI として出す）。
     /// </summary>
     public sealed class TravelerView : MonoBehaviour
     {
-        private RectTransform _root, _body, _head, _pack, _bubble;
-        private Text _bubbleText, _nameText;
+        private RectTransform _root, _body, _head, _pack;
+        private Text _nameText;
         private float _areaW, _groundY;
         private SpriteAnimator _anim;      // スプライトがある場合
+        private Sprite[] _frames;
         private bool _useSprite;
+
+        /// <summary>セリフを言う瞬間（serif, isModeHint）。会話 UI を出す側が受ける。</summary>
+        public System.Action<string, bool> OnSpeak;
+        /// <summary>セリフがあるとき立ち止まる秒数（会話 UI の表示時間に合わせる）。</summary>
+        public float PauseSeconds = 5.6f;
+        /// <summary>立ち止まる位置（0=右端, 1=左端）。主人公（左 15%）の手前。</summary>
+        public float PauseAt = 0.57f;
 
         public static TravelerView Spawn(RectTransform area, TravelerDef def, string serif, bool isModeHint, float areaW, float groundY)
         {
@@ -50,6 +59,7 @@ namespace BBB.Runtime
             if (frames.Length == 4)
             {
                 _useSprite = true;
+                _frames = frames;
                 var go = new GameObject("Sprite", typeof(RectTransform), typeof(Image));
                 var rt = go.GetComponent<RectTransform>();
                 rt.SetParent(_root, false);
@@ -63,9 +73,6 @@ namespace BBB.Runtime
                 _body = rt; _head = rt; _pack = rt;            // 揺れ処理の対象を差し替え
                 Img(_root, "Shadow", new Vector2(0, -62), new Vector2(56, 10), new Color(0, 0, 0, 0.35f)).SetAsFirstSibling();
                 _nameText = UiFactory.Label(_root, "Name", new Vector2(0, -74), new Vector2(120, 16), def.name, 11, TextAnchor.MiddleCenter, new Color(1, 1, 1, 0.8f));
-                _bubble = Img(_root, "Bubble", new Vector2(0, 92), new Vector2(200, 34), new Color(1, 1, 1, 0.95f));
-                _bubbleText = UiFactory.Label(_bubble, "T", Vector2.zero, new Vector2(192, 34), "", 13, TextAnchor.MiddleCenter, new Color(0.1f, 0.1f, 0.15f));
-                _bubble.gameObject.SetActive(false);
                 return;
             }
             ColorUtility.TryParseHtmlString(def.color, out var col);
@@ -79,10 +86,6 @@ namespace BBB.Runtime
             Img(_body, "LegL", new Vector2(-10, -40), new Vector2(12, 22), dark);
             Img(_body, "LegR", new Vector2(10, -40), new Vector2(12, 22), dark);
             _nameText = UiFactory.Label(_root, "Name", new Vector2(0, -68), new Vector2(120, 16), def.name, 11, TextAnchor.MiddleCenter, new Color(1, 1, 1, 0.8f));
-            // 吹き出し
-            _bubble = Img(_root, "Bubble", new Vector2(0, 88), new Vector2(200, 34), new Color(1, 1, 1, 0.95f));
-            _bubbleText = UiFactory.Label(_bubble, "T", Vector2.zero, new Vector2(192, 34), "", 13, TextAnchor.MiddleCenter, new Color(0.1f, 0.1f, 0.15f));
-            _bubble.gameObject.SetActive(false);
         }
 
         private IEnumerator Walk(TravelerDef def, string serif, bool isModeHint)
@@ -111,25 +114,34 @@ namespace BBB.Runtime
                     _pack.anchoredPosition = new Vector2(22, 4 - 3f * Mathf.Sin(ph + 1f));
                     _head.localRotation = Quaternion.Euler(0, 0, -4f * Mathf.Sin(ph));
                 }
-                // 中央付近でセリフ
-                if (!said && serif != null && u > 0.38f)
+                // 主人公の手前で足を止めて会話（UI 側が表示）
+                if (!said && serif != null && u >= PauseAt)
                 {
                     said = true;
-                    _bubble.gameObject.SetActive(true);
-                    _bubbleText.text = serif;
-                    _bubbleText.color = isModeHint ? new Color(0.6f, 0.1f, 0.15f) : new Color(0.1f, 0.1f, 0.15f);
-                    _bubble.GetComponent<Image>().color = isModeHint ? new Color(1f, 0.95f, 0.75f, 0.97f) : new Color(1, 1, 1, 0.95f);
-                    StartCoroutine(HideBubble(2.6f));
+                    yield return Pause(serif, isModeHint);
                 }
                 yield return null;
             }
             Destroy(gameObject);
         }
 
-        private IEnumerator HideBubble(float sec)
+        private IEnumerator Pause(string serif, bool isModeHint)
         {
-            yield return new WaitForSeconds(sec);
-            if (_bubble != null) _bubble.gameObject.SetActive(false);
+            // 立ち姿に戻す
+            _root.anchoredPosition = new Vector2(_root.anchoredPosition.x, _groundY);
+            _body.localRotation = Quaternion.identity;
+            if (_useSprite) _anim.Show(_frames[0]);
+            else { _head.localRotation = Quaternion.identity; _pack.anchoredPosition = new Vector2(22, 4); }
+            OnSpeak?.Invoke(serif, isModeHint);
+            float pt = 0;
+            while (pt < PauseSeconds)
+            {
+                pt += Time.deltaTime;
+                // 会話中はかすかに呼吸（上下 1px）
+                _root.anchoredPosition = new Vector2(_root.anchoredPosition.x, _groundY + Mathf.Sin(pt * 3f) * 1f);
+                yield return null;
+            }
+            if (_useSprite) _anim.Play(_frames, 0.55f, true);
         }
     }
 }

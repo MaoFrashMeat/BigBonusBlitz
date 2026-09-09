@@ -5,11 +5,11 @@
       "name": "スライム（基本）",
       "enemyType": "slime",
       "defeatProbabilities": {
-        "BELL": 5,
+        "BELL": 25,
         "CHERRY": 20,
         "WATERMELON": 40,
         "CHANCE": 100,
-        "REPLAY": 1
+        "REPLAY": 10
       },
       "tier2Probabilities": {
         "HAZE": 18536,
@@ -36,18 +36,100 @@
         "CHANCE_C": 500,
         "CHANCE_D": 500
       },
-      "variant": "A"
+      "variant": "A",
+      "group": "normal"
     },
     {
       "id": "table_goblin_1",
       "name": "ゴブリン（強敵）",
       "enemyType": "goblin",
       "defeatProbabilities": {
-        "BELL": 2,
+        "BELL": 15,
         "CHERRY": 10,
         "WATERMELON": 25,
         "CHANCE": 100,
-        "REPLAY": 0
+        "REPLAY": 5
+      },
+      "tier2Probabilities": {
+        "HAZE": 18536,
+        "BB_A": 0,
+        "BB_B": 0,
+        "BB_C": 0,
+        "BB_D": 0,
+        "RB_A": 0,
+        "RB_B": 0,
+        "REPLAY_A": 2000,
+        "REPLAY_B": 2000,
+        "REPLAY_C": 1000,
+        "BELL_A": 20000,
+        "BELL_B": 5000,
+        "BELL_C": 5000,
+        "CHERRY_A": 2000,
+        "CHERRY_B": 2000,
+        "CHERRY_C": 1000,
+        "SUICA_A": 2000,
+        "SUICA_B": 2000,
+        "SUICA_C": 1000,
+        "CHANCE_A": 500,
+        "CHANCE_B": 500,
+        "CHANCE_C": 500,
+        "CHANCE_D": 500
+      },
+      "group": "normal"
+    },
+    {
+      "id": "table_bat_1",
+      "name": "コウモリ（ベルチャンス）",
+      "enemyType": "bat",
+      "defeatProbabilities": {
+        "BELL": 40,
+        "CHERRY": 30,
+        "WATERMELON": 50,
+        "CHANCE": 100,
+        "REPLAY": 15
+      },
+      "tier2Probabilities": {
+        "HAZE": 18536,
+        "BB_A": 0,
+        "BB_B": 0,
+        "BB_C": 0,
+        "BB_D": 0,
+        "RB_A": 0,
+        "RB_B": 0,
+        "REPLAY_A": 2000,
+        "REPLAY_B": 2000,
+        "REPLAY_C": 1000,
+        "BELL_A": 20000,
+        "BELL_B": 5000,
+        "BELL_C": 5000,
+        "CHERRY_A": 2000,
+        "CHERRY_B": 2000,
+        "CHERRY_C": 1000,
+        "SUICA_A": 2000,
+        "SUICA_B": 2000,
+        "SUICA_C": 1000,
+        "CHANCE_A": 500,
+        "CHANCE_B": 500,
+        "CHANCE_C": 500,
+        "CHANCE_D": 500
+      },
+      "group": "normal"
+    },
+    {
+      "id": "boss_ogre",
+      "name": "鬼将 ガロウ",
+      "enemyType": "goblin",
+      "group": "boss",
+      "variant": "ANY",
+      "scale": 1.45,
+      "color": "#ff9a6b",
+      "expOnDefeat": 200,
+      "defeatProbabilities": {
+        "BELL": 12,
+        "CHERRY": 22,
+        "WATERMELON": 35,
+        "CHANCE": 100,
+        "REPLAY": 4
       },
       "tier2Probabilities": {
         "HAZE": 18536,
@@ -76,15 +158,62 @@
       }
     },
     {
-      "id": "table_bat_1",
-      "name": "コウモリ（ベルチャンス）",
+      "id": "boss_wyvern",
+      "name": "飛竜 ヴァルガ",
       "enemyType": "bat",
+      "group": "boss",
+      "variant": "ANY",
+      "scale": 1.6,
+      "color": "#a98bff",
+      "expOnDefeat": 300,
       "defeatProbabilities": {
-        "BELL": 15,
-        "CHERRY": 30,
-        "WATERMELON": 50,
+        "BELL": 8,
+        "CHERRY": 18,
+        "WATERMELON": 28,
         "CHANCE": 100,
         "REPLAY": 2
+      },
+      "tier2Probabilities": {
+        "HAZE": 18536,
+        "BB_A": 0,
+        "BB_B": 0,
+        "BB_C": 0,
+        "BB_D": 0,
+        "RB_A": 0,
+        "RB_B": 0,
+        "REPLAY_A": 2000,
+        "REPLAY_B": 2000,
+        "REPLAY_C": 1000,
+        "BELL_A": 20000,
+        "BELL_B": 5000,
+        "BELL_C": 5000,
+        "CHERRY_A": 2000,
+        "CHERRY_B": 2000,
+        "CHERRY_C": 1000,
+        "SUICA_A": 2000,
+        "SUICA_B": 2000,
+        "SUICA_C": 1000,
+        "CHANCE_A": 500,
+        "CHANCE_B": 500,
+        "CHANCE_C": 500,
+        "CHANCE_D": 500
+      }
+    },
+    {
+      "id": "boss_slimeking",
+      "name": "粘王 ゼラ",
+      "enemyType": "slime",
+      "group": "boss",
+      "variant": "ANY",
+      "scale": 1.5,
+      "color": "#6bffcf",
+      "expOnDefeat": 150,
+      "defeatProbabilities": {
+        "BELL": 18,
+        "CHERRY": 30,
+        "WATERMELON": 45,
+        "CHANCE": 100,
+        "REPLAY": 6
       },
       "tier2Probabilities": {
         "HAZE": 18536,

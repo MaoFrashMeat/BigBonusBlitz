@@ -8,6 +8,11 @@ namespace BBB.Runtime
     public sealed class SaveData
     {
         public const string Key = "bbb_save_v1";
+        // 音量は「設定」でありセーブデータではない。別キーに持ち、はじめから でも消さない
+        private const string KeyBgmVol = "bbb_opt_bgm_vol";
+        private const string KeySeVol = "bbb_opt_se_vol";
+        private const string KeyBgmOn = "bbb_opt_bgm_on";
+        private const string KeyAutoSpeed = "bbb_opt_auto_speed";
 
         public int credit;
         public int heldBonusFlag;
@@ -23,6 +28,23 @@ namespace BBB.Runtime
         public float bgmVolume = 0.5f;
         public float seVolume = 0.8f;
         public bool bgmEnabled = true;
+        // --- ソウルと持ち物（Dictionary は JsonUtility で保存できないので 2 本の配列に分けて持つ）---
+        public int souls;
+        public int totalSouls;
+        public string[] ownedIds = new string[0];
+        public int[] ownedLevels = new int[0];
+        // --- 冒険（ステージ制マップ）---
+        public string advNode = "";
+        public int advSpinsLeft;
+        public string advNext = "";
+        public string[] advVisited = new string[0];
+        public int advChapter = 1;
+        public int advTreasures;
+        public int advStockAtSpins;
+        public int advStockAtExpect;
+        public int advTorches = -1;
+        public int advTorchSpins;
+        public string advReturnReason = "";
 
         public static void Save(SlotMachine m, AudioManager audio)
         {
@@ -42,8 +64,27 @@ namespace BBB.Runtime
                 bgmVolume = audio != null ? audio.BgmVolume : 0.5f,
                 seVolume = audio != null ? audio.SeVolume : 0.8f,
                 bgmEnabled = audio == null || audio.BgmEnabled,
+                souls = m.Wallet.Souls,
+                totalSouls = m.Wallet.TotalSouls,
+                advNode = m.Adv.nodeId ?? "",
+                advSpinsLeft = m.Adv.spinsLeft,
+                advNext = m.Adv.nextId ?? "",
+                advVisited = m.Adv.visited.ToArray(),
+                advChapter = m.Adv.chapter,
+                advTreasures = m.Adv.treasuresFound,
+                advStockAtSpins = m.Adv.stockAtSpins,
+                advStockAtExpect = m.Adv.stockAtExpect,
+                advTorches = m.Adv.torches,
+                advTorchSpins = m.Adv.torchSpins,
+                advReturnReason = m.Adv.returnReason ?? "",
             };
+            var ids = new System.Collections.Generic.List<string>();
+            var lvs = new System.Collections.Generic.List<int>();
+            foreach (var kv in m.Wallet.Owned) { if (kv.Value <= 0) continue; ids.Add(kv.Key); lvs.Add(kv.Value); }
+            d.ownedIds = ids.ToArray();
+            d.ownedLevels = lvs.ToArray();
             PlayerPrefs.SetString(Key, JsonUtility.ToJson(d));
+            SaveAudio(audio);
             PlayerPrefs.Save();
         }
 
@@ -67,15 +108,86 @@ namespace BBB.Runtime
             if (System.Enum.TryParse<Mode>(d.mode, out var md)) m.Mode = md;
             m.PlayerLevel = Mathf.Max(1, d.playerLevel);
             m.PlayerExp = d.playerExp;
-            if (audio != null)
+            m.Wallet.Souls = Mathf.Max(0, d.souls);
+            m.Wallet.TotalSouls = Mathf.Max(0, d.totalSouls);
+            m.Wallet.Owned.Clear();
+            if (d.ownedIds != null && d.ownedLevels != null)
+                for (int i = 0; i < d.ownedIds.Length && i < d.ownedLevels.Length; i++)
+                    if (!string.IsNullOrEmpty(d.ownedIds[i]) && d.ownedLevels[i] > 0) m.Wallet.Owned[d.ownedIds[i]] = d.ownedLevels[i];
+            // 冒険の進行。ステージが今の設定に無ければ章の最初へ
+            if (m.AdventureEnabled)
             {
-                audio.BgmVolume = d.bgmVolume;
-                audio.SeVolume = d.seVolume;
-                if (audio.BgmEnabled != d.bgmEnabled) audio.ToggleBgm();
+                var cfg = m.Config.adventure;
+                if (!string.IsNullOrEmpty(d.advNode) && cfg.Find(d.advNode) != null)
+                {
+                    m.Adv.nodeId = d.advNode;
+                    m.Adv.spinsLeft = Mathf.Max(0, d.advSpinsLeft);
+                    m.Adv.nextId = !string.IsNullOrEmpty(d.advNext) && cfg.Find(d.advNext) != null ? d.advNext : null;
+                    m.Adv.visited.Clear();
+                    if (d.advVisited != null) foreach (var v in d.advVisited) if (!string.IsNullOrEmpty(v) && cfg.Find(v) != null && !m.Adv.visited.Contains(v)) m.Adv.visited.Add(v);
+                    if (!m.Adv.visited.Contains(m.Adv.nodeId)) m.Adv.visited.Add(m.Adv.nodeId);
+                }
+                else AdventureDirector.Reset(cfg, m.Adv);
+                m.Adv.chapter = Mathf.Max(1, d.advChapter);
+                m.Adv.treasuresFound = Mathf.Max(0, d.advTreasures);
+                m.Adv.stockAtSpins = Mathf.Max(0, d.advStockAtSpins);
+                m.Adv.stockAtExpect = Mathf.Max(0, d.advStockAtExpect);
+                m.Adv.torches = d.advTorches;
+                m.Adv.torchSpins = d.advTorchSpins;
+                m.Adv.returnReason = string.IsNullOrEmpty(d.advReturnReason) ? null : d.advReturnReason;
+                AdventureDirector.NormalizeTorches(cfg, m.Adv, m.TorchSpinsPerUnit);
             }
+            LoadAudio(audio);   // 音量は別キー（無ければこのセーブの値）から
             return true;
         }
 
+        public static bool Exists() => PlayerPrefs.HasKey(Key);
+
+        /// <summary>音量設定だけを適用する（タイトル画面など、ゲーム本体を作らない場面用）。保存が無ければ false。</summary>
+        public static bool LoadAudio(AudioManager audio)
+        {
+            if (audio == null) return false;
+            // 新しい別キーがあればそれを使う。無ければ古いセーブの中の値から拾う（移行のため）
+            if (PlayerPrefs.HasKey(KeyBgmVol) || PlayerPrefs.HasKey(KeySeVol) || PlayerPrefs.HasKey(KeyBgmOn))
+            {
+                audio.BgmVolume = PlayerPrefs.GetFloat(KeyBgmVol, 0.5f);
+                audio.SeVolume = PlayerPrefs.GetFloat(KeySeVol, 0.8f);
+                bool on = PlayerPrefs.GetInt(KeyBgmOn, 1) != 0;
+                if (audio.BgmEnabled != on) audio.ToggleBgm();
+                return true;
+            }
+            if (!PlayerPrefs.HasKey(Key)) return false;
+            SaveData d;
+            try { d = JsonUtility.FromJson<SaveData>(PlayerPrefs.GetString(Key)); }
+            catch (System.Exception) { return false; }
+            if (d == null) return false;
+            audio.BgmVolume = d.bgmVolume;
+            audio.SeVolume = d.seVolume;
+            if (audio.BgmEnabled != d.bgmEnabled) audio.ToggleBgm();
+            SaveAudio(audio);     // 次からは別キーで読む
+            return true;
+        }
+
+        /// <summary>操作の好み（オート速度）を保存する。セーブデータとは別。</summary>
+        public static void SaveOptions(int autoSpeed)
+        {
+            PlayerPrefs.SetInt(KeyAutoSpeed, Mathf.Clamp(autoSpeed, 1, 6));
+            PlayerPrefs.Save();
+        }
+
+        /// <summary>保存されたオート速度（無ければ 1）。</summary>
+        public static int LoadAutoSpeed() => Mathf.Clamp(PlayerPrefs.GetInt(KeyAutoSpeed, 1), 1, 6);
+
+        /// <summary>音量だけを別キーに保存する（セーブデータを消しても残る）。</summary>
+        public static void SaveAudio(AudioManager audio)
+        {
+            if (audio == null) return;
+            PlayerPrefs.SetFloat(KeyBgmVol, audio.BgmVolume);
+            PlayerPrefs.SetFloat(KeySeVol, audio.SeVolume);
+            PlayerPrefs.SetInt(KeyBgmOn, audio.BgmEnabled ? 1 : 0);
+        }
+
+        /// <summary>セーブデータだけを消す。音量などの設定は残す。</summary>
         public static void Clear() { PlayerPrefs.DeleteKey(Key); PlayerPrefs.Save(); }
     }
 }

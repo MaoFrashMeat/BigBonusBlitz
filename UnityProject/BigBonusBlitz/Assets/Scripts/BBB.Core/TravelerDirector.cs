@@ -19,6 +19,8 @@ namespace BBB.Core
         public List<string> chatter = new List<string> { "よいしょ、よいしょ…" };
         /// <summary>見た目（仮）: 体色 HTML カラー。</summary>
         public string color = "#c8a060";
+        /// <summary>主人公の返事（雑談セリフへの応答。会話 UI で 2 行目に出る）。</summary>
+        public List<string> replies = new List<string>();
     }
 
     /// <summary>モード示唆セリフ: key=セリフ, 各モードでの重み。</summary>
@@ -35,20 +37,25 @@ namespace BBB.Core
         public int appearanceRate = 6;
         public List<TravelerDef> travelers = new List<TravelerDef>();
         public List<ModeSerif> modeSerifs = new List<ModeSerif>();
+        /// <summary>会話 UI に出す主人公の名前。</summary>
+        public string heroName = "主人公";
+        /// <summary>モード示唆セリフへの主人公の返事（意味を確定させない曖昧な相づち）。</summary>
+        public List<string> hintReplies = new List<string>();
 
         public static TravelerConfig Default()
         {
             var c = new TravelerConfig();
-            c.travelers.Add(new TravelerDef { id = "A", name = "行商人", weight = 30, walkSeconds = 7f, serifRate = 35, modeHintRate = 15, color = "#c8a060", chatter = new List<string> { "よいしょ、よいしょ…", "今日も荷が重い…", "いい天気だ" } });
-            c.travelers.Add(new TravelerDef { id = "B", name = "巡礼者", weight = 25, walkSeconds = 8f, serifRate = 45, modeHintRate = 30, color = "#8fb0d8", chatter = new List<string> { "……", "祈りを捧げよう", "道は続く" } });
-            c.travelers.Add(new TravelerDef { id = "C", name = "狩人", weight = 20, walkSeconds = 5f, serifRate = 40, modeHintRate = 40, color = "#7ab060", chatter = new List<string> { "獲物の気配がない", "足跡だ…", "静かすぎる" } });
-            c.travelers.Add(new TravelerDef { id = "D", name = "占い師", weight = 15, walkSeconds = 9f, serifRate = 70, modeHintRate = 70, color = "#b080d0", chatter = new List<string> { "星が囁いている…", "運命は動く", "ふふ…" } });
-            c.travelers.Add(new TravelerDef { id = "E", name = "王の使者", weight = 10, walkSeconds = 4f, serifRate = 80, modeHintRate = 90, color = "#e8c040", chatter = new List<string> { "急ぎの用だ！", "道を空けよ！" } });
+            c.travelers.Add(new TravelerDef { id = "A", name = "行商人", weight = 30, walkSeconds = 7f, serifRate = 35, modeHintRate = 15, color = "#c8a060", chatter = new List<string> { "よいしょ、よいしょ…", "今日も荷が重い…", "いい天気だ" }, replies = new List<string> { "荷物、重そうだね", "気をつけて行きなよ", "いい天気だね" } });
+            c.travelers.Add(new TravelerDef { id = "B", name = "巡礼者", weight = 25, walkSeconds = 8f, serifRate = 45, modeHintRate = 30, color = "#8fb0d8", chatter = new List<string> { "……", "祈りを捧げよう", "道は続く" }, replies = new List<string> { "……無事を祈るよ", "道は続く、か", "また会おう" } });
+            c.travelers.Add(new TravelerDef { id = "C", name = "狩人", weight = 20, walkSeconds = 5f, serifRate = 40, modeHintRate = 40, color = "#7ab060", chatter = new List<string> { "獲物の気配がない", "足跡だ…", "静かすぎる" }, replies = new List<string> { "獲物は見つかった？", "静かすぎるのは怖いな", "足跡……気になるね" } });
+            c.travelers.Add(new TravelerDef { id = "D", name = "占い師", weight = 15, walkSeconds = 9f, serifRate = 70, modeHintRate = 70, color = "#b080d0", chatter = new List<string> { "星が囁いている…", "運命は動く", "ふふ…" }, replies = new List<string> { "占ってくれるの？", "運命、か……", "星は何て言ってる？" } });
+            c.travelers.Add(new TravelerDef { id = "E", name = "王の使者", weight = 10, walkSeconds = 4f, serifRate = 80, modeHintRate = 90, color = "#e8c040", chatter = new List<string> { "急ぎの用だ！", "道を空けよ！" }, replies = new List<string> { "急いでるんだね", "どうぞ、通って", "何かあったの？" } });
             c.modeSerifs.Add(new ModeSerif { text = "この先の道は長いぞ…", A = 60, B = 25, C = 10, D = 5 });
             c.modeSerifs.Add(new ModeSerif { text = "風向きが変わってきたな", A = 20, B = 50, C = 25, D = 5 });
             c.modeSerifs.Add(new ModeSerif { text = "ここは良い土地だ", A = 10, B = 25, C = 50, D = 15 });
             c.modeSerifs.Add(new ModeSerif { text = "宝の匂いがする…！", A = 2, B = 8, C = 30, D = 60 });
             c.modeSerifs.Add(new ModeSerif { text = "嵐が来る。備えよ", A = 0, B = 5, C = 25, D = 70 });
+            c.hintReplies.AddRange(new[] { "……何か起きそうな気がする", "その言葉、覚えておくよ", "風が変わった気がする" });
             return c;
         }
     }

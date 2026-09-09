@@ -48,8 +48,10 @@ namespace BBB.Core
         {
             { Flag.BB_A, new WinCombo { symbols = new[] { S(Symbol.RED7), S(Symbol.RED7), S(Symbol.RED7) }, validLines = new[] { 0, 1, 2, 3, 4 } } },
             { Flag.BB_B, new WinCombo { symbols = new[] { S(Symbol.BLUE7), S(Symbol.BLUE7), S(Symbol.BLUE7) }, validLines = new[] { 0, 1, 2, 3, 4 } } },
-            { Flag.BB_C, new WinCombo { symbols = new[] { S(Symbol.BAR), S(Symbol.BAR), S(Symbol.BAR) }, validLines = new[] { 1 } } },
-            { Flag.BB_D, new WinCombo { symbols = new[] { S(Symbol.BLUE7), S(Symbol.RED7), S(Symbol.BLUE7) }, validLines = new[] { 1 } } },
+            // BAR 揃いは全ラインで BIG（中段限定だと、上段に BAR が3つ並んでも何も起きず「当たったのに何もない」と見える）
+            { Flag.BB_C, new WinCombo { symbols = new[] { S(Symbol.BAR), S(Symbol.BAR), S(Symbol.BAR) }, validLines = new[] { 0, 1, 2, 3, 4 } } },
+            // 青7・赤7・青7 も全ラインで BIG（BAR 揃いと同じ理由。中段限定だと紛らわしい停止形を制御が避けない）
+            { Flag.BB_D, new WinCombo { symbols = new[] { S(Symbol.BLUE7), S(Symbol.RED7), S(Symbol.BLUE7) }, validLines = new[] { 0, 1, 2, 3, 4 } } },
             { Flag.RB_A, new WinCombo { symbols = new[] { S(Symbol.RED7), S(Symbol.RED7), S(Symbol.BAR) }, validLines = new[] { 0, 1, 2, 3, 4 } } },
             { Flag.RB_B, new WinCombo { symbols = new[] { S(Symbol.BLUE7), S(Symbol.BLUE7), S(Symbol.BAR) }, validLines = new[] { 0, 1, 2, 3, 4 } } },
             { Flag.REPLAY_A, new WinCombo { symbols = new[] { S(Symbol.REPLAY, Symbol.RED7), S(Symbol.REPLAY), S(Symbol.REPLAY) }, validLines = new[] { 0 } } },

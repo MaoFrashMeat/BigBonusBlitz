@@ -1120,6 +1120,121 @@
     }
   },
   "tier2MaxSpins": 3,
+  "probabilities_AT": {
+    "HAZE": 34036,
+    "BB_A": 0,
+    "BB_B": 0,
+    "BB_C": 0,
+    "BB_D": 0,
+    "RB_A": 0,
+    "RB_B": 0,
+    "REPLAY_A": 5000,
+    "REPLAY_B": 3000,
+    "REPLAY_C": 1000,
+    "BELL_A": 10000,
+    "BELL_B": 6000,
+    "BELL_C": 4000,
+    "CHERRY_A": 600,
+    "CHERRY_B": 300,
+    "CHERRY_C": 100,
+    "SUICA_A": 900,
+    "SUICA_B": 500,
+    "SUICA_C": 100,
+    "CHANCE_A": 0,
+    "CHANCE_B": 0,
+    "CHANCE_C": 0,
+    "CHANCE_D": 0
+  },
+  "at": {
+    "initialSpins": 50,
+    "entryPrecursorSpins": {
+      "2": 20,
+      "3": 55,
+      "4": 25
+    },
+    "useExpectAsRate": true,
+    "flatRate": 20,
+    "naviCorrectPayout": 15,
+    "naviWrongPayout": 3,
+    "battleConsumesAtSpins": false,
+    "failRewardSpins": 0,
+    "battleRate": {
+      "BELL": 3,
+      "REPLAY": 4,
+      "CHERRY": 25,
+      "SUICA": 40,
+      "CHANCE": 100,
+      "HAZE": 2
+    },
+    "damage": {
+      "BELL": {
+        "25": 60,
+        "45": 30,
+        "90": 10
+      },
+      "REPLAY": {
+        "0": 70,
+        "25": 30
+      },
+      "CHERRY": {
+        "90": 50,
+        "150": 35,
+        "210": 15
+      },
+      "SUICA": {
+        "135": 50,
+        "210": 35,
+        "330": 15
+      },
+      "CHANCE": {
+        "999": 100
+      },
+      "HAZE": {
+        "0": 100
+      }
+    },
+    "monsters": [
+      {
+        "id": "m_slime",
+        "name": "洞窟スライム",
+        "enemyType": "slime",
+        "weight": 40,
+        "hp": 48,
+        "spins": 5,
+        "rewardSpins": 12
+      },
+      {
+        "id": "m_goblin",
+        "name": "洞窟ゴブリン",
+        "enemyType": "goblin",
+        "weight": 35,
+        "hp": 84,
+        "spins": 5,
+        "rewardSpins": 25
+      },
+      {
+        "id": "m_bat",
+        "name": "大コウモリ",
+        "enemyType": "bat",
+        "weight": 25,
+        "hp": 136,
+        "spins": 6,
+        "rewardSpins": 50
+      }
+    ]
+  },
+  "bonusPullInSlip": 20,
+  "ceilingBonus": {
+    "BB_A": 50,
+    "RB_A": 50
+  },
+  "bonusPrecursorSpins": {
+    "3": 30,
+    "4": 30,
+    "5": 25,
+    "6": 15
+  },
+  "defeatStreakBonus": 15,
   "expPerDefeat": 50,
   "defaultHintConfig": {
     "appearanceRate": 70,
@@ -1177,10 +1292,253 @@
   "bellCommand": {
     "successGuaranteesDefeat": true,
     "successExp": 25,
-    "failPenalty": 0
+    "failPenalty": 0,
+    "correctLeftRate": 50
+  },
+  "atExpect": {
+    "startPercent": 0,
+    "maxPercent": 100,
+    "gain": {
+      "BELL": {
+        "0": 70,
+        "2": 22,
+        "5": 6,
+        "10": 2
+      },
+      "REPLAY": {
+        "0": 80,
+        "1": 15,
+        "3": 5
+      },
+      "CHERRY": {
+        "0": 40,
+        "5": 35,
+        "10": 20,
+        "25": 5
+      },
+      "SUICA": {
+        "0": 30,
+        "8": 40,
+        "15": 25,
+        "30": 5
+      },
+      "CHANCE": {
+        "0": 5,
+        "20": 35,
+        "35": 40,
+        "60": 20
+      },
+      "HAZE": {
+        "0": 95,
+        "1": 5
+      }
+    },
+    "tickerSpeed": 110,
+    "pushSeconds": 2.6,
+    "ticker": {
+      "白": [
+        "小役を揃えて AT のチャンス！？",
+        "スイカ・チェリーで期待度アップ"
+      ],
+      "青": [
+        "小役を揃えて AT のチャンス！？",
+        "……何かが動き出している"
+      ],
+      "黄": [
+        "AT の気配が濃くなってきた！",
+        "小役を引くほど近づく！"
+      ],
+      "緑": [
+        "AT 目前！ 小役を引け！",
+        "この流れ、逃すな！"
+      ],
+      "赤": [
+        "AT 濃厚！ 最後まで引き切れ！",
+        "洞窟はもう目の前だ！"
+      ],
+      "虹": [
+        "AT 確定！ 洞窟へ向かえ！！",
+        "虹だ！ 掴み取れ！！"
+      ]
+    },
+    "ranks": [
+      {
+        "name": "白",
+        "min": 0,
+        "color": "#f4f6fa"
+      },
+      {
+        "name": "青",
+        "min": 20,
+        "color": "#4da3ff"
+      },
+      {
+        "name": "黄",
+        "min": 40,
+        "color": "#ffcf3f"
+      },
+      {
+        "name": "緑",
+        "min": 60,
+        "color": "#3ddc84"
+      },
+      {
+        "name": "赤",
+        "min": 80,
+        "color": "#ff4d6d"
+      },
+      {
+        "name": "虹",
+        "min": 100,
+        "color": "rainbow"
+      }
+    ]
+  },
+  "hero": {
+    "monologueRate": 4,
+    "longRunSpins": 200,
+    "longRunMix": 50,
+    "replayActions": {
+      "bento": 25,
+      "drink": 20,
+      "stretch": 20,
+      "map": 15,
+      "hum": 15,
+      "rest": 15,
+      "none": 10
+    },
+    "bonusPrecursorLines": [
+      "……手応えがあった気がする",
+      "今のは……？",
+      "何かが変わった",
+      "……いけるか？",
+      "指先が疼く",
+      "……この感じ、覚えがある"
+    ],
+    "caveEntryLines": {
+      "1": [
+        "……この先に洞窟があるのか",
+        "岩の隙間から風が吹いている",
+        "地図にない道だ"
+      ],
+      "2": [
+        "奥から物音がする……",
+        "引き返すなら今だぞ",
+        "松明を用意しておくか"
+      ],
+      "3": [
+        "……入口が見えた",
+        "ここから先は戻れない",
+        "松明に火を入れる"
+      ],
+      "4": [
+        "行くぞ",
+        "……足を踏み入れる",
+        "暗闇の奥へ"
+      ]
+    },
+    "precursorLines": {
+      "1": [
+        "ん……？",
+        "……なんだ、今の",
+        "気のせいか……？"
+      ],
+      "2": [
+        "……なにかいるな",
+        "……近づいてくる",
+        "この気配は……"
+      ],
+      "3": [
+        "……来るぞ",
+        "……そこか",
+        "構えろ……"
+      ]
+    },
+    "lines": {
+      "idle": [
+        "……いい風だ",
+        "この先に何があるんだろう",
+        "腹、減ったな",
+        "今日はどこまで行こうか",
+        "足取りは軽い",
+        "鼻歌でも歌うか"
+      ],
+      "miss": [
+        "……惜しい",
+        "まあ、こんな日もある",
+        "次だ、次",
+        "集中しろ",
+        "焦るな……"
+      ],
+      "win": [
+        "よし！",
+        "まずまずだな",
+        "この調子",
+        "手応えあり",
+        "ふっ、悪くない"
+      ],
+      "longRun": [
+        "長い道だ……",
+        "そろそろ何か起きてもいい頃だ",
+        "……気配がない",
+        "静かすぎる"
+      ]
+    }
+  },
+  "precog": {
+    "byFlag": {
+      "BELL": {
+        "none": 55,
+        "weak": 35,
+        "strong": 10
+      },
+      "REPLAY": {
+        "none": 60,
+        "weak": 35,
+        "strong": 5
+      },
+      "CHERRY": {
+        "none": 30,
+        "weak": 40,
+        "strong": 30
+      },
+      "SUICA": {
+        "none": 25,
+        "weak": 40,
+        "strong": 35
+      },
+      "CHANCE": {
+        "none": 10,
+        "weak": 30,
+        "strong": 60
+      },
+      "BONUS": {
+        "none": 30,
+        "weak": 30,
+        "strong": 40
+      },
+      "HAZE": {
+        "none": 93,
+        "weak": 6,
+        "strong": 1
+      }
+    },
+    "fakeRole": {
+      "BELL": 40,
+      "REPLAY": 30,
+      "CHERRY": 15,
+      "SUICA": 10,
+      "CHANCE": 5
+    }
   },
   "travelers": {
     "appearanceRate": 6,
+    "heroName": "主人公",
+    "hintReplies": [
+      "……何か起きそうな気がする",
+      "その言葉、覚えておくよ",
+      "風が変わった気がする"
+    ],
     "travelers": [
       {
         "id": "A",
@@ -1194,6 +1552,11 @@
           "よいしょ、よいしょ…",
           "今日も荷が重い…",
           "いい天気だ"
+        ],
+        "replies": [
+          "荷物、重そうだね",
+          "気をつけて行きなよ",
+          "いい天気だね"
         ]
       },
       {
@@ -1208,6 +1571,11 @@
           "……",
           "祈りを捧げよう",
           "道は続く"
+        ],
+        "replies": [
+          "……無事を祈るよ",
+          "道は続く、か",
+          "また会おう"
         ]
       },
       {
@@ -1222,6 +1590,11 @@
           "獲物の気配がない",
           "足跡だ…",
           "静かすぎる"
+        ],
+        "replies": [
+          "獲物は見つかった？",
+          "静かすぎるのは怖いな",
+          "足跡……気になるね"
         ]
       },
       {
@@ -1236,6 +1609,11 @@
           "星が囁いている…",
           "運命は動く",
           "ふふ…"
+        ],
+        "replies": [
+          "占ってくれるの？",
+          "運命、か……",
+          "星は何て言ってる？"
         ]
       },
       {
@@ -1249,6 +1627,11 @@
         "chatter": [
           "急ぎの用だ！",
           "道を空けよ！"
+        ],
+        "replies": [
+          "急いでるんだね",
+          "どうぞ、通って",
+          "何かあったの？"
         ]
       }
     ],
@@ -1289,5 +1672,344 @@
         "D": 70
       }
     ]
+  },
+  "souls": {
+    "perMob": 10,
+    "perBoss": 60,
+    "perAtBattle": 25,
+    "perEscape": 2
+  },
+  "shop": {
+    "items": [
+      {
+        "id": "sk_blade",
+        "name": "斬撃の心得",
+        "desc": "敵の討伐率 +{v}%（次のレベルで +{next}%）",
+        "kind": "skill",
+        "effect": "defeatBonus",
+        "valuePerLevel": 3,
+        "maxLevel": 5,
+        "baseCost": 120,
+        "costGrowth": 100
+      },
+      {
+        "id": "sk_soul",
+        "name": "魂寄せ",
+        "desc": "手に入るソウル +{v}%（次のレベルで +{next}%）",
+        "kind": "skill",
+        "effect": "soulGain",
+        "valuePerLevel": 10,
+        "maxLevel": 5,
+        "baseCost": 150,
+        "costGrowth": 120
+      },
+      {
+        "id": "sk_hunt",
+        "name": "狩人の目",
+        "desc": "AT バトルのダメージ +{v}%（次のレベルで +{next}%）",
+        "kind": "skill",
+        "effect": "battleDamage",
+        "valuePerLevel": 8,
+        "maxLevel": 5,
+        "baseCost": 200,
+        "costGrowth": 160
+      },
+      {
+        "id": "sk_exp",
+        "name": "研鑽",
+        "desc": "手に入る EXP +{v}%（次のレベルで +{next}%）",
+        "kind": "skill",
+        "effect": "expGain",
+        "valuePerLevel": 15,
+        "maxLevel": 4,
+        "baseCost": 180,
+        "costGrowth": 140
+      },
+      {
+        "id": "gr_lantern",
+        "name": "不滅の灯",
+        "desc": "AT の初期ゲーム数 +{v}G（次のレベルで +{next}G）",
+        "kind": "gear",
+        "effect": "atInitialSpins",
+        "valuePerLevel": 5,
+        "maxLevel": 6,
+        "baseCost": 300,
+        "costGrowth": 250
+      },
+      {
+        "id": "gr_amulet",
+        "name": "導きの護符",
+        "desc": "ボーナス開始時の AT 期待度 +{v}%（次のレベルで +{next}%）",
+        "kind": "gear",
+        "effect": "atStartPercent",
+        "valuePerLevel": 4,
+        "maxLevel": 5,
+        "baseCost": 400,
+        "costGrowth": 350
+      },
+      {
+        "id": "gr_oil",
+        "name": "不朽の油",
+        "desc": "松明 1 本で進めるG数 +{v}G（次のレベルで +{next}G）",
+        "kind": "gear",
+        "effect": "torchSpins",
+        "valuePerLevel": 10,
+        "maxLevel": 5,
+        "baseCost": 200,
+        "costGrowth": 150
+      }
+    ]
+  },
+  "adventure": {
+    "enabled": true,
+    "chapterName": "第1章  はじまりの草原",
+    "start": "A-1",
+    "hideRoute": true,
+    "chapterClearSouls": 100,
+    "chapterClearTorches": 1,
+    "nodes": [
+      {
+        "id": "A-1",
+        "name": "草原の入口",
+        "column": "A",
+        "kind": "normal",
+        "spins": 40,
+        "mode": "",
+        "rank": 0,
+        "engageBoost": 0,
+        "bossRate": 0,
+        "treasure": {},
+        "routeByFlag": {
+          "CHERRY": {
+            "B-2": 5,
+            "NONE": 95
+          },
+          "SUICA": {
+            "B-2": 12,
+            "NONE": 88
+          },
+          "CHANCE": {
+            "B-2": 50,
+            "NONE": 50
+          }
+        },
+        "routeDefault": {
+          "B-1": 100
+        },
+        "enterLines": [
+          "……さて、行くか",
+          "草原の風が気持ちいい",
+          "まずはここからだ"
+        ],
+        "desc": "旅のはじまり。ここで引いた役が先の道を決める",
+        "color": ""
+      },
+      {
+        "id": "B-1",
+        "name": "山道",
+        "column": "B",
+        "kind": "normal",
+        "spins": 40,
+        "mode": "",
+        "rank": 0,
+        "engageBoost": 4,
+        "bossRate": 0,
+        "treasure": {},
+        "routeByFlag": {
+          "SUICA": {
+            "C-1": 7,
+            "NONE": 93
+          },
+          "CHANCE": {
+            "C-1": 40,
+            "NONE": 60
+          }
+        },
+        "routeDefault": {
+          "C-2": 100
+        },
+        "enterLines": [
+          "……坂が続くな",
+          "足元に気をつけろ",
+          "山の空気は冷たい"
+        ],
+        "desc": "敵が出やすい山道。倒せばソウルが貯まる",
+        "color": ""
+      },
+      {
+        "id": "B-2",
+        "name": "霧の森",
+        "column": "B",
+        "kind": "treasure",
+        "spins": 30,
+        "mode": "",
+        "rank": 1,
+        "engageBoost": 0,
+        "bossRate": 0,
+        "treasure": {
+          "CHERRY": 8,
+          "SUICA": 12,
+          "CHANCE": 45
+        },
+        "routeByFlag": {
+          "CHERRY": {
+            "C-1": 5,
+            "NONE": 95
+          },
+          "SUICA": {
+            "C-1": 20,
+            "NONE": 80
+          },
+          "CHANCE": {
+            "C-1": 80,
+            "NONE": 20
+          }
+        },
+        "routeDefault": {
+          "C-2": 100
+        },
+        "enterLines": [
+          "霧が深い……何か落ちていそうだ",
+          "……足元をよく見て進もう",
+          "宝の匂いがする"
+        ],
+        "desc": "宝箱が眠る森。チェリー・スイカで宝を探す",
+        "color": ""
+      },
+      {
+        "id": "C-1",
+        "name": "古代遺跡",
+        "column": "C",
+        "kind": "high",
+        "spins": 30,
+        "mode": "D",
+        "rank": 2,
+        "engageBoost": 8,
+        "bossRate": 0,
+        "treasure": {
+          "SUICA": 5,
+          "CHANCE": 35
+        },
+        "routeByFlag": {},
+        "routeDefault": {
+          "D-1": 100
+        },
+        "enterLines": [
+          "……ここは、当たりだ",
+          "遺跡の中は妙に温かい",
+          "壁の文様が光っている……"
+        ],
+        "desc": "高確率ゾーン。滞在中はモードDのテーブルで抽選",
+        "color": "#ff4d6d"
+      },
+      {
+        "id": "C-2",
+        "name": "廃坑",
+        "column": "C",
+        "kind": "normal",
+        "spins": 35,
+        "mode": "",
+        "rank": 0,
+        "engageBoost": 3,
+        "bossRate": 0,
+        "treasure": {
+          "SUICA": 3,
+          "CHANCE": 20
+        },
+        "routeByFlag": {},
+        "routeDefault": {
+          "D-1": 100
+        },
+        "enterLines": [
+          "……暗いな",
+          "トロッコの跡が残っている",
+          "崩れないでくれよ"
+        ],
+        "desc": "遠回りの廃坑。宝は少ないが敵はそこそこ",
+        "color": ""
+      },
+      {
+        "id": "D-1",
+        "name": "竜の巣",
+        "column": "D",
+        "kind": "boss",
+        "spins": 30,
+        "mode": "C",
+        "rank": 3,
+        "engageBoost": 0,
+        "bossRate": 100,
+        "treasure": {},
+        "routeByFlag": {},
+        "routeDefault": {},
+        "enterLines": [
+          "……来たな",
+          "空気が焦げている",
+          "ここを抜ければ街だ"
+        ],
+        "desc": "章の終点。到達すると中ボスが待ち構える",
+        "color": "#ff9a3c"
+      }
+    ],
+    "treasures": [
+      {
+        "id": "souls_s",
+        "name": "小さな宝箱",
+        "kind": "souls",
+        "amount": 30,
+        "weight": 45
+      },
+      {
+        "id": "souls_l",
+        "name": "大きな宝箱",
+        "kind": "souls",
+        "amount": 80,
+        "weight": 20
+      },
+      {
+        "id": "cave_map",
+        "name": "洞窟の地図",
+        "kind": "atSpins",
+        "amount": 10,
+        "weight": 12
+      },
+      {
+        "id": "charm",
+        "name": "幸運のお守り",
+        "kind": "atExpect",
+        "amount": 10,
+        "weight": 6
+      },
+      {
+        "id": "tome",
+        "name": "古い書物",
+        "kind": "exp",
+        "amount": 60,
+        "weight": 7
+      },
+      {
+        "id": "torch_bundle",
+        "name": "松明の束",
+        "kind": "torch",
+        "amount": 2,
+        "weight": 15
+      }
+    ],
+    "resource": {
+      "enabled": true,
+      "name": "松明",
+      "startTorches": 3,
+      "maxTorches": 9,
+      "spinsPerTorch": 40,
+      "torchCost": 40,
+      "creditCost": 30,
+      "creditAmount": 50,
+      "rescueCredit": 50,
+      "resetOnDeath": true,
+      "deathSoulPenalty": 0,
+      "refillByFlag": {
+        "CHANCE": 8,
+        "BONUS": 20
+      }
+    }
   }
 }

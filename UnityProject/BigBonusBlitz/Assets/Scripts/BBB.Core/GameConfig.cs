@@ -17,11 +17,25 @@ namespace BBB.Core
         public Dictionary<string, Dictionary<string, int>> probabilities_BB;
         public Dictionary<string, Dictionary<string, int>> probabilities_RB;
         public Dictionary<string, int> probabilities_Tier2;
+        /// <summary>AT（洞窟）中の小役確率。null なら Tier2 → モードA の順で代用。</summary>
+        public Dictionary<string, int> probabilities_AT;
         public Dictionary<string, int> ceilings;
         public Dictionary<string, Dictionary<string, Dictionary<string, int>>> modeTransitions;
         public int tier2MaxSpins = 3;
+        /// <summary>持ち越しボーナスを狙うゲームでの最大滑りコマ数（20 = どこで押しても引き込む。実機どおりの目押しにするなら 4）。</summary>
+        public int bonusPullInSlip = 20;
+        /// <summary>
+        /// ボーナス成立から擬似遊技で揃えるまでの前兆G数の重み（G数 → 重み）。
+        /// 最後の 1G が擬似遊技（機械が自動で揃える）。前兆中は引き込みを切るので、
+        /// 察した人は目押しで前兆を待たずに揃えられる。
+        /// </summary>
+        public Dictionary<string, int> bonusPrecursorSpins = new Dictionary<string, int> { ["3"] = 30, ["4"] = 30, ["5"] = 25, ["6"] = 15 };
+        /// <summary>天井到達時に成立させるボーナスの重み（フラグ名 → 重み）。</summary>
+        public Dictionary<string, int> ceilingBonus = new Dictionary<string, int> { ["BB_A"] = 50, ["RB_A"] = 50 };
         /// <summary>ENEMY 当選から敵が出現するまでの前兆G数（このG数目の終わりに出現）。</summary>
         public int enemyPrecursorSpins = 3;
+        /// <summary>Tier2中に小役を連続で引くごとに討伐率へ加算する %（2連目 +1倍、3連目 +2倍）。ハズレでリセット。</summary>
+        public int defeatStreakBonus = 15;
         public int expPerDefeat = 50;
         public HintConfig defaultHintConfig;
         /// <summary>敵エンゲージ中の段階示唆（案B）。null なら既定値。</summary>
@@ -30,6 +44,20 @@ namespace BBB.Core
         public BellCommandConfig bellCommand = new BellCommandConfig();
         /// <summary>通常時に通り過ぎる旅人（モード示唆）。null なら既定。</summary>
         public TravelerConfig travelers;
+        /// <summary>事前察知（レバーオン時の役予告）。null なら既定。</summary>
+        public PrecogConfig precog;
+        /// <summary>主人公のひとりごと。null なら既定。</summary>
+        public HeroConfig hero;
+        /// <summary>ボーナス中の AT 期待度（枠の点滅色）。null なら既定。</summary>
+        public AtExpectConfig atExpect;
+        /// <summary>AT「洞窟」の設定。null なら既定。</summary>
+        public AtConfig at;
+        /// <summary>討伐で手に入るソウルの量。null なら既定。</summary>
+        public SoulConfig souls;
+        /// <summary>街のショップの品揃え。null なら空。</summary>
+        public ShopConfig shop;
+        /// <summary>冒険（ステージ制マップ）。null / enabled=false なら従来通り。</summary>
+        public AdventureConfig adventure;
 
         public Payouts PayoutsFor(BonusMode m)
         {
@@ -78,6 +106,8 @@ namespace BBB.Core
         public int successExp = 25;
         /// <summary>失敗時にプレイヤーが受けるペナルティ（今は演出のみ。将来 HP 等に使う）。</summary>
         public int failPenalty = 0;
+        /// <summary>択の正解が「左」になる確率 %（残りは右）。</summary>
+        public int correctLeftRate = 50;
     }
 
     public sealed class Payouts
@@ -155,5 +185,15 @@ namespace BBB.Core
         /// <summary>null / "ANY" は指定なし。</summary>
         public string variant;
         public HintConfig hintConfig;
+        /// <summary>"normal" = 通常時の雑魚、"boss" = ボーナス中の中ボス。未指定は normal。</summary>
+        public string group = "normal";
+        /// <summary>見た目の大きさ倍率（中ボスは大きく見せる）。</summary>
+        public float scale = 1f;
+        /// <summary>基本の色（HTML カラー）。空なら白。示唆の色が乗るときはそちらが優先。</summary>
+        public string color;
+        /// <summary>討伐時の EXP。0 なら game_config の expPerDefeat を使う。</summary>
+        public int expOnDefeat;
+
+        public bool IsBoss => string.Equals(group, "boss", System.StringComparison.OrdinalIgnoreCase);
     }
 }
