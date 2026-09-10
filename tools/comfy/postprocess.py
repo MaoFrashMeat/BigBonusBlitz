@@ -15,6 +15,8 @@ import json
 import os
 import shutil
 
+import numpy as np
+from scipy import ndimage
 from PIL import Image
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -25,32 +27,30 @@ INSTALL = os.path.join(HERE, '..', '..', 'UnityProject', 'BigBonusBlitz',
                        'Assets', 'Resources', 'Art', 'HeroGen')
 
 def remove_bg(im):
-    """白背景を抜く。rembg があればそれを使い、無ければ明るさで判定する。"""
-    try:
-        from rembg import remove          # 入っていれば精度が高い
-        return remove(im)
-    except Exception:
-        pass
+    """背景を抜く。外側から繋がっている「明るくて色味の薄い」領域だけを消す。
+
+    服の白は輪郭線で囲まれているので、外からたどっても入り込めない。
+    背景はベージュや薄青にも転ぶので、白だけを見ると抜き残る。
+    """
     im = im.convert('RGBA')
-    px = im.load()
-    w, h = im.size
-    # 四隅から白をたどって外側だけ抜く（服の白は残す）
-    seen = set()
-    stack = [(0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1)]
-    while stack:
-        x, y = stack.pop()
-        if not (0 <= x < w and 0 <= y < h) or (x, y) in seen:
-            continue
-        r, g, b, a = px[x, y]
-        # 背景はベージュや薄青にも転ぶ。明るくて色味の薄い画素はまとめて背景とみなす。
-        # 服の白は輪郭線で囲まれているので、外からのたどりでは入り込めない
-        bright = max(r, g, b)
-        flat = bright - min(r, g, b)
-        if a == 0 or (bright > 218 and flat < 30):
-            seen.add((x, y))
-            px[x, y] = (r, g, b, 0)
-            stack.extend(((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)))
-    return im
+    a = np.asarray(im).astype(np.int16)
+    rgb = a[:, :, :3]
+    bright = rgb.max(2)
+    flat = bright - rgb.min(2)
+    bg_like = (bright > 218) & (flat < 30)
+
+    # 画像の外周と繋がっている塊だけを背景とみなす
+    lab, n = ndimage.label(bg_like)
+    if n:
+        edge = np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]])
+        outer = np.unique(edge[edge > 0])
+        mask = np.isin(lab, outer)
+    else:
+        mask = np.zeros_like(bg_like)
+
+    out = np.asarray(im).copy()
+    out[mask, 3] = 0
+    return Image.fromarray(out)
 
 def body_span(im):
     """体の上端・下端・足元の左右中心を返す。
@@ -58,35 +58,26 @@ def body_span(im):
     外接枠をそのまま使うと、剣の先が飛び出したコマだけ小さく揃ってしまう。
     横に太い行だけを体とみなすことで、細い剣を無視する。
     """
-    a = im.getchannel('A')
-    w, h = im.size
-    px = a.load()
-    rows = []
-    for y in range(h):
-        n = 0
-        for x in range(0, w, 2):          # 2 画素おきで足りる
-            if px[x, y] > 128:
-                n += 1
-        rows.append(n * 2)
-    body = max(rows) if rows else 0
+    a = np.asarray(im.getchannel('A')) > 128
+    rows = a.sum(1)
+    body = int(rows.max()) if rows.size else 0
     if body == 0:
         return None
     thick = max(8, int(body * 0.22))      # 体は最大幅の 2 割以上ある。剣は届かない
-    ys = [y for y, n in enumerate(rows) if n >= thick]
-    if not ys:
+    ys = np.flatnonzero(rows >= thick)
+    if ys.size == 0:
         return None
-    top, bottom = ys[0], ys[-1]
+    top, bottom = int(ys[0]), int(ys[-1])
     # 足元の左右中心（下から 12% ぶん）
     y0 = bottom - max(1, int((bottom - top) * 0.12))
-    acc = tot = 0
-    for y in range(y0, bottom + 1):
-        for x in range(w):
-            if px[x, y] > 128:
-                acc += x
-                tot += 1
-    cx = (acc / tot) if tot else w * 0.5
+    foot = a[y0:bottom + 1]
+    xs = np.flatnonzero(foot.any(0))
+    if xs.size:
+        w = foot.sum(0)
+        cx = float((np.arange(a.shape[1]) * w).sum() / max(1, w.sum()))
+    else:
+        cx = a.shape[1] * 0.5
     return top, bottom, cx
-
 
 def load_sword():
     """描いておいた剣と、その握り位置を読む。無ければ None。"""
@@ -172,18 +163,23 @@ def align_all(images, box_h, canvas, layers=None):
     return out
 
 def pixelate(im, dots, colors):
-    """ドット数まで落として色を減らす。輪郭を残すため半透明は捨てる。"""
+    """コマの大きさまで縮める。colors が 0 なら色はそのまま（絵柄が滑らかな素材向け）。"""
     small = im.resize((dots, dots), Image.LANCZOS)
+    if colors <= 0:
+        return small
+    # ドット絵にするときは、輪郭をはっきりさせるため半透明を捨てる
     a = small.getchannel('A').point(lambda v: 255 if v > 128 else 0)
-    rgb = small.convert('RGB').quantize(colors=colors, method=Image.MEDIANCUT, dither=Image.NONE).convert('RGB')
+    rgb = small.convert('RGB').quantize(colors=colors, method=Image.MEDIANCUT,
+                                        dither=Image.NONE).convert('RGB')
     rgb.putalpha(a)
     return rgb
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--dots', type=int, default=192, help='1 コマのドット数（既定 192）')
-    ap.add_argument('--colors', type=int, default=32, help='色数（既定 32）')
-    ap.add_argument('--scale', type=int, default=2, help='書き出し倍率（既定 2）')
+    ap.add_argument('--dots', type=int, default=384, help='1 コマの一辺の画素数（既定 384）')
+    ap.add_argument('--colors', type=int, default=0,
+                    help='色数。0 なら減色しない（既定 0）。ドット絵にしたいときだけ 32 などを指定')
+    ap.add_argument('--scale', type=int, default=1, help='書き出し倍率（既定 1）')
     ap.add_argument('--install', action='store_true', help='Resources/Art/HeroGen へ入れる')
     args = ap.parse_args()
 
@@ -214,7 +210,10 @@ def main():
         return
     keys = list(loaded.keys())
     # 剣は頭の上や体の横へ大きく出る。先に余白を足しておかないと、そこで切れる
-    PAD_T, PAD_S, PAD_B = 520, 340, 140
+    ref_h = max(im.height for im in loaded.values())
+    PAD_T = int(ref_h * 0.43)
+    PAD_S = int(ref_h * 0.28)
+    PAD_B = int(ref_h * 0.12)
     imgs = []
     for k in keys:
         src = loaded[k]
@@ -251,7 +250,8 @@ def main():
         lay = place_sword(sword, meta, spec, (hx, hy), bottom - top, im.size)
         layers.append((None, lay) if spec.get('front', True) else (lay, None))
 
-    aligned = align_all(imgs, int(1024 * 0.62), 1024, layers)   # 剣を振り上げる余白を残す
+    WORK = 1536                                   # 位置合わせをする作業台の大きさ
+    aligned = align_all(imgs, int(WORK * 0.62), WORK, layers)   # 剣を振り上げる余白を残す
     aligned = dict(zip(keys, aligned))
 
     made = 0
@@ -263,7 +263,8 @@ def main():
         strip = Image.new('RGBA', (args.dots * len(cells), args.dots), (0, 0, 0, 0))
         for i, c in enumerate(cells):
             strip.paste(c, (i * args.dots, 0), c)
-        big = strip.resize((strip.width * args.scale, strip.height * args.scale), Image.NEAREST)
+        big = strip if args.scale == 1 else strip.resize(
+            (strip.width * args.scale, strip.height * args.scale), Image.NEAREST)
         out = os.path.join(SHEETS, f'hero_{action}.png')
         big.save(out)
         made += 1
