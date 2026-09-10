@@ -52,18 +52,18 @@ iPhone 横持ち（2556 x 1179）では約 **2.18 倍**になる。
 |---|---|---|---|
 | **■ ゲーム画面（舞台 960×540）** | | | |
 | ステージ札（上段の大枠） | 944 x 252 | 14 | UiSkin.Card / GameController StageCard |
-| 表示器（左・EMBER/PAYOUT） | 218 x 196 | 12 | Card / Display |
-| リール筐体 | 492 x 196 | 12 | Card 相当 / cabinet |
-| 操作パネル（右・PLAYER） | 218 x 196 | 12 | Card / Side |
-| MAX BET ボタン | 218 x 56 | 10 | UiSkin.Button |
-| STOP ボタン（3 つ） | 148 x 56 | 10 | UiSkin.Button |
-| AUTO ボタン | 218 x 56 | 10 | UiSkin.Button |
+| 表示器（左・EMBER/PAYOUT） | 242 x 196 | 12 | Card / Display |
+| リール筐体 | 444 x 196 | 12 | Card 相当 / cabinet |
+| 操作パネル（右・PLAYER） | 242 x 196 | 12 | Card / Side |
+| MAX BET ボタン | 242 x 56 | 10 | UiSkin.Button |
+| STOP ボタン（3 つ） | 132 x 56 | 10 | UiSkin.Button |
+| AUTO ボタン | 242 x 56 | 10 | UiSkin.Button |
 | | | | |
 | **■ くぼみ（Inset。枠ではなく彫り込み）** | | | |
-| リール窓（3 つ） | 156 x 188 | 8 | Inset / Window |
-| EMBER の窓 | 194 x 40 | 8 | Inset / CreditInset |
-| PAYOUT の窓 | 194 x 40 | 8 | Inset / PayoutInset |
-| 常駐スランプ | 194 x 22 | 5 | Inset / MiniSlump |
+| リール窓（3 つ） | 140 x 188 | 8 | Inset / Window |
+| EMBER の窓 | 218 x 40 | 8 | Inset / CreditInset |
+| PAYOUT の窓 | 218 x 40 | 8 | Inset / PayoutInset |
+| 常駐スランプ | 218 x 22 | 5 | Inset / MiniSlump |
 | DEBUG の情報欄 | 280 x 268 | 8 | Inset / Info |
 | | | | |
 | **■ 札（小さな見出し）** | | | |
@@ -93,7 +93,6 @@ iPhone 横持ち（2556 x 1179）では約 **2.18 倍**になる。
 | 財布 | 220 x 52 | 12 | MapScreen Purse |
 | 行き先カード（街 / 冒険） | 250 x 170 | 16 | MapScreen MapNode |
 | ステージマップの板 | 640 x 330 | 14 | MapScreen MapPanel |
-
 ---
 
 ## 2. 画像に置き換えるときの手順
@@ -119,16 +118,17 @@ iPhone 横持ち（2556 x 1179）では約 **2.18 倍**になる。
 
 | | 値 |
 |---|---|
-| 表示される枠 | **140 x 56 px（比 2.5 : 1）** |
-| 新しく作るときの推奨 | **420 x 168 px**（枠の 3 倍） |
+| 表示される枠 | **124 x 56 px（比 2.21 : 1）** |
+| 新しく作るときの推奨 | **372 x 168 px**（枠の 3 倍） |
 | 形式 | PNG・背景は透過 |
 | 置き場所 | `Assets/Resources/Art/Symbols/` |
 
 枠は `ReelView.ReelWidth - 8` x `ReelView.SymbolHeight - 4` から来ている。
-`preserveAspect` で収めるので、**比が 2.5 と違っても歪まないが、余った側に隙間ができる**。
+`preserveAspect` で収めるので、**比が違っても歪まないが、余った側に隙間ができる**。
 
-いまの図柄は 160 x 73（比 2.19）で、高さが先に詰まるため横幅を 123px しか使えていない
-（枠 140px に対して左右 8.5px ずつ空く）。**比 2.5 で作ると枠いっぱいに入る。**
+いまの図柄（160 x 73 / 比 2.19）に合わせて、リールの幅を 148 → 132 にしてある。
+枠が 2.21 になり、隙間は左右あわせて 1.3px まで詰まった。
+図柄を作り直すなら **比 2.21（372 x 168）** で作ると枠いっぱいに入る。
 
 取り込みの設定は `Assets/Editor/BbbTexturePostprocessor.cs` が自動で当てるので、
 Unity 側で触る必要はない（Sprite / 圧縮なし / ミップマップ無し / 最大 8192）。

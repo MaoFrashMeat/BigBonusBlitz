@@ -224,7 +224,9 @@ namespace BBB.Runtime
         private const float BandH = 28f;
         private const float MidH = 196f;                                                      // 中段: 表示器 / リール / ステータス
         private const float CtrlH = 56f;                                                      // 下段: ボタン（タッチ最小 44pt 相当）
-        private const float SideW = 218f;
+        /// <summary>左右のパネルの幅。リールを細くしたぶん、ここへ回している
+        /// （SideW*2 + 筐体 = 928 で、ContentW 944 に対して左右 8px。以前と同じ詰まり具合）。</summary>
+        private const float SideW = 242f;
         private const float StageCardY = StageH * 0.5f - Margin - StageCardH * 0.5f;         // 136
         private const float MidY = StageCardY - StageCardH * 0.5f - Margin - MidH * 0.5f;    // -100
         private const float CtrlY = MidY - MidH * 0.5f - Margin - CtrlH * 0.5f;              // -234

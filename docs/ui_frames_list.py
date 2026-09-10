@@ -5,8 +5,8 @@ import sys
 
 StageW, StageH, Margin = 960.0, 540.0, 8.0
 ContentW = StageW - Margin * 2
-StageCardH, BandH, MidH, CtrlH, SideW = 252.0, 28.0, 196.0, 56.0, 218.0
-ReelW, SymH = 148.0, 60.0
+StageCardH, BandH, MidH, CtrlH, SideW = 252.0, 28.0, 196.0, 56.0, 242.0
+ReelW, SymH = 132.0, 60.0
 reelPitch = ReelW + 8.0
 cabW = reelPitch * 3 + 24
 reelH = SymH * 3

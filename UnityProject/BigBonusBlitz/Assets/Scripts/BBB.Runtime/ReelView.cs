@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using BBB.Core;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,7 +15,10 @@ namespace BBB.Runtime
         /// <summary>実機の約80rpm（20コマ×80/60 ≒ 26.7コマ/秒）。Web版は約44.9コマ/秒だった。</summary>
         public static float SymbolsPerSecond = 20f * 80f / 60f;
         public const float SymbolHeight = 60f;
-        public const float ReelWidth = 148f;
+        /// <summary>リールの幅。図柄の枠は ReelWidth-8 x SymbolHeight-4 になる。
+        /// いまの図柄は 160x73（比 2.19）なので、枠がその比に近くなるよう 132 にしてある
+        /// （148 のままだと枠が 2.50 で、左右に 8.5px ずつ隙間が空く）。</summary>
+        public const float ReelWidth = 132f;
         /// <summary>描画枚数。表示3枚 + 上下1枚ずつ（滑らかスクロール用）。</summary>
         private const int Rows = 5;
 

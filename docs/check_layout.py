@@ -56,7 +56,7 @@ def stack(title, items, top=None, bottom=None):
 StageW, StageH = 960.0, 540.0
 Margin = 8.0
 ContentW = StageW - Margin * 2      # 944
-SideW = 218.0
+SideW = 242.0
 innerW = SideW - 24                 # 194
 AreaW, AreaH, AreaY = 940.0, 220.0, -15.0
 BandH = 28.0
