@@ -11,7 +11,7 @@ import os, sys
 CW, CH = 1170, 540
 SW, SH = 960, 540
 SS = 2
-TitleX, LogoY, LogoW = -166.0, 104.0, 470.0
+TitleX, LogoY, LogoW = -166.0, 112.0, 470.0
 TapY = -52.0
 PillW, PillH, PillY = 152.0, 40.0, -186.0
 GOLD = (255, 207, 63)
@@ -54,7 +54,7 @@ def shade(xy, txt, font, col, anchor='mm'):
     d.text(xy, txt, font=font, fill=col, anchor=anchor)
 
 # ロゴ
-logo = Image.open('D:/Mao-PC/Github/BigBonusBlitz/assets/logo.png').convert('RGBA')
+logo = Image.open('D:/Mao-PC/Github/BigBonusBlitz/UnityProject/BigBonusBlitz/Assets/Resources/Art/UI/bbb_logo_main.png').convert('RGBA')
 lh = LogoW * logo.height / logo.width
 logo = logo.resize((int(LogoW*SS), int(lh*SS)), Image.LANCZOS)
 lx, ly = P(TitleX - LogoW*0.5, LogoY + lh*0.5)

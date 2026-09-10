@@ -65,7 +65,9 @@ namespace BBB.Runtime
         private const float TitleX = -166f;
         /// <summary>ロゴの幅。高さは絵の縦横比から出す。</summary>
         private const float LogoW = 470f;
-        private const float LogoY = 104f;
+        /// <summary>ロゴの高さ。今のロゴは比 1.73 で縦に高いので、
+        /// TAP TO START との隙間が 12px 残る位置に上げてある。</summary>
+        private const float LogoY = 112f;
         /// <summary>TAP TO START の高さ。</summary>
         private const float TapY = -52f;
         /// <summary>下の丸ボタン。</summary>
