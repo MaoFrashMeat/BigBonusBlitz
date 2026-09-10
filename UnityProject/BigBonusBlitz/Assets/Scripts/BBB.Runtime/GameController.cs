@@ -126,6 +126,20 @@ namespace BBB.Runtime
         // スランプグラフ
         private SlumpGraph _graph;
         private GameObject _graphBox;
+        /// <summary>右パネルに常駐する小型のスランプ（設定で出し入れ）。</summary>
+        private SlumpGraph _mini;
+        private RectTransform _miniBox;
+        private Text _miniLabel;
+        private Button _graphAlwaysBtn;
+        /// <summary>グラフに重ねている履歴の番号（-1 なら重ねていない）。</summary>
+        private int _histPicked = -1;
+        private Button[] _histRows;
+        private Text[] _histLabels;
+        /// <summary>この潜行を始めたときのエンバー。履歴の差枚を出すのに使う。</summary>
+        private int _runBaseCredit;
+        /// <summary>潜行の終わりかた（力尽き / 章クリア / 自分で戻る）。街へ戻るときに記録する。</summary>
+        private string _runEndReason = "";
+        private bool _runRecorded;
         // 冒険マップ（ステージ札とモーダル）
         private Text _stageTag;
         private Image _stageTagBg, _stageTagEdge;
@@ -581,10 +595,16 @@ namespace BBB.Runtime
             UiSkin.Heading(side, "BonusHead", new Vector2(0, 24), innerW, "BONUS", HeadIndent);
             _bonusLabel = UiFactory.Label(side, "BonusLabel", new Vector2(0, 3), new Vector2(innerW, 16), "―", 12, TextAnchor.MiddleLeft, ColGold);
             _bonusFill = UiSkin.Gauge(side, "BonusGauge", new Vector2(0, -12), new Vector2(innerW, 8), ColGold, out _bonusTrack);
-            _status = UiFactory.Label(side, "Status", new Vector2(0, -40), new Vector2(innerW, 30), "", 12, TextAnchor.UpperLeft, ColText);
-            var btnSettings = UiSkin.Button(side, "BtnSettings", new Vector2(-innerW * 0.5f + 30, -76), new Vector2(56, 28), "音量", ToggleSettings, ColBtn, 12, false, 8);
-            var btnGraph = UiSkin.Button(side, "BtnGraph", new Vector2(0, -76), new Vector2(56, 28), "グラフ", ToggleGraph, ColBtn, 12, false, 8);
-            var btnDebug = UiSkin.Button(side, "BtnDebug", new Vector2(innerW * 0.5f - 30, -76), new Vector2(56, 28), "DEBUG", ToggleDebug, ColBtn, 11, false, 8);
+            _status = UiFactory.Label(side, "Status", new Vector2(0, -33), new Vector2(innerW, 18), "", 12, TextAnchor.UpperLeft, ColText);
+            var btnSettings = UiSkin.Button(side, "BtnSettings", new Vector2(-innerW * 0.5f + 30, -58), new Vector2(56, 24), "音量", ToggleSettings, ColBtn, 12, false, 8);
+            var btnGraph = UiSkin.Button(side, "BtnGraph", new Vector2(0, -58), new Vector2(56, 24), "グラフ", ToggleGraph, ColBtn, 12, false, 8);
+            var btnDebug = UiSkin.Button(side, "BtnDebug", new Vector2(innerW * 0.5f - 30, -58), new Vector2(56, 24), "DEBUG", ToggleDebug, ColBtn, 11, false, 8);
+
+            // 常駐のスランプ（設定で出し入れする）。数字は右に小さく添える
+            _miniBox = UiSkin.Rect(side, "MiniSlump", new Vector2(0, -84), new Vector2(innerW, 24));
+            _mini = SlumpGraph.Create(_miniBox, new Vector2(-30, 0), new Vector2(innerW - 62, 24), _m.Credit, true);
+            _miniLabel = UiFactory.Label(_miniBox, "MiniDiff", new Vector2(innerW * 0.5f - 29, 0), new Vector2(56, 16), "0", 11, TextAnchor.MiddleRight, ColTextSub);
+            _miniBox.gameObject.SetActive(SaveData.LoadGraphAlwaysOn());
 
             // ===== 下段: 操作バー（左 BET / 中央 STOP×3 = リールと同じ物理配置 §16.3 / 右 AUTO）=====
             _btnBet = UiSkin.Button(_stage, "BtnBet", new Vector2(-ContentW * 0.5f + SideW * 0.5f, CtrlY), new Vector2(SideW, CtrlH), "MAX BET", OnBetClicked, ColAccent, 20, true, 12);
@@ -627,7 +647,7 @@ namespace BBB.Runtime
             _techBanner.gameObject.SetActive(false);
 
             // ===== モーダル: 音量・設定 =====
-            _settingsBox = BuildModal("Settings", new Vector2(400, 236), "サウンド / 設定", ToggleSettings, out var sBody);
+            _settingsBox = BuildModal("Settings", new Vector2(400, 272), "サウンド / 設定", ToggleSettings, out var sBody);
             UiFactory.Label(sBody, "BgmLabel", new Vector2(-140, 40), new Vector2(60, 20), "BGM", 12, TextAnchor.MiddleLeft, ColTextSub);
             _bgmSlider = UiFactory.Slider(sBody, "BgmSlider", new Vector2(30, 40), new Vector2(230, 20), _audio.BgmVolume, v => { _audio.BgmVolume = v; });
             SkinSlider(_bgmSlider);
@@ -639,9 +659,11 @@ namespace BBB.Runtime
             var bgmToggle = UiSkin.Button(sBody, "BgmToggle", new Vector2(-96, -34), new Vector2(150, 30), "BGM ON / OFF", () => { _audio.ToggleBgm(); _audio.UiPop(); SaveData.SaveAudio(_audio); }, ColBtn, 12, false, 8);
             UiSkin.Button(sBody, "ResetSave", new Vector2(72, -34), new Vector2(150, 30), "セーブ削除", OnResetSavePressed, new Color(0.45f, 0.15f, 0.2f), 12, false, 8);
             UiSkin.Button(sBody, "BackToTown", new Vector2(-96, -66), new Vector2(150, 30), "街へ戻る", OnBackToTown, Hex("#5b3fd0"), 12, false, 8);
-            _resetConfirm = UiFactory.Label(sBody, "ResetConfirm", new Vector2(0, -60), new Vector2(360, 16), "", 11, TextAnchor.MiddleCenter, ColGold);
-            UiFactory.Label(sBody, "Keys", new Vector2(0, -92), new Vector2(370, 16),
+            _graphAlwaysBtn = UiSkin.Button(sBody, "GraphAlways", new Vector2(72, -66), new Vector2(150, 30), "", ToggleGraphAlways, ColBtn, 12, false, 8);
+            _resetConfirm = UiFactory.Label(sBody, "ResetConfirm", new Vector2(0, -96), new Vector2(360, 16), "", 11, TextAnchor.MiddleCenter, ColGold);
+            UiFactory.Label(sBody, "Keys", new Vector2(0, -120), new Vector2(370, 16),
                 _isTouch ? "画面をタップ: BET / 順に停止      リールをタップ: そのリールを停止" : "B: BGM   G: グラフ   M: マップ   E: 装備   R: セーブ削除   F1〜F6: 設定   D: デバッグ   Esc: 閉じる", 10, TextAnchor.MiddleCenter, UiSkin.TextDim);
+            RefreshGraphAlwaysLabel();
             _settingsBox.SetActive(false);
 
             // ===== モーダル: デバッグ =====
@@ -689,10 +711,26 @@ namespace BBB.Runtime
             _debugBox.SetActive(false);
 
             // ===== モーダル: スランプグラフ =====
-            _graphBox = BuildModal("Graph", new Vector2(720, 420), "スランプグラフ（エンバーの増減）", ToggleGraph, out var gBody);
-            _graph = SlumpGraph.Create(gBody, new Vector2(0, -6), new Vector2(660, 320), _m.Credit);
-            UiSkin.Button(gBody, "GraphReset", new Vector2(720 * 0.5f - 90, -420 * 0.5f + 26), new Vector2(140, 30), "ここから取り直す",
-                () => { _audio.UiPop(); _graph.ResetTo(_m.Credit); }, ColBtn, 12, false, 8);
+            // 上にグラフ、下に前回までの潜行の一覧。選ぶとその回の波形を薄く重ねる
+            const float grW = 720f, grH = 500f;
+            _graphBox = BuildModal("Graph", new Vector2(grW, grH), "スランプグラフ（エンバーの増減）", ToggleGraph, out var gBody);
+            _graph = SlumpGraph.Create(gBody, new Vector2(0, grH * 0.5f - 38 - 8 - 132), new Vector2(660, 264), _m.Credit);
+            _runBaseCredit = _m.Credit;
+            UiSkin.Heading(gBody, "HistHead", new Vector2(0, grH * 0.5f - 38 - 8 - 280), 660, "前回までの冒険", 0f);
+            _histRows = new Button[RunHistory.Keep];
+            _histLabels = new Text[RunHistory.Keep];
+            for (int i = 0; i < RunHistory.Keep; i++)
+            {
+                int idx = i;
+                float y = grH * 0.5f - 38 - 8 - 302 - i * 26f;
+                var b = UiSkin.Button(gBody, "Hist" + i, new Vector2(0, y), new Vector2(660, 24), "",
+                    () => SelectHistory(idx), ColBtn, 12, false, 6);
+                _histRows[i] = b;
+                _histLabels[i] = b.GetComponentInChildren<Text>();
+                if (_histLabels[i] != null) _histLabels[i].alignment = TextAnchor.MiddleLeft;
+            }
+            UiSkin.Button(gBody, "GraphReset", new Vector2(grW * 0.5f - 90, -grH * 0.5f + 20), new Vector2(140, 28), "ここから取り直す",
+                () => { _audio.UiPop(); _graph.ResetTo(_m.Credit); _graph.SetGhost(null); _histPicked = -1; RefreshHistory(); }, ColBtn, 12, false, 8);
             _graphBox.SetActive(false);
 
             // ===== モーダル: 冒険マップ =====
@@ -723,6 +761,7 @@ namespace BBB.Runtime
         {
             if (_m.IsGameActive || _inputLocked) { SetMessage("回転中は街へ戻れません", false, ColAccent); return; }
             _audio.UiPop();
+            if (!_runRecorded) { RecordRun(_runEndReason); _runRecorded = true; }
             SaveData.Save(_m, _audio);
             CloseModals();
             var canvasGo = _stage != null ? _stage.GetComponentInParent<Canvas>()?.gameObject : null;
@@ -787,10 +826,89 @@ namespace BBB.Runtime
             if (shown == 0) Destroy(_condList.gameObject);
         }
 
+        /// <summary>スランプの常駐を切り替える。表示の好みなので別キーに残す。</summary>
+        private void ToggleGraphAlways()
+        {
+            bool on = !SaveData.LoadGraphAlwaysOn();
+            SaveData.SaveGraphAlwaysOn(on);
+            if (_miniBox != null) _miniBox.gameObject.SetActive(on);
+            if (on) RedrawMini();
+            RefreshGraphAlwaysLabel();
+            _audio.UiPop();
+        }
+
+        private void RefreshGraphAlwaysLabel()
+        {
+            var t = _graphAlwaysBtn != null ? _graphAlwaysBtn.GetComponentInChildren<Text>() : null;
+            if (t != null) t.text = SaveData.LoadGraphAlwaysOn() ? "スランプ常時表示 ON" : "スランプ常時表示 OFF";
+        }
+
+        /// <summary>常駐のスランプを描き直す。閉じているときは何もしない。</summary>
+        private void RedrawMini()
+        {
+            if (_miniBox == null || !_miniBox.gameObject.activeSelf || _mini == null) return;
+            _mini.Redraw();
+            if (_miniLabel != null)
+            {
+                int d = _mini.LastDiff;
+                _miniLabel.text = d.ToString("+#,##0;-#,##0;0");
+                _miniLabel.color = d >= 0 ? ColGreen : ColAccent;
+            }
+        }
+
+        /// <summary>履歴の一覧を書き直す。記録が無い行は押せなくする。</summary>
+        private void RefreshHistory()
+        {
+            if (_histRows == null) return;
+            var runs = RunHistory.Load();
+            string hpName = _m.Config.adventure?.resource?.hpName ?? "ライフ";
+            for (int i = 0; i < _histRows.Length; i++)
+            {
+                bool has = i < runs.Count;
+                _histRows[i].interactable = has;
+                if (_histLabels[i] == null) continue;
+                _histLabels[i].text = has ? RunHistory.Label(runs[i], hpName) : "―";
+                _histLabels[i].color = !has ? UiSkin.TextDim
+                                     : i == _histPicked ? ColGold : ColTextSub;
+            }
+        }
+
+        /// <summary>一覧の 1 行を押した。もう一度押すと重ね描きを消す。</summary>
+        private void SelectHistory(int i)
+        {
+            var runs = RunHistory.Load();
+            if (i < 0 || i >= runs.Count) return;
+            _audio.UiPop();
+            _histPicked = (_histPicked == i) ? -1 : i;
+            _graph.SetGhost(_histPicked < 0 ? null : runs[_histPicked].wave);
+            RefreshHistory();
+        }
+
+        /// <summary>いまの潜行を履歴に残す。街へ戻るときに 1 回だけ呼ぶ。</summary>
+        private void RecordRun(string reason)
+        {
+            if (_graph == null) return;
+            var node = _m.CurrentStage;
+            RunHistory.Add(new RunRecord
+            {
+                when = System.DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                spins = _graph.Spins,
+                diff = _m.Credit - _runBaseCredit,
+                maxDiff = _graph.MaxDiff,
+                minDiff = _graph.MinDiff,
+                chapter = _m.Adv?.chapter ?? 1,
+                stage = node?.name ?? _m.Adv?.nodeId ?? "",
+                reason = reason ?? "",
+                wave = _graph.Snapshot(RunHistory.WavePoints),
+            });
+            _histPicked = -1;
+            RefreshHistory();
+        }
+
         private void ToggleGraph()
         {
             _graphBox.SetActive(!_graphBox.activeSelf);
-            if (_graphBox.activeSelf) { _settingsBox.SetActive(false); _debugBox.SetActive(false); _graph.Redraw(); }
+            if (_graphBox.activeSelf) { _settingsBox.SetActive(false); _debugBox.SetActive(false); _graph.Redraw(); RefreshHistory(); }
             _audio.UiPop();
         }
         /// <summary>レバーオン・Esc でモーダルを閉じる（game-design §16.9: 遊技を止めさせない）。</summary>
@@ -1587,6 +1705,9 @@ namespace BBB.Runtime
             _lastPayout = 0;
             _lastWasReplay = false;
             _graph?.ResetTo(_m.Credit);
+            _mini?.ResetTo(_m.Credit);
+            _runBaseCredit = _m.Credit;
+            RedrawMini();
             SetMessage("SAVE RESET", true);
             _audio.UiPop();
             PlayCharacter("walk");
@@ -1886,7 +2007,9 @@ namespace BBB.Runtime
             AdventureFx(r);
             RogueFx(r);
             _graph?.Push(_m.Credit);
+            _mini?.Push(_m.Credit);
             if (_graphBox != null && _graphBox.activeSelf) _graph.Redraw();
+            RedrawMini();
             ShowTechResult(r);
             RollTraveler();
             RollHeroMonologue(r);
@@ -2118,6 +2241,7 @@ namespace BBB.Runtime
             _audio.EnemyEscape();
             StartCoroutine(Effects.Miss(_charRt));
             yield return SlamTitle(byHp ? $"{res.hpName}が尽きた……" : "力尽きた……", ColAccent, 2.2f, 54);
+            _runEndReason = byHp ? "hp" : "credit";
             int lost = AdventureDirector.ApplyDeathPenalty(_m.Config.adventure, _m.Adv, _m.Wallet, _m.TorchSpinsPerUnit);
             string sub = res.resetOnDeath ? "章の最初からやり直し" : "街へ運ばれた";
             if (lost > 0) sub += $"   ソウル -{lost:N0}";
@@ -2142,6 +2266,7 @@ namespace BBB.Runtime
             yield return SlamTitle($"第{Mathf.Max(1, _m.Adv.chapter - 1)}章  踏破！   +{r.chapterSouls} SOUL", ColGold, 2.4f, 50);
             if (r.chapterSetbacks > 0) yield return SlamTitle($"引き返した回数 {r.chapterSetbacks}   報酬はその分だけ減った", ColTextSub, 1.4f, 28);
             if (PlayStory(StoryDirector.OnClear(_m.Config.story, Mathf.Max(1, _m.Adv.chapter - 1)))) yield return new WaitForSeconds(3.2f);
+            _runEndReason = "clear";
             yield return SlamTitle("街へ戻る……", ColText, 1.0f, 34);
             SaveData.Save(_m, _audio);
             _inputLocked = false;

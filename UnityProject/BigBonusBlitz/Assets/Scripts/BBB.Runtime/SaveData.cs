@@ -1,4 +1,4 @@
-using BBB.Core;
+﻿using BBB.Core;
 using UnityEngine;
 
 namespace BBB.Runtime
@@ -13,6 +13,7 @@ namespace BBB.Runtime
         private const string KeySeVol = "bbb_opt_se_vol";
         private const string KeyBgmOn = "bbb_opt_bgm_on";
         private const string KeyAutoSpeed = "bbb_opt_auto_speed";
+        private const string KeyGraphAlways = "bbb_graph_always";
 
         public int credit;
         public int heldBonusFlag;
@@ -222,6 +223,16 @@ namespace BBB.Runtime
             return true;
         }
 
+        /// <summary>スランプを常に出すか。表示の好みなので、セーブを消しても残す。</summary>
+        public static void SaveGraphAlwaysOn(bool on)
+        {
+            PlayerPrefs.SetInt(KeyGraphAlways, on ? 1 : 0);
+            PlayerPrefs.Save();
+        }
+
+        /// <summary>保存された「スランプを常に出す」（既定は出さない）。</summary>
+        public static bool LoadGraphAlwaysOn() => PlayerPrefs.GetInt(KeyGraphAlways, 0) != 0;
+
         /// <summary>操作の好み（オート速度）を保存する。セーブデータとは別。</summary>
         public static void SaveOptions(int autoSpeed)
         {
@@ -242,6 +253,11 @@ namespace BBB.Runtime
         }
 
         /// <summary>セーブデータだけを消す。音量などの設定は残す。</summary>
-        public static void Clear() { PlayerPrefs.DeleteKey(Key); PlayerPrefs.Save(); }
+        public static void Clear()
+        {
+            PlayerPrefs.DeleteKey(Key);
+            RunHistory.Clear();          // 冒険履歴も進行の記録なので一緒に消す
+            PlayerPrefs.Save();
+        }
     }
 }
