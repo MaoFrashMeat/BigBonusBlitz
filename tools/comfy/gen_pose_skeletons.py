@@ -77,21 +77,22 @@ def build(neck_y=1.55, lean=0.0, bob=0.0,
         (nose[0] - 0.26, neck_y + 0.46 + bob), (nose[0] + 0.26, neck_y + 0.46 + bob),
     ]
 
+# 骨は目と足首までしか描かない。実際の絵はその外に髪と靴が出るので、
+# 頭頂 2.45 〜 靴底 -0.60 を全身とみなして枠の 8 割に収める
+SCALE = H * 0.26
+MID_Y = 0.92
+
+def to_pixels(points):
+    """世界座標の点を、骨格画像の画素座標に直す。"""
+    cx, cy = W * 0.5, H * 0.5
+    return [(cx + x * SCALE, cy - (y - MID_Y) * SCALE) for x, y in points]
+
 def draw_pose(points, size=None):
     """OpenPose 形式（黒地に色付きの骨と関節）で描く。"""
     img = Image.new('RGB', (W, H), (0, 0, 0))
     d = ImageDraw.Draw(img)
     size = H
-    cx, cy = W * 0.5, H * 0.5
-    # 骨は目と足首までしか描かない。実際の絵はその外に髪と靴が出るので、
-    # 頭頂 2.45 〜 靴底 -0.60 を全身とみなして枠の 8 割に収める
-    scale = size * 0.26
-    mid_y = 0.92
-
-    def to_px(p):
-        return (cx + p[0] * scale, cy - (p[1] - mid_y) * scale)
-
-    px = [to_px(p) for p in points]
+    px = to_pixels(points)
     for a, b, ci in LIMBS:
         # OpenPose の骨は「太い楕円」で描かれる。近い見た目になるよう太い線で引く
         d.line([px[a], px[b]], fill=COLORS[ci], width=max(4, size // 100))
@@ -194,28 +195,60 @@ POSES = {
 
 # コマごとに足す言葉。骨格だけでは伝わらない「表情」「剣の向き」をここで補う
 HINTS = {
-    'idle':    ['arms down at her sides, sword tip resting on the ground, standing, smiling'] * 4,
-    'walk':    ['arms down at her sides, sword held low, walking forward'] * 6,
-    'attack':  ['both arms raised, greatsword lifted to head height, ready to strike',
-                'both arms straight up, greatsword raised high above her head, determined',
-                'both arms swinging down in front of her, greatsword mid-swing, motion blur',
-                'both arms low in front, greatsword slammed into the ground, shouting, eyes closed'],
-    'slash':   ['both arms pulled to her left side, greatsword held back horizontally',
-                'both arms starting a horizontal swing to her left',
-                'both arms swept across to her right, horizontal slash, motion blur',
-                'both arms extended to her right, follow through of a horizontal slash'],
-    'cast':    ['both arms raised, greatsword pointed up to the sky',
-                'both arms straight up, greatsword high overhead, glowing blade',
-                'both arms low in front, thrusting the greatsword toward the ground',
-                'both arms low, greatsword stabbed into the ground, crouching, shockwave'],
-    'guard':   ['both arms in front of her chest, greatsword held vertically like a shield, eyes closed'] * 2,
+    'idle':    ['arms down at her sides, standing, smiling'] * 4,
+    'walk':    ['arms down at her sides, walking forward'] * 6,
+    'attack':  ['both arms raised beside her head, fists closed, ready to strike',
+                'both arms straight up above her head, fists closed, determined',
+                'both arms swinging down in front of her, motion blur',
+                'both arms low in front of her, shouting, eyes closed'],
+    'slash':   ['both arms pulled to her left side',
+                'both arms starting a horizontal swing',
+                'both arms swept across to her right, motion blur',
+                'both arms extended to her right, follow through'],
+    'cast':    ['both arms raised, hands open toward the sky',
+                'both arms straight up above her head, hands open',
+                'both arms low in front of her, reaching toward the ground',
+                'both arms low, crouching, shockwave'],
+    'guard':   ['both arms crossed in front of her chest, eyes closed'] * 2,
     'hit':     ['arms flung out to the sides, staggering backward, hurt expression, eyes closed',
                 'arms flung out wide, knocked back, hurt expression'],
-    'victory': ['both arms raised, greatsword held up in victory, cheerful',
-                'both arms up, jumping with the greatsword raised, cheerful, eyes closed',
-                'both arms straight up, jumping high with the greatsword raised, cheerful',
-                'both arms up, landing with the greatsword raised, cheerful'],
-    'focus':   ['both hands together low in front, greatsword point down, eyes closed, concentrating'] * 4,
+    'victory': ['both arms raised, cheerful',
+                'both arms up, jumping, cheerful, eyes closed',
+                'both arms straight up, jumping high, cheerful',
+                'both arms up, landing, cheerful'],
+    'focus':   ['both hands together low in front of her, eyes closed, concentrating'] * 4,
+}
+
+
+# --------------------------------------------------------------------------
+# 剣の置き方
+#   生成モデルは剣の向きを言うことを聞かないので、剣は描かせずに後から重ねる。
+#   angle: 画面の角度（0 = 右、90 = 真上、-90 = 真下）
+#   hand : 'r' = 右手首、'l' = 左手首、'both' = 両手首の中点
+#   front: True なら体の手前、False なら体の後ろに置く
+#   len  : 全身の高さに対する剣の長さの比
+# --------------------------------------------------------------------------
+def S(angle, hand='r', front=True, length=0.62):
+    return {'angle': angle, 'hand': hand, 'front': front, 'len': length}
+
+SWORD = {
+    # 立ち・歩きは体の外側へ少し倒し、脚に重ならないよう体の後ろに置く
+    'idle':    [S(-104, 'r', False), S(-104, 'r', False),
+                S(-103, 'r', False), S(-104, 'r', False)],
+    'walk':    [S(-100, 'r', False), S(-98, 'r', False), S(-102, 'r', False),
+                S(-100, 'r', False), S(-98, 'r', False), S(-102, 'r', False)],
+    'attack':  [S(140, 'both', False), S(90, 'both', False),
+                S(-25, 'both', True), S(-90, 'both', True, 0.52)],
+    'slash':   [S(15, 'both', True), S(-15, 'both', True),
+                S(195, 'both', True), S(205, 'both', True)],
+    'cast':    [S(80, 'both', False), S(90, 'both', False),
+                S(-55, 'both', True), S(-88, 'both', True)],
+    'guard':   [S(90, 'both', True), S(90, 'both', True)],
+    'hit':     [S(-35, 'r', False), S(-12, 'r', False)],
+    'victory': [S(90, 'both', False), S(90, 'both', False),
+                S(90, 'both', False), S(90, 'both', False)],
+    'focus':   [S(-90, 'both', True), S(-90, 'both', True),
+                S(-90, 'both', True), S(-90, 'both', True)],
 }
 
 def main():
@@ -223,14 +256,22 @@ def main():
     index = []
     for action, frames in POSES.items():
         for i, kw in enumerate(frames):
-            img = draw_pose(build(**kw))
+            pts = build(**kw)
+            img = draw_pose(pts)
             name = f'{action}_{i}'
             img.save(os.path.join(OUT, name + '.png'))
+            px = to_pixels(pts)
+            rw, lw = px[4], px[7]          # 4 = 右手首 / 7 = 左手首
+            sw = SWORD.get(action, [S(-85)] * len(frames))[i]
             index.append({
                 'action': action,
                 'frame': i,
                 'file': name + '.png',
                 'hint': HINTS.get(action, [''] * len(frames))[i],
+                # 剣を重ねるための情報。座標は 0〜1（画像の幅・高さに対する割合）
+                'rWrist': [rw[0] / W, rw[1] / H],
+                'lWrist': [lw[0] / W, lw[1] / H],
+                'sword': sw,
             })
     with open(os.path.join(OUT, 'index.json'), 'w', encoding='utf-8') as f:
         json.dump(index, f, ensure_ascii=False, indent=2)

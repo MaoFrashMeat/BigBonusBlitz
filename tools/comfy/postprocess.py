@@ -42,7 +42,11 @@ def remove_bg(im):
         if not (0 <= x < w and 0 <= y < h) or (x, y) in seen:
             continue
         r, g, b, a = px[x, y]
-        if a == 0 or (r > 228 and g > 228 and b > 228):
+        # 背景はベージュや薄青にも転ぶ。明るくて色味の薄い画素はまとめて背景とみなす。
+        # 服の白は輪郭線で囲まれているので、外からのたどりでは入り込めない
+        bright = max(r, g, b)
+        flat = bright - min(r, g, b)
+        if a == 0 or (bright > 218 and flat < 30):
             seen.add((x, y))
             px[x, y] = (r, g, b, 0)
             stack.extend(((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)))
@@ -83,30 +87,86 @@ def body_span(im):
     cx = (acc / tot) if tot else w * 0.5
     return top, bottom, cx
 
-def align_all(images, box_h, canvas):
+
+def load_sword():
+    """描いておいた剣と、その握り位置を読む。無ければ None。"""
+    sp = os.path.join(HERE, 'sword.png')
+    sj = os.path.join(HERE, 'sword.json')
+    if not (os.path.exists(sp) and os.path.exists(sj)):
+        return None, None
+    with open(sj, encoding='utf-8') as f:
+        meta = json.load(f)
+    return Image.open(sp).convert('RGBA'), meta
+
+
+def place_sword(sword, meta, spec, hand_xy, body_h, size):
+    """剣を 1 本、指定の角度で手の位置に置いた層を返す。
+
+    剣の絵は刃を真上（90 度）に向けて描いてある。握り位置を回転の中心に置いてから
+    回すので、どの角度でも手からずれない。
+    """
+    vis_h = meta['bottom'] - meta['top']
+    k = (spec['len'] * body_h) / max(1, vis_h)
+    sw = sword.resize((max(1, int(sword.width * k)), max(1, int(sword.height * k))),
+                      Image.LANCZOS)
+    grip_x = sw.width * 0.5
+    grip_y = sw.height * meta['gripY']
+
+    # 回転しても切れないよう、握りを中心にした正方形へ移す
+    r = int(max(sw.width, sw.height) * 1.5)
+    pad = Image.new('RGBA', (r * 2, r * 2), (0, 0, 0, 0))
+    pad.paste(sw, (int(r - grip_x), int(r - grip_y)), sw)
+    rot = pad.rotate(spec['angle'] - 90, resample=Image.BICUBIC)   # 中心＝握り の周りで回る
+
+    layer = Image.new('RGBA', size, (0, 0, 0, 0))
+    layer.paste(rot, (int(hand_xy[0] - r), int(hand_xy[1] - r)), rot)
+    return layer
+
+def align_all(images, box_h, canvas, layers=None):
     """全コマを **同じ背丈** に揃え、足元を同じ高さに置く。
 
     倍率はコマごとに「頭から足まで」で決める。こうすると剣を振り上げても
     キャラの大きさは変わらない。はみ出した剣は枠の外に出るぶんだけ切る。
     """
+    # 背丈は **キャラだけ** で測る。剣を含めると振り上げたコマが縮む
     spans = [body_span(im) for im in images]
     floor_y = canvas - int(canvas * 0.06)
+    if layers is None:
+        layers = [None] * len(images)
 
     out = []
-    for im, sp in zip(images, spans):
+    for im, sp, lay in zip(images, spans, layers):
         blank = Image.new('RGBA', (canvas, canvas), (0, 0, 0, 0))
         if not sp:
             out.append(blank)
             continue
         top, bottom, cx = sp
         sc = box_h / max(1, bottom - top)
+        if lay is not None:
+            back, front = lay
+            merged = Image.new('RGBA', im.size, (0, 0, 0, 0))
+            if back is not None:
+                merged.alpha_composite(back)
+            merged.alpha_composite(im)
+            if front is not None:
+                merged.alpha_composite(front)
+            im = merged
         bb = im.getbbox()
         body = im.crop(bb)
+        # 剣まで含めた大きさが枠に収まらないコマは、そのコマだけ縮める
+        for _ in range(4):
+            if (bb[3] - bb[1]) * sc > canvas or (bb[2] - bb[0]) * sc > canvas:
+                sc *= min(canvas / ((bb[3] - bb[1]) * sc),
+                          canvas / ((bb[2] - bb[0]) * sc)) * 0.98
+            else:
+                break
         nw, nh = max(1, int(body.width * sc)), max(1, int(body.height * sc))
         body = body.resize((nw, nh), Image.LANCZOS)
-        # 足の裏を floor_y に、足元の左右中心を画面中央に
+        # 足の裏を floor_y に、足元の左右中心を画面中央に。枠から出るぶんは寄せて収める
         x = int(canvas * 0.5 - (cx - bb[0]) * sc)
         y = int(floor_y - (bottom - bb[1]) * sc)
+        x = max(min(x, 0), canvas - nw) if nw > canvas else max(0, min(x, canvas - nw))
+        y = max(min(y, 0), canvas - nh) if nh > canvas else max(0, min(y, canvas - nh))
         blank.paste(body, (x, y), body)
         out.append(blank)
     return out
@@ -153,7 +213,45 @@ def main():
         print('raw/ に画像がありません')
         return
     keys = list(loaded.keys())
-    aligned = align_all([loaded[k] for k in keys], int(1024 * 0.72), 1024)
+    # 剣は頭の上や体の横へ大きく出る。先に余白を足しておかないと、そこで切れる
+    PAD_T, PAD_S, PAD_B = 520, 340, 140
+    imgs = []
+    for k in keys:
+        src = loaded[k]
+        big = Image.new('RGBA', (src.width + PAD_S * 2, src.height + PAD_T + PAD_B),
+                        (0, 0, 0, 0))
+        big.paste(src, (PAD_S, PAD_T), src)
+        imgs.append(big)
+
+    # 剣を重ねる。生成モデルは剣の向きを言うことを聞かないので、こちらで置く
+    sword, meta = load_sword()
+    layers = []
+    by_key = {(e['action'], e['frame']): e for e in index}
+    for k, im in zip(keys, imgs):
+        e = by_key.get(k)
+        if sword is None or not e or 'sword' not in e:
+            layers.append(None)
+            continue
+        sp = body_span(im)
+        if not sp:
+            layers.append(None)
+            continue
+        top, bottom, _ = sp
+        spec = e['sword']
+        # 手の位置は元画像に対する割合。余白のぶんだけずらす
+        w = im.width - PAD_S * 2
+        h = im.height - PAD_T - PAD_B
+        if spec['hand'] == 'both':
+            rx, ry = (e['rWrist'][0] + e['lWrist'][0]) * 0.5, (e['rWrist'][1] + e['lWrist'][1]) * 0.5
+        elif spec['hand'] == 'l':
+            rx, ry = e['lWrist']
+        else:
+            rx, ry = e['rWrist']
+        hx, hy = rx * w + PAD_S, ry * h + PAD_T
+        lay = place_sword(sword, meta, spec, (hx, hy), bottom - top, im.size)
+        layers.append((None, lay) if spec.get('front', True) else (lay, None))
+
+    aligned = align_all(imgs, int(1024 * 0.62), 1024, layers)   # 剣を振り上げる余白を残す
     aligned = dict(zip(keys, aligned))
 
     made = 0

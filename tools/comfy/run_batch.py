@@ -22,37 +22,34 @@ WORKFLOW = os.path.join(HERE, 'workflow_popora.json')
 CONFIG = os.path.join(HERE, 'config.json')
 
 # --- 見た目を決める言葉。ここを直すと全コマに効く ---
+# --- 見た目を決める言葉。ここを直すと全コマに効く ---
+# Animagine XL 4.0 の作法: 内容を先に書き、品質タグを最後に置く。
 STYLE = (
-    "masterpiece, best quality, "
     "1girl, solo, full body, whole body visible from head to feet, "
-    "front view, facing viewer, "
+    "front view, facing viewer, standing on the ground, "
     # 参照画像と同じ意匠。ここを崩すと別人になる
     "short pink hair, blue eyes, cheerful, "
-    "ornate white plate armor with (gold filigree trim:1.45), navy blue underlayer, "
-    "pauldrons with cyan gems, (crescent moon emblem on skirt:1.2), white gloves, "
-    "white frilled skirt with navy panel, brown leather belt, "
+    "ornate white plate armor with gold trim, navy blue underlayer, "
+    "pauldrons with cyan gems, crescent moon emblem on skirt, white gloves, "
     "white knee-high armored boots with gold wing motif, "
     # 剣。crystalline と書くと青い塊になるので、素直な剣にする
-    "(holding exactly one sword:1.1), silver straight blade with cross guard and blue hilt, "
-    "flat cel shading, clean thick outline, game character sprite, "
-    "(pure white background:1.3), simple background, no shadow on background"
+    "empty hands, no weapon, "
+    "flat cel shading, thick clean outline, "
+    "(plain white background:1.3), (simple background:1.2), "
+    # 品質タグは最後（Animagine の作法）
+    "masterpiece, high score, great score, absurdres"
 )
 NEGATIVE = (
-    "worst quality, low quality, blurry, jpeg artifacts, "
-    "character sheet, multiple views, turnaround, reference sheet, "
-    "multiple characters, text, watermark, signature, "
-    "cropped, out of frame, cut off, close-up, portrait, upper body, headshot, "
-    # 前回これが出た: 頭の羽根、巨大な結晶の塊、体が隠れるほどの武器
-    "head wings, horns, headgear, crystal, glowing aura, "
-    "oversized weapon covering the body, floating weapon, detached cape, "
-    "large flowing cloth, floating fabric, banner, flag, ribbon, cape, cloak, "
-    "(two swords:1.3), dual wielding, extra weapon, giant sword, "
-    "extra arms, extra legs, missing hands, shapeless boots, "
-    "angel wings, feathered wings, halo, "
-    "realistic, 3d render, photo, "
-    "complex background, scenery, gradient background, dark background, "
-    "beige background, cream background, colored background, vignette, "
-    "wooden club, plank, staff, axe, blunt weapon"
+    # Animagine XL 4.0 の標準の否定語
+    "lowres, bad anatomy, bad hands, text, error, missing finger, "
+    "extra digits, fewer digits, cropped, worst quality, low quality, "
+    "low score, bad score, average score, signature, watermark, username, blurry, "
+    # このプロジェクトで実際に出た事故だけを足す（強調は付けない。付けると色が壊れる）
+    "character sheet, multiple views, multiple characters, "
+    "(sword:1.4), (weapon:1.4), (holding an object:1.2), two swords, "
+    "cape, cloak, angel wings, "
+    "close-up, upper body, out of frame, "
+    "textured background, gradient background, dark background, scenery"
 )
 
 def load_config():
@@ -133,7 +130,8 @@ def main():
     for n, it in enumerate(todo, 1):
         prompt = json.loads(json.dumps(base))
         prompt.pop('_comment', None)
-        positive = STYLE + ', ' + it['hint']
+        # コマごとの指示を先に置く。後ろに回すと共通の言葉に負ける
+        positive = it['hint'] + ', ' + STYLE
         prompt['2']['inputs']['text'] = positive
         prompt['3']['inputs']['text'] = NEGATIVE
         prompt['4']['inputs']['image'] = 'pose_' + it['file']

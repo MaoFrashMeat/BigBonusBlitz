@@ -3,204 +3,680 @@
     "action": "idle",
     "frame": 0,
     "file": "idle_0.png",
-    "hint": "arms down at her sides, sword tip resting on the ground, standing, smiling"
+    "hint": "arms down at her sides, standing, smiling",
+    "rWrist": [
+      0.3229691394854689,
+      0.5807563120903906
+    ],
+    "lWrist": [
+      0.6533067712278441,
+      0.5824751292970302
+    ],
+    "sword": {
+      "angle": -104,
+      "hand": "r",
+      "front": false,
+      "len": 0.62
+    }
   },
   {
     "action": "idle",
     "frame": 1,
     "file": "idle_1.png",
-    "hint": "arms down at her sides, sword tip resting on the ground, standing, smiling"
+    "hint": "arms down at her sides, standing, smiling",
+    "rWrist": [
+      0.31707003339083933,
+      0.5736498908881079
+    ],
+    "lWrist": [
+      0.6592533331110401,
+      0.5756517385122254
+    ],
+    "sword": {
+      "angle": -104,
+      "hand": "r",
+      "front": false,
+      "len": 0.62
+    }
   },
   {
     "action": "idle",
     "frame": 2,
     "file": "idle_2.png",
-    "hint": "arms down at her sides, sword tip resting on the ground, standing, smiling"
+    "hint": "arms down at her sides, standing, smiling",
+    "rWrist": [
+      0.3111872939645327,
+      0.5703731201117987
+    ],
+    "lWrist": [
+      0.6651907404578373,
+      0.5726573883712158
+    ],
+    "sword": {
+      "angle": -103,
+      "hand": "r",
+      "front": false,
+      "len": 0.62
+    }
   },
   {
     "action": "idle",
     "frame": 3,
     "file": "idle_3.png",
-    "hint": "arms down at her sides, sword tip resting on the ground, standing, smiling"
+    "hint": "arms down at her sides, standing, smiling",
+    "rWrist": [
+      0.3229691394854689,
+      0.5768563120903906
+    ],
+    "lWrist": [
+      0.6533067712278441,
+      0.57857512929703
+    ],
+    "sword": {
+      "angle": -104,
+      "hand": "r",
+      "front": false,
+      "len": 0.62
+    }
   },
   {
     "action": "walk",
     "frame": 0,
     "file": "walk_0.png",
-    "hint": "arms down at her sides, sword held low, walking forward"
+    "hint": "arms down at her sides, walking forward",
+    "rWrist": [
+      0.2675668453219894,
+      0.5878928682711069
+    ],
+    "lWrist": [
+      0.6788609234862867,
+      0.5391082808542084
+    ],
+    "sword": {
+      "angle": -100,
+      "hand": "r",
+      "front": false,
+      "len": 0.62
+    }
   },
   {
     "action": "walk",
     "frame": 1,
     "file": "walk_1.png",
-    "hint": "arms down at her sides, sword held low, walking forward"
+    "hint": "arms down at her sides, walking forward",
+    "rWrist": [
+      0.30171106152785226,
+      0.5666843976809638
+    ],
+    "lWrist": [
+      0.6678558200196563,
+      0.5400700835331287
+    ],
+    "sword": {
+      "angle": -98,
+      "hand": "r",
+      "front": false,
+      "len": 0.62
+    }
   },
   {
     "action": "walk",
     "frame": 2,
     "file": "walk_2.png",
-    "hint": "arms down at her sides, sword held low, walking forward"
+    "hint": "arms down at her sides, walking forward",
+    "rWrist": [
+      0.33552907435131957,
+      0.5693062406037914
+    ],
+    "lWrist": [
+      0.6528246358032871,
+      0.5700096267110895
+    ],
+    "sword": {
+      "angle": -102,
+      "hand": "r",
+      "front": false,
+      "len": 0.62
+    }
   },
   {
     "action": "walk",
     "frame": 3,
     "file": "walk_3.png",
-    "hint": "arms down at her sides, sword held low, walking forward"
+    "hint": "arms down at her sides, walking forward",
+    "rWrist": [
+      0.3211390765137133,
+      0.5391082808542084
+    ],
+    "lWrist": [
+      0.7324331546780107,
+      0.5878928682711069
+    ],
+    "sword": {
+      "angle": -100,
+      "hand": "r",
+      "front": false,
+      "len": 0.62
+    }
   },
   {
     "action": "walk",
     "frame": 4,
     "file": "walk_4.png",
-    "hint": "arms down at her sides, sword held low, walking forward"
+    "hint": "arms down at her sides, walking forward",
+    "rWrist": [
+      0.33214417998034373,
+      0.5400700835331287
+    ],
+    "lWrist": [
+      0.6982889384721477,
+      0.5666843976809638
+    ],
+    "sword": {
+      "angle": -98,
+      "hand": "r",
+      "front": false,
+      "len": 0.62
+    }
   },
   {
     "action": "walk",
     "frame": 5,
     "file": "walk_5.png",
-    "hint": "arms down at her sides, sword held low, walking forward"
+    "hint": "arms down at her sides, walking forward",
+    "rWrist": [
+      0.33552907435131957,
+      0.5693062406037914
+    ],
+    "lWrist": [
+      0.6528246358032871,
+      0.5700096267110895
+    ],
+    "sword": {
+      "angle": -102,
+      "hand": "r",
+      "front": false,
+      "len": 0.62
+    }
   },
   {
     "action": "attack",
     "frame": 0,
     "file": "attack_0.png",
-    "hint": "both arms raised, greatsword lifted to head height, ready to strike"
+    "hint": "both arms raised beside her head, fists closed, ready to strike",
+    "rWrist": [
+      0.41810259244677694,
+      0.2612000324733687
+    ],
+    "lWrist": [
+      0.543897407553223,
+      0.2612000324733687
+    ],
+    "sword": {
+      "angle": 140,
+      "hand": "both",
+      "front": false,
+      "len": 0.62
+    }
   },
   {
     "action": "attack",
     "frame": 1,
     "file": "attack_1.png",
-    "hint": "both arms straight up, greatsword raised high above her head, determined"
+    "hint": "both arms straight up above her head, fists closed, determined",
+    "rWrist": [
+      0.4301354169954482,
+      0.18995726683731817
+    ],
+    "lWrist": [
+      0.5014645830045518,
+      0.18995726683731817
+    ],
+    "sword": {
+      "angle": 90,
+      "hand": "both",
+      "front": false,
+      "len": 0.62
+    }
   },
   {
     "action": "attack",
     "frame": 2,
     "file": "attack_2.png",
-    "hint": "both arms swinging down in front of her, greatsword mid-swing, motion blur"
+    "hint": "both arms swinging down in front of her, motion blur",
+    "rWrist": [
+      0.4380826308894932,
+      0.534111540840759
+    ],
+    "lWrist": [
+      0.615117369110507,
+      0.534111540840759
+    ],
+    "sword": {
+      "angle": -25,
+      "hand": "both",
+      "front": true,
+      "len": 0.62
+    }
   },
   {
     "action": "attack",
     "frame": 3,
     "file": "attack_3.png",
-    "hint": "both arms low in front, greatsword slammed into the ground, shouting, eyes closed"
+    "hint": "both arms low in front of her, shouting, eyes closed",
+    "rWrist": [
+      0.45315458166211653,
+      0.5540874270973245
+    ],
+    "lWrist": [
+      0.6228454183378835,
+      0.5540874270973244
+    ],
+    "sword": {
+      "angle": -90,
+      "hand": "both",
+      "front": true,
+      "len": 0.52
+    }
   },
   {
     "action": "slash",
     "frame": 0,
     "file": "slash_0.png",
-    "hint": "both arms pulled to her left side, greatsword held back horizontally"
+    "hint": "both arms pulled to her left side",
+    "rWrist": [
+      0.6698345621565505,
+      0.40183854671646446
+    ],
+    "lWrist": [
+      0.8125624494594331,
+      0.4391612619193486
+    ],
+    "sword": {
+      "angle": 15,
+      "hand": "both",
+      "front": true,
+      "len": 0.62
+    }
   },
   {
     "action": "slash",
     "frame": 1,
     "file": "slash_1.png",
-    "hint": "both arms starting a horizontal swing to her left"
+    "hint": "both arms starting a horizontal swing",
+    "rWrist": [
+      0.6419437272432131,
+      0.4800331124489487
+    ],
+    "lWrist": [
+      0.7986076449258813,
+      0.4842662886416043
+    ],
+    "sword": {
+      "angle": -15,
+      "hand": "both",
+      "front": true,
+      "len": 0.62
+    }
   },
   {
     "action": "slash",
     "frame": 2,
     "file": "slash_2.png",
-    "hint": "both arms swept across to her right, horizontal slash, motion blur"
+    "hint": "both arms swept across to her right, motion blur",
+    "rWrist": [
+      0.22621889732501704,
+      0.4445597884622212
+    ],
+    "lWrist": [
+      0.33016543784344954,
+      0.40183854671646446
+    ],
+    "sword": {
+      "angle": 195,
+      "hand": "both",
+      "front": true,
+      "len": 0.62
+    }
   },
   {
     "action": "slash",
     "frame": 3,
     "file": "slash_3.png",
-    "hint": "both arms extended to her right, follow through of a horizontal slash"
+    "hint": "both arms extended to her right, follow through",
+    "rWrist": [
+      0.2026375505405669,
+      0.4867314567784521
+    ],
+    "lWrist": [
+      0.3453654378434496,
+      0.40183854671646446
+    ],
+    "sword": {
+      "angle": 205,
+      "hand": "both",
+      "front": true,
+      "len": 0.62
+    }
   },
   {
     "action": "cast",
     "frame": 0,
     "file": "cast_0.png",
-    "hint": "both arms raised, greatsword pointed up to the sky"
+    "hint": "both arms raised, hands open toward the sky",
+    "rWrist": [
+      0.46158618415136693,
+      0.2079402371453197
+    ],
+    "lWrist": [
+      0.5384138158486331,
+      0.2079402371453197
+    ],
+    "sword": {
+      "angle": 80,
+      "hand": "both",
+      "front": false,
+      "len": 0.62
+    }
   },
   {
     "action": "cast",
     "frame": 1,
     "file": "cast_1.png",
-    "hint": "both arms straight up, greatsword high overhead, glowing blade"
+    "hint": "both arms straight up above her head, hands open",
+    "rWrist": [
+      0.45364106180557245,
+      0.13154036862768737
+    ],
+    "lWrist": [
+      0.5463589381944275,
+      0.13154036862768723
+    ],
+    "sword": {
+      "angle": 90,
+      "hand": "both",
+      "front": false,
+      "len": 0.62
+    }
   },
   {
     "action": "cast",
     "frame": 2,
     "file": "cast_2.png",
-    "hint": "both arms low in front, thrusting the greatsword toward the ground"
+    "hint": "both arms low in front of her, reaching toward the ground",
+    "rWrist": [
+      0.3846383509829211,
+      0.5589115259725883
+    ],
+    "lWrist": [
+      0.6153616490170788,
+      0.5589115259725883
+    ],
+    "sword": {
+      "angle": -55,
+      "hand": "both",
+      "front": true,
+      "len": 0.62
+    }
   },
   {
     "action": "cast",
     "frame": 3,
     "file": "cast_3.png",
-    "hint": "both arms low, greatsword stabbed into the ground, crouching, shockwave"
+    "hint": "both arms low, crouching, shockwave",
+    "rWrist": [
+      0.38381441276869943,
+      0.584500393629249
+    ],
+    "lWrist": [
+      0.6161855872313005,
+      0.584500393629249
+    ],
+    "sword": {
+      "angle": -88,
+      "hand": "both",
+      "front": true,
+      "len": 0.62
+    }
   },
   {
     "action": "guard",
     "frame": 0,
     "file": "guard_0.png",
-    "hint": "both arms in front of her chest, greatsword held vertically like a shield, eyes closed"
+    "hint": "both arms crossed in front of her chest, eyes closed",
+    "rWrist": [
+      0.44224106180557243,
+      0.3911898262760325
+    ],
+    "lWrist": [
+      0.5349589381944275,
+      0.3911898262760325
+    ],
+    "sword": {
+      "angle": 90,
+      "hand": "both",
+      "front": true,
+      "len": 0.62
+    }
   },
   {
     "action": "guard",
     "frame": 1,
     "file": "guard_1.png",
-    "hint": "both arms in front of her chest, greatsword held vertically like a shield, eyes closed"
+    "hint": "both arms crossed in front of her chest, eyes closed",
+    "rWrist": [
+      0.44297398820623246,
+      0.3885352260569676
+    ],
+    "lWrist": [
+      0.5342260117937676,
+      0.3885352260569676
+    ],
+    "sword": {
+      "angle": 90,
+      "hand": "both",
+      "front": true,
+      "len": 0.62
+    }
   },
   {
     "action": "hit",
     "frame": 0,
     "file": "hit_0.png",
-    "hint": "arms flung out to the sides, staggering backward, hurt expression, eyes closed"
+    "hint": "arms flung out to the sides, staggering backward, hurt expression, eyes closed",
+    "rWrist": [
+      0.14633792767126064,
+      0.4704278141567583
+    ],
+    "lWrist": [
+      0.9403639592296951,
+      0.4767794832566918
+    ],
+    "sword": {
+      "angle": -35,
+      "hand": "r",
+      "front": false,
+      "len": 0.62
+    }
   },
   {
     "action": "hit",
     "frame": 1,
     "file": "hit_1.png",
-    "hint": "arms flung out wide, knocked back, hurt expression"
+    "hint": "arms flung out wide, knocked back, hurt expression",
+    "rWrist": [
+      0.1396828991759544,
+      0.4387545151987803
+    ],
+    "lWrist": [
+      0.9975857763990239,
+      0.441186076718339
+    ],
+    "sword": {
+      "angle": -12,
+      "hand": "r",
+      "front": false,
+      "len": 0.62
+    }
   },
   {
     "action": "victory",
     "frame": 0,
     "file": "victory_0.png",
-    "hint": "both arms raised, greatsword held up in victory, cheerful"
+    "hint": "both arms raised, cheerful",
+    "rWrist": [
+      0.462549540939201,
+      0.18846523341086927
+    ],
+    "lWrist": [
+      0.537450459060799,
+      0.18846523341086927
+    ],
+    "sword": {
+      "angle": 90,
+      "hand": "both",
+      "front": false,
+      "len": 0.62
+    }
   },
   {
     "action": "victory",
     "frame": 1,
     "file": "victory_1.png",
-    "hint": "both arms up, jumping with the greatsword raised, cheerful, eyes closed"
+    "hint": "both arms up, jumping, cheerful, eyes closed",
+    "rWrist": [
+      0.45665564781958506,
+      0.1484088068682612
+    ],
+    "lWrist": [
+      0.543344352180415,
+      0.1484088068682612
+    ],
+    "sword": {
+      "angle": 90,
+      "hand": "both",
+      "front": false,
+      "len": 0.62
+    }
   },
   {
     "action": "victory",
     "frame": 2,
     "file": "victory_2.png",
-    "hint": "both arms straight up, jumping high with the greatsword raised, cheerful"
+    "hint": "both arms straight up, jumping high, cheerful",
+    "rWrist": [
+      0.4437866847304701,
+      0.11898225540808637
+    ],
+    "lWrist": [
+      0.5562133152695299,
+      0.11898225540808637
+    ],
+    "sword": {
+      "angle": 90,
+      "hand": "both",
+      "front": false,
+      "len": 0.62
+    }
   },
   {
     "action": "victory",
     "frame": 3,
     "file": "victory_3.png",
-    "hint": "both arms up, landing with the greatsword raised, cheerful"
+    "hint": "both arms up, landing, cheerful",
+    "rWrist": [
+      0.4615195241269016,
+      0.16680843157561576
+    ],
+    "lWrist": [
+      0.5384804758730984,
+      0.16680843157561576
+    ],
+    "sword": {
+      "angle": 90,
+      "hand": "both",
+      "front": false,
+      "len": 0.62
+    }
   },
   {
     "action": "focus",
     "frame": 0,
     "file": "focus_0.png",
-    "hint": "both hands together low in front, greatsword point down, eyes closed, concentrating"
+    "hint": "both hands together low in front of her, eyes closed, concentrating",
+    "rWrist": [
+      0.43634827870171544,
+      0.5606940011269208
+    ],
+    "lWrist": [
+      0.5636517212982846,
+      0.5606940011269208
+    ],
+    "sword": {
+      "angle": -90,
+      "hand": "both",
+      "front": true,
+      "len": 0.62
+    }
   },
   {
     "action": "focus",
     "frame": 1,
     "file": "focus_1.png",
-    "hint": "both hands together low in front, greatsword point down, eyes closed, concentrating"
+    "hint": "both hands together low in front of her, eyes closed, concentrating",
+    "rWrist": [
+      0.42851023426269247,
+      0.5573465241132972
+    ],
+    "lWrist": [
+      0.5714897657373075,
+      0.5573465241132972
+    ],
+    "sword": {
+      "angle": -90,
+      "hand": "both",
+      "front": true,
+      "len": 0.62
+    }
   },
   {
     "action": "focus",
     "frame": 2,
     "file": "focus_2.png",
-    "hint": "both hands together low in front, greatsword point down, eyes closed, concentrating"
+    "hint": "both hands together low in front of her, eyes closed, concentrating",
+    "rWrist": [
+      0.4230595374248475,
+      0.5554031552480583
+    ],
+    "lWrist": [
+      0.5769404625751525,
+      0.5554031552480583
+    ],
+    "sword": {
+      "angle": -90,
+      "hand": "both",
+      "front": true,
+      "len": 0.62
+    }
   },
   {
     "action": "focus",
     "frame": 3,
     "file": "focus_3.png",
-    "hint": "both hands together low in front, greatsword point down, eyes closed, concentrating"
+    "hint": "both hands together low in front of her, eyes closed, concentrating",
+    "rWrist": [
+      0.43634827870171544,
+      0.5580940011269208
+    ],
+    "lWrist": [
+      0.5636517212982846,
+      0.5580940011269208
+    ],
+    "sword": {
+      "angle": -90,
+      "hand": "both",
+      "front": true,
+      "len": 0.62
+    }
   }
 ]

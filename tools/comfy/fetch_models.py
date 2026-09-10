@@ -19,8 +19,8 @@ CONFIG = os.path.join(HERE, 'config.json')
 
 # (置き場所, 保存名, URL, おおよその大きさ)
 MODELS = [
-    ('checkpoints', 'Illustrious-XL-v2.0.safetensors',
-     'https://huggingface.co/OnomaAIResearch/Illustrious-XL-v2.0/resolve/main/Illustrious-XL-v2.0.safetensors',
+    ('checkpoints', 'animagine-xl-4.0.safetensors',
+     'https://huggingface.co/cagliostrolab/animagine-xl-4.0/resolve/main/animagine-xl-4.0.safetensors',
      '本体モデル'),
     ('controlnet', 'OpenPoseXL2.safetensors',
      'https://huggingface.co/thibaud/controlnet-openpose-sdxl-1.0/resolve/main/OpenPoseXL2.safetensors',
