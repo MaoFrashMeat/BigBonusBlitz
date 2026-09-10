@@ -601,8 +601,8 @@ namespace BBB.Runtime
             var btnDebug = UiSkin.Button(side, "BtnDebug", new Vector2(innerW * 0.5f - 30, -58), new Vector2(56, 24), "DEBUG", ToggleDebug, ColBtn, 11, false, 8);
 
             // 常駐のスランプ（設定で出し入れする）。数字は右に小さく添える
-            _miniBox = UiSkin.Rect(side, "MiniSlump", new Vector2(0, -84), new Vector2(innerW, 24));
-            _mini = SlumpGraph.Create(_miniBox, new Vector2(-30, 0), new Vector2(innerW - 62, 24), _m.Credit, true);
+            _miniBox = UiSkin.Rect(side, "MiniSlump", new Vector2(0, -83), new Vector2(innerW, 22));
+            _mini = SlumpGraph.Create(_miniBox, new Vector2(-30, 0), new Vector2(innerW - 62, 22), _m.Credit, true);
             _miniLabel = UiFactory.Label(_miniBox, "MiniDiff", new Vector2(innerW * 0.5f - 29, 0), new Vector2(56, 16), "0", 11, TextAnchor.MiddleRight, ColTextSub);
             _miniBox.gameObject.SetActive(SaveData.LoadGraphAlwaysOn());
 

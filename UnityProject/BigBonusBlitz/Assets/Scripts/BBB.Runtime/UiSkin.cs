@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,11 +13,18 @@ namespace BBB.Runtime
     {
         // ------------------------------------------------------------ colors
         public static Color Hex(string h) { ColorUtility.TryParseHtmlString(h, out var c); return c; }
-        public static readonly Color Bg = Hex("#0a0d16");
-        public static readonly Color Panel = Hex("#151b2b");
-        public static readonly Color PanelHi = Hex("#1c2438");
-        public static readonly Color PanelEdge = Hex("#2a3554");
-        public static readonly Color InsetColor = Hex("#0b0f19");
+        public static readonly Color Bg = Hex("#0a0b0f");
+        /// <summary>板そのもの。黒鉄。</summary>
+        public static readonly Color Panel = Hex("#17181e");
+        public static readonly Color PanelHi = Hex("#23252d");
+        /// <summary>板の縁。火に焼けた鉄の色。</summary>
+        public static readonly Color PanelEdge = Hex("#5f3d1e");
+        public static readonly Color InsetColor = Hex("#0b0c10");
+        /// <summary>縁からにじむ灯り（エンバー）。</summary>
+        public static readonly Color Ember = Hex("#ff8a3a");
+        /// <summary>鋲の頭と、その光。</summary>
+        public static readonly Color Rivet = Hex("#46484f");
+        public static readonly Color RivetHi = Hex("#9296a4");
         public static readonly Color Text = Hex("#f4f6fa");
         public static readonly Color TextSub = Hex("#98a3b8");
         public static readonly Color TextDim = Hex("#5f6a80");
@@ -69,7 +76,8 @@ namespace BBB.Runtime
                     float d = RoundedDistance(x + 0.5f, y + 0.5f, blur, blur, size - blur, size - blur, radius);
                     float a = d <= 0 ? 1f : Mathf.Clamp01(1f - d / blur);
                     a = a * a * (3f - 2f * a);   // smoothstep
-                    px[y * size + x] = new Color32(0, 0, 0, (byte)(255 * a));
+                    // 白で作る。影にも灯りにも使えるよう、色は Image.color 側で付ける
+                    px[y * size + x] = new Color32(255, 255, 255, (byte)(255 * a));
                 }
             tex.SetPixels32(px); tex.Apply();
             s = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 1f, 0, SpriteMeshType.FullRect, new Vector4(pad + 1, pad + 1, pad + 1, pad + 1));
@@ -488,23 +496,41 @@ namespace BBB.Runtime
         }
 
         /// <summary>影付き角丸カード。返すのは中身の親（カード本体）。</summary>
+        /// <summary>
+        /// 板（カード）。黒鉄の板に焼けた縁を付け、外へ灯りをにじませる。
+        /// 角の丸みは小さく固定する（板なので、丸いと鉄に見えない）。
+        /// </summary>
         public static RectTransform Card(Transform parent, string name, Vector2 pos, Vector2 size, int radius = 12, Color? color = null, bool edge = true, bool shadow = true, bool sheen = true)
         {
             var root = Rect(parent, name, pos, size);
+            int r = Mathf.Clamp(radius, 2, 6);          // 鉄板なので角は立てる
             if (shadow)
             {
-                var sh = Img(root, "Shadow", new Vector2(0, -6), size + new Vector2(24, 24), Shadow(radius, 14), new Color(0, 0, 0, 0.55f));
+                Img(root, "Shadow", new Vector2(0, -5), size + new Vector2(20, 20), Shadow(r, 12), new Color(0, 0, 0, 0.62f));
+                // 縁からにじむ灯り。影の上に重ねて、板の下に入れる。
+                // 板が隣り合うと重なって背景ごと橙になるので、控えめに、狭く。
+                var glow = Ember; glow.a = 0.15f;
+                Img(root, "Glow", Vector2.zero, size + new Vector2(16, 16), Shadow(r, 9), glow);
             }
-            if (edge)
-            {
-                var e = Img(root, "Edge", Vector2.zero, size, Rounded(radius), PanelEdge);
-            }
-            var body = Img(root, "Body", Vector2.zero, edge ? size - new Vector2(2, 2) : size, Rounded(Mathf.Max(2, radius - 1)), color ?? Panel, true);
+            if (edge) Img(root, "Edge", Vector2.zero, size, Rounded(r), PanelEdge);
+            var inner = edge ? size - new Vector2(6, 6) : size;
+            Img(root, "Body", Vector2.zero, inner, Rounded(Mathf.Max(2, r - 2)), color ?? Panel, true);
             if (sheen)
             {
-                // 上 40% にうっすら光沢
-                var s = Img(root, "Sheen", new Vector2(0, size.y * 0.3f), new Vector2(size.x - 2, size.y * 0.4f), GradientV(true), new Color(1, 1, 1, 0.045f));
-                s.type = Image.Type.Simple;
+                // 上から落ちる金属の艶。板の上半分だけ
+                var sh = Img(root, "Sheen", new Vector2(0, size.y * 0.22f), new Vector2(inner.x - 2, size.y * 0.5f), GradientV(true), new Color(0.78f, 0.81f, 0.9f, 0.075f));
+                sh.type = Image.Type.Simple;
+            }
+            // 鋲。小さな板に打つと潰れるので、ある程度の大きさのときだけ
+            if (edge && size.x >= 90f && size.y >= 60f)
+            {
+                float ox = size.x * 0.5f - 11f, oy = size.y * 0.5f - 11f;
+                for (int k = 0; k < 4; k++)
+                {
+                    var at = new Vector2((k % 2 == 0 ? -1 : 1) * ox, (k < 2 ? 1 : -1) * oy);
+                    Img(root, "Rivet" + k, at, new Vector2(9, 9), Circle(24), Rivet);
+                    Img(root, "RivetHi" + k, at + new Vector2(-1.2f, 1.2f), new Vector2(4, 4), Circle(16), RivetHi);
+                }
             }
             return root;
         }
@@ -518,7 +544,8 @@ namespace BBB.Runtime
             var top = Img(root, "InnerShade", new Vector2(0, size.y * 0.5f - size.y * 0.2f), new Vector2(size.x - 4, size.y * 0.4f), GradientV(true), new Color(0, 0, 0, 0.45f));
             top.type = Image.Type.Simple;
             // 下辺にかすかな縁光
-            Img(root, "BottomLine", new Vector2(0, -size.y * 0.5f + 0.5f), new Vector2(size.x - radius, 1), null, new Color(1, 1, 1, 0.06f));
+            // 下辺のかすかな縁光。板が暖色なので、白ではなく灯りの色に寄せる
+            Img(root, "BottomLine", new Vector2(0, -size.y * 0.5f + 0.5f), new Vector2(size.x - radius, 1), null, new Color(1f, 0.62f, 0.32f, 0.10f));
             return root;
         }
 
