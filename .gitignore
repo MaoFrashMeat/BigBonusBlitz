@@ -9,3 +9,4 @@ tools/comfy/config.json
 # Python の一時ファイル
 __pycache__/
 *.pyc
+tools/comfy/layers/

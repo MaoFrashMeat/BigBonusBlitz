@@ -64,6 +64,10 @@ namespace BBB.Runtime
         /// <summary>ロゴとボタンを置く横位置。絵の人物が右にいるので左へ寄せる。</summary>
         private const float TitleX = -166f;
         /// <summary>ロゴの幅。高さは絵の縦横比から出す。</summary>
+        /// <summary>元のタイトル絵の縦横比（絵が読めないときの保険）。</summary>
+        private const float TitleArtAspect = 1847f / 851f;
+        /// <summary>立ち絵が元絵のどこから始まるか（tools/comfy/layers の切り出し位置）。</summary>
+        private const float CharX0 = 0.3433f;
         private const float LogoW = 470f;
         /// <summary>ロゴの高さ。今のロゴは比 1.73 で縦に高いので、
         /// TAP TO START との隙間が 12px 残る位置に上げてある。</summary>
@@ -87,18 +91,39 @@ namespace BBB.Runtime
             var bgArea = UiSkin.Rect(root, "BgArea", Vector2.zero, Vector2.zero);
             UiSkin.Stretch(bgArea);
             bgArea.gameObject.AddComponent<RectMask2D>();
+            // 背景と立ち絵を別々に置く。立ち絵は格子に割って波打たせるので、
+            // 後ろに「キャラのいない背景」が要る（tools/comfy で作ったもの）
             var titleSprite = ArtLoader.Sprite("Art/UI/title_bg");
+            var charSprite = ArtLoader.Sprite("Art/UI/title_char");
             if (titleSprite != null)
             {
-                var artGo = new GameObject("TitleArt", typeof(RectTransform), typeof(Image));
+                // 元絵と同じ縦横比の板を作り、その中で背景と立ち絵の位置を決める。
+                // 板ごと画面いっぱいに広げるので、2 枚の位置関係は崩れない
+                var artGo = new GameObject("TitleArt", typeof(RectTransform));
                 var artRt = artGo.GetComponent<RectTransform>();
                 artRt.SetParent(bgArea, false);
                 artRt.anchorMin = artRt.anchorMax = new Vector2(0.5f, 0.5f);
-                var img = artGo.GetComponent<Image>();
-                img.sprite = titleSprite;
-                img.raycastTarget = false;
                 var r = titleSprite.rect;
-                AspectCover.Attach(artRt, r.height > 0 ? r.width / r.height : 16f / 9f);
+                AspectCover.Attach(artRt, r.height > 0 ? r.width / r.height : TitleArtAspect);
+
+                var bgImg = UiSkin.Img(artRt, "Bg", Vector2.zero, Vector2.zero, titleSprite, Color.white);
+                UiSkin.Stretch(bgImg.rectTransform);
+                bgImg.raycastTarget = false;
+
+                if (charSprite != null)
+                {
+                    var cgo = new GameObject("Char", typeof(RectTransform), typeof(Image));
+                    var crt = cgo.GetComponent<RectTransform>();
+                    crt.SetParent(artRt, false);
+                    // 元絵のどこに居たか（tools/comfy/layers の切り出し位置）
+                    crt.anchorMin = new Vector2(CharX0, 0f);
+                    crt.anchorMax = new Vector2(1f, 1f);
+                    crt.offsetMin = crt.offsetMax = Vector2.zero;
+                    var ci = cgo.GetComponent<Image>();
+                    ci.sprite = charSprite;
+                    ci.raycastTarget = false;
+                    cgo.AddComponent<TitleCharacterWarp>();
+                }
             }
             else
             {
@@ -112,6 +137,9 @@ namespace BBB.Runtime
             scrim.raycastTarget = false;
             UiSkin.Vignette(root, "DimBottom", Vector2.zero, Vector2.zero, 0.5f, false);
             UiSkin.Stretch(root.Find("DimBottom").GetComponent<RectTransform>());
+
+            // 光の玉と桜の花びら。暗みより手前、ロゴや文字より後ろに漂わせる
+            TitleAmbience.Create(root);
 
             // セーフエリアに収まる舞台（960×540、縮小のみ）
             _safe = SafeStage.Create(_canvas);

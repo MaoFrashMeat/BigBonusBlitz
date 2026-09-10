@@ -145,6 +145,35 @@ namespace BBB.Runtime
         }
 
         /// <summary>放射グロー（中心不透明→外側透明、二乗フェード）。</summary>
+        /// <summary>桜の花びら 1 枚。先が割れた楕円。色は Image.color で付ける。</summary>
+        public static Sprite Petal(int size = 64)
+        {
+            string key = "petal" + size;
+            if (_cache.TryGetValue(key, out var s) && s != null) return s;
+            var tex = new Texture2D(size, size, TextureFormat.RGBA32, false)
+                { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
+            var px = new Color32[size * size];
+            for (int y = 0; y < size; y++)
+                for (int x = 0; x < size; x++)
+                {
+                    // -1〜1 に直す。縦長の楕円にして、上の先端に切れ込みを入れる
+                    float u = (x + 0.5f) / size * 2f - 1f;
+                    float v = (y + 0.5f) / size * 2f - 1f;
+                    float d = Mathf.Sqrt(u * u / 0.34f + v * v / 0.92f);   // 1 で楕円の縁
+                    float a = Mathf.Clamp01((1f - d) * size * 0.16f);
+                    // 上端の切れ込み
+                    float notch = Mathf.Sqrt(u * u / 0.10f + (v - 1.02f) * (v - 1.02f) / 0.08f);
+                    if (notch < 1f) a *= Mathf.Clamp01(notch * 2.2f);
+                    // 中心をほんの少し明るく（重ねたとき厚みが出る）
+                    byte c = (byte)(255 - Mathf.Clamp01(d) * 26f);
+                    px[y * size + x] = new Color32(255, c, c, (byte)(255 * a));
+                }
+            tex.SetPixels32(px); tex.Apply();
+            s = UnityEngine.Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f));
+            _cache[key] = s;
+            return s;
+        }
+
         public static Sprite Glow(int diameter)
         {
             string key = "g" + diameter;

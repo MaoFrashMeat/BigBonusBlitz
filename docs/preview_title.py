@@ -5,7 +5,7 @@
 
 Unity を開かずに配置だけ検分するためのもの。数値は TitleScreen に合わせてある。
 """
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageFilter
 import os, sys
 
 CW, CH = 1170, 540
@@ -29,12 +29,18 @@ def F(sz):
     return ImageFont.load_default()
 
 im = Image.new('RGBA', (CW*SS, CH*SS), (10, 11, 15, 255))
-art = Image.open('D:/Mao-PC/Github/BigBonusBlitz/assets/Title.png').convert('RGBA')
+# 背景と立ち絵を重ねる（Unity 側と同じ構成）
+R = 'D:/Mao-PC/Github/BigBonusBlitz/UnityProject/BigBonusBlitz/Assets/Resources/Art/UI/'
+art = Image.open(R+'title_bg.png').convert('RGBA')
 ar = art.width / art.height
 if CW / CH > ar: nw, nh = CW*SS, int(CW*SS/ar)
 else:            nh, nw = CH*SS, int(CH*SS*ar)
-art = art.resize((nw, nh), Image.LANCZOS)
-im.alpha_composite(art, ((CW*SS-nw)//2, (CH*SS-nh)//2))
+ox, oy = (CW*SS-nw)//2, (CH*SS-nh)//2
+im.alpha_composite(art.resize((nw, nh), Image.LANCZOS), (ox, oy))
+CharX0 = 0.3433
+ch = Image.open(R+'title_char.png').convert('RGBA')
+cw = int(nw*(1.0-CharX0)); chh = nh
+im.alpha_composite(ch.resize((cw, chh), Image.LANCZOS), (ox+int(nw*CharX0), oy))
 
 scr = Image.new('RGBA', im.size, (0,0,0,0)); sd = ImageDraw.Draw(scr)
 for x in range(CW*SS):
@@ -108,6 +114,22 @@ shade(P(SW*0.5-10, -SH*0.5+12), 'All Rights Reserved.', F(10*SS), SUB, anchor='r
 for x in (-SW*0.5, SW*0.5):
     xx = P(x, 0)[0]
     d.line((xx, 0, xx, CH*SS), fill=(255,255,255,40), width=SS)
+
+# 光の玉と桜の花びら（動きは止めた 1 瞬を写す）
+import random
+rnd = random.Random(20260911)
+pl = Image.new('RGBA', im.size, (0,0,0,0)); pd = ImageDraw.Draw(pl)
+for _ in range(26):                       # 光の玉
+    x, y = rnd.uniform(0, CW*SS), rnd.uniform(0, CH*SS)
+    r = rnd.uniform(5, 16)*SS*0.5
+    c = (255, rnd.randint(230,255), rnd.randint(200,255), rnd.randint(40,110))
+    pd.ellipse((x-r, y-r, x+r, y+r), fill=c)
+for _ in range(22):                       # 花びら
+    x, y = rnd.uniform(0, CW*SS), rnd.uniform(0, CH*SS)
+    w2, h2 = rnd.uniform(9,20)*SS*0.35, rnd.uniform(9,20)*SS*0.5
+    c = (255, rnd.randint(150,220), rnd.randint(190,230), rnd.randint(150,230))
+    pd.ellipse((x-w2, y-h2, x+w2, y+h2), fill=c)
+im.alpha_composite(pl.filter(ImageFilter.GaussianBlur(1.2*SS)))
 
 out_path = sys.argv[1] if len(sys.argv) > 1 else 'title_preview.png'
 im.convert('RGB').resize((CW, CH), Image.LANCZOS).save(out_path)
