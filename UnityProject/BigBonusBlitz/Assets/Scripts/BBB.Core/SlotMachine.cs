@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace BBB.Core
@@ -927,7 +927,7 @@ namespace BBB.Core
                     var def = TechDirector.FindLevel(Config.tech ?? TechConfig.Default(), Tech.id);
                     if (def != null)
                     {
-                        if (def.souls > 0) { result.techSouls = def.souls; GainSouls(def.souls); }
+                        if (def.souls > 0) { result.techSouls = GainSouls(def.souls); result.soulsGained += result.techSouls; }
                         if (def.embers > 0) { result.techEmbers = def.embers; GainEmbers(def.embers); }
                         if (def.exp > 0) { result.techExp = def.exp; if (GainExp(def.exp)) result.levelUp = true; }
                         if (def.atGames > 0 && InAt) { result.techAtGames = def.atGames; AtSpinsRemaining += def.atGames; }
@@ -1233,7 +1233,7 @@ namespace BBB.Core
                 if (st.progress < Math.Max(1, def.target)) continue;
                 Missions.RemoveAt(i);
                 result.missionCleared = def;
-                if (def.souls > 0) GainSouls(def.souls);
+                if (def.souls > 0) result.soulsGained += GainSouls(def.souls);
                 if (def.embers > 0) GainEmbers(def.embers);
                 if (def.exp > 0 && GainExp(def.exp)) result.levelUp = true;
                 if (def.atGames > 0 && InAt) AtSpinsRemaining += def.atGames;
