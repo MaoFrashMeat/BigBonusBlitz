@@ -307,7 +307,6 @@ namespace BBB.Runtime
         private void Update()
         {
             _t += Time.deltaTime;
-            if (_logo != null) _logo.anchoredPosition = new Vector2(TitleX, LogoY + Mathf.Sin(_t * 1.6f) * 5f);
             if (_press != null && !_starting)
             {
                 var c = _press.color;
