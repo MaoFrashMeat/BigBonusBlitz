@@ -108,8 +108,10 @@ iPhone 横持ち（2556 x 1179）では約 **2.18 倍**になる。
 
 ## 3. 関連
 
+- **触って直すなら `docs/ui_editor.html`**（ダブルクリックで開く）。
+  枠を掴んで動かし、重なりをその場で見て、結果を C# の定数として書き出せる
 - 配置の検算: `docs/check_layout.py`（重なりとはみ出しを見る）
-- 枠の見え方の確認: `docs/preview_skin.py`
+- 枠の見え方の確認: `docs/preview_skin.py` / タイトルは `docs/preview_title.py`
 - UI の作法: `docs/ui_rules.md`
 
 ---

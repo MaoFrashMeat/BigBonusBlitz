@@ -1,0 +1,403 @@
+<meta charset="utf-8">
+<title>BBB UI エディタ</title>
+<style>
+  :root {
+    --bg: #0f1116; --panel: #171921; --edge: #2a2d38; --text: #e8ebf2;
+    --sub: #99a1b3; --dim: #646b7c; --gold: #ffcf3f; --ember: #ff8a3a;
+    --accent: #ff4d6d; --green: #3ddc84; --bad: #ff5c78;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 13px/1.6 "Yu Gothic UI", "Meiryo", system-ui, sans-serif; }
+  header { display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+           padding: 10px 16px; background: var(--panel);
+           border-bottom: 1px solid var(--edge); position: sticky; top: 0; z-index: 20; }
+  header h1 { font-size: 15px; margin: 0; font-weight: 700; letter-spacing: .04em; }
+  header .hint { color: var(--dim); font-size: 11px; }
+  .wrap { display: flex; gap: 16px; padding: 16px; align-items: flex-start; }
+  .left { flex: 1 1 auto; min-width: 0; }
+  .right { flex: 0 0 320px; }
+
+  /* ------- 舞台 ------- */
+  #screen { position: relative; margin: 0 auto; background: #06070a;
+            border: 1px solid var(--edge); overflow: hidden; }
+  #screen img.bg { position: absolute; inset: 0; width: 100%; height: 100%;
+                   object-fit: cover; opacity: .35; }
+  #stage { position: absolute; top: 0; }
+  #stage::before, #stage::after { content: ""; position: absolute; top: 0; bottom: 0;
+    width: 1px; background: rgba(255,255,255,.22); }
+  #stage::before { left: 0; } #stage::after { right: 0; }
+
+  .el { position: absolute; border-radius: 5px; cursor: move; user-select: none;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 11px; color: var(--text); text-align: center; overflow: hidden; }
+  .el .lb { pointer-events: none; opacity: .9; padding: 0 4px; }
+  .el.card { background: #17181e; box-shadow: inset 0 0 0 3px #5f3d1e, 0 0 12px rgba(255,138,58,.20); }
+  .el.inset { background: #0b0c10; box-shadow: inset 0 0 0 1px #262a36; }
+  .el.btn { background: #262832; box-shadow: inset 0 0 0 3px #5f3d1e; }
+  .el.btn.hot { background: #7a2337; }
+  .el.tag { background: #0b1120; box-shadow: inset 0 0 0 2px #3a4560; }
+  .el.sel { outline: 2px solid var(--gold); outline-offset: 1px; z-index: 5; }
+  .el.bad { outline: 2px dashed var(--bad); outline-offset: 1px; }
+  .el .h { position: absolute; right: -4px; bottom: -4px; width: 11px; height: 11px;
+           background: var(--gold); border-radius: 2px; cursor: nwse-resize; }
+  .el:not(.sel) .h { display: none; }
+
+  /* ------- 右の操作板 ------- */
+  .box { background: var(--panel); border: 1px solid var(--edge);
+         border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+  .box h2 { font-size: 12px; margin: 0 0 8px; color: var(--sub);
+            letter-spacing: .08em; font-weight: 700; }
+  .row { display: flex; align-items: center; gap: 8px; margin: 5px 0; }
+  .row label { flex: 0 0 92px; color: var(--sub); font-size: 11px; }
+  .row input[type=number] { width: 68px; background: #0d0f15; color: var(--text);
+        border: 1px solid var(--edge); border-radius: 4px; padding: 3px 6px; font: inherit; }
+  .row input[type=range] { flex: 1; }
+  .row .v { flex: 0 0 46px; text-align: right; color: var(--gold);
+            font-variant-numeric: tabular-nums; font-size: 11px; }
+  button { background: #262832; color: var(--text); border: 1px solid var(--edge);
+           border-radius: 6px; padding: 6px 10px; font: inherit; cursor: pointer; }
+  button:hover { background: #31343f; }
+  button.pri { background: #7a4a18; border-color: #a5661f; }
+  select { background: #0d0f15; color: var(--text); border: 1px solid var(--edge);
+           border-radius: 4px; padding: 4px 6px; font: inherit; }
+  #list { max-height: 210px; overflow: auto; }
+  #list div { padding: 3px 6px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+  #list div:hover { background: #22252f; }
+  #list div.on { background: #3a2a12; color: var(--gold); }
+  #warn { font-size: 11px; color: var(--bad); white-space: pre-wrap; min-height: 18px; }
+  #out { width: 100%; height: 190px; background: #0d0f15; color: var(--green);
+         border: 1px solid var(--edge); border-radius: 6px; padding: 8px;
+         font: 11px/1.5 Consolas, monospace; white-space: pre; }
+  .note { color: var(--dim); font-size: 11px; margin-top: 6px; }
+</style>
+
+<header>
+  <h1>BBB UI エディタ</h1>
+  <span class="hint">枠をドラッグで移動 / 右下の四角で大きさ / 矢印キーで 1px（Shift で 8px）</span>
+  <span style="flex:1"></span>
+  <label class="hint"><input type="checkbox" id="showPhone" checked> iPhone の幅を出す</label>
+  <label class="hint"><input type="checkbox" id="snap" checked> 8px に吸着</label>
+  <button id="reset">元に戻す</button>
+</header>
+
+<div class="wrap">
+  <div class="left">
+    <div id="screen"></div>
+    <div class="note">白い縦線が舞台 960 の端。その外側は端末では背景だけが見える。</div>
+  </div>
+
+  <div class="right">
+    <div class="box">
+      <h2>選んでいる枠</h2>
+      <div class="row"><label>名前</label><span id="selName" style="color:var(--gold)">―</span></div>
+      <div class="row"><label>X</label><input type="number" id="fx" step="1"><label style="flex:0 0 auto">Y</label><input type="number" id="fy" step="1"></div>
+      <div class="row"><label>幅</label><input type="number" id="fw" step="1"><label style="flex:0 0 auto">高さ</label><input type="number" id="fh" step="1"></div>
+      <div id="warn"></div>
+    </div>
+
+    <div class="box">
+      <h2>枠の見た目</h2>
+      <div class="row"><label>角の丸み</label><input type="range" id="sRad" min="0" max="16" value="5"><span class="v" id="vRad">5</span></div>
+      <div class="row"><label>縁の太さ</label><input type="range" id="sEdge" min="0" max="8" value="3"><span class="v" id="vEdge">3</span></div>
+      <div class="row"><label>灯りの強さ</label><input type="range" id="sGlow" min="0" max="60" value="20"><span class="v" id="vGlow">.20</span></div>
+      <div class="row"><label>板の色</label><input type="color" id="cPanel" value="#17181e"></div>
+      <div class="row"><label>縁の色</label><input type="color" id="cEdge" value="#5f3d1e"></div>
+      <div class="row"><label>灯りの色</label><input type="color" id="cEmber" value="#ff8a3a"></div>
+    </div>
+
+    <div class="box">
+      <h2>枠の一覧</h2>
+      <div id="list"></div>
+    </div>
+
+    <div class="box">
+      <h2>書き出し</h2>
+      <div class="row">
+        <select id="fmt">
+          <option value="cs">C# の定数</option>
+          <option value="json">JSON</option>
+          <option value="diff">変えたところだけ</option>
+        </select>
+        <button class="pri" id="copy">コピー</button>
+      </div>
+      <textarea id="out" readonly></textarea>
+      <div class="note">この文字列をそのまま渡してもらえれば、コード側に反映します。</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------------------------------------------------------------------------
+// 舞台の座標は Unity と同じ「中心が原点・上が +y」。画面へは変換して描く。
+// 元の値は GameController / ReelView / UiSkin の定数から写したもの。
+// ---------------------------------------------------------------------------
+const NLC = String.fromCharCode(10);   // 書き出しの改行
+const SW = 960, SH = 540;
+const K = { Margin: 8, ContentW: 944, StageCardH: 252, MidH: 196, CtrlH: 56,
+            SideW: 242, ReelW: 132, SymH: 60 };
+const derived = () => {
+  const pitch = K.ReelW + 8, cab = pitch * 3 + 24;
+  const stageCardY = SH / 2 - K.Margin - K.StageCardH / 2;
+  const midY = stageCardY - K.StageCardH / 2 - K.Margin - K.MidH / 2;
+  const ctrlY = midY - K.MidH / 2 - K.Margin - K.CtrlH / 2;
+  return { pitch, cab, stageCardY, midY, ctrlY, innerW: K.SideW - 24, reelH: K.SymH * 3 };
+};
+
+function build() {
+  const d = derived();
+  return [
+    { id: 'stageCard', name: 'ステージ札', kind: 'card', x: 0, y: d.stageCardY, w: K.ContentW, h: K.StageCardH },
+    { id: 'disp', name: '表示器（左）', kind: 'card', x: -K.ContentW / 2 + K.SideW / 2, y: d.midY, w: K.SideW, h: K.MidH },
+    { id: 'cabinet', name: 'リール筐体', kind: 'card', x: 0, y: d.midY, w: d.cab, h: K.MidH },
+    { id: 'side', name: '操作パネル（右）', kind: 'card', x: K.ContentW / 2 - K.SideW / 2, y: d.midY, w: K.SideW, h: K.MidH },
+    { id: 'reel0', name: 'リール窓 1', kind: 'inset', x: -d.pitch, y: d.midY, w: K.ReelW + 8, h: d.reelH + 8 },
+    { id: 'reel1', name: 'リール窓 2', kind: 'inset', x: 0, y: d.midY, w: K.ReelW + 8, h: d.reelH + 8 },
+    { id: 'reel2', name: 'リール窓 3', kind: 'inset', x: d.pitch, y: d.midY, w: K.ReelW + 8, h: d.reelH + 8 },
+    { id: 'credit', name: 'EMBER の窓', kind: 'inset', x: -K.ContentW / 2 + K.SideW / 2, y: d.midY + 49, w: d.innerW, h: 40 },
+    { id: 'payout', name: 'PAYOUT の窓', kind: 'inset', x: -K.ContentW / 2 + K.SideW / 2, y: d.midY - 20, w: d.innerW, h: 40 },
+    { id: 'mini', name: '常駐スランプ', kind: 'inset', x: K.ContentW / 2 - K.SideW / 2, y: d.midY - 83, w: d.innerW, h: 22 },
+    { id: 'bet', name: 'MAX BET', kind: 'btn hot', x: -K.ContentW / 2 + K.SideW / 2, y: d.ctrlY, w: K.SideW, h: K.CtrlH },
+    { id: 'stop0', name: 'STOP 1', kind: 'btn', x: -d.pitch, y: d.ctrlY, w: K.ReelW, h: K.CtrlH },
+    { id: 'stop1', name: 'STOP 2', kind: 'btn', x: 0, y: d.ctrlY, w: K.ReelW, h: K.CtrlH },
+    { id: 'stop2', name: 'STOP 3', kind: 'btn', x: d.pitch, y: d.ctrlY, w: K.ReelW, h: K.CtrlH },
+    { id: 'auto', name: 'AUTO', kind: 'btn', x: K.ContentW / 2 - K.SideW / 2, y: d.ctrlY, w: K.SideW, h: K.CtrlH },
+    { id: 'stageTag', name: 'ステージ札（小）', kind: 'tag', x: -295, y: d.stageCardY + 74, w: 330, h: 30 },
+    { id: 'lifeTag', name: 'ライフ札', kind: 'tag', x: 344, y: d.stageCardY + 72, w: 232, h: 34 },
+    { id: 'routeTag', name: 'ルート札', kind: 'tag', x: -397, y: d.stageCardY - 8, w: 134, h: 118 },
+  ];
+}
+
+let els = build();
+const base = JSON.parse(JSON.stringify(els));
+let sel = null, zoom = 1;
+
+const screen = document.getElementById('screen');
+const stage = document.createElement('div');
+stage.id = 'stage';
+screen.appendChild(stage);
+
+function layout() {
+  const phone = document.getElementById('showPhone').checked;
+  const cw = phone ? Math.round(SH * 2556 / 1179) : SW;
+  const avail = Math.min(document.querySelector('.left').clientWidth, 1100);
+  // 舞台の幅を基準に倍率を決める。こうすると iPhone 枠の入り切りで
+  // 舞台の大きさは変わらず、外側の余白だけが増減して見える
+  zoom = Math.min(1, avail / (cw > SW ? cw : SW));
+  screen.style.width = cw * zoom + 'px';
+  screen.style.height = SH * zoom + 'px';
+  stage.style.width = SW * zoom + 'px';
+  stage.style.height = SH * zoom + 'px';
+  stage.style.left = (cw - SW) / 2 * zoom + 'px';
+  draw();
+}
+
+function draw() {
+  stage.querySelectorAll('.el').forEach(n => n.remove());
+  const rad = +document.getElementById('sRad').value;
+  const edge = +document.getElementById('sEdge').value;
+  const glow = +document.getElementById('sGlow').value / 100;
+  const cp = document.getElementById('cPanel').value;
+  const ce = document.getElementById('cEdge').value;
+  const cg = document.getElementById('cEmber').value;
+
+  for (const e of els) {
+    const n = document.createElement('div');
+    n.className = 'el ' + e.kind + (sel === e.id ? ' sel' : '');
+    n.dataset.id = e.id;
+    n.style.left = (SW / 2 + e.x - e.w / 2) * zoom + 'px';
+    n.style.top = (SH / 2 - e.y - e.h / 2) * zoom + 'px';
+    n.style.width = e.w * zoom + 'px';
+    n.style.height = e.h * zoom + 'px';
+    n.style.borderRadius = rad * zoom + 'px';
+    n.style.fontSize = Math.max(8, 11 * zoom) + 'px';
+    if (e.kind.startsWith('card')) {
+      n.style.background = cp;
+      n.style.boxShadow = `inset 0 0 0 ${edge * zoom}px ${ce}, 0 0 ${14 * zoom}px ${hexa(cg, glow)}`;
+    } else if (e.kind.startsWith('btn')) {
+      n.style.boxShadow = `inset 0 0 0 ${edge * zoom}px ${ce}`;
+    }
+    n.innerHTML = `<span class="lb">${e.name}<br><span style="opacity:.55">${Math.round(e.w)}×${Math.round(e.h)}</span></span><span class="h"></span>`;
+    stage.appendChild(n);
+  }
+  check();
+  renderList();
+  exportOut();
+}
+
+const hexa = (hex, a) => {
+  const v = hex.replace('#', '');
+  const r = parseInt(v.slice(0, 2), 16), g = parseInt(v.slice(2, 4), 16), b = parseInt(v.slice(4, 6), 16);
+  return `rgba(${r},${g},${b},${a})`;
+};
+
+// --- 重なりの検算（docs/check_layout.py と同じ考えかた） -------------------
+function check() {
+  const bad = new Set(), msg = [];
+  for (const e of els) {
+    if (Math.abs(e.x) + e.w / 2 > SW / 2 + .5 || Math.abs(e.y) + e.h / 2 > SH / 2 + .5) {
+      bad.add(e.id); msg.push(`${e.name}: 舞台からはみ出している`);
+    }
+  }
+  // 同じ層どうしだけを見る（札は板の上に載るので除く）
+  const groups = [['stageCard'], ['disp', 'cabinet', 'side'], ['bet', 'stop0', 'stop1', 'stop2', 'auto'],
+                  ['reel0', 'reel1', 'reel2'], ['stageTag', 'lifeTag'], ['credit', 'payout', 'mini']];
+  for (const g of groups) {
+    const list = els.filter(e => g.includes(e.id));
+    for (let i = 0; i < list.length; i++)
+      for (let j = i + 1; j < list.length; j++) {
+        const a = list[i], b = list[j];
+        const ox = Math.min(a.x + a.w / 2, b.x + b.w / 2) - Math.max(a.x - a.w / 2, b.x - b.w / 2);
+        const oy = Math.min(a.y + a.h / 2, b.y + b.h / 2) - Math.max(a.y - a.h / 2, b.y - b.h / 2);
+        if (ox > .5 && oy > .5) {
+          bad.add(a.id); bad.add(b.id);
+          msg.push(`${a.name} と ${b.name} が ${Math.round(ox)}×${Math.round(oy)}px 重なっている`);
+        }
+      }
+  }
+  stage.querySelectorAll('.el').forEach(n => n.classList.toggle('bad', bad.has(n.dataset.id)));
+  document.getElementById('warn').textContent = msg.join('\n');
+}
+
+function renderList() {
+  const box = document.getElementById('list');
+  box.innerHTML = '';
+  for (const e of els) {
+    const d = document.createElement('div');
+    d.textContent = `${e.name}  ${Math.round(e.w)}×${Math.round(e.h)}`;
+    d.className = sel === e.id ? 'on' : '';
+    d.onclick = () => { sel = e.id; draw(); syncFields(); };
+    box.appendChild(d);
+  }
+}
+
+function syncFields() {
+  const e = els.find(v => v.id === sel);
+  document.getElementById('selName').textContent = e ? e.name : '―';
+  for (const [k, id] of [['x', 'fx'], ['y', 'fy'], ['w', 'fw'], ['h', 'fh']])
+    document.getElementById(id).value = e ? Math.round(e[k]) : '';
+}
+
+// --- 掴んで動かす -----------------------------------------------------------
+let drag = null;
+stage.addEventListener('pointerdown', ev => {
+  const n = ev.target.closest('.el');
+  if (!n) { sel = null; draw(); syncFields(); return; }
+  const e = els.find(v => v.id === n.dataset.id);
+  sel = e.id;
+  drag = { e, sx: ev.clientX, sy: ev.clientY, ox: e.x, oy: e.y, ow: e.w, oh: e.h,
+           resize: ev.target.classList.contains('h') };
+  n.setPointerCapture(ev.pointerId);
+  draw(); syncFields();
+});
+stage.addEventListener('pointermove', ev => {
+  if (!drag) return;
+  const dx = (ev.clientX - drag.sx) / zoom, dy = (ev.clientY - drag.sy) / zoom;
+  const q = document.getElementById('snap').checked ? 8 : 1;
+  const r = v => Math.round(v / q) * q;
+  if (drag.resize) {
+    drag.e.w = Math.max(8, r(drag.ow + dx));
+    drag.e.h = Math.max(8, r(drag.oh - dy));
+  } else {
+    drag.e.x = r(drag.ox + dx);
+    drag.e.y = r(drag.oy - dy);
+  }
+  draw(); syncFields();
+});
+stage.addEventListener('pointerup', () => { drag = null; });
+
+addEventListener('keydown', ev => {
+  if (!sel || /input|textarea|select/i.test(ev.target.tagName)) return;
+  const e = els.find(v => v.id === sel);
+  const d = ev.shiftKey ? 8 : 1;
+  const m = { ArrowLeft: [-d, 0], ArrowRight: [d, 0], ArrowUp: [0, d], ArrowDown: [0, -d] }[ev.key];
+  if (!m) return;
+  ev.preventDefault();
+  e.x += m[0]; e.y += m[1];
+  draw(); syncFields();
+});
+
+for (const [id, k] of [['fx', 'x'], ['fy', 'y'], ['fw', 'w'], ['fh', 'h']])
+  document.getElementById(id).addEventListener('input', ev => {
+    const e = els.find(v => v.id === sel);
+    if (!e) return;
+    e[k] = +ev.target.value || 0;
+    draw();
+  });
+
+// --- 書き出し ---------------------------------------------------------------
+function exportOut() {
+  const fmt = document.getElementById('fmt').value;
+  let s = '';
+  if (fmt === 'json') {
+    s = JSON.stringify({ skin: skinValues(), elements: els }, null, 2);
+  } else if (fmt === 'diff') {
+    const lines = [];
+    for (const e of els) {
+      const b = base.find(v => v.id === e.id);
+      const ch = [];
+      for (const k of ['x', 'y', 'w', 'h'])
+        if (Math.round(e[k]) !== Math.round(b[k])) ch.push(`${k}: ${Math.round(b[k])} → ${Math.round(e[k])}`);
+      if (ch.length) lines.push(`${e.name}  ${ch.join(' / ')}`);
+    }
+    const sk = skinValues(), sb = skinBase;
+    for (const k of Object.keys(sk))
+      if (String(sk[k]) !== String(sb[k])) lines.push(`枠の${k}: ${sb[k]} → ${sk[k]}`);
+    s = lines.length ? lines.join('\n') : '（変えたところはありません）';
+  } else {
+    // いじった枠から定数を逆算する（画面で動かした結果がそのまま出るように）
+    const g = id => els.find(v => v.id === id);
+    const R = v => Math.round(v);
+    const sideW = R(g('disp').w), stageH = R(g('stageCard').h);
+    const midH = R(g('disp').h), ctrlH = R(g('bet').h);
+    const reelW = R(g('stop0').w), symH = R((g('reel0').h - 8) / 3);
+    const pitch = reelW + 8, cab = pitch * 3 + 24, cellW = reelW - 8, cellH = symH - 4;
+    s = [
+      '// GameController',
+      `private const float SideW = ${sideW}f;`,
+      `private const float StageCardH = ${stageH}f;`,
+      `private const float MidH = ${midH}f;`,
+      `private const float CtrlH = ${ctrlH}f;`,
+      '',
+      '// ReelView',
+      `public const float ReelWidth = ${reelW}f;`,
+      `public const float SymbolHeight = ${symH}f;`,
+      '',
+      '// 計算で出るもの（確認用）',
+      `// リールの間隔 ${pitch} / 筐体 ${cab} / パネルの内側 ${sideW - 24}`,
+      `// 図柄の枠 ${cellW} x ${cellH}（比 ${(cellW / cellH).toFixed(3)}）`,
+      `// パネル 2 枚 + 筐体 = ${sideW * 2 + cab}（ContentW 944 に対して余り ${944 - (sideW * 2 + cab)}）`,
+    ].join(NLC);
+  }
+  document.getElementById('out').value = s;
+}
+
+const skinValues = () => ({
+  '角の丸み': +document.getElementById('sRad').value,
+  '縁の太さ': +document.getElementById('sEdge').value,
+  '灯りの強さ': (+document.getElementById('sGlow').value / 100).toFixed(2),
+  '板の色': document.getElementById('cPanel').value,
+  '縁の色': document.getElementById('cEdge').value,
+  '灯りの色': document.getElementById('cEmber').value,
+});
+const skinBase = skinValues();
+
+document.getElementById('copy').onclick = async () => {
+  try { await navigator.clipboard.writeText(document.getElementById('out').value); } catch (_) {}
+  const b = document.getElementById('copy');
+  b.textContent = 'コピーした'; setTimeout(() => b.textContent = 'コピー', 1200);
+};
+document.getElementById('reset').onclick = () => { els = JSON.parse(JSON.stringify(base)); sel = null; draw(); syncFields(); };
+for (const id of ['sRad', 'sEdge', 'sGlow', 'cPanel', 'cEdge', 'cEmber'])
+  document.getElementById(id).addEventListener('input', () => {
+    document.getElementById('vRad').textContent = document.getElementById('sRad').value;
+    document.getElementById('vEdge').textContent = document.getElementById('sEdge').value;
+    document.getElementById('vGlow').textContent = (+document.getElementById('sGlow').value / 100).toFixed(2);
+    draw();
+  });
+document.getElementById('showPhone').addEventListener('change', layout);
+document.getElementById('snap').addEventListener('change', () => {});
+document.getElementById('fmt').addEventListener('change', exportOut);
+addEventListener('resize', layout);
+layout(); syncFields();
+</script>
