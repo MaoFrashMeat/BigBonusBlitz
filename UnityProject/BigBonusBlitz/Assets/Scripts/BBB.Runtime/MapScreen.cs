@@ -66,7 +66,13 @@ namespace BBB.Runtime
                 if (rescue > 0 && _m.Credit < rescue) _m.Credit = rescue;
                 _arriveMessage = $"力尽きて街に運ばれた。宿で一晩休み、エンバー {_m.Credit:N0} を分けてもらった";
             }
-            else _arriveMessage = $"{res.name}が尽きて引き返した。補給すれば続きから行ける";
+            else
+            {
+                // ライフ切れも力尽きた扱い（章の最初へ戻る）
+                int rescue = _m.RescueCredit;
+                if (rescue > 0 && _m.Credit < rescue) _m.Credit = rescue;
+                _arriveMessage = $"{res.hpName}が尽きて倒れた。宿で手当てを受け、章の最初からやり直しになった";
+            }
             SaveData.Save(_m, _audio);
         }
 
@@ -171,7 +177,7 @@ namespace BBB.Runtime
             var n = _m.CurrentStage;
             var res = _m.Config.adventure?.resource;
             string line1 = n != null ? $"{n.id} {n.name} から再開" : "スロットを回して敵と戦う";
-            string line2 = res != null && res.enabled ? $"{res.name} {Mathf.Max(0, _m.Adv.torches)} 本   エンバー {_m.Credit:N0}" : $"残り {_m.Adv.spinsLeft} G";
+            string line2 = res != null && res.enabled ? $"{res.hpName} {_m.Hp} / {_m.HpMax}   {res.name} {Mathf.Max(0, _m.Adv.torches)} 個   エンバー {_m.Credit:N0}" : $"残り {_m.Adv.spinsLeft} G";
             _infoQuestDesc.text = line1 + "\n" + line2;
         }
 
@@ -209,7 +215,7 @@ namespace BBB.Runtime
             var res = _m.Config.adventure?.resource;
             if (_m.AdventureEnabled && res != null && res.enabled && _m.Adv.torches <= 0)
             {
-                _infoText.text = $"{res.name}が無い。街で補給してから出発しよう";
+                _infoText.text = $"{res.hpName}が無い。街で{res.name}を買ってから出発しよう";
                 _infoText.color = UiSkin.Accent;
                 _audio.UiPop();
                 return;

@@ -993,7 +993,7 @@ public sealed class ProbabilityEditorWindow : EditorWindow
         EditorGUILayout.Space(8);
         DrawStoryLines(ch, "opening", "章の始め");
         DrawStoryLines(ch, "onBack", "引き返したとき");
-        DrawStoryLines(ch, "onTorchOut", "松明が尽きたとき");
+        DrawStoryLines(ch, "onTorchOut", "ライフが尽きたとき");
         DrawStoryLines(ch, "onDeath", "灯が尽きたとき");
         DrawStoryLines(ch, "onClear", "章を踏破したとき");
 
@@ -1076,7 +1076,7 @@ public sealed class ProbabilityEditorWindow : EditorWindow
         EditorGUILayout.Space(10);
         DrawStatGroup(st, "life", "ライフ（延命）", new[] {
             ("freeBetRate", "BET が無料になる率 %/pt"),
-            ("torchSpins", "松明 1 本のG数 +/pt"),
+            ("torchSpins", "回復薬 1 個の効き +/pt"),
             ("rescueBonus", "力尽きたときの補填 +/pt") });
         DrawStatGroup(st, "technique", "テクニック（戦闘）", new[] {
             ("engageSpins", "エンゲージのG数 +/pt"),
@@ -1113,7 +1113,7 @@ public sealed class ProbabilityEditorWindow : EditorWindow
     private static readonly string[] CounterKeys = { "REPLAY", "BELL", "CHERRY", "SUICA", "CHANCE", "BONUS", "HAZE", "WIN", "SPINS", "DEFEAT", "TREASURE", "REPLAY_CHAIN", "PAYOUT" };
     private static readonly string[] CounterNames = { "リプレイ", "ベル", "チェリー", "スイカ", "チャンス目", "ボーナス", "ハズレ", "小役", "G数", "討伐", "宝", "リプ連", "獲得" };
     private static readonly string[] StateKeys = { "ember", "souls", "level", "torches" };
-    private static readonly string[] StateNames = { "エンバー", "ソウル", "レベル", "松明" };
+    private static readonly string[] StateNames = { "エンバー", "ソウル", "レベル", "回復薬" };
 
     /// <summary>条件の入力欄を横並びで出す（0 なら条件として使わない）。</summary>
     private void DrawCondRow(JObject o, string[] keys, string[] names)
@@ -1178,26 +1178,26 @@ public sealed class ProbabilityEditorWindow : EditorWindow
         int ncs = EditorGUILayout.IntField("章クリアのソウル", cs, GUILayout.Width(300));
         if (ncs != cs) { adv["chapterClearSouls"] = Math.Max(0, ncs); _dirty = true; }
         int ct = adv["chapterClearTorches"]?.Value<int>() ?? 2;
-        int nct = EditorGUILayout.IntField("章クリアでもらえる松明", ct, GUILayout.Width(300));
+        int nct = EditorGUILayout.IntField("章クリアでもらえる回復薬", ct, GUILayout.Width(300));
         if (nct != ct) { adv["chapterClearTorches"] = Math.Max(0, nct); _dirty = true; }
 
-        // ---- 資源（松明・エンバー・力尽き）----
+        // ---- 資源（ライフ・回復薬・エンバー・力尽き）----
         EditorGUILayout.Space(10);
         EditorGUILayout.LabelField("資源と帰還", EditorStyles.boldLabel);
         var res = (JObject)adv["resource"];
         if (res == null)
         {
-            res = new JObject { ["enabled"] = true, ["name"] = "松明", ["startTorches"] = 3, ["maxTorches"] = 9, ["spinsPerTorch"] = 60,
+            res = new JObject { ["enabled"] = true, ["name"] = "回復薬", ["hpName"] = "ライフ", ["startTorches"] = 3, ["maxTorches"] = 9, ["spinsPerTorch"] = 60,
                 ["torchCost"] = 40, ["creditCost"] = 30, ["creditAmount"] = 50, ["rescueCredit"] = 50,
                 ["resetOnDeath"] = true, ["deathSoulPenalty"] = 0, ["refillByFlag"] = new JObject() };
             adv["resource"] = res; _dirty = true;
         }
         bool re = res["enabled"]?.Value<bool>() ?? true;
-        bool nre = EditorGUILayout.ToggleLeft("資源制を使う（尽きたら街へ引き返す）", re);
+        bool nre = EditorGUILayout.ToggleLeft("ライフを使う（尽きたら力尽きて章の最初へ）", re);
         if (nre != re) { res["enabled"] = nre; _dirty = true; }
         using (new EditorGUI.DisabledScope(!nre))
         {
-            string rn = (string)res["name"] ?? "松明";
+            string rn = (string)res["name"] ?? "回復薬";
             string nrn = EditorGUILayout.TextField("資源の名前", rn, GUILayout.Width(300));
             if (nrn != rn) { res["name"] = nrn; _dirty = true; }
             foreach (var (key, label, min) in new[] {
@@ -1215,7 +1215,7 @@ public sealed class ProbabilityEditorWindow : EditorWindow
             int dsp = res["deathSoulPenalty"]?.Value<int>() ?? 0;
             int ndsp = EditorGUILayout.IntSlider("力尽きたときに失うソウル %", dsp, 0, 100);
             if (ndsp != dsp) { res["deathSoulPenalty"] = ndsp; _dirty = true; }
-            EditorGUILayout.LabelField("道中で松明が 1 本増える率 %（役ごと）", EditorStyles.miniBoldLabel);
+            EditorGUILayout.LabelField("道中で回復薬が 1 個増える率 %（役ごと）", EditorStyles.miniBoldLabel);
             var rbf2 = (JObject)res["refillByFlag"] ?? (JObject)(res["refillByFlag"] = new JObject());
             using (new EditorGUILayout.HorizontalScope())
                 foreach (var role in Roles)
@@ -1410,6 +1410,6 @@ public sealed class ProbabilityEditorWindow : EditorWindow
                 }
             }
         }
-        EditorGUILayout.HelpBox("ステージのG数と松明は通常時だけ減る（ボーナス・持ち越し・AT 中は止まる）。移動は敵戦闘や前兆を抱えていないGの終わりに起きる。\n宝・ルートの抽選はこぼしても「フラグ」で行う。ゲーム中は M キー／左上のステージ札でマップが開き、達成条件の進み具合もそこに出る。\n松明切れは進行を残して帰還、エンバー切れは章の最初へ戻る。補給は街のショップの「補給」タブ。", MessageType.None);
+        EditorGUILayout.HelpBox("ステージのG数とライフは通常時だけ減る（ボーナス・持ち越し・AT 中は止まる）。移動は敵戦闘や前兆を抱えていないGの終わりに起きる。\n宝・ルートの抽選はこぼしても「フラグ」で行う。ゲーム中は M キー／左上のステージ札でマップが開き、達成条件の進み具合もそこに出る。\nライフ切れもエンバー切れも力尽きた扱いで章の最初へ戻る。ボーナス中のベルでライフは回復する。補給は街のショップの「補給」タブ。", MessageType.None);
     }
 }

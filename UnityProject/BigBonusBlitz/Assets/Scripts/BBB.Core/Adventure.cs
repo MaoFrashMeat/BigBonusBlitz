@@ -86,23 +86,36 @@ namespace BBB.Core
     }
 
     /// <summary>
-    /// 冒険の資源（松明）と、力尽きたときの扱い。
-    /// 松明は通常時のGでだけ減り、尽きると街へ強制帰還する（進行は残る）。
-    /// エンバー（灯火）が尽きたときは「力尽きた」扱いで、章の最初に戻される（進行を失う）。
+    /// 冒険の資源（ライフ）と、力尽きたときの扱い。
+    ///
+    /// ライフは通常時の 1G につき 1 減り、0 になると力尽きる（章の最初へ戻る）。
+    /// エンバー（灯火）が尽きたときも同じく力尽きた扱いになる。
+    ///
+    /// 内部では「回復薬 n 個 × 1 個ぶんのG数」で持っている（torches / torchSpins）。
+    /// 見た目は 1 本のバーだが、ショップで買う単位が要るのでこの持ち方にしてある。
+    /// 合計値の読み書きは AdventureDirector.Hp / HealHp を通す。
     /// </summary>
     [Serializable]
     public sealed class ResourceConfig
     {
-        /// <summary>松明を使うか。false なら資源制なし。</summary>
+        /// <summary>ライフを使うか。false なら資源制なし。</summary>
         public bool enabled = true;
-        public string name = "松明";
-        /// <summary>セーブが無いときの初期本数。</summary>
+        /// <summary>ショップで買う回復アイテムの名前。</summary>
+        public string name = "回復薬";
+        /// <summary>バーに出す資源そのものの名前。</summary>
+        public string hpName = "ライフ";
+        /// <summary>セーブが無いときの初期の回復薬の個数（初期ライフ = これ × spinsPerTorch）。</summary>
         public int startTorches = 3;
+        /// <summary>持てる上限の個数（最大ライフ = これ × spinsPerTorch）。</summary>
         public int maxTorches = 9;
-        /// <summary>松明 1 本で進める通常G数。</summary>
+        /// <summary>回復薬 1 個で回復するライフ（＝進めるG数）。</summary>
         public int spinsPerTorch = 60;
-        /// <summary>松明 1 本のソウル価格。</summary>
+        /// <summary>回復薬 1 個のエンバー価格。</summary>
         public int torchCost = 40;
+        /// <summary>ボーナス中にベルが揃ったときライフが回復する率 %。0 で回復なし。</summary>
+        public int bonusBellHealRate = 30;
+        /// <summary>そのときの回復量。</summary>
+        public int bonusBellHealAmount = 8;
         /// <summary>エンバー 1 口のソウル価格と、もらえる量。</summary>
         public int creditCost = 30;
         public int creditAmount = 50;
@@ -112,7 +125,7 @@ namespace BBB.Core
         public bool resetOnDeath = true;
         /// <summary>力尽きたときに失うソウルの割合 %（0 で没収なし）。</summary>
         public int deathSoulPenalty = 0;
-        /// <summary>役ごとの松明が 1 本増える率 %。キーは BELL/REPLAY/CHERRY/SUICA/CHANCE/BONUS/HAZE。</summary>
+        /// <summary>役ごとに回復薬が 1 個増える率 %。キーは BELL/REPLAY/CHERRY/SUICA/CHANCE/BONUS/HAZE。</summary>
         public Dictionary<string, int> refillByFlag = new Dictionary<string, int>();
     }
 
@@ -127,7 +140,7 @@ namespace BBB.Core
         public bool hideRoute = true;
         /// <summary>章クリア時のソウル報酬。</summary>
         public int chapterClearSouls = 100;
-        /// <summary>章クリア時にもらえる松明の本数。</summary>
+        /// <summary>章クリア時にもらえる回復薬の個数。</summary>
         public int chapterClearTorches = 2;
         public List<StageNode> nodes = new List<StageNode>();
         public List<TreasureDef> treasures = new List<TreasureDef>();
@@ -157,10 +170,11 @@ namespace BBB.Core
         public int stockAtSpins;
         /// <summary>次のボーナスの初期 AT 期待度に足す %（宝で貯まる。ボーナス開始で消費）。</summary>
         public int stockAtExpect;
-        // --- 資源 ---
-        /// <summary>松明の残り本数（使用中の 1 本を含む）。</summary>
+        // --- 資源（ライフ）---
+        // ライフの合計 = (torches - 1) * 1個ぶん + torchSpins。読み書きは AdventureDirector.Hp / SetHp を通す
+        /// <summary>回復薬の残り個数（使いかけの 1 個を含む）。</summary>
         public int torches = -1;      // -1 = 未初期化（セーブが無いとき startTorches で埋める）
-        /// <summary>使用中の松明の残りG。</summary>
+        /// <summary>使いかけの 1 個に残っているライフ。</summary>
         public int torchSpins;
         /// <summary>ステージ滞在中に数えている回数（役の回数・G数・討伐数など）。ステージが変わると 0 に戻る。</summary>
         public readonly Dictionary<string, int> counters = new Dictionary<string, int>();
@@ -214,7 +228,7 @@ namespace BBB.Core
                 case "ember": return "エンバー";
                 case "souls": return "ソウル";
                 case "level": return "レベル";
-                case "torches": return "松明";
+                case "torches": return "回復薬";
                 default: return key;
             }
         }
@@ -437,7 +451,61 @@ namespace BBB.Core
             return cfg.treasures[cfg.treasures.Count - 1];
         }
 
-        /// <summary>松明を初期化する（セーブが無いとき・章クリアで街に戻ったとき）。</summary>
+        // ---------------------------------------------------------------- ライフ
+        // 内部の「回復薬 n 個 + 使いかけの残り」を 1 本のバーとして読み書きする層。
+        // 1G で 1 減るので、合計値がそのまま「あと何G歩けるか」になる。
+
+        /// <summary>いまのライフ。</summary>
+        public static int Hp(AdventureConfig cfg, AdventureState st, int perTorch = 0)
+        {
+            if (st == null || st.torches <= 0) return 0;
+            int unit = Unit(cfg?.resource ?? new ResourceConfig(), perTorch);
+            return Math.Max(0, (st.torches - 1) * unit + Math.Max(0, st.torchSpins));
+        }
+
+        /// <summary>最大ライフ。</summary>
+        public static int HpMax(AdventureConfig cfg, int perTorch)
+        {
+            var r = cfg?.resource ?? new ResourceConfig();
+            return Math.Max(1, r.maxTorches) * Math.Max(1, Unit(r, perTorch));
+        }
+
+        /// <summary>ライフを直接置く（内部の個数と残りに割り直す）。</summary>
+        public static void SetHp(AdventureConfig cfg, AdventureState st, int hp, int perTorch)
+        {
+            var r = cfg?.resource ?? new ResourceConfig();
+            int unit = Unit(r, perTorch);
+            hp = Math.Max(0, Math.Min(HpMax(cfg, perTorch), hp));
+            if (hp <= 0) { st.torches = 0; st.torchSpins = 0; return; }
+            st.torches = (hp + unit - 1) / unit;              // 使いかけを 1 個と数える
+            st.torchSpins = hp - (st.torches - 1) * unit;
+        }
+
+        /// <summary>ライフを回復する。実際に回復した量を返す（満タンなら 0）。</summary>
+        public static int HealHp(AdventureConfig cfg, AdventureState st, int amount, int perTorch = 0)
+        {
+            var r = cfg?.resource;
+            if (r == null || !r.enabled || amount <= 0 || st == null) return 0;
+            int unit = Unit(r, perTorch);
+            int now = Hp(cfg, st, perTorch);
+            int after = Math.Min(HpMax(cfg, perTorch), now + amount);
+            if (after <= now) return 0;
+            SetHp(cfg, st, after, perTorch);
+            return after - now;
+        }
+
+        /// <summary>ライフを削る。0 になったら true（力尽きる）。</summary>
+        public static bool DamageHp(AdventureConfig cfg, AdventureState st, int amount, int perTorch = 0)
+        {
+            var r = cfg?.resource;
+            if (r == null || !r.enabled || st == null) return false;
+            int unit = Unit(r, perTorch);
+            int after = Math.Max(0, Hp(cfg, st, perTorch) - Math.Max(0, amount));
+            SetHp(cfg, st, after, perTorch);
+            return after <= 0;
+        }
+
+        /// <summary>ライフを初期化する（セーブが無いとき・章クリアで街に戻ったとき）。</summary>
         public static void ResetTorches(AdventureConfig cfg, AdventureState st, int perTorch = 0)
         {
             var r = cfg?.resource ?? new ResourceConfig();
@@ -445,7 +513,7 @@ namespace BBB.Core
             st.torchSpins = st.torches > 0 ? Unit(r, perTorch) : 0;
         }
 
-        /// <summary>松明 1 本で進めるG数（装備の効果を足した値。0 なら設定値）。</summary>
+        /// <summary>回復薬 1 個ぶんのライフ（装備の効果を足した値。0 なら設定値）。</summary>
         private static int Unit(ResourceConfig r, int perTorch) => perTorch > 0 ? perTorch : Math.Max(1, r.spinsPerTorch);
 
         /// <summary>セーブから読んだ値が壊れていたら直す。</summary>
@@ -459,7 +527,7 @@ namespace BBB.Core
             if (st.torches <= 0) { st.torches = 0; st.torchSpins = 0; }
         }
 
-        /// <summary>通常時の 1G ぶん松明を燃やす。尽きたら true。</summary>
+        /// <summary>通常時の 1G ぶんライフを削る。尽きたら true。</summary>
         public static bool BurnTorch(AdventureConfig cfg, AdventureState st, int perTorch = 0)
         {
             var r = cfg?.resource;
@@ -473,7 +541,7 @@ namespace BBB.Core
             return true;
         }
 
-        /// <summary>松明を n 本足す（上限まで）。実際に増えた本数を返す。</summary>
+        /// <summary>回復薬を n 個足す（上限まで）。実際に増えた個数を返す。</summary>
         public static int AddTorch(AdventureConfig cfg, AdventureState st, int n = 1, int perTorch = 0)
         {
             var r = cfg?.resource ?? new ResourceConfig();
@@ -483,7 +551,7 @@ namespace BBB.Core
             return st.torches - before;
         }
 
-        /// <summary>道中で松明が 1 本増える抽選（役ごと）。増えたら true。</summary>
+        /// <summary>道中で回復薬が 1 個増える抽選（役ごと）。増えたら true。</summary>
         public static bool RollRefill(AdventureConfig cfg, AdventureState st, string roleKey, IRandom rng, int perTorch = 0)
         {
             var r = cfg?.resource;
@@ -494,8 +562,11 @@ namespace BBB.Core
             return AddTorch(cfg, st, 1, perTorch) > 0;
         }
 
-        /// <summary>力尽きたときの罰。章の最初へ戻し、宝の貯金を失う。失ったソウルを返す。</summary>
-        public static int ApplyDeathPenalty(AdventureConfig cfg, AdventureState st, PlayerWallet wallet)
+        /// <summary>
+        /// 力尽きたときの罰。章の最初へ戻し、宝の貯金を失う。失ったソウルを返す。
+        /// ライフは初期値まで戻す（0 のままだと街から出られなくなるため）。
+        /// </summary>
+        public static int ApplyDeathPenalty(AdventureConfig cfg, AdventureState st, PlayerWallet wallet, int perTorch = 0)
         {
             var r = cfg?.resource ?? new ResourceConfig();
             st.stockAtSpins = 0;
@@ -507,6 +578,7 @@ namespace BBB.Core
                 wallet.Souls -= lost;   // 力尽きた代償はソウル（スキル資源）から
             }
             if (r.resetOnDeath) Reset(cfg, st);
+            ResetTorches(cfg, st, perTorch);
             return lost;
         }
 

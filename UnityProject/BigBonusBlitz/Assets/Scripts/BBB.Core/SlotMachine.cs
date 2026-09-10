@@ -115,13 +115,15 @@ namespace BBB.Core
         public bool equipAutoWorn;
         /// <summary>このGで呪いの選択が出た。</summary>
         public CurseInstance curseOffer;
-        /// <summary>このGで松明が 1 本増えた。</summary>
+        /// <summary>このGで回復薬が 1 個増えた。</summary>
         public bool torchRefilled;
-        /// <summary>このGで松明が尽きた（街へ帰る）。</summary>
+        /// <summary>このGでライフが尽きた（力尽きて街へ帰る）。</summary>
         public bool outOfTorch;
         /// <summary>このGでエンバーが尽きた（力尽きて街へ帰る）。</summary>
         public bool ranOutOfCredit;
-        /// <summary>街へ強制帰還する（"torch" = 松明切れ / "credit" = 力尽き）。</summary>
+        /// <summary>このGで回復したライフ（ボーナス中のベル）。</summary>
+        public int hpHealed;
+        /// <summary>街へ強制帰還する（"hp" = ライフ切れ / "credit" = エンバー切れ。どちらも力尽き）。</summary>
         public bool returnedToTown;
         public string returnReason;
     }
@@ -247,7 +249,7 @@ namespace BBB.Core
              + Equip.EffectTotal(effect)
              + Curse.BlessTotal(effect);
 
-        /// <summary>松明 1 本で進めるG数（装備 + ライフ + 呪い）。</summary>
+        /// <summary>回復薬 1 個ぶんのライフ（装備 + ライフ値 + 呪い）。</summary>
         public int TorchSpinsPerUnit
         {
             get
@@ -255,12 +257,22 @@ namespace BBB.Core
                 int baseSpins = (Config.adventure?.resource?.spinsPerTorch ?? 60)
                     + BonusOf(ShopEffects.TorchSpins)
                     + (StatsCfg != null ? (int)(Stats.Life * StatsCfg.life.torchSpins) : 0);
-                // 呪い: 松明の減りが速くなる（= 1 本で進めるG数が減る）
+                // 呪い: ライフの減りが速くなる（= 回復薬 1 個ぶんが目減りする）
                 int drain = Curse.CurseTotal(CurseEffects.TorchDrain);
                 if (drain > 0) baseSpins = baseSpins * 100 / (100 + drain);
                 return Math.Max(1, baseSpins);
             }
         }
+
+        /// <summary>いまのライフ。通常時の 1G につき 1 減る。</summary>
+        public int Hp => AdventureDirector.Hp(Config.adventure, Adv, TorchSpinsPerUnit);
+
+        /// <summary>最大ライフ。</summary>
+        public int HpMax => AdventureDirector.HpMax(Config.adventure, TorchSpinsPerUnit);
+
+        /// <summary>ライフを回復する。実際に回復した量を返す。</summary>
+        public int HealHp(int amount)
+            => AdventureDirector.HealHp(Config.adventure, Adv, amount, TorchSpinsPerUnit);
 
         /// <summary>エンゲージのG数（設定 + テクニック）。</summary>
         public int EngageMaxSpins => Math.Max(1, Config.tier2MaxSpins
@@ -741,6 +753,16 @@ namespace BBB.Core
                 result.atExpectGained = AtExpectGained;
 
                 if (win.payout > 0) BonusEarned += win.payout;
+
+                // ボーナス中のベルはライフが回復する（通常時に削られたぶんを取り返す場）
+                var hpRes = Config.adventure?.resource;
+                if (AdventureEnabled && hpRes != null && hpRes.enabled
+                    && win.winType == WinType.BELL && hpRes.bonusBellHealRate > 0
+                    && _rng.NextDouble() * 100 < hpRes.bonusBellHealRate)
+                {
+                    result.hpHealed = HealHp(hpRes.bonusBellHealAmount);
+                }
+
                 if (BonusEarned >= BonusPayoutTarget)
                 {
                     BonusMode = BonusMode.NORMAL;
@@ -999,7 +1021,7 @@ namespace BBB.Core
             if (Equip.WornOf(item.slot) == null) { EquipDirector.Equip(Equip, item); result.equipAutoWorn = true; }
         }
 
-        /// <summary>エンバーが尽きたら「力尽きた」として街へ帰す（松明切れは AdvanceAdventure 側）。</summary>
+        /// <summary>エンバーが尽きたら「力尽きた」として街へ帰す（ライフ切れは AdvanceAdventure 側）。</summary>
         private void CheckAdventureReturn(GameResult result)
         {
             if (!AdventureEnabled || Adv.MustReturn) return;
@@ -1088,17 +1110,17 @@ namespace BBB.Core
             bool clean = normalPlay && !IsTier2 && !PendingTier2 && !EnemyActive && PrecursorRemaining == 0
                          && AtEntryRemaining == 0 && !PendingAt;
 
-            // 帰るまでの間に宝やレア役で松明を拾ったら、帰らなくてよい
+            // 帰るまでの間に宝や回復薬でライフが戻ったら、帰らなくてよい
             if (_torchOut && Adv.torches > 0) _torchOut = false;
 
-            // 松明が尽きた: ボーナスや戦闘が終わって落ち着いてから街へ帰す
+            // ライフが尽きた: ボーナスや戦闘が終わって落ち着いてから力尽きた扱いにする
             if (_torchOut && clean)
             {
                 _torchOut = false;
-                Adv.returnReason = "torch";
+                Adv.returnReason = "hp";
                 result.outOfTorch = true;
                 result.returnedToTown = true;
-                result.returnReason = "torch";
+                result.returnReason = "hp";
                 return;
             }
             if (Adv.spinsLeft > 0 || !clean) return;

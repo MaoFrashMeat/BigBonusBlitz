@@ -49,7 +49,7 @@ namespace BBB.Core
         public float freeBetRate = 0.6f;
         /// <summary>力尽きたときに補填されるエンバー。</summary>
         public float rescueBonus = 10f;
-        /// <summary>松明 1 本で進めるG数。</summary>
+        /// <summary>回復薬 1 個ぶんのライフ。</summary>
         public float torchSpins = 0.6f;
     }
 
@@ -114,7 +114,7 @@ namespace BBB.Core
         {
             switch (key)
             {
-                case "life": return "長く潜れる。エンバーの減りと松明の持ち";
+                case "life": return "長く潜れる。ライフの持ちとエンバーの減り";
                 case "technique": return "戦える。エンゲージのG数と討伐率";
                 case "luck": return "引きが強くなる。レア役とリプレイ";
                 default: return "";
@@ -130,7 +130,7 @@ namespace BBB.Core
             {
                 case "life":
                     return $"BET 無料 {cur * cfg.life.freeBetRate:F1}% → {nxt * cfg.life.freeBetRate:F1}%   "
-                         + $"松明 +{(int)(cur * cfg.life.torchSpins)}G → +{(int)(nxt * cfg.life.torchSpins)}G";
+                         + $"回復薬 +{(int)(cur * cfg.life.torchSpins)} → +{(int)(nxt * cfg.life.torchSpins)}";
                 case "technique":
                     return $"討伐率 +{cur * cfg.technique.defeatBonus:F0}% → +{nxt * cfg.technique.defeatBonus:F0}%   "
                          + $"エンゲージ +{(int)(cur * cfg.technique.engageSpins)}G → +{(int)(nxt * cfg.technique.engageSpins)}G";
@@ -150,7 +150,7 @@ namespace BBB.Core
             {
                 case "life":
                     return $"BET が無料になる  {st.Life * cfg.life.freeBetRate:F1}%\n"
-                         + $"松明 1 本のG数    +{(int)(st.Life * cfg.life.torchSpins)}G\n"
+                         + $"回復薬 1 個の効き  +{(int)(st.Life * cfg.life.torchSpins)}\n"
                          + $"力尽きたときの補填 +{(int)(st.Life * cfg.life.rescueBonus)}";
                 case "technique":
                     return $"エンゲージのG数   +{(int)(st.Technique * cfg.technique.engageSpins)}G\n"

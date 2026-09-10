@@ -53,7 +53,7 @@ namespace BBB.Core
         public const string SoulGain = "soulGain";
         /// <summary>手に入る EXP に +% する。</summary>
         public const string ExpGain = "expGain";
-        /// <summary>松明 1 本で進めるG数に +G する。</summary>
+        /// <summary>回復薬 1 個で回復するライフに + する。</summary>
         public const string TorchSpins = "torchSpins";
     }
 
@@ -68,7 +68,7 @@ namespace BBB.Core
         public int Souls;
         /// <summary>累計で稼いだソウル（実績表示用）。</summary>
         public int TotalSouls;
-        /// <summary>エンバー: ライフ・松明・満腹度・装備など、自分の状態を整える通貨。</summary>
+        /// <summary>エンバー: ライフ・回復薬・満腹度・装備など、自分の状態を整える通貨。</summary>
         public int Embers;
         public int TotalEmbers;
         /// <summary>品ID → 所持レベル。</summary>

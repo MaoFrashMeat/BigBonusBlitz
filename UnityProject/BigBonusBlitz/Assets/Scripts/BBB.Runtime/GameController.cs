@@ -421,17 +421,17 @@ namespace BBB.Runtime
             _holdBox = holdRt.gameObject;
             _holdBox.SetActive(false);
 
-            // 松明の札（右上）。残り本数と、今の 1 本の残量ゲージ
+            // ライフの札（右上）。1G で 1 減るバー
             const float torchW = 232f, torchH = 34f;
             _torchTagRt = UiSkin.Rect(stageCard, "TorchTag", new Vector2(AreaW * 0.5f - 10 - torchW * 0.5f, AreaY + AreaH * 0.5f - 6 - torchH * 0.5f), new Vector2(torchW, torchH));
             UiSkin.Img(_torchTagRt, "Shadow", new Vector2(0, -3), new Vector2(torchW + 18, torchH + 16), UiSkin.Shadow(17, 10), new Color(0, 0, 0, 0.7f));
             UiSkin.Img(_torchTagRt, "Edge2", Vector2.zero, new Vector2(torchW + 2, torchH + 2), UiSkin.Rounded(18), new Color(1, 1, 1, 0.14f));
             UiSkin.Img(_torchTagRt, "Bg", Vector2.zero, new Vector2(torchW, torchH), UiSkin.Rounded(17), Hex("#0b1120"));
-            UiSkin.Img(_torchTagRt, "Edge", new Vector2(-torchW * 0.5f + 7, 0), new Vector2(5, 22), UiSkin.Rounded(2), Hex("#ffb45c"));
+            UiSkin.Img(_torchTagRt, "Edge", new Vector2(-torchW * 0.5f + 7, 0), new Vector2(5, 22), UiSkin.Rounded(2), Hex("#7ee0a0"));
             _torchTag = UiFactory.Label(_torchTagRt, "Text", new Vector2(9, 5), new Vector2(torchW - 28, 18), "", 13, TextAnchor.MiddleLeft, ColText);
             _torchTag.fontStyle = FontStyle.Bold;
             TextShadow(_torchTag, 1f);
-            _torchFill = UiSkin.Gauge(_torchTagRt, "Gauge", new Vector2(2, -9), new Vector2(torchW - 30, 5), Hex("#ffb45c"), out _torchTrack);
+            _torchFill = UiSkin.Gauge(_torchTagRt, "Gauge", new Vector2(2, -9), new Vector2(torchW - 30, 5), Hex("#7ee0a0"), out _torchTrack);
             _torchTagRt.gameObject.SetActive(false);
 
             // 次のルートの条件（左側。キャラに掛からない幅に収める）
@@ -707,7 +707,7 @@ namespace BBB.Runtime
             // エフェクト層（舞台と一緒に縮尺。UI の上、発光オーバーレイの下）
             UiFx.Init(_stage);
 
-            // ステージ札と松明札はカード内の最前面へ（背景・キャラ・帯に隠れないように）
+            // ステージ札とライフ札はカード内の最前面へ（背景・キャラ・帯に隠れないように）
             if (_stageTagBg != null) _stageTagBg.transform.parent.SetAsLastSibling();
             if (_torchTagRt != null) _torchTagRt.SetAsLastSibling();
             if (_routeBox != null) _routeBox.transform.SetAsLastSibling();
@@ -859,15 +859,16 @@ namespace BBB.Runtime
                 _torchTagRt.gameObject.SetActive(showTorch);
                 if (showTorch)
                 {
-                    int have = Mathf.Max(0, _m.Adv.torches);
-                    int per = Mathf.Max(1, _m.TorchSpinsPerUnit);
-                    _torchTag.text = $"{res.name} {have}本   のこり {_m.Adv.torchSpins}G";
-                    // 最後の 1 本になったら橙、残り 10G を切ったら赤で警告
-                    bool danger = have <= 1 && _m.Adv.torchSpins <= 10;
-                    var col = danger ? ColAccent : have <= 1 ? Hex("#ff9a3c") : Hex("#ffb45c");
+                    // ライフバー: 1G で 1 減る。3 割を切ったら橙、1 割で赤
+                    int hp = Mathf.Max(0, _m.Hp);
+                    int hpMax = Mathf.Max(1, _m.HpMax);
+                    float ratio = Mathf.Clamp01((float)hp / hpMax);
+                    _torchTag.text = $"{res.hpName} {hp} / {hpMax}";
+                    bool danger = ratio <= 0.1f;
+                    var col = danger ? ColAccent : ratio <= 0.3f ? Hex("#ff9a3c") : Hex("#7ee0a0");
                     _torchTag.color = danger ? ColAccent : ColText;
                     _torchFill.color = col;
-                    _torchFill.rectTransform.sizeDelta = new Vector2(_torchTrack.sizeDelta.x * Mathf.Clamp01((float)_m.Adv.torchSpins / per), _torchTrack.sizeDelta.y);
+                    _torchFill.rectTransform.sizeDelta = new Vector2(_torchTrack.sizeDelta.x * ratio, _torchTrack.sizeDelta.y);
                 }
             }
 
@@ -1892,7 +1893,7 @@ namespace BBB.Runtime
             SaveData.Save(_m, _audio);
             RefreshUi();
             if (r.chapterCleared) { StartCoroutine(ChapterClearRoutine(r)); return; }   // 街へ戻るのでオートは止める
-            if (r.returnedToTown) { StartCoroutine(ReturnToTownRoutine(r)); return; }        // 松明切れ・力尽き
+            if (r.returnedToTown) { StartCoroutine(ReturnToTownRoutine(r)); return; }        // ライフ切れ・エンバー切れ
             if (_autoMode) StartAuto();
         }
 
@@ -1980,7 +1981,7 @@ namespace BBB.Runtime
             string v = value.ToString();
             switch (effect)
             {
-                case CurseEffects.TorchDrain: return $"松明の減りが {v}% 速くなる";
+                case CurseEffects.TorchDrain: return $"ライフの減りが {v}% 速くなる";
                 case CurseEffects.ConditionHarder: return $"ルートの必要回数が +{v}";
                 case CurseEffects.PayoutCut: return $"払い出しが {v}% 減る";
                 case CurseEffects.BetExtra: return $"1 回転あたり {v} 多く灯を使う";
@@ -2012,8 +2013,16 @@ namespace BBB.Runtime
             {
                 var res = _m.Config.adventure?.resource;
                 _audio.RoleBell();
-                UiFx.PopText(_torchTagRt, $"{res?.name ?? "松明"} +1", Hex("#ffb45c"), 20, new Vector2(0, -22));
+                UiFx.PopText(_torchTagRt, $"{res?.name ?? "回復薬"} +1", Hex("#ffb45c"), 20, new Vector2(0, -22));
                 UiFx.Burst(_torchTagRt, UiFx.Preset.Sparks, new Vector2(0, -8));
+            }
+            // ボーナス中のベルでライフが回復した。バーは通常時しか出ないので主人公の上に出す
+            if (r.hpHealed > 0)
+            {
+                var res = _m.Config.adventure?.resource;
+                _audio.RoleBell();
+                UiFx.PopText(_charRt, $"{res?.hpName ?? "ライフ"} +{r.hpHealed}", Hex("#7ee0a0"), 22, new Vector2(0, 52));
+                UiFx.Burst(_charRt, UiFx.Preset.SuccessStars, new Vector2(0, 30));
             }
             if (r.atStockUsed > 0) UiFx.PopText(_atChip.rectTransform, $"地図 +{r.atStockUsed} G", ColGold, 20, new Vector2(0, 22));
             if (r.routeDecided != null && !r.stageChanged)
@@ -2094,31 +2103,24 @@ namespace BBB.Runtime
             }
         }
 
-        /// <summary>松明切れ・力尽きで街へ帰る。力尽きたときだけ進行の罰を与える。</summary>
+        /// <summary>力尽きて街へ帰る。ライフ切れとエンバー切れのどちらも同じ罰になる。</summary>
         private IEnumerator ReturnToTownRoutine(GameResult r)
         {
             _leaving = true;
             _inputLocked = true;
             if (_autoMode) SetAuto(false, _autoSpeed);
             var res = _m.Config.adventure?.resource ?? new ResourceConfig();
-            if (r.returnReason == "credit")
-            {
-                _audio.EnemyEscape();
-                StartCoroutine(Effects.Miss(_charRt));
-                yield return SlamTitle("力尽きた……", ColAccent, 2.2f, 54);
-                int lost = AdventureDirector.ApplyDeathPenalty(_m.Config.adventure, _m.Adv, _m.Wallet);
-                string sub = res.resetOnDeath ? "章の最初からやり直し" : "街へ運ばれた";
-                if (lost > 0) sub += $"   ソウル -{lost:N0}";
-                yield return SlamTitle(sub, ColTextSub, 1.5f, 32);
-                if (PlayStory(StoryDirector.OnDeath(_m.Config.story, _m.Adv.chapter))) yield return new WaitForSeconds(2.4f);
-            }
-            else
-            {
-                _audio.UiPop();
-                yield return SlamTitle($"{res.name}が尽きた……", Hex("#e08a2a"), 2.0f, 50);
-                yield return SlamTitle("街へ引き返す   進行はそのまま", ColTextSub, 1.4f, 30);
-                if (PlayStory(StoryDirector.OnTorchOut(_m.Config.story, _m.Adv.chapter))) yield return new WaitForSeconds(2.4f);
-            }
+            bool byHp = r.returnReason == "hp";
+            _audio.EnemyEscape();
+            StartCoroutine(Effects.Miss(_charRt));
+            yield return SlamTitle(byHp ? $"{res.hpName}が尽きた……" : "力尽きた……", ColAccent, 2.2f, 54);
+            int lost = AdventureDirector.ApplyDeathPenalty(_m.Config.adventure, _m.Adv, _m.Wallet, _m.TorchSpinsPerUnit);
+            string sub = res.resetOnDeath ? "章の最初からやり直し" : "街へ運ばれた";
+            if (lost > 0) sub += $"   ソウル -{lost:N0}";
+            yield return SlamTitle(sub, ColTextSub, 1.5f, 32);
+            var story = byHp ? StoryDirector.OnTorchOut(_m.Config.story, _m.Adv.chapter)
+                             : StoryDirector.OnDeath(_m.Config.story, _m.Adv.chapter);
+            if (PlayStory(story)) yield return new WaitForSeconds(2.4f);
             SaveData.Save(_m, _audio);
             _inputLocked = false;
             _leaving = false;

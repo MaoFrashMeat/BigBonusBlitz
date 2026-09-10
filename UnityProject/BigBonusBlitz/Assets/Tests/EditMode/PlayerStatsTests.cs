@@ -60,13 +60,13 @@ namespace BBB.Tests
         }
 
         [Test]
-        public void ライフは松明の持ちを伸ばす()
+        public void ライフは回復薬の効きを伸ばす()
         {
             var m = NewMachine(5);
             int baseSpins = m.TorchSpinsPerUnit;
             m.Stats.Life = m.Config.stats.maxPerStat;
             int grown = m.TorchSpinsPerUnit;
-            Assert.Greater(grown, baseSpins, "ライフを振っても松明が伸びない");
+            Assert.Greater(grown, baseSpins, "ライフを振っても回復薬の効きが伸びない");
             Assert.AreEqual(baseSpins + (int)(m.Stats.Life * m.Config.stats.life.torchSpins), grown);
         }
 

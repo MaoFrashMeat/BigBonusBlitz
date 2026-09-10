@@ -38,7 +38,7 @@ namespace BBB.Tests
                 treasures = new List<TreasureDef> { new TreasureDef { id = "map", name = "地図", kind = "atSpins", amount = 7, weight = 1 } },
                 resource = new ResourceConfig
                 {
-                    enabled = true, name = "松明", startTorches = 1, maxTorches = 4, spinsPerTorch = 12,
+                    enabled = true, name = "回復薬", startTorches = 1, maxTorches = 4, spinsPerTorch = 12,
                     torchCost = 40, creditCost = 30, creditAmount = 50, rescueCredit = 50, resetOnDeath = true,
                 },
             };
@@ -150,7 +150,7 @@ namespace BBB.Tests
         }
 
         [Test]
-        public void 松明が尽きたら進行を残して街へ帰る()
+        public void ライフが尽きたら力尽きた扱いになる()
         {
             var m = NewMachine(31);
             m.Config.adventure = TinyConfig();
@@ -165,15 +165,72 @@ namespace BBB.Tests
             {
                 var r = PlayOne(m, push);
                 if (r.outOfTorch) hit = r;
-                Assert.LessOrEqual(m.Adv.torches, m.Config.adventure.resource.maxTorches, "松明が上限を超えた");
-                Assert.GreaterOrEqual(m.Adv.torchSpins, 0, "松明の残りGが負");
+                Assert.LessOrEqual(m.Adv.torches, m.Config.adventure.resource.maxTorches, "回復薬が上限を超えた");
+                Assert.GreaterOrEqual(m.Adv.torchSpins, 0, "回復薬の残量が負");
             }
-            Assert.IsNotNull(hit, "松明が尽きない");
+            Assert.IsNotNull(hit, "ライフが尽きない");
             Assert.IsTrue(hit.returnedToTown);
-            Assert.AreEqual("torch", hit.returnReason);
-            Assert.AreEqual("torch", m.Adv.returnReason);
+            Assert.AreEqual("hp", hit.returnReason);
+            Assert.AreEqual("hp", m.Adv.returnReason);
             Assert.AreEqual(0, m.Adv.torches);
-            Assert.IsTrue(m.Adv.visited.Count >= 1, "進行が消えている");
+            Assert.AreEqual(0, m.Hp, "ライフが 0 になっていない");
+        }
+
+        [Test]
+        public void ライフは回復薬の個数と残量から一意に決まる()
+        {
+            var m = NewMachine(11);
+            m.Config.adventure = TinyConfig();          // 1 個 = 12
+            int unit = m.TorchSpinsPerUnit;
+            Assert.AreEqual(12, unit);
+            Assert.AreEqual(4 * 12, m.HpMax);
+
+            foreach (int hp in new[] { 0, 1, 11, 12, 13, 24, 47, 48 })
+            {
+                AdventureDirector.SetHp(m.Config.adventure, m.Adv, hp, unit);
+                Assert.AreEqual(hp, m.Hp, $"ライフ {hp} を置いて読み直すとズレる");
+                Assert.GreaterOrEqual(m.Adv.torchSpins, 0);
+                Assert.LessOrEqual(m.Adv.torches, m.Config.adventure.resource.maxTorches);
+            }
+        }
+
+        [Test]
+        public void ライフの回復は上限で止まる()
+        {
+            var m = NewMachine(12);
+            m.Config.adventure = TinyConfig();
+            int unit = m.TorchSpinsPerUnit;
+            AdventureDirector.SetHp(m.Config.adventure, m.Adv, m.HpMax - 5, unit);
+            Assert.AreEqual(5, m.HealHp(20), "上限を超えて回復した");
+            Assert.AreEqual(m.HpMax, m.Hp);
+            Assert.AreEqual(0, m.HealHp(10), "満タンなのに回復した");
+        }
+
+        [Test]
+        public void ボーナス中のベルでライフが回復する()
+        {
+            var m = NewMachine(13);
+            m.Config.adventure = TinyConfig();
+            var res = m.Config.adventure.resource;
+            res.maxTorches = 1000;                     // このテストではライフ切れで止めない
+            res.bonusBellHealRate = 100;               // 必ず回復させて経路だけ見る
+            res.bonusBellHealAmount = 5;
+            AdventureDirector.SetHp(m.Config.adventure, m.Adv, 6000, m.TorchSpinsPerUnit);
+            m.Credit = 100_000;
+
+            var push = new SystemRandom(9);
+            int healed = 0, healsInNormal = 0;
+            for (int g = 0; g < 6000; g++)
+            {
+                bool inBonus = m.BonusMode != BonusMode.NORMAL;
+                var r = PlayOne(m, push);
+                if (r.hpHealed <= 0) continue;
+                healed = r.hpHealed;
+                if (!inBonus) healsInNormal++;
+                break;
+            }
+            Assert.AreEqual(5, healed, "ボーナス中のベルで回復しない");
+            Assert.AreEqual(0, healsInNormal, "通常時に回復した");
         }
 
         [Test]
@@ -184,7 +241,7 @@ namespace BBB.Tests
             AdventureDirector.Enter(m.Config.adventure, m.Adv, "B2");
             m.Adv.spinsLeft = 10_000;
             AdventureDirector.AddTorch(m.Config.adventure, m.Adv, 4, m.TorchSpinsPerUnit);
-            m.Adv.torchSpins = 100_000;   // 松明では終わらせない
+            m.Adv.torchSpins = 100_000;   // ライフでは終わらせない
             m.Adv.stockAtSpins = 25;
             m.Credit = 3;
             var push = new SystemRandom(2);
@@ -210,7 +267,7 @@ namespace BBB.Tests
         }
 
         [Test]
-        public void ボーナス持ち越し中は松明が減らない()
+        public void ボーナス持ち越し中はライフが減らない()
         {
             var m = NewMachine(35);
             m.Config.adventure = TinyConfig();
@@ -224,12 +281,12 @@ namespace BBB.Tests
             Assume.That(m.HeldBonusFlag != Flag.HAZE, "持ち越しにならなかった");
             int spins = m.Adv.torchSpins, torches = m.Adv.torches;
             for (int g = 0; g < 3 && m.HeldBonusFlag != Flag.HAZE && m.BonusMode == BonusMode.NORMAL; g++) PlayOne(m, push);
-            Assert.AreEqual(torches, m.Adv.torches, "持ち越し中に松明の本数が減った");
-            Assert.AreEqual(spins, m.Adv.torchSpins, "持ち越し中に松明が燃えた");
+            Assert.AreEqual(torches, m.Adv.torches, "持ち越し中に回復薬の個数が減った");
+            Assert.AreEqual(spins, m.Adv.torchSpins, "持ち越し中にライフが減った");
         }
 
         [Test]
-        public void 松明の補給は上限で止まる()
+        public void 回復薬の補給は上限で止まる()
         {
             var cfg = TinyConfig();
             var st = new AdventureState();
@@ -289,7 +346,7 @@ namespace BBB.Tests
         {
             var m = NewMachine(3);
             m.Config.adventure = TinyConfig();
-            m.Config.adventure.resource.enabled = false;   // 松明では止めない
+            m.Config.adventure.resource.enabled = false;   // ライフでは止めない
             AdventureDirector.Reset(m.Config.adventure, m.Adv);
             AdventureDirector.AddTorch(m.Config.adventure, m.Adv, 4, m.TorchSpinsPerUnit);
             m.Credit = 100_000;
@@ -310,7 +367,7 @@ namespace BBB.Tests
                 if (r.chapterCleared) cleared = true;
             }
             Assert.IsTrue(cleared, "章が終わらない");
-            Assert.Greater(m.Adv.torches, 0, "章クリアで松明が補充されていない");
+            Assert.Greater(m.Adv.torches, 0, "章クリアで回復薬が補充されていない");
             Assert.AreEqual("C", seen[seen.Count - 1], "終点を通っていない");
             Assert.AreEqual("A", m.Adv.nodeId, "章クリア後に最初へ戻っていない");
             Assert.AreEqual(2, m.Adv.chapter);

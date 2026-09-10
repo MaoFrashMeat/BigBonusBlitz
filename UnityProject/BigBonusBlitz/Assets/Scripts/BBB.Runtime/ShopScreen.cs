@@ -42,7 +42,7 @@ namespace BBB.Runtime
 
             var title = UiFactory.Label(card, "Title", new Vector2(titleCx, headY), new Vector2(titleW, 28), "街のショップ", 20, TextAnchor.MiddleLeft, UiSkin.Text);
             title.fontStyle = FontStyle.Bold;
-            // 所持は 1 枠に 2 種。ソウル=スキル・装備 / エンバー=補給（松明・路銀）
+            // 所持は 1 枠に 2 種。ソウル=スキル・装備 / エンバー=補給（回復薬・路銀）
             var soul = UiSkin.Number(card, "Soul", new Vector2(soulCx, headY + 7), new Vector2(soulW, 16), "", 14, UiSkin.Hex("#8f6bff"));
             var ember = UiSkin.Number(card, "Ember", new Vector2(soulCx, headY - 8), new Vector2(soulW, 16), "", 14, UiSkin.Hex("#ffb45c"));
             UiSkin.Img(card, "Line", new Vector2(0, H * 0.5f - 48), new Vector2(W - 36, 1), null, new Color(1, 1, 1, 0.09f));
@@ -155,7 +155,7 @@ namespace BBB.Runtime
                 });
             }
 
-            // ===== 補給タブ: 松明とエンバー =====
+            // ===== 補給タブ: 回復薬とエンバー =====
             if (hasSupply)
             {
                 var head = UiFactory.Label(supplyRoot, "SupHead", new Vector2(0, H * 0.5f - 76), new Vector2(W - 60, 20), "冒険に持っていくもの（エンバーで買う）", 14, TextAnchor.MiddleCenter, UiSkin.TextSub);
@@ -176,7 +176,7 @@ namespace BBB.Runtime
                     m.Wallet.Embers -= cost;
                     audio?.UiPop();
                     SaveData.Save(m, audio);
-                    note.text = $"{res.name} を 1 本 買いました";
+                    note.text = $"{res.name} を 1 個 買いました";
                     note.color = UiSkin.Green;
                     RefreshAll();
                 }, UiSkin.Hex("#e08a2a"), 15, false, 10);
@@ -202,15 +202,15 @@ namespace BBB.Runtime
                 }, UiSkin.Gold, 15, false, 10);
 
                 UiFactory.Label(supplyRoot, "SupNote", new Vector2(0, -H * 0.5f + 62), new Vector2(W - 60, 34),
-                    $"{res.name} が尽きると街へ引き返す（進行はそのまま）。エンバーが尽きると力尽きて、章の最初からやり直しになる。", 12, TextAnchor.MiddleCenter, UiSkin.TextDim);
+                    $"{res.hpName} は通常時の 1G につき 1 減る。0 になるかエンバーが尽きると力尽きて、章の最初からやり直しになる。ボーナス中のベルでも回復する。", 12, TextAnchor.MiddleCenter, UiSkin.TextDim);
 
                 rows.Add(() =>
                 {
                     int per = m.TorchSpinsPerUnit;
                     int have = Mathf.Max(0, m.Adv.torches);
-                    tHave.text = $"{have} / {res.maxTorches} 本";
-                    tDesc.text = $"1 本で {per} G 進める" + (have > 0 ? $"（今の 1 本は残り {m.Adv.torchSpins} G）" : "");
-                    UiSkin.SetButtonText(buyTorch, $"1 本 買う   {res.torchCost:N0}");
+                    tHave.text = $"{have} / {res.maxTorches} 個   {res.hpName} {m.Hp} / {m.HpMax}";
+                    tDesc.text = $"1 個で {res.hpName} が {per} 回復する";
+                    UiSkin.SetButtonText(buyTorch, $"1 個 買う   {res.torchCost:N0}");
                     buyTorch.interactable = m.Wallet.Embers >= res.torchCost && have < res.maxTorches;
                     cHave.text = $"{m.Credit:N0}";
                     cDesc.text = $"1 口で {res.creditAmount} 分けてもらう";

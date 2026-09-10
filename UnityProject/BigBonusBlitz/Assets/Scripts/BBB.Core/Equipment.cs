@@ -307,7 +307,7 @@ namespace BBB.Core
                 case ShopEffects.BattleDamage: return "狩猟ダメージ";
                 case ShopEffects.SoulGain: return "ソウル";
                 case ShopEffects.ExpGain: return "EXP";
-                case ShopEffects.TorchSpins: return "松明のG数";
+                case ShopEffects.TorchSpins: return "回復薬の効き";
                 default: return effect;
             }
         }

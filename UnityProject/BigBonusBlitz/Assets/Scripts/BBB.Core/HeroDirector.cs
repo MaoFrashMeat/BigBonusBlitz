@@ -21,7 +21,7 @@ namespace BBB.Core
         public Dictionary<string, List<string>> caveEntryLines = new Dictionary<string, List<string>>
         {
             ["1"] = new List<string> { "……この先に洞窟があるのか", "岩の隙間から風が吹いている", "地図にない道だ" },
-            ["2"] = new List<string> { "奥から物音がする……", "引き返すなら今だぞ", "松明を用意しておくか" },
+            ["2"] = new List<string> { "奥から物音がする……", "引き返すなら今だぞ", "回復薬は足りてるか" },
             ["3"] = new List<string> { "……入口が見えた", "ここから先は戻れない", "行くぞ" },
         };
         /// <summary>ボーナス成立の前兆で主人公が言うセリフ（毎G ランダムに 1 つ）。当たりを断定しない言い回しにする。</summary>

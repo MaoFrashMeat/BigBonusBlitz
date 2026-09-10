@@ -41,7 +41,7 @@ namespace BBB.Core
         public List<StoryStage> stages = new List<StoryStage>();
         /// <summary>引き返したとき。</summary>
         public List<StoryLine> onBack = new List<StoryLine>();
-        /// <summary>松明が尽きて街へ戻るとき。</summary>
+        /// <summary>ライフが尽きて力尽きるとき。</summary>
         public List<StoryLine> onTorchOut = new List<StoryLine>();
         /// <summary>灯が尽きて力尽きたとき。</summary>
         public List<StoryLine> onDeath = new List<StoryLine>();

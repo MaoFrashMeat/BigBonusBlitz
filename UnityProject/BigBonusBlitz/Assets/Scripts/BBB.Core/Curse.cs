@@ -27,7 +27,7 @@ namespace BBB.Core
     /// <summary>呪い側だけが使う効果キー。</summary>
     public static class CurseEffects
     {
-        /// <summary>松明の消費を増やす %（100 で 2 倍の速さで減る）。</summary>
+        /// <summary>ライフの消費を増やす %（100 で 2 倍の速さで減る）。</summary>
         public const string TorchDrain = "torchDrain";
         /// <summary>ルート条件の必要回数に足す。</summary>
         public const string ConditionHarder = "conditionHarder";

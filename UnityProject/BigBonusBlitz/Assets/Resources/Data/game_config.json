@@ -1485,12 +1485,12 @@
       "2": [
         "奥から物音がする……",
         "引き返すなら今だぞ",
-        "松明を用意しておくか"
+        "回復薬は足りてるか"
       ],
       "3": [
         "……入口が見えた",
         "ここから先は戻れない",
-        "松明に火を入れる"
+        "回復薬を確かめる"
       ],
       "4": [
         "行くぞ",
@@ -1817,7 +1817,7 @@
       {
         "id": "gr_oil",
         "name": "不朽の油",
-        "desc": "松明 1 本で進めるG数 +{v}G（次のレベルで +{next}G）",
+        "desc": "回復薬 1 個で回復するライフ +{v}（次のレベルで +{next}）",
         "kind": "gear",
         "effect": "torchSpins",
         "valuePerLevel": 10,
@@ -3522,7 +3522,7 @@
       },
       {
         "id": "torch_bundle",
-        "name": "松明の束",
+        "name": "回復薬の包み",
         "kind": "torch",
         "amount": 2,
         "weight": 15
@@ -3544,11 +3544,14 @@
     ],
     "resource": {
       "enabled": true,
-      "name": "松明",
+      "name": "回復薬",
+      "hpName": "ライフ",
       "startTorches": 3,
       "maxTorches": 9,
       "spinsPerTorch": 40,
       "torchCost": 40,
+      "bonusBellHealRate": 30,
+      "bonusBellHealAmount": 8,
       "creditCost": 30,
       "creditAmount": 50,
       "rescueCredit": 50,
@@ -3888,7 +3891,7 @@
         "onTorchOut": [
           {
             "speaker": "",
-            "text": "松明が尽きた。ここまでだ"
+            "text": "ライフが尽きた。ここまでだ"
           },
           {
             "speaker": "",
@@ -4226,7 +4229,7 @@
       {
         "id": "c_drain",
         "name": "燃え急ぎ",
-        "desc": "松明の減りが {v}% 速くなる",
+        "desc": "ライフの減りが {v}% 速くなる",
         "effect": "torchDrain",
         "perLevel": 6.0,
         "min": 10,
@@ -4316,7 +4319,7 @@
       {
         "id": "b_torch",
         "name": "長い灯",
-        "desc": "松明 1 本のG数 +{v}",
+        "desc": "回復薬 1 個の効き +{v}",
         "effect": "torchSpins",
         "perLevel": 1.8,
         "min": 3,
