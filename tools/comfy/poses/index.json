@@ -1,0 +1,206 @@
+[
+  {
+    "action": "idle",
+    "frame": 0,
+    "file": "idle_0.png",
+    "hint": "standing, smiling, sword resting point down"
+  },
+  {
+    "action": "idle",
+    "frame": 1,
+    "file": "idle_1.png",
+    "hint": "standing, smiling"
+  },
+  {
+    "action": "idle",
+    "frame": 2,
+    "file": "idle_2.png",
+    "hint": "standing, smiling"
+  },
+  {
+    "action": "idle",
+    "frame": 3,
+    "file": "idle_3.png",
+    "hint": "standing, smiling"
+  },
+  {
+    "action": "walk",
+    "frame": 0,
+    "file": "walk_0.png",
+    "hint": "walking"
+  },
+  {
+    "action": "walk",
+    "frame": 1,
+    "file": "walk_1.png",
+    "hint": "walking"
+  },
+  {
+    "action": "walk",
+    "frame": 2,
+    "file": "walk_2.png",
+    "hint": "walking"
+  },
+  {
+    "action": "walk",
+    "frame": 3,
+    "file": "walk_3.png",
+    "hint": "walking"
+  },
+  {
+    "action": "walk",
+    "frame": 4,
+    "file": "walk_4.png",
+    "hint": "walking"
+  },
+  {
+    "action": "walk",
+    "frame": 5,
+    "file": "walk_5.png",
+    "hint": "walking"
+  },
+  {
+    "action": "attack",
+    "frame": 0,
+    "file": "attack_0.png",
+    "hint": "raising greatsword overhead"
+  },
+  {
+    "action": "attack",
+    "frame": 1,
+    "file": "attack_1.png",
+    "hint": "greatsword raised high behind head, determined"
+  },
+  {
+    "action": "attack",
+    "frame": 2,
+    "file": "attack_2.png",
+    "hint": "swinging greatsword down, motion blur"
+  },
+  {
+    "action": "attack",
+    "frame": 3,
+    "file": "attack_3.png",
+    "hint": "greatsword slammed down, eyes closed, shouting"
+  },
+  {
+    "action": "slash",
+    "frame": 0,
+    "file": "slash_0.png",
+    "hint": "greatsword held back to the left"
+  },
+  {
+    "action": "slash",
+    "frame": 1,
+    "file": "slash_1.png",
+    "hint": "starting horizontal swing"
+  },
+  {
+    "action": "slash",
+    "frame": 2,
+    "file": "slash_2.png",
+    "hint": "horizontal slash across, motion blur"
+  },
+  {
+    "action": "slash",
+    "frame": 3,
+    "file": "slash_3.png",
+    "hint": "follow through of horizontal slash"
+  },
+  {
+    "action": "cast",
+    "frame": 0,
+    "file": "cast_0.png",
+    "hint": "raising greatsword to the sky"
+  },
+  {
+    "action": "cast",
+    "frame": 1,
+    "file": "cast_1.png",
+    "hint": "greatsword high overhead, glowing"
+  },
+  {
+    "action": "cast",
+    "frame": 2,
+    "file": "cast_2.png",
+    "hint": "thrusting greatsword toward ground"
+  },
+  {
+    "action": "cast",
+    "frame": 3,
+    "file": "cast_3.png",
+    "hint": "greatsword stabbed into ground, shockwave, crouching"
+  },
+  {
+    "action": "guard",
+    "frame": 0,
+    "file": "guard_0.png",
+    "hint": "holding greatsword vertically as a shield, eyes closed"
+  },
+  {
+    "action": "guard",
+    "frame": 1,
+    "file": "guard_1.png",
+    "hint": "holding greatsword vertically as a shield, eyes closed"
+  },
+  {
+    "action": "hit",
+    "frame": 0,
+    "file": "hit_0.png",
+    "hint": "staggering backward, hurt expression, eyes closed"
+  },
+  {
+    "action": "hit",
+    "frame": 1,
+    "file": "hit_1.png",
+    "hint": "knocked back, hurt expression"
+  },
+  {
+    "action": "victory",
+    "frame": 0,
+    "file": "victory_0.png",
+    "hint": "holding greatsword up in victory, cheerful"
+  },
+  {
+    "action": "victory",
+    "frame": 1,
+    "file": "victory_1.png",
+    "hint": "jumping with greatsword raised, cheerful, eyes closed"
+  },
+  {
+    "action": "victory",
+    "frame": 2,
+    "file": "victory_2.png",
+    "hint": "jumping high with greatsword raised, cheerful"
+  },
+  {
+    "action": "victory",
+    "frame": 3,
+    "file": "victory_3.png",
+    "hint": "landing with greatsword raised, cheerful"
+  },
+  {
+    "action": "focus",
+    "frame": 0,
+    "file": "focus_0.png",
+    "hint": "calm stance, eyes closed, concentrating"
+  },
+  {
+    "action": "focus",
+    "frame": 1,
+    "file": "focus_1.png",
+    "hint": "calm stance, eyes closed, concentrating"
+  },
+  {
+    "action": "focus",
+    "frame": 2,
+    "file": "focus_2.png",
+    "hint": "calm stance, eyes closed, concentrating"
+  },
+  {
+    "action": "focus",
+    "frame": 3,
+    "file": "focus_3.png",
+    "hint": "calm stance, eyes closed, concentrating"
+  }
+]

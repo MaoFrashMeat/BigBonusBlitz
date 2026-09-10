@@ -1,0 +1,95 @@
+{
+  "_comment": "ポポラのポーズ別 1 枚生成。ComfyUI の API 形式（/prompt にそのまま投げる形）。run_batch.py が __PLACEHOLDER__ を差し替える。",
+  "1": {
+    "class_type": "CheckpointLoaderSimple",
+    "inputs": { "ckpt_name": "Illustrious-XL-v2.0.safetensors" },
+    "_meta": { "title": "本体モデル" }
+  },
+  "2": {
+    "class_type": "CLIPTextEncode",
+    "inputs": { "text": "__POSITIVE__", "clip": ["1", 1] },
+    "_meta": { "title": "positive" }
+  },
+  "3": {
+    "class_type": "CLIPTextEncode",
+    "inputs": { "text": "__NEGATIVE__", "clip": ["1", 1] },
+    "_meta": { "title": "negative" }
+  },
+  "4": {
+    "class_type": "LoadImage",
+    "inputs": { "image": "__POSE_IMAGE__", "upload": "image" },
+    "_meta": { "title": "骨格（OpenPose）" }
+  },
+  "5": {
+    "class_type": "ControlNetLoader",
+    "inputs": { "control_net_name": "OpenPoseXL2.safetensors" },
+    "_meta": { "title": "ControlNet" }
+  },
+  "6": {
+    "class_type": "ControlNetApplyAdvanced",
+    "inputs": {
+      "positive": ["2", 0],
+      "negative": ["3", 0],
+      "control_net": ["5", 0],
+      "image": ["4", 0],
+      "strength": 0.85,
+      "start_percent": 0.0,
+      "end_percent": 0.75
+    },
+    "_meta": { "title": "ポーズを効かせる（終盤は外して絵を破綻させない）" }
+  },
+  "7": {
+    "class_type": "LoadImage",
+    "inputs": { "image": "__REF_IMAGE__", "upload": "image" },
+    "_meta": { "title": "キャラ参照（設定画）" }
+  },
+  "8": {
+    "class_type": "IPAdapterUnifiedLoader",
+    "inputs": { "model": ["1", 0], "preset": "PLUS (high strength)" },
+    "_meta": { "title": "IPAdapter 読み込み" }
+  },
+  "9": {
+    "class_type": "IPAdapter",
+    "inputs": {
+      "model": ["8", 0],
+      "ipadapter": ["8", 1],
+      "image": ["7", 0],
+      "weight": 0.75,
+      "start_at": 0.0,
+      "end_at": 0.9,
+      "weight_type": "standard"
+    },
+    "_meta": { "title": "キャラを寄せる" }
+  },
+  "10": {
+    "class_type": "EmptyLatentImage",
+    "inputs": { "width": 1024, "height": 1024, "batch_size": 1 },
+    "_meta": { "title": "キャンバス" }
+  },
+  "11": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": ["9", 0],
+      "positive": ["6", 0],
+      "negative": ["6", 1],
+      "latent_image": ["10", 0],
+      "seed": 0,
+      "steps": 28,
+      "cfg": 5.5,
+      "sampler_name": "euler_ancestral",
+      "scheduler": "normal",
+      "denoise": 1.0
+    },
+    "_meta": { "title": "生成" }
+  },
+  "12": {
+    "class_type": "VAEDecode",
+    "inputs": { "samples": ["11", 0], "vae": ["1", 2] },
+    "_meta": { "title": "画像へ" }
+  },
+  "13": {
+    "class_type": "SaveImage",
+    "inputs": { "images": ["12", 0], "filename_prefix": "__PREFIX__" },
+    "_meta": { "title": "保存" }
+  }
+}
