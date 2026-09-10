@@ -210,6 +210,9 @@ namespace BBB.Runtime
                 case "lock": DrawLock(px, size); break;
                 case "chain": DrawChain(px, size); break;
                 case "ember": DrawEmber(px, size); break;
+                case "bell": DrawBell(px, size); break;
+                case "gear": DrawGear(px, size); break;
+                case "link": DrawLink(px, size); break;
                 default: DrawAmulet(px, size); break;
             }
 
@@ -435,6 +438,56 @@ namespace BBB.Runtime
         }
 
         /// <summary>南京錠。掛け金は鋼、本体は真鍮。</summary>
+        /// <summary>鐘（お知らせ）。</summary>
+        private static void DrawBell(Color32[] px, int n)
+        {
+            var brass = new Color(0.94f, 0.78f, 0.34f);
+            var brassDark = new Color(0.64f, 0.48f, 0.14f);
+            // 傘の部分は「円と箱の重なり」で作る
+            Paint(px, n, (x, y) => Mathf.Max(SdCircle(x, y, 0f, 0.06f, 0.44f), -0.30f - y), brassDark);
+            Paint(px, n, (x, y) => Mathf.Max(SdCircle(x, y, 0f, 0.08f, 0.38f), -0.28f - y), brass);
+            Paint(px, n, (x, y) => SdBox(x, y, 0f, -0.30f, 0.50f, 0.08f, 0.05f), brassDark);
+            Paint(px, n, (x, y) => SdBox(x, y, 0f, -0.31f, 0.44f, 0.05f, 0.04f), brass);
+            // 上のつまみと、下の舌
+            Paint(px, n, (x, y) => SdCircle(x, y, 0f, 0.48f, 0.09f), brass);
+            Paint(px, n, (x, y) => SdCircle(x, y, 0f, -0.44f, 0.10f), brassDark);
+        }
+
+        /// <summary>歯車（設定）。</summary>
+        private static void DrawGear(Color32[] px, int n)
+        {
+            var steel = new Color(0.80f, 0.84f, 0.92f);
+            var steelDark = new Color(0.46f, 0.50f, 0.60f);
+            // 歯は箱を回して 4 本ぶん重ねる（8 歯に見える）
+            for (int k = 0; k < 4; k++)
+            {
+                float a = k * Mathf.PI / 4f;
+                float cs = Mathf.Cos(a), sn = Mathf.Sin(a);
+                Paint(px, n, (x, y) =>
+                {
+                    float rx = x * cs + y * sn, ry = -x * sn + y * cs;
+                    return SdBox(rx, ry, 0f, 0f, 0.28f, 0.98f, 0.04f);
+                }, steelDark);
+            }
+            Paint(px, n, (x, y) => SdCircle(x, y, 0f, 0f, 0.40f), steelDark);
+            Paint(px, n, (x, y) => SdCircle(x, y, 0f, 0f, 0.34f), steel);
+            Paint(px, n, (x, y) => SdCircle(x, y, 0f, 0f, 0.15f), new Color(0.10f, 0.11f, 0.15f));
+        }
+
+        /// <summary>鎖の輪 2 つ（引き継ぎ）。</summary>
+        private static void DrawLink(Color32[] px, int n)
+        {
+            var steel = new Color(0.82f, 0.86f, 0.94f);
+            var steelDark = new Color(0.48f, 0.52f, 0.62f);
+            for (int k = 0; k < 2; k++)
+            {
+                float cx = k == 0 ? -0.20f : 0.20f;
+                float cy = k == 0 ? 0.18f : -0.18f;
+                Paint(px, n, (x, y) => Mathf.Abs(SdCircle(x, y, cx, cy, 0.30f)) - 0.11f, steelDark);
+                Paint(px, n, (x, y) => Mathf.Abs(SdCircle(x, y, cx, cy, 0.30f)) - 0.075f, steel);
+            }
+        }
+
         private static void DrawLock(Color32[] px, int n)
         {
             var steel = new Color(0.78f, 0.82f, 0.90f);

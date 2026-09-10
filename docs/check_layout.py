@@ -110,17 +110,32 @@ stack('カード内の縦（ステージ札 → ルート札）',
       top=AreaY + AreaH / 2)
 
 # ---------------------------------------------------------------- タイトルの縦
-# TitleScreen: 左に寄せた縦の列（ロゴ → ボタン → 確認文 → PRESS）
-LogoW, LogoY = 456.0, 108.0
+# TitleScreen: 左に寄せた列（ロゴ → TAP → はじめから → 確認文 → 丸ボタン）
+LogoW, LogoY, TapY = 470.0, 104.0, -52.0
 LogoH = LogoW / 3.0                  # ロゴは 3:1
-_by = -44.0
-_t = [('ロゴ', LogoY, LogoH),
-      ('つづきから', _by, 52)]
-_by -= 60.0
-_t.append(('はじめから', _by, 52))
-_t.append(('確認文', _by - 42, 24))
-_t.append(('PRESS', -StageH / 2 + 62, 28))
-stack('タイトルの縦（セーブありのとき）', _t, top=StageH / 2, bottom=-StageH / 2)
+PillH, PillY = 40.0, -186.0
+stack('タイトルの縦（セーブありのとき）', [
+    ('ロゴ', LogoY, LogoH),
+    ('TAP の上線', TapY + 26, 1),
+    ('TAP TO START', TapY, 32),
+    ('TAP の下線', TapY - 26, 1),
+    ('はじめから', TapY - 56, 30),
+    ('確認文', TapY - 86, 22),
+    ('丸ボタン', PillY, PillH),
+], top=StageH / 2, bottom=-StageH / 2)
+
+# タイトル下端の行（バージョンと著作権）
+row('タイトルの下端', [
+    ('バージョン', -StageW / 2 + 90, 160),
+    ('著作権', StageW / 2 - 150, 280),
+], left=-StageW / 2, right=StageW / 2)
+
+# 丸ボタンの横
+_pw = 152.0
+row('タイトルの丸ボタン', [
+    (n, -StageW / 2 + 24 + _pw * 0.5 + i * (_pw + 12), _pw)
+    for i, n in enumerate(('お知らせ', '設定', '引き継ぎ'))
+], left=-StageW / 2, right=StageW / 2)
 
 # ---------------------------------------------------------------- 右パネルの縦
 # GameController: Side カード（高さ MidH=196）。板の縁が 3px あるので、

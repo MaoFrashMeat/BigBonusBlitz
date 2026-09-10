@@ -44,6 +44,7 @@ namespace BBB.Runtime
         private Text _press, _confirm;
         private CanvasGroup _fade;
         private Button _btnContinue, _btnNew;
+        private GameObject _settingsBox;
         private bool _starting;
         private bool _hasSave;
         private float _confirmUntil;   // 「はじめから」2度押し確認の期限
@@ -61,10 +62,14 @@ namespace BBB.Runtime
         }
 
         /// <summary>ロゴとボタンを置く横位置。絵の人物が右にいるので左へ寄せる。</summary>
-        private const float TitleX = -236f;
+        private const float TitleX = -166f;
         /// <summary>ロゴの幅。高さは絵の縦横比から出す。</summary>
-        private const float LogoW = 456f;
-        private const float LogoY = 108f;
+        private const float LogoW = 470f;
+        private const float LogoY = 104f;
+        /// <summary>TAP TO START の高さ。</summary>
+        private const float TapY = -52f;
+        /// <summary>下の丸ボタン。</summary>
+        private const float PillW = 152f, PillH = 40f, PillY = -186f;
 
         // ------------------------------------------------------------------ UI
         private void BuildUi()
@@ -134,27 +139,61 @@ namespace BBB.Runtime
                 UiFactory.Label(stage, "TitleText", new Vector2(TitleX, LogoY), new Vector2(LogoW, 80), "BIG BONUS BLITZ", 40, TextAnchor.MiddleCenter, ColGold).fontStyle = FontStyle.Bold;
             }
 
-            // ボタン
-            float by = -44f;
+            // 左端の縦書き。日本語の縦組みは右の行から読むので、1 行目を右に置く
+            VerticalText(stage, "Tag1", new Vector2(-StageW * 0.5f + 52, 44), "―みんなの笑顔を", 15, ColText);
+            VerticalText(stage, "Tag2", new Vector2(-StageW * 0.5f + 30, 30), "守るために！", 15, ColText);
+            VerticalText(stage, "Tag3", new Vector2(-StageW * 0.5f + 8, -74), "いっくよー！", 15, ColGold);
+
+            // 見本には右上にも縦書きがあるが、この絵は右上に剣が来るので置かない。
+            // 空が抜けている絵に差し替えたら戻す
+
+            // TAP TO START。上下に細い飾り線
+            UiSkin.Img(stage, "TapLineTop", new Vector2(TitleX, TapY + 26), new Vector2(340, 1), null, new Color(1, 1, 1, 0.5f));
+            UiSkin.Img(stage, "TapLineBottom", new Vector2(TitleX, TapY - 26), new Vector2(340, 1), null, new Color(1, 1, 1, 0.5f));
+            _press = UiFactory.Label(stage, "Press", new Vector2(TitleX, TapY), new Vector2(420, 32),
+                "T A P   T O   S T A R T", 22, TextAnchor.MiddleCenter, ColText);
+            _press.fontStyle = FontStyle.Bold;
+            Shade(_press);
+            // 画面のどこを押しても始まる（見本と同じ挙動）
+            var tapAll = UiFactory.Panel(stage, "TapArea", Vector2.zero, new Vector2(StageW, StageH), new Color(0, 0, 0, 0));
+            var tapBtn = tapAll.gameObject.AddComponent<Button>();
+            tapBtn.transition = Selectable.Transition.None;
+            tapBtn.onClick.AddListener(() => { if (!_starting) { _audio.UiPop(); Begin(false); } });
+            tapAll.SetAsFirstSibling();     // ボタン類より後ろに置いて、そちらの操作を邪魔しない
+
+            // はじめから（セーブがあるときだけ出す。無いときは TAP がそのまま新規）
             if (_hasSave)
             {
-                _btnContinue = MakeButton(stage, "Continue", new Vector2(TitleX, by), "つづきから", () => Begin(false), ColAccent);
-                by -= 60f;
+                _btnNew = UiSkin.Button(stage, "NewGame", new Vector2(TitleX, TapY - 56), new Vector2(200, 30),
+                    "はじめから", () => { _audio.UiPop(); OnNewGame(); }, ColBtn, 13, false, 15);
             }
-            _btnNew = MakeButton(stage, "NewGame", new Vector2(TitleX, by), "はじめから", OnNewGame, _hasSave ? ColBtn : ColAccent);
-            _confirm = UiFactory.Label(stage, "Confirm", new Vector2(TitleX, by - 42), new Vector2(420, 24), "", 13, TextAnchor.MiddleCenter, ColGold);
-
-            // PRESS SPACE。明るい絵の上に出るので影を付ける
-            _press = UiFactory.Label(stage, "Press", new Vector2(TitleX, -StageH * 0.5f + 62), new Vector2(420, 28),
-                _hasSave ? "SPACE / ENTER でつづきから" : "SPACE / ENTER でスタート", 15, TextAnchor.MiddleCenter, ColText);
-            Shade(_press);
+            _confirm = UiFactory.Label(stage, "Confirm", new Vector2(TitleX, TapY - 86), new Vector2(460, 22), "", 12, TextAnchor.MiddleCenter, ColGold);
             Shade(_confirm);
 
+            // 下の丸ボタン 3 つ
+            float px = -StageW * 0.5f + 24 + PillW * 0.5f;
+            Pill(stage, "News", new Vector2(px, PillY), "bell", "お知らせ", () => Notice("お知らせは準備中です"));
+            px += PillW + 12f;
+            Pill(stage, "Config", new Vector2(px, PillY), "gear", "設定", ToggleSettings);
+            px += PillW + 12f;
+            Pill(stage, "Transfer", new Vector2(px, PillY), "link", "引き継ぎ", () => Notice("引き継ぎは準備中です"));
+
+            // 右上のメニュー
+            var menu = UiSkin.Button(stage, "Menu", new Vector2(StageW * 0.5f - 34, StageH * 0.5f - 34), new Vector2(44, 44),
+                "≡", ToggleSettings, ColBtn, 22, false, 10);
+            UiSkin.SetButtonColor(menu, ColBtn, ColGold);
+
             // フッター
-            UiFactory.Label(stage, "Version", new Vector2(StageW * 0.5f - 90, -StageH * 0.5f + 16), new Vector2(170, 20),
-                "v" + Application.version, 11, TextAnchor.MiddleRight, ColTextSub);
-            UiFactory.Label(stage, "Copy", new Vector2(-StageW * 0.5f + 120, -StageH * 0.5f + 16), new Vector2(230, 20),
-                "BIG BONUS BLITZ", 11, TextAnchor.MiddleLeft, ColTextSub);
+            var ver = UiFactory.Label(stage, "Version", new Vector2(-StageW * 0.5f + 90, -StageH * 0.5f + 18), new Vector2(160, 18),
+                "Ver." + Application.version, 11, TextAnchor.MiddleLeft, ColTextSub);
+            Shade(ver);
+            var cp1 = UiFactory.Label(stage, "Copy1", new Vector2(StageW * 0.5f - 150, -StageH * 0.5f + 28), new Vector2(280, 16),
+                "© 2026 BIG BONUS BLITZ", 10, TextAnchor.MiddleRight, ColTextSub);
+            var cp2 = UiFactory.Label(stage, "Copy2", new Vector2(StageW * 0.5f - 150, -StageH * 0.5f + 12), new Vector2(280, 16),
+                "All Rights Reserved.", 10, TextAnchor.MiddleRight, ColTextSub);
+            Shade(cp1); Shade(cp2);
+
+            BuildSettings(stage);
 
             // 暗転用（最前面）
             var fadeRt = UiFactory.Panel(root, "Fade", Vector2.zero, new Vector2(4000, 4000), Color.black);
@@ -162,6 +201,90 @@ namespace BBB.Runtime
             _fade.alpha = 1f;
             _fade.blocksRaycasts = false;
             StartCoroutine(FadeTo(0f, 0.6f));
+        }
+
+        /// <summary>
+        /// 縦書き。uGUI の Text は縦組みを持たないので、1 文字ずつ改行して縦に積む。
+        /// 短い煽り文なら、これで十分それらしく見える。
+        /// </summary>
+        private static Text VerticalText(Transform parent, string name, Vector2 pos, string text, int size, Color color)
+        {
+            const char NL = (char)10;      // 改行
+            var sb = new System.Text.StringBuilder(text.Length * 2);
+            for (int i = 0; i < text.Length; i++)
+            {
+                if (i > 0) sb.Append(NL);
+                char c = text[i];
+                // 長音とダッシュは縦組みだと向きが変わる
+                if (c == 'ー' || c == '―' || c == '-') c = '｜';
+                sb.Append(c);
+            }
+            float h = size * 1.28f * text.Length + 8f;
+            var t = UiFactory.Label(parent, name, pos, new Vector2(size + 12f, h), sb.ToString(), size, TextAnchor.UpperCenter, color);
+            t.lineSpacing = 1.0f;
+            t.raycastTarget = false;
+            Shade(t);
+            return t;
+        }
+
+        /// <summary>下に並べる丸ボタン（アイコン＋文字）。</summary>
+        private Button Pill(Transform parent, string name, Vector2 pos, string icon, string label, System.Action onClick)
+        {
+            var b = UiSkin.Button(parent, name, pos, new Vector2(PillW, PillH), "",
+                () => { _audio.UiPop(); onClick(); }, ColBtn, 13, false, 20);
+            var t = b.GetComponentInChildren<Text>();
+            if (t != null)
+            {
+                t.text = label;
+                t.alignment = TextAnchor.MiddleCenter;
+                t.rectTransform.anchoredPosition = new Vector2(11, 0);
+                Shade(t);
+            }
+            UiSkin.Img(b.transform, "Icon", new Vector2(-PillW * 0.5f + 26, 0), new Vector2(18, 18), UiSkin.Icon(icon, 64), ColGold);
+            return b;
+        }
+
+        /// <summary>一言だけ知らせる（3 秒で消える）。</summary>
+        private void Notice(string text)
+        {
+            if (_confirm == null) return;
+            _confirm.text = text;
+            _confirmUntil = Time.time + 3f;
+        }
+
+        // ------------------------------------------------------------ 設定
+        private void BuildSettings(Transform stage)
+        {
+            var overlay = UiFactory.Panel(stage, "SettingsOverlay", Vector2.zero, new Vector2(4000, 4000), new Color(0, 0, 0, 0.62f));
+            var close = overlay.gameObject.AddComponent<Button>();
+            close.transition = Selectable.Transition.None;
+            close.onClick.AddListener(ToggleSettings);
+            var card = UiSkin.Card(overlay, "Card", Vector2.zero, new Vector2(400, 210), 14);
+            var eat = card.gameObject.AddComponent<Button>();      // 中を押しても閉じない
+            eat.transition = Selectable.Transition.None;
+            var title = UiFactory.Label(card, "Title", new Vector2(-14, 76), new Vector2(320, 24), "設定", 15, TextAnchor.MiddleLeft, ColText);
+            title.fontStyle = FontStyle.Bold;
+            UiSkin.Img(card, "Line", new Vector2(0, 60), new Vector2(368, 1), null, new Color(1, 1, 1, 0.08f));
+            UiSkin.IconButton(card, "Close", new Vector2(178, 76), 28, "×", ToggleSettings, ColBtn, 16);
+
+            UiFactory.Label(card, "BgmLabel", new Vector2(-140, 26), new Vector2(60, 20), "BGM", 12, TextAnchor.MiddleLeft, ColTextSub);
+            var bgm = UiFactory.Slider(card, "BgmSlider", new Vector2(30, 26), new Vector2(230, 20), _audio.BgmVolume, v => { _audio.BgmVolume = v; });
+            bgm.gameObject.AddComponent<SliderReleaseSound>().OnRelease = () => { _audio.UiPop(); SaveData.SaveAudio(_audio); };
+            UiFactory.Label(card, "SeLabel", new Vector2(-140, -6), new Vector2(60, 20), "SE", 12, TextAnchor.MiddleLeft, ColTextSub);
+            var se = UiFactory.Slider(card, "SeSlider", new Vector2(30, -6), new Vector2(230, 20), _audio.SeVolume, v => { _audio.SeVolume = v; });
+            se.gameObject.AddComponent<SliderReleaseSound>().OnRelease = () => { _audio.UiPop(); SaveData.SaveAudio(_audio); };
+            UiSkin.Button(card, "BgmToggle", new Vector2(0, -52), new Vector2(200, 32), "BGM ON / OFF",
+                () => { _audio.ToggleBgm(); _audio.UiPop(); SaveData.SaveAudio(_audio); }, ColBtn, 12, false, 8);
+
+            _settingsBox = overlay.gameObject;
+            _settingsBox.SetActive(false);
+        }
+
+        private void ToggleSettings()
+        {
+            if (_settingsBox == null) return;
+            _settingsBox.SetActive(!_settingsBox.activeSelf);
+            _audio.UiPop();
         }
 
         /// <summary>明るい絵の上でも読めるよう、文字に影を付ける。</summary>
@@ -182,7 +305,7 @@ namespace BBB.Runtime
         private void Update()
         {
             _t += Time.deltaTime;
-            if (_logo != null) _logo.anchoredPosition = new Vector2(0, 92 + Mathf.Sin(_t * 1.6f) * 6f);
+            if (_logo != null) _logo.anchoredPosition = new Vector2(TitleX, LogoY + Mathf.Sin(_t * 1.6f) * 5f);
             if (_press != null && !_starting)
             {
                 var c = _press.color;
@@ -191,7 +314,7 @@ namespace BBB.Runtime
             }
             if (_confirm != null && _confirm.text.Length > 0 && Time.time > _confirmUntil) _confirm.text = "";
 
-            if (_starting) return;
+            if (_starting || (_settingsBox != null && _settingsBox.activeSelf)) return;
             var kb = Keyboard.current;
             if (kb == null) return;
             if (kb.spaceKey.wasPressedThisFrame || kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame)
@@ -217,7 +340,7 @@ namespace BBB.Runtime
             _starting = true;
             if (_btnContinue != null) _btnContinue.interactable = false;
             if (_btnNew != null) _btnNew.interactable = false;
-            _press.text = "START!";
+            _press.text = "S T A R T !";
             _press.color = ColGold;
             StartCoroutine(BeginRoutine(clearSave));
         }
