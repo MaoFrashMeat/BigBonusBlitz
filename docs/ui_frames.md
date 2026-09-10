@@ -112,3 +112,23 @@ iPhone 横持ち（2556 x 1179）では約 **2.18 倍**になる。
 - 配置の検算: `docs/check_layout.py`（重なりとはみ出しを見る）
 - 枠の見え方の確認: `docs/preview_skin.py`
 - UI の作法: `docs/ui_rules.md`
+
+---
+
+## 4. リールの図柄
+
+| | 値 |
+|---|---|
+| 表示される枠 | **140 x 56 px（比 2.5 : 1）** |
+| 新しく作るときの推奨 | **420 x 168 px**（枠の 3 倍） |
+| 形式 | PNG・背景は透過 |
+| 置き場所 | `Assets/Resources/Art/Symbols/` |
+
+枠は `ReelView.ReelWidth - 8` x `ReelView.SymbolHeight - 4` から来ている。
+`preserveAspect` で収めるので、**比が 2.5 と違っても歪まないが、余った側に隙間ができる**。
+
+いまの図柄は 160 x 73（比 2.19）で、高さが先に詰まるため横幅を 123px しか使えていない
+（枠 140px に対して左右 8.5px ずつ空く）。**比 2.5 で作ると枠いっぱいに入る。**
+
+取り込みの設定は `Assets/Editor/BbbTexturePostprocessor.cs` が自動で当てるので、
+Unity 側で触る必要はない（Sprite / 圧縮なし / ミップマップ無し / 最大 8192）。
