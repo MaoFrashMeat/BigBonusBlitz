@@ -5,7 +5,7 @@ using UnityEngine.UI;
 namespace BBB.Runtime
 {
     /// <summary>
-    /// クレジットのスランプグラフ。1G ごとの差枚（開始クレジットからの増減）を折れ線で描く。
+    /// エンバー（灯火）のスランプグラフ。1G ごとの増減（開始時からの差）を折れ線で描く。
     /// 画像を使わず、細い矩形をつないで線にしている（点が多いときは間引く）。
     /// </summary>
     public sealed class SlumpGraph : MonoBehaviour
@@ -13,7 +13,7 @@ namespace BBB.Runtime
         /// <summary>保持する最大点数。これを超えたら 1 つおきに間引いて半分にする。</summary>
         public const int MaxPoints = 2000;
 
-        private readonly List<int> _diff = new List<int>();   // 開始からの差枚
+        private readonly List<int> _diff = new List<int>();   // 開始からの増減
         private RectTransform _plot;
         private readonly List<Image> _segs = new List<Image>();
         private Image _zeroLine;
@@ -50,7 +50,7 @@ namespace BBB.Runtime
             _diff.Add(0);
         }
 
-        /// <summary>1G ぶん記録する。credit は現在のクレジット。</summary>
+        /// <summary>1G ぶん記録する。credit は現在のエンバー。</summary>
         public void Push(int credit)
         {
             _spins++;
@@ -83,7 +83,7 @@ namespace BBB.Runtime
             _zeroLine.rectTransform.anchoredPosition = new Vector2(0, zeroY);
             _scaleTop.text = $"+{hi:N0}";
             _scaleBottom.text = $"{lo:N0}";
-            _info.text = $"{_spins:N0} G   差枚 {LastDiff:+#,##0;-#,##0;0}   最高 {MaxDiff:+#,##0;0}   最低 {MinDiff:-#,##0;0}";
+            _info.text = $"{_spins:N0} G   増減 {LastDiff:+#,##0;-#,##0;0}   最高 {MaxDiff:+#,##0;0}   最低 {MinDiff:-#,##0;0}";
 
             int segCount = Mathf.Max(0, n - 1);
             EnsureSegments(segCount);
@@ -115,7 +115,7 @@ namespace BBB.Runtime
                 _segs.Add(UiSkin.Img(_plot, "S", Vector2.zero, new Vector2(2, 2), null, UiSkin.Green));
         }
 
-        /// <summary>記録を捨てて、今のクレジットを基準に取り直す。</summary>
+        /// <summary>記録を捨てて、今のエンバーを基準に取り直す。</summary>
         public void ResetTo(int credit)
         {
             _diff.Clear();

@@ -58,6 +58,14 @@ namespace BBB.Core
         public ShopConfig shop;
         /// <summary>冒険（ステージ制マップ）。null / enabled=false なら従来通り。</summary>
         public AdventureConfig adventure;
+        /// <summary>レベルアップで振るステータス（ライフ / テクニック / ラック）。</summary>
+        public StatsConfig stats;
+        /// <summary>物語（章ごと・段ごと・枝の高さごとの台詞）。</summary>
+        public StoryConfig story;
+        /// <summary>装備のドロップ（潜行ごとに拾い直す）。</summary>
+        public EquipConfig equipment;
+        /// <summary>呪いと祝福。</summary>
+        public CurseConfig curse;
 
         public Payouts PayoutsFor(BonusMode m)
         {

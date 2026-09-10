@@ -31,8 +31,14 @@ namespace BBB.Runtime
         public float SeVolume { get => _se.volume; set { _se.volume = value; _sePitched.volume = value; } }
         public bool BgmEnabled { get; private set; } = true;
 
+        /// <summary>
+        /// 画面をまたいで 1 つだけ使う。タイトル → マップ → ゲームの遷移で作り直すと、
+        /// 破棄と再生成が重なって BGM が鳴らないことがあるため、既にあれば使い回す。
+        /// </summary>
         public static AudioManager Create()
         {
+            var exist = FindFirstObjectByType<AudioManager>();
+            if (exist != null) return exist;
             var go = new GameObject("AudioManager");
             var am = go.AddComponent<AudioManager>();
             am._bgm = go.AddComponent<AudioSource>();

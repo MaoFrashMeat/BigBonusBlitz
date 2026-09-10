@@ -45,6 +45,111 @@ namespace BBB.Tests
         }
 
         [Test]
+        public void 達成条件でルートが決まり確率では覆らない()
+        {
+            var cfg = TinyConfig();
+            cfg.Find("A").routeConditions.Add(new RouteCondition
+            {
+                to = "B2", label = "リプレイ 3 回",
+                counters = new Dictionary<string, int> { ["REPLAY"] = 3 },
+                priority = 10,
+            });
+            var st = new AdventureState();
+            AdventureDirector.Reset(cfg, st);
+            var rng = new SystemRandom(4);
+
+            Assert.IsNull(AdventureDirector.CheckConditions(cfg, st, 0, 0, 1), "まだ達成していないのに成立した");
+            for (int i = 0; i < 3; i++) AdventureDirector.AddCount(st, "REPLAY");
+            var hit = AdventureDirector.CheckConditions(cfg, st, 0, 0, 1);
+            Assert.IsNotNull(hit, "リプレイ 3 回で成立しない");
+            Assert.AreEqual("B2", hit.to);
+
+            st.nextId = hit.to; st.decidedPriority = hit.priority;
+            Assert.IsNull(AdventureDirector.CheckConditions(cfg, st, 0, 0, 1), "同じ条件で二度成立している");
+            Assert.IsNull(AdventureDirector.RollRoute(cfg, st, "CHANCE", rng), "条件で決めたルートを確率が覆した");
+            Assert.AreEqual("B2", st.nextId);
+        }
+
+        [Test]
+        public void 持ち物の条件も見る()
+        {
+            var cfg = TinyConfig();
+            cfg.Find("A").routeConditions.Add(new RouteCondition
+            {
+                to = "B2", label = "エンバー 15000 でリプレイ 2 回",
+                counters = new Dictionary<string, int> { ["REPLAY"] = 2 },
+                state = new Dictionary<string, int> { ["ember"] = 15000 },
+                priority = 20,
+            });
+            var st = new AdventureState();
+            AdventureDirector.Reset(cfg, st);
+            AdventureDirector.AddCount(st, "REPLAY", 2);
+            Assert.IsNull(AdventureDirector.CheckConditions(cfg, st, 14999, 0, 1), "エンバーが足りないのに成立した");
+            Assert.IsNotNull(AdventureDirector.CheckConditions(cfg, st, 15000, 0, 1), "エンバーが足りているのに成立しない");
+        }
+
+        [Test]
+        public void 優先度が高い条件が勝つ()
+        {
+            var cfg = TinyConfig();
+            var node = cfg.Find("A");
+            node.routeConditions.Add(new RouteCondition { to = "B1", counters = new Dictionary<string, int> { ["REPLAY"] = 1 }, priority = 5 });
+            node.routeConditions.Add(new RouteCondition { to = "B2", counters = new Dictionary<string, int> { ["REPLAY"] = 1 }, priority = 30 });
+            var st = new AdventureState();
+            AdventureDirector.Reset(cfg, st);
+            AdventureDirector.AddCount(st, "REPLAY");
+            var hit = AdventureDirector.CheckConditions(cfg, st, 0, 0, 1);
+            Assert.AreEqual("B2", hit.to, "優先度の高い条件が選ばれていない");
+            st.nextId = hit.to; st.decidedPriority = hit.priority;
+            Assert.IsNull(AdventureDirector.CheckConditions(cfg, st, 0, 0, 1), "弱い条件が上書きした");
+        }
+
+        [Test]
+        public void ステージが変わると数えものがリセットされる()
+        {
+            var cfg = TinyConfig();
+            var st = new AdventureState();
+            AdventureDirector.Reset(cfg, st);
+            AdventureDirector.AddCount(st, "REPLAY", 9);
+            st.replayChain = 4; st.decidedPriority = 10; st.decidedBy = "x";
+            AdventureDirector.Enter(cfg, st, "B1");
+            Assert.AreEqual(0, AdventureDirector.GetCount(st, "REPLAY"), "数えものが残っている");
+            Assert.AreEqual(0, st.replayChain);
+            Assert.AreEqual(0, st.decidedPriority);
+            Assert.IsNull(st.decidedBy);
+        }
+
+        [Test]
+        public void 実際に回してもリプレイ条件が成立する()
+        {
+            var m = NewMachine(41);
+            m.Config.adventure = TinyConfig();
+            m.Config.adventure.resource.enabled = false;
+            var node = m.Config.adventure.Find("A");
+            node.spins = 100000;   // ステージが終わらないようにして条件だけ見る
+            node.routeConditions.Add(new RouteCondition
+            {
+                to = "B2", label = "リプレイ 15 回",
+                counters = new Dictionary<string, int> { ["REPLAY"] = 15 },
+                priority = 10,
+            });
+            AdventureDirector.Reset(m.Config.adventure, m.Adv);
+            m.Adv.spinsLeft = 100000;
+            m.Credit = 1_000_000;
+            var push = new SystemRandom(7);
+            GameResult hit = null;
+            for (int g = 0; g < 4000 && hit == null; g++)
+            {
+                var r = PlayOne(m, push);
+                if (r.routeCondition != null) hit = r;
+            }
+            Assert.IsNotNull(hit, "回してもリプレイ条件が成立しない");
+            Assert.AreEqual("B2", hit.routeDecided);
+            Assert.GreaterOrEqual(AdventureDirector.GetCount(m.Adv, "REPLAY"), 15);
+            Assert.AreEqual("B2", m.Adv.nextId);
+        }
+
+        [Test]
         public void 松明が尽きたら進行を残して街へ帰る()
         {
             var m = NewMachine(31);

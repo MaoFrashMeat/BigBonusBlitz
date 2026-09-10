@@ -53,6 +53,16 @@ namespace BBB.Core
         public bool atWon;
         /// <summary>このGで AT が始まった / 終わった。</summary>
         public bool atStarted, atEnded;
+        /// <summary>このGでセットが継続した（次のセットへ）。continueSet がそのセット番号。</summary>
+        public bool setContinued;
+        public int continueSet;
+        /// <summary>このGでセットが終わり、AT も終わった。</summary>
+        public bool setFailed;
+        /// <summary>このGで特化ゾーンに入った / 出た。</summary>
+        public AtZone zoneStarted;
+        public bool zoneEnded;
+        /// <summary>ゾーンの上乗せでこのGに足したG数。</summary>
+        public int zoneAddedSpins;
         /// <summary>このGでバトルに当選した。</summary>
         public bool battleStarted;
         public MonsterDef battleMonster;
@@ -67,24 +77,39 @@ namespace BBB.Core
         // --- 冒険（ステージ制マップ）---
         /// <summary>このGでルートが決まった／上位に書き換わった（行き先のステージid。null なら無し）。</summary>
         public string routeDecided;
+        /// <summary>達成条件でルートが決まったときの条件（確率で決まったときは null）。</summary>
+        public RouteCondition routeCondition;
         /// <summary>このGで見つけた宝（null なら無し）。</summary>
         public TreasureDef treasure;
         /// <summary>このGでステージが変わった（stageFrom → stageTo）。</summary>
         public bool stageChanged;
         public string stageFrom, stageTo;
+        /// <summary>そのステージ移動が前進だったか（false なら条件を落として後退）。</summary>
+        public bool stageAdvanced;
+        /// <summary>はじめて着いたステージで貰ったソウル。</summary>
+        public int firstVisitSouls;
         /// <summary>このGで章をクリアした（次Gから最初のステージに戻る）。</summary>
         public bool chapterCleared;
         /// <summary>章クリアで得たソウル。</summary>
         public int chapterSouls;
+        /// <summary>その章で後退した回数（報酬が目減りした量の説明に使う）。</summary>
+        public int chapterSetbacks;
         /// <summary>ステージ到達時にボスの前兆が始まった。</summary>
         public bool bossAmbush;
         /// <summary>AT 開始時に宝の貯金から上乗せしたG数。</summary>
         public int atStockUsed;
+        /// <summary>このGで拾った装備（鞄に入らなければ droppedFull が true）。</summary>
+        public EquipItem equipDropped;
+        public bool equipBagFull;
+        /// <summary>拾った装備を自動で身に着けた。</summary>
+        public bool equipAutoWorn;
+        /// <summary>このGで呪いの選択が出た。</summary>
+        public CurseInstance curseOffer;
         /// <summary>このGで松明が 1 本増えた。</summary>
         public bool torchRefilled;
         /// <summary>このGで松明が尽きた（街へ帰る）。</summary>
         public bool outOfTorch;
-        /// <summary>このGでクレジットが尽きた（力尽きて街へ帰る）。</summary>
+        /// <summary>このGでエンバーが尽きた（力尽きて街へ帰る）。</summary>
         public bool ranOutOfCredit;
         /// <summary>街へ強制帰還する（"torch" = 松明切れ / "credit" = 力尽き）。</summary>
         public bool returnedToTown;
@@ -107,7 +132,7 @@ namespace BBB.Core
         private readonly IRandom _rng;
 
         // --- 状態（main.js state と対応） ---
-        public int Credit = 50;
+        public int Credit = 500;
         public int Bet;
         public bool IsReplay;
         public int Setting { get; private set; } = 1;
@@ -141,6 +166,8 @@ namespace BBB.Core
         public int AtSpinsRemaining;
         /// <summary>この AT で回した総G数と獲得枚数（表示用）。</summary>
         public int AtSpinCount, AtPayout;
+        /// <summary>いま何セット目か（1 始まり）。</summary>
+        public int AtSet = 1;
         /// <summary>道中の押し順ナビ（Active=false なら無し）。</summary>
         public AtNavi Navi2;
         /// <summary>バトル（狩猟）中か。</summary>
@@ -149,6 +176,12 @@ namespace BBB.Core
         public int BattleHp, BattleHpMax, BattleSpinsRemaining;
         /// <summary>このGで AT が始まった（レバーオン時点で立つ）。</summary>
         public bool AtJustStarted;
+        /// <summary>いま入っている特化ゾーン（null なら通常の AT）。</summary>
+        public AtZone AtZone;
+        /// <summary>そのゾーンの残りG。</summary>
+        public int AtZoneRemaining;
+        /// <summary>今のGのベルにナビが出ているか（出ていなければ共通ベル）。</summary>
+        public bool AtBellHasNavi;
 
         /// <summary>ボーナス中の AT 期待度 %（枠の点滅色に対応）。ボーナス開始でリセットされる。</summary>
         public int AtExpectPercent;
@@ -175,16 +208,65 @@ namespace BBB.Core
         public EnemyTable ActiveEnemyTable;
         /// <summary>ソウルと持ち物。ショップの効果はここから読む。</summary>
         public readonly PlayerWallet Wallet = new PlayerWallet();
+        /// <summary>潜行中に拾った装備。街に戻ると流す。</summary>
+        public readonly EquipInventory Equip = new EquipInventory();
+        /// <summary>受けている呪いと祝福。</summary>
+        public readonly CurseState Curse = new CurseState();
         public int PlayerLevel = 1;
         public int PlayerExp;
+        /// <summary>レベルアップで振るステータス。</summary>
+        public readonly PlayerStats Stats = new PlayerStats();
+        /// <summary>直前の BET でエンバーを使わずに済んだか（ライフの効果。演出用）。</summary>
+        public bool LastBetWasFree;
         /// <summary>冒険の進行（現在のステージ・残りG・決まったルート）。</summary>
         public readonly AdventureState Adv = new AdventureState();
         public bool AdventureEnabled => Config.adventure != null && Config.adventure.enabled && Config.adventure.nodes != null && Config.adventure.nodes.Count > 0;
         /// <summary>現在のステージ（冒険が無効なら null）。</summary>
         public StageNode CurrentStage => AdventureEnabled ? Config.adventure.Find(Adv.nodeId) : null;
-        /// <summary>松明 1 本で進めるG数（装備の効果込み）。</summary>
-        public int TorchSpinsPerUnit => Math.Max(1, (Config.adventure?.resource?.spinsPerTorch ?? 60)
-            + ShopDirector.EffectTotal(Config.shop, Wallet, ShopEffects.TorchSpins));
+        private StatsConfig StatsCfg => Config.stats != null && Config.stats.enabled ? Config.stats : null;
+
+        /// <summary>ショップ + 装備 + 祝福の合計。呪いは別枠（CurseEffects）で引く。</summary>
+        public int BonusOf(string effect)
+            => ShopDirector.EffectTotal(Config.shop, Wallet, effect)
+             + Equip.EffectTotal(effect)
+             + Curse.BlessTotal(effect);
+
+        /// <summary>松明 1 本で進めるG数（装備 + ライフ + 呪い）。</summary>
+        public int TorchSpinsPerUnit
+        {
+            get
+            {
+                int baseSpins = (Config.adventure?.resource?.spinsPerTorch ?? 60)
+                    + BonusOf(ShopEffects.TorchSpins)
+                    + (StatsCfg != null ? (int)(Stats.Life * StatsCfg.life.torchSpins) : 0);
+                // 呪い: 松明の減りが速くなる（= 1 本で進めるG数が減る）
+                int drain = Curse.CurseTotal(CurseEffects.TorchDrain);
+                if (drain > 0) baseSpins = baseSpins * 100 / (100 + drain);
+                return Math.Max(1, baseSpins);
+            }
+        }
+
+        /// <summary>エンゲージのG数（設定 + テクニック）。</summary>
+        public int EngageMaxSpins => Math.Max(1, Config.tier2MaxSpins
+            + (StatsCfg != null ? (int)(Stats.Technique * StatsCfg.technique.engageSpins) : 0));
+
+        /// <summary>力尽きたときに補填されるエンバー（設定 + ライフ）。</summary>
+        public int RescueCredit => Math.Max(0, (Config.adventure?.resource?.rescueCredit ?? 0)
+            + (StatsCfg != null ? (int)(Stats.Life * StatsCfg.life.rescueBonus) : 0));
+
+        /// <summary>
+        /// ステージのG数が止まっているか。ボーナス中・AT 中・ボーナス持ち越し中は
+        /// 通常のGを数えないので、その間ステージは進まない。
+        /// </summary>
+        public bool StageHeld => AdventureEnabled &&
+            (BonusMode != BonusMode.NORMAL || InAt || HeldBonusFlag != Flag.HAZE);
+
+        /// <summary>止まっている理由（表示用）。</summary>
+        public string StageHeldReason =>
+            BonusMode != BonusMode.NORMAL ? "BONUS" : InAt ? "CAVE" : HeldBonusFlag != Flag.HAZE ? "成立中" : "";
+
+        /// <summary>宝の発見率に足す %（ラック）。</summary>
+        public float TreasureBonus => StatsCfg != null ? Stats.Luck * StatsCfg.luck.treasureBonus : 0f;
 
         // --- デバッグ用（main.js の debug-force-flag 相当） ---
         /// <summary>次のレバーでこのフラグを強制する（null で通常抽選）。1回で解除。</summary>
@@ -250,17 +332,21 @@ namespace BBB.Core
             if (IsGameActive) return false;
             if (IsReplay)
             {
+                // 再遊技: エンバーを使わずに次を回す。投入が無いのでボーナスの獲得数も動かさない
                 IsReplay = false;
-                int cost = CurrentPayouts.REPLAY;
-                Credit -= cost;
+                LastBetWasFree = false;
                 Bet = BetCost;
-                if (BonusMode != BonusMode.NORMAL) BonusEarned -= cost;
                 return true;
             }
-            if (Credit < BetCost) return false;
-            Credit -= BetCost;
+            int extra = Curse.CurseTotal(CurseEffects.BetExtra);   // 呪い: 1G あたりの持ち出しが増える
+            if (Credit < BetCost + extra) return false;
+            // ライフ: 一定の率でエンバーを使わずに回せる（延命）
+            LastBetWasFree = StatsCfg != null && Stats.Life > 0
+                             && _rng.NextDouble() * 100 < Stats.Life * StatsCfg.life.freeBetRate;
+            int cost = LastBetWasFree ? 0 : BetCost + extra;
+            Credit -= cost;
             Bet = BetCost;
-            if (BonusMode != BonusMode.NORMAL) BonusEarned -= BetCost;
+            if (BonusMode != BonusMode.NORMAL) BonusEarned -= cost;
             return true;
         }
 
@@ -283,9 +369,15 @@ namespace BBB.Core
 
             DrawLottery();
 
-            // AT 道中の押し順ナビ: 正解のリールを「教える」表示（エンゲージの択ナビとは意味が逆）
+            // AT 道中の押し順ナビ。出なかったベルは「共通ベル」として少なめに払う
+            AtBellHasNavi = false;
             if (InAt && !InBattle && BonusMode == BonusMode.NORMAL && CurrentFlag.IsBell())
-                Navi2 = new AtNavi { Active = true, first = _rng.Next(3) };
+            {
+                var atc0 = Config.at ?? new AtConfig();
+                int rate = atc0.naviRate + (AtZone != null ? AtZone.naviRateBonus : 0);
+                AtBellHasNavi = _rng.NextDouble() * 100 < Math.Max(0, Math.Min(100, rate));
+                if (AtBellHasNavi) Navi2 = new AtNavi { Active = true, first = _rng.Next(3) };
+            }
 
             // ベル択ナビ: エンゲージ中のベル当選時だけ
             if (IsTier2 && EnemyActive && !InAt && BonusMode == BonusMode.NORMAL && CurrentFlag.IsBell())
@@ -307,7 +399,7 @@ namespace BBB.Core
             }
             // エンゲージはボーナス中も進める（止めると「残り G」が凍って見える）。ベル択ナビだけは通常時限定
             // ボーナスが始まったGは判定を通らず決着処理が飛ぶので、上限で止めて「残り -1 G」を防ぐ
-            if (IsTier2) Tier2SpinCount = Math.Min(Tier2SpinCount + 1, Math.Max(1, Config.tier2MaxSpins));
+            if (IsTier2) Tier2SpinCount = Math.Min(Tier2SpinCount + 1, EngageMaxSpins);
 
             // 洞窟に入るまでの前兆。消化しきった次のGで AT が始まる
             AtEntryStage = 0;
@@ -325,13 +417,14 @@ namespace BBB.Core
                 InAt = true;
                 AtJustStarted = true;
                 var atStart = Config.at ?? new AtConfig();
-                AtSpinsRemaining = Math.Max(1, atStart.initialSpins + ShopDirector.EffectTotal(Config.shop, Wallet, ShopEffects.AtInitialSpins));
+                AtSpinsRemaining = Math.Max(1, Math.Max(atStart.setSpins, atStart.initialSpins) + BonusOf(ShopEffects.AtInitialSpins));
                 // 宝で貯めた上乗せG（洞窟の地図など）はここで使い切る
                 _atStockUsed = Math.Max(0, Adv.stockAtSpins);
                 AtSpinsRemaining += _atStockUsed;
                 Adv.stockAtSpins = 0;
-                AtSpinCount = 0; AtPayout = 0;
+                AtSpinCount = 0; AtPayout = 0; AtSet = 1;
                 InBattle = false; BattleMonster = null; BattleHp = 0; BattleHpMax = 0; BattleSpinsRemaining = 0;
+                AtZone = null; AtZoneRemaining = 0;
                 // 洞窟に入ったら通常時のエンゲージは持ち込まない（択ナビと押し順ナビが重なるため）
                 IsTier2 = false; PendingTier2 = false; EnemyActive = false; EnemyDefeatWon = false;
                 Tier2SpinCount = 0; PrecursorRemaining = 0; PrecursorTotal = 0; ActiveEnemyTable = null;
@@ -384,7 +477,10 @@ namespace BBB.Core
             if (AdventureEnabled && !InAt)
             {
                 if (Adv.spinsLeft > 0) Adv.spinsLeft--;
-                if (AdventureDirector.BurnTorch(Config.adventure, Adv, TorchSpinsPerUnit)) _torchOut = true;
+                // 装備や祝福を失うと 1 本ぶんのG数が下がる。残量がそれを超えていたら詰める
+                int perTorch = TorchSpinsPerUnit;
+                if (Adv.torchSpins > perTorch) Adv.torchSpins = perTorch;
+                if (AdventureDirector.BurnTorch(Config.adventure, Adv, perTorch)) _torchOut = true;
             }
             if (SpinCount >= Config.CeilingFor(Mode))
             {
@@ -398,7 +494,32 @@ namespace BBB.Core
             int rng = _rng.Next(LotteryTable.Denominator);
             CurrentRng = rng + 1;
             CurrentFlag = CurrentTable()[rng];
+            if (CurrentFlag == Flag.HAZE) CurrentFlag = RollLuck();   // ラック: ハズレだけを引き上げる
             if (CurrentFlag.IsBonus()) HoldBonus(CurrentFlag);
+        }
+
+        /// <summary>
+        /// ラック: 通常時のハズレを、確率でレア役かリプレイに引き上げる。
+        /// 既存の確率テーブルを書き換えず、ハズレ枠だけを分け直す形にする（設定差を壊さない）。
+        /// </summary>
+        private Flag RollLuck()
+        {
+            var sc = StatsCfg;
+            if (sc == null || Stats.Luck <= 0) return Flag.HAZE;
+            double rare = Stats.Luck * sc.luck.rareRate;
+            double rep = Stats.Luck * sc.luck.replayRate;
+            double r = _rng.NextDouble() * 100;
+            if (r < rare)
+            {
+                switch (_rng.Next(3))
+                {
+                    case 0: return Flag.CHERRY_A;
+                    case 1: return Flag.SUICA_A;
+                    default: return Flag.CHANCE_A;
+                }
+            }
+            if (r < rare + rep) return Flag.REPLAY_A;
+            return Flag.HAZE;
         }
 
         /// <summary>ボーナスを持ち越し状態にし、前兆G数を抽選する。</summary>
@@ -513,12 +634,17 @@ namespace BBB.Core
             var payouts = CurrentPayouts;
             var win = WinEvaluator.Evaluate(Stopped, BonusMode, payouts);
             // AT 道中の押し順ベル: ナビ通りに第一停止できたかで払い出しが変わる（番長型）
-            if (InAt && !InBattle && BonusMode == BonusMode.NORMAL && Navi2.Active && win.winType == WinType.BELL)
+            if (InAt && !InBattle && BonusMode == BonusMode.NORMAL && win.winType == WinType.BELL)
             {
                 var atNavi = Config.at ?? new AtConfig();
-                bool ok = PressOrder.Count > 0 && PressOrder[0] == Navi2.first;
-                win.payout = Math.Max(0, ok ? atNavi.naviCorrectPayout : atNavi.naviWrongPayout);
-                result.naviCorrect = ok;
+                if (Navi2.Active)
+                {
+                    bool ok = PressOrder.Count > 0 && PressOrder[0] == Navi2.first;
+                    int hit = atNavi.naviCorrectPayout + (AtZone != null ? AtZone.payoutBonus : 0);
+                    win.payout = Math.Max(0, ok ? hit : atNavi.naviWrongPayout);
+                    result.naviCorrect = ok;
+                }
+                else win.payout = Math.Max(0, atNavi.commonBellPayout);   // 共通ベル
             }
             result.win = win;
 
@@ -532,7 +658,7 @@ namespace BBB.Core
                 // AT 期待度はボーナスごとに 0（設定値）から積み直す
                 var atx = Config.atExpect ?? new AtExpectConfig();
                 AtExpectPercent = Math.Min(Math.Max(1, atx.maxPercent),
-                    atx.startPercent + ShopDirector.EffectTotal(Config.shop, Wallet, ShopEffects.AtStartPercent) + Math.Max(0, Adv.stockAtExpect));
+                    atx.startPercent + BonusOf(ShopEffects.AtStartPercent) + Math.Max(0, Adv.stockAtExpect));
                 Adv.stockAtExpect = 0;
                 AtExpectGained = 0;
                 Mode = ModeTransition.Determine(Config, "bonus", Setting, _rng);
@@ -582,6 +708,10 @@ namespace BBB.Core
             // 2択の結果は「揃ったかどうか」に関係なく残す（外すとベルはこぼれて払い出し 0 になるため）
             if (Navi.Active && CurrentCommand != BellCommand.None) result.command = CurrentCommand;
 
+            // 呪い: 払い出しが目減りする
+            int cut = Curse.CurseTotal(CurseEffects.PayoutCut);
+            if (cut > 0 && win.payout > 0) win.payout = Math.Max(0, win.payout * Math.Max(0, 100 - cut) / 100);
+
             if (win.payout > 0)
             {
                 Credit += win.payout;
@@ -608,12 +738,14 @@ namespace BBB.Core
             }
 
             // Tier2 決着（tier2MaxSpins ゲーム目の終わり）
-            if (IsTier2 && Tier2SpinCount >= Config.tier2MaxSpins)
+            if (IsTier2 && Tier2SpinCount >= EngageMaxSpins)
             {
                 result.enemyResolved = EnemyDefeatWon;
                 var soulCfg = Config.souls ?? new SoulConfig();
                 if (EnemyDefeatWon)
                 {
+                    RollDrop(result, ActiveEnemyTable != null && ActiveEnemyTable.IsBoss
+                                     ? (Config.equipment?.dropRateBoss ?? 0) : (Config.equipment?.dropRateMob ?? 0));
                     int exp = ActiveEnemyTable != null && ActiveEnemyTable.expOnDefeat > 0 ? ActiveEnemyTable.expOnDefeat : Config.expPerDefeat;
                     result.enemyExp = ApplyExpBonus(exp);
                     result.levelUp = GainExp(result.enemyExp);
@@ -629,10 +761,40 @@ namespace BBB.Core
             {
                 var atc = Config.at ?? new AtConfig();
                 AtPayout += win.payout;
+
+                // 特化ゾーンの消化（上乗せはここで）
+                if (AtZone != null)
+                {
+                    if (AtZone.addSpinRate > 0 && _rng.NextDouble() * 100 < AtZone.addSpinRate)
+                    {
+                        int add = Math.Max(1, AtZone.addSpins);
+                        AtSpinsRemaining += add;
+                        result.zoneAddedSpins = add;
+                        result.atSpinsAdded += add;
+                    }
+                    if (!InBattle && AtZoneRemaining > 0) AtZoneRemaining--;
+                    if (AtZoneRemaining <= 0 && !InBattle)
+                    {
+                        AtZone = null;
+                        result.zoneEnded = true;
+                    }
+                }
+                else
+                {
+                    // ゾーンの当選（役ごと）
+                    var z = AtDirectorEx.RollZone(atc, CurrentFlag, _rng);
+                    if (z != null)
+                    {
+                        AtZone = z;
+                        AtZoneRemaining = Math.Max(1, z.spins);
+                        result.zoneStarted = z;
+                    }
+                }
                 if (InBattle)
                 {
                     int dmg = AtDirectorEx.RollDamage(atc, CurrentFlag, _rng);
-                    int dmgBonus = ShopDirector.EffectTotal(Config.shop, Wallet, ShopEffects.BattleDamage);
+                    int dmgBonus = BonusOf(ShopEffects.BattleDamage)
+                                   + (StatsCfg != null ? (int)(Stats.Technique * StatsCfg.technique.battleDamage) : 0);
                     if (dmg > 0 && dmg < 999 && dmgBonus > 0) dmg = dmg * (100 + dmgBonus) / 100;
                     bool oneShot = dmg >= 999;
                     result.battleDamage = oneShot ? BattleHp : Math.Min(dmg, BattleHp);
@@ -642,6 +804,7 @@ namespace BBB.Core
                     {
                         result.battleResolved = true;
                         result.battleMonster = BattleMonster;
+                        RollDrop(result, Config.equipment?.dropRateHunt ?? 0);
                         result.soulsGained += GainSouls((Config.souls ?? new SoulConfig()).perAtBattle);
                         int add = Math.Max(0, BattleMonster?.rewardSpins ?? 0);
                         AtSpinsRemaining += add;
@@ -658,9 +821,11 @@ namespace BBB.Core
                         InBattle = false;
                     }
                 }
-                else if (AtDirectorEx.RollBattle(atc, CurrentFlag, _rng))
+                else if (AtZone != null && AtZone.battleRate > 0
+                         ? _rng.NextDouble() * 100 < AtZone.battleRate
+                         : AtDirectorEx.RollBattle(atc, CurrentFlag, _rng))
                 {
-                    BattleMonster = AtDirectorEx.PickMonster(atc, _rng);
+                    BattleMonster = AtDirectorEx.PickMonster(atc, _rng, AtZone?.monsterId);
                     BattleHpMax = Math.Max(1, BattleMonster.hp);
                     BattleHp = BattleHpMax;
                     BattleSpinsRemaining = Math.Max(1, BattleMonster.spins);
@@ -668,10 +833,24 @@ namespace BBB.Core
                     result.battleStarted = true;
                     result.battleMonster = BattleMonster;
                 }
-                if (!InBattle && AtSpinsRemaining <= 0)
+                // セットを使い切ったら継続を抽選する。ゾーン中と狩猟中は持ち越して先に消化する
+                if (!InBattle && AtSpinsRemaining <= 0 && AtZone == null)
                 {
-                    InAt = false;
-                    result.atEnded = true;
+                    int cont = Math.Max(0, Math.Min(100, atc.continueRate));
+                    if (_rng.NextDouble() * 100 < cont)
+                    {
+                        AtSet++;
+                        AtSpinsRemaining += Math.Max(1, atc.setSpins);
+                        result.setContinued = true;
+                        result.continueSet = AtSet;
+                    }
+                    else
+                    {
+                        InAt = false;
+                        AtZone = null; AtZoneRemaining = 0;
+                        result.setFailed = true;
+                        result.atEnded = true;
+                    }
                 }
             }
 
@@ -720,11 +899,28 @@ namespace BBB.Core
         private int _atStockUsed;
         private bool _torchOut;
 
-        /// <summary>クレジットが尽きたら「力尽きた」として街へ帰す（松明切れは AdvanceAdventure 側）。</summary>
+        /// <summary>いまの深さ（ステージの depth。冒険が無効なら 1）。</summary>
+        public int CurrentDepth => CurrentStage?.depth ?? 1;
+
+        /// <summary>装備を落とす抽選。落ちたら result に載せる。</summary>
+        private void RollDrop(GameResult result, int rate)
+        {
+            var ec = Config.equipment;
+            if (ec == null || !ec.enabled || rate <= 0) return;
+            if (_rng.NextDouble() * 100 >= rate) return;
+            var item = EquipDirector.Roll(ec, CurrentDepth, _rng);
+            if (item == null) return;
+            if (!EquipDirector.PickUp(ec, Equip, item)) { result.equipBagFull = true; result.equipDropped = item; return; }
+            result.equipDropped = item;
+            // 空きスロットなら勝手に着る（今より弱いものは着ない）
+            if (Equip.WornOf(item.slot) == null) { EquipDirector.Equip(Equip, item); result.equipAutoWorn = true; }
+        }
+
+        /// <summary>エンバーが尽きたら「力尽きた」として街へ帰す（松明切れは AdvanceAdventure 側）。</summary>
         private void CheckAdventureReturn(GameResult result)
         {
             if (!AdventureEnabled || Adv.MustReturn) return;
-            if (Credit >= BetCost || IsReplay) return;
+            if (Credit >= BetCost + Curse.CurseTotal(CurseEffects.BetExtra) || IsReplay) return;
             Adv.returnReason = "credit";
             result.ranOutOfCredit = true;
             result.returnedToTown = true;
@@ -754,9 +950,27 @@ namespace BBB.Core
             if (normalPlay)
             {
                 string key = PrecogDirector.RoleKey(CurrentFlag);   // こぼしても抽選はフラグで行う
+
+                // --- ステージ滞在中の数えもの（達成条件の材料）---
+                // 残りGを使い切ったあと（ボーナス等で移動を待っている間）は数えない。
+                // 数えるGとステージのG数を合わせないと、条件が設計より甘くなる
+                if (Adv.spinsLeft > 0)
+                {
+                AdventureDirector.AddCount(Adv, key);
+                AdventureDirector.AddCount(Adv, "SPINS");
+                if (result.win.payout > 0)
+                {
+                    AdventureDirector.AddCount(Adv, "WIN");
+                    AdventureDirector.AddCount(Adv, "PAYOUT", result.win.payout);
+                }
+                if (key == "REPLAY") { Adv.replayChain++; AdventureDirector.MaxCount(Adv, "REPLAY_CHAIN", Adv.replayChain); }
+                else Adv.replayChain = 0;
+                if (result.enemyResolved == true) AdventureDirector.AddCount(Adv, "DEFEAT");
+                }
+
                 result.routeDecided = AdventureDirector.RollRoute(cfg, Adv, key, _rng);
                 if (AdventureDirector.RollRefill(cfg, Adv, key, _rng, TorchSpinsPerUnit)) result.torchRefilled = true;
-                var t = AdventureDirector.RollTreasure(cfg, Adv, key, _rng);
+                var t = AdventureDirector.RollTreasure(cfg, Adv, key, _rng, TreasureBonus);
                 if (t != null)
                 {
                     result.treasure = t;
@@ -769,6 +983,20 @@ namespace BBB.Core
                         case "torch": if (AdventureDirector.AddTorch(cfg, Adv, Math.Max(1, t.amount), TorchSpinsPerUnit) > 0) result.torchRefilled = true; break;
                         default: result.soulsGained += GainSouls(t.amount); break;
                     }
+                    AdventureDirector.AddCount(Adv, "TREASURE");
+                    RollDrop(result, Config.equipment?.dropRateTreasure ?? 0);
+                }
+
+                // --- 達成条件のルート（確率抽選より強い）---
+                int harder = Curse.CurseTotal(CurseEffects.ConditionHarder);
+                var cond = AdventureDirector.CheckConditions(cfg, Adv, Credit, Wallet.Souls, PlayerLevel, harder);
+                if (cond != null)
+                {
+                    Adv.nextId = cond.to;
+                    Adv.decidedPriority = cond.priority;
+                    Adv.decidedBy = AdventureDirector.DescribeCondition(cond);
+                    result.routeDecided = cond.to;
+                    result.routeCondition = cond;
                 }
             }
 
@@ -791,12 +1019,25 @@ namespace BBB.Core
             }
             if (Adv.spinsLeft > 0 || !clean) return;
 
-            string next = AdventureDirector.ResolveNext(cfg, Adv, _rng);
+            string next = AdventureDirector.ResolveStep(cfg, Adv, _rng, out bool advanced);
             result.stageFrom = Adv.nodeId;
+            result.stageAdvanced = advanced;
+            if (next == Adv.nodeId)
+            {
+                // 条件を落として、戻り先も無い。同じステージをもう一周する
+                AdventureDirector.Enter(cfg, Adv, Adv.nodeId);
+                Adv.setbacks++;
+                result.stageChanged = true;
+                result.stageTo = Adv.nodeId;
+                return;
+            }
             if (next == null)
             {
                 result.chapterCleared = true;
-                result.chapterSouls = GainSouls(cfg.chapterClearSouls);
+                // まっすぐ進めたほど良い。戻った回数だけ報酬が目減りする（最低 30%）
+                float keep = Math.Max(0.3f, 1f - Adv.setbacks * 0.12f);
+                result.chapterSouls = GainSouls((int)(cfg.chapterClearSouls * keep));
+                result.chapterSetbacks = Adv.setbacks;
                 result.soulsGained += result.chapterSouls;
                 if (AdventureDirector.AddTorch(cfg, Adv, cfg.chapterClearTorches, TorchSpinsPerUnit) > 0) result.torchRefilled = true;
                 Adv.chapter++;
@@ -805,9 +1046,27 @@ namespace BBB.Core
                 result.stageTo = Adv.nodeId;
                 return;
             }
+            bool first = AdventureDirector.IsFirstVisit(Adv, next);
+            if (!advanced) Adv.setbacks++;
             AdventureDirector.Enter(cfg, Adv, next);
             result.stageChanged = true;
             result.stageTo = next;
+
+            // はじめて着いたステージだけ報酬を出す（戻って再訪しても貰えない）
+            var arrived = cfg.Find(next);
+            if (first && arrived != null && arrived.firstVisitSouls > 0)
+            {
+                result.firstVisitSouls = GainSouls(arrived.firstVisitSouls);
+                result.soulsGained += result.firstVisitSouls;
+            }
+
+            // 呪いの提示（深いほど強い組み合わせが出る）
+            var arrivedNode = cfg.Find(next);
+            if (advanced && CurseDirector.ShouldOffer(Config.curse, Curse, arrivedNode?.depth ?? 1, _rng))
+            {
+                Curse.Offer = CurseDirector.Roll(Config.curse, arrivedNode?.depth ?? 1, _rng);
+                result.curseOffer = Curse.Offer;
+            }
 
             // ボスステージ: 到達した瞬間に中ボスの前兆が始まる
             var node = cfg.Find(next);
@@ -829,17 +1088,25 @@ namespace BBB.Core
         {
             if (!IsTier2 || ActiveEnemyTable == null || !EnemyActive) return false;
             if (EnemyDefeatWon) return false;
-            int skillBonus = ShopDirector.EffectTotal(Config.shop, Wallet, ShopEffects.DefeatBonus);
+            int skillBonus = BonusOf(ShopEffects.DefeatBonus)
+                             + (StatsCfg != null ? (int)(Stats.Technique * StatsCfg.technique.defeatBonus) : 0);
             if (EnemyEngage.RollDefeat(ActiveEnemyTable, winType, _rng, multiplier, DefeatStreak, Config.defeatStreakBonus, skillBonus)) EnemyDefeatWon = true;
             DefeatStreak++;
             return EnemyDefeatWon;
+        }
+
+        /// <summary>潜行が終わったとき（街に着いたとき）に、拾い物と呪いを流す。</summary>
+        public void EndRun()
+        {
+            Equip.Clear();
+            Curse.Clear();
         }
 
         /// <summary>ソウルを加算する（ショップの取得量アップを掛ける）。実際に加えた量を返す。</summary>
         private int GainSouls(int baseAmount)
         {
             if (baseAmount <= 0) return 0;
-            int bonus = ShopDirector.EffectTotal(Config.shop, Wallet, ShopEffects.SoulGain);
+            int bonus = BonusOf(ShopEffects.SoulGain);
             int amount = Math.Max(0, baseAmount * (100 + bonus) / 100);
             Wallet.Souls += amount;
             Wallet.TotalSouls += amount;
@@ -850,7 +1117,7 @@ namespace BBB.Core
         private int ApplyExpBonus(int baseExp)
         {
             if (baseExp <= 0) return 0;
-            int bonus = ShopDirector.EffectTotal(Config.shop, Wallet, ShopEffects.ExpGain);
+            int bonus = BonusOf(ShopEffects.ExpGain);
             return System.Math.Max(0, baseExp * (100 + bonus) / 100);
         }
 
@@ -862,6 +1129,7 @@ namespace BBB.Core
             {
                 PlayerLevel++;
                 PlayerExp -= need;
+                Stats.Unspent += Math.Max(0, StatsCfg?.pointsPerLevel ?? 0);
                 return true;
             }
             return false;

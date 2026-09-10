@@ -20,12 +20,12 @@ namespace BBB.Tests
         }
 
         [Test]
-        public void 初期クレジット50_BETで47()
+        public void 初期エンバー500_BETで497()
         {
             var m = NewMachine(1);
-            Assert.AreEqual(50, m.Credit);
+            Assert.AreEqual(500, m.Credit);
             Assert.IsTrue(m.MaxBet());
-            Assert.AreEqual(47, m.Credit);
+            Assert.AreEqual(497, m.Credit);
             Assert.AreEqual(3, m.Bet);
         }
 

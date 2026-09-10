@@ -1121,29 +1121,19 @@
   },
   "tier2MaxSpins": 3,
   "probabilities_AT": {
-    "HAZE": 34036,
-    "BB_A": 0,
-    "BB_B": 0,
-    "BB_C": 0,
-    "BB_D": 0,
-    "RB_A": 0,
-    "RB_B": 0,
-    "REPLAY_A": 5000,
-    "REPLAY_B": 3000,
-    "REPLAY_C": 1000,
-    "BELL_A": 10000,
-    "BELL_B": 6000,
-    "BELL_C": 4000,
-    "CHERRY_A": 600,
-    "CHERRY_B": 300,
-    "CHERRY_C": 100,
-    "SUICA_A": 900,
-    "SUICA_B": 500,
-    "SUICA_C": 100,
-    "CHANCE_A": 0,
-    "CHANCE_B": 0,
-    "CHANCE_C": 0,
-    "CHANCE_D": 0
+    "REPLAY_A": 14418,
+    "REPLAY_B": 7864,
+    "REPLAY_C": 3932,
+    "BELL_A": 13435,
+    "BELL_B": 8598,
+    "BELL_C": 4836,
+    "SUICA_A": 786,
+    "SUICA_B": 393,
+    "SUICA_C": 131,
+    "CHERRY_A": 591,
+    "CHERRY_B": 294,
+    "CHERRY_C": 98,
+    "HAZE": 10160
   },
   "at": {
     "initialSpins": 50,
@@ -1154,17 +1144,17 @@
     },
     "useExpectAsRate": true,
     "flatRate": 20,
-    "naviCorrectPayout": 15,
+    "naviCorrectPayout": 11,
     "naviWrongPayout": 3,
     "battleConsumesAtSpins": false,
     "failRewardSpins": 0,
     "battleRate": {
-      "BELL": 3,
-      "REPLAY": 4,
-      "CHERRY": 25,
-      "SUICA": 40,
-      "CHANCE": 100,
-      "HAZE": 2
+      "BELL": 1,
+      "REPLAY": 1,
+      "CHERRY": 8,
+      "SUICA": 12,
+      "CHANCE": 35,
+      "HAZE": 1
     },
     "damage": {
       "BELL": {
@@ -1201,7 +1191,7 @@
         "weight": 40,
         "hp": 48,
         "spins": 5,
-        "rewardSpins": 12
+        "rewardSpins": 5
       },
       {
         "id": "m_goblin",
@@ -1210,7 +1200,7 @@
         "weight": 35,
         "hp": 84,
         "spins": 5,
-        "rewardSpins": 25
+        "rewardSpins": 10
       },
       {
         "id": "m_bat",
@@ -1219,9 +1209,80 @@
         "weight": 25,
         "hp": 136,
         "spins": 6,
-        "rewardSpins": 50
+        "rewardSpins": 20
       }
-    ]
+    ],
+    "naviRate": 89,
+    "commonBellPayout": 3,
+    "zoneRate": {
+      "CHANCE": 60,
+      "SUICA": 16,
+      "CHERRY": 10
+    },
+    "zones": [
+      {
+        "id": "high",
+        "name": "灯の間",
+        "kind": "high",
+        "spins": 10,
+        "weight": 100,
+        "naviRateBonus": 25,
+        "payoutBonus": 0,
+        "addSpinRate": 0,
+        "addSpins": 5,
+        "battleRate": 0,
+        "monsterId": "",
+        "color": "#4da3ff",
+        "slam": "灯 の 間"
+      },
+      {
+        "id": "rush",
+        "name": "爆進ラッシュ",
+        "kind": "rush",
+        "spins": 8,
+        "weight": 70,
+        "naviRateBonus": 30,
+        "payoutBonus": 5,
+        "addSpinRate": 0,
+        "addSpins": 5,
+        "battleRate": 0,
+        "monsterId": "",
+        "color": "#ff4d6d",
+        "slam": "爆 進 ラ ッ シ ュ"
+      },
+      {
+        "id": "boost",
+        "name": "上乗せの祭壇",
+        "kind": "boost",
+        "spins": 8,
+        "weight": 55,
+        "naviRateBonus": 0,
+        "payoutBonus": 0,
+        "addSpinRate": 8,
+        "addSpins": 2,
+        "battleRate": 0,
+        "monsterId": "",
+        "color": "#ffcf3f",
+        "slam": "上 乗 せ の 祭 壇"
+      },
+      {
+        "id": "beast",
+        "name": "珍獣バトル",
+        "kind": "beast",
+        "spins": 10,
+        "weight": 40,
+        "naviRateBonus": 0,
+        "payoutBonus": 0,
+        "addSpinRate": 0,
+        "addSpins": 5,
+        "battleRate": 14,
+        "monsterId": "m_bat",
+        "color": "#3ddc84",
+        "slam": "珍 獣 出 現 ！"
+      }
+    ],
+    "setSpins": 50,
+    "continueRate": 73
   },
   "bonusPullInSlip": 20,
   "ceilingBonus": {
@@ -1690,7 +1751,8 @@
         "valuePerLevel": 3,
         "maxLevel": 5,
         "baseCost": 120,
-        "costGrowth": 100
+        "costGrowth": 100,
+        "icon": "sword"
       },
       {
         "id": "sk_soul",
@@ -1701,7 +1763,8 @@
         "valuePerLevel": 10,
         "maxLevel": 5,
         "baseCost": 150,
-        "costGrowth": 120
+        "costGrowth": 120,
+        "icon": "soul"
       },
       {
         "id": "sk_hunt",
@@ -1712,7 +1775,8 @@
         "valuePerLevel": 8,
         "maxLevel": 5,
         "baseCost": 200,
-        "costGrowth": 160
+        "costGrowth": 160,
+        "icon": "eye"
       },
       {
         "id": "sk_exp",
@@ -1723,7 +1787,8 @@
         "valuePerLevel": 15,
         "maxLevel": 4,
         "baseCost": 180,
-        "costGrowth": 140
+        "costGrowth": 140,
+        "icon": "book"
       },
       {
         "id": "gr_lantern",
@@ -1734,7 +1799,8 @@
         "valuePerLevel": 5,
         "maxLevel": 6,
         "baseCost": 300,
-        "costGrowth": 250
+        "costGrowth": 250,
+        "icon": "lantern"
       },
       {
         "id": "gr_amulet",
@@ -1745,7 +1811,8 @@
         "valuePerLevel": 4,
         "maxLevel": 5,
         "baseCost": 400,
-        "costGrowth": 350
+        "costGrowth": 350,
+        "icon": "amulet"
       },
       {
         "id": "gr_oil",
@@ -1756,7 +1823,8 @@
         "valuePerLevel": 10,
         "maxLevel": 5,
         "baseCost": 200,
-        "costGrowth": 150
+        "costGrowth": 150,
+        "icon": "oil"
       }
     ]
   },
@@ -1765,7 +1833,7 @@
     "chapterName": "第1章  はじまりの草原",
     "start": "A-1",
     "hideRoute": true,
-    "chapterClearSouls": 100,
+    "chapterClearSouls": 300,
     "chapterClearTorches": 1,
     "nodes": [
       {
@@ -1775,178 +1843,1644 @@
         "kind": "normal",
         "spins": 40,
         "mode": "",
-        "rank": 0,
+        "rank": 11,
         "engageBoost": 0,
         "bossRate": 0,
-        "treasure": {},
-        "routeByFlag": {
-          "CHERRY": {
-            "B-2": 5,
-            "NONE": 95
+        "treasure": {
+          "CHANCE": 22
+        },
+        "routeByFlag": {},
+        "routeDefault": {},
+        "routeConditions": [
+          {
+            "to": "B-1",
+            "label": "チャンス目を 2 回引く（上の道）",
+            "counters": {
+              "CHANCE": 2
+            },
+            "state": {},
+            "priority": 30,
+            "hidden": false
           },
-          "SUICA": {
-            "B-2": 12,
-            "NONE": 88
+          {
+            "to": "B-2",
+            "label": "スイカを 2 回引く",
+            "counters": {
+              "SUICA": 2
+            },
+            "state": {},
+            "priority": 20,
+            "hidden": false
           },
-          "CHANCE": {
-            "B-2": 50,
-            "NONE": 50
+          {
+            "to": "B-2",
+            "label": "リプレイを 4 回引く",
+            "counters": {
+              "REPLAY": 4
+            },
+            "state": {},
+            "priority": 10,
+            "hidden": false
           }
-        },
-        "routeDefault": {
-          "B-1": 100
-        },
+        ],
+        "back": "",
+        "depth": 1,
+        "firstVisitSouls": 26,
         "enterLines": [
           "……さて、行くか",
-          "草原の風が気持ちいい",
-          "まずはここからだ"
+          "草原の風が気持ちいい"
         ],
-        "desc": "旅のはじまり。ここで引いた役が先の道を決める",
+        "desc": "",
         "color": ""
       },
       {
         "id": "B-1",
-        "name": "山道",
+        "name": "丘の道",
         "column": "B",
         "kind": "normal",
         "spins": 40,
         "mode": "",
-        "rank": 0,
-        "engageBoost": 4,
+        "rank": 22,
+        "engageBoost": 0,
         "bossRate": 0,
-        "treasure": {},
-        "routeByFlag": {
-          "SUICA": {
-            "C-1": 7,
-            "NONE": 93
+        "treasure": {
+          "CHANCE": 22
+        },
+        "routeByFlag": {},
+        "routeDefault": {},
+        "routeConditions": [
+          {
+            "to": "C-1",
+            "label": "チェリーを 2 回引く（上の道）",
+            "counters": {
+              "CHERRY": 2
+            },
+            "state": {},
+            "priority": 30,
+            "hidden": false
           },
-          "CHANCE": {
-            "C-1": 40,
-            "NONE": 60
+          {
+            "to": "C-2",
+            "label": "スイカを 2 回引く",
+            "counters": {
+              "SUICA": 2
+            },
+            "state": {},
+            "priority": 20,
+            "hidden": false
+          },
+          {
+            "to": "C-3",
+            "label": "リプレイを 4 回引く（下の道）",
+            "counters": {
+              "REPLAY": 4
+            },
+            "state": {},
+            "priority": 10,
+            "hidden": false
           }
-        },
-        "routeDefault": {
-          "C-2": 100
-        },
-        "enterLines": [
-          "……坂が続くな",
-          "足元に気をつけろ",
-          "山の空気は冷たい"
         ],
-        "desc": "敵が出やすい山道。倒せばソウルが貯まる",
+        "back": "A-1",
+        "depth": 2,
+        "firstVisitSouls": 59,
+        "enterLines": [
+          "坂を登れば見晴らしがいいはずだ",
+          "足元に気をつけよう"
+        ],
+        "desc": "",
         "color": ""
       },
       {
         "id": "B-2",
-        "name": "霧の森",
+        "name": "獣道",
         "column": "B",
-        "kind": "treasure",
-        "spins": 30,
+        "kind": "normal",
+        "spins": 40,
         "mode": "",
-        "rank": 1,
+        "rank": 21,
         "engageBoost": 0,
         "bossRate": 0,
-        "treasure": {
-          "CHERRY": 8,
-          "SUICA": 12,
-          "CHANCE": 45
-        },
-        "routeByFlag": {
-          "CHERRY": {
-            "C-1": 5,
-            "NONE": 95
+        "treasure": {},
+        "routeByFlag": {},
+        "routeDefault": {},
+        "routeConditions": [
+          {
+            "to": "C-3",
+            "label": "チェリーを 2 回引く（上の道）",
+            "counters": {
+              "CHERRY": 2
+            },
+            "state": {},
+            "priority": 30,
+            "hidden": false
           },
-          "SUICA": {
-            "C-1": 20,
-            "NONE": 80
+          {
+            "to": "C-4",
+            "label": "スイカを 2 回引く",
+            "counters": {
+              "SUICA": 2
+            },
+            "state": {},
+            "priority": 20,
+            "hidden": false
           },
-          "CHANCE": {
-            "C-1": 80,
-            "NONE": 20
+          {
+            "to": "C-4",
+            "label": "リプレイを 4 回引く",
+            "counters": {
+              "REPLAY": 4
+            },
+            "state": {},
+            "priority": 10,
+            "hidden": false
           }
-        },
-        "routeDefault": {
-          "C-2": 100
-        },
-        "enterLines": [
-          "霧が深い……何か落ちていそうだ",
-          "……足元をよく見て進もう",
-          "宝の匂いがする"
         ],
-        "desc": "宝箱が眠る森。チェリー・スイカで宝を探す",
+        "back": "A-1",
+        "depth": 2,
+        "firstVisitSouls": 50,
+        "enterLines": [
+          "坂を登れば見晴らしがいいはずだ",
+          "足元に気をつけよう"
+        ],
+        "desc": "",
         "color": ""
       },
       {
         "id": "C-1",
-        "name": "古代遺跡",
+        "name": "霧の森",
         "column": "C",
         "kind": "high",
-        "spins": 30,
+        "spins": 35,
         "mode": "D",
-        "rank": 2,
+        "rank": 34,
         "engageBoost": 8,
         "bossRate": 0,
         "treasure": {
-          "SUICA": 5,
-          "CHANCE": 35
+          "CHANCE": 22
         },
         "routeByFlag": {},
-        "routeDefault": {
-          "D-1": 100
-        },
-        "enterLines": [
-          "……ここは、当たりだ",
-          "遺跡の中は妙に温かい",
-          "壁の文様が光っている……"
+        "routeDefault": {},
+        "routeConditions": [
+          {
+            "to": "D-1",
+            "label": "チャンス目を 2 回引く（上の道）",
+            "counters": {
+              "CHANCE": 2
+            },
+            "state": {},
+            "priority": 30,
+            "hidden": false
+          },
+          {
+            "to": "D-2",
+            "label": "ベルを 2 回引く",
+            "counters": {
+              "BELL": 2
+            },
+            "state": {},
+            "priority": 20,
+            "hidden": false
+          },
+          {
+            "to": "D-3",
+            "label": "リプレイを 4 回引く（下の道）",
+            "counters": {
+              "REPLAY": 4
+            },
+            "state": {},
+            "priority": 10,
+            "hidden": false
+          }
         ],
-        "desc": "高確率ゾーン。滞在中はモードDのテーブルで抽選",
+        "back": "B-1",
+        "depth": 3,
+        "firstVisitSouls": 110,
+        "enterLines": [
+          "霧が深い……何か落ちていそうだ",
+          "ここから先は勘が頼りだ"
+        ],
+        "desc": "",
         "color": "#ff4d6d"
       },
       {
         "id": "C-2",
-        "name": "廃坑",
+        "name": "古い橋",
+        "column": "C",
+        "kind": "treasure",
+        "spins": 35,
+        "mode": "",
+        "rank": 33,
+        "engageBoost": 4,
+        "bossRate": 0,
+        "treasure": {
+          "CHANCE": 45,
+          "SUICA": 12
+        },
+        "routeByFlag": {},
+        "routeDefault": {},
+        "routeConditions": [
+          {
+            "to": "D-2",
+            "label": "チャンス目を 2 回引く（上の道）",
+            "counters": {
+              "CHANCE": 2
+            },
+            "state": {},
+            "priority": 30,
+            "hidden": false
+          },
+          {
+            "to": "D-3",
+            "label": "ベルを 2 回引く",
+            "counters": {
+              "BELL": 2
+            },
+            "state": {},
+            "priority": 20,
+            "hidden": false
+          },
+          {
+            "to": "D-4",
+            "label": "リプレイを 4 回引く（下の道）",
+            "counters": {
+              "REPLAY": 4
+            },
+            "state": {},
+            "priority": 10,
+            "hidden": false
+          }
+        ],
+        "back": "B-2",
+        "depth": 3,
+        "firstVisitSouls": 99,
+        "enterLines": [
+          "霧が深い……何か落ちていそうだ",
+          "ここから先は勘が頼りだ"
+        ],
+        "desc": "",
+        "color": "#ffcf3f"
+      },
+      {
+        "id": "C-3",
+        "name": "沢沿い",
         "column": "C",
         "kind": "normal",
         "spins": 35,
         "mode": "",
-        "rank": 0,
-        "engageBoost": 3,
+        "rank": 32,
+        "engageBoost": 0,
         "bossRate": 0,
-        "treasure": {
-          "SUICA": 3,
-          "CHANCE": 20
-        },
+        "treasure": {},
         "routeByFlag": {},
-        "routeDefault": {
-          "D-1": 100
-        },
-        "enterLines": [
-          "……暗いな",
-          "トロッコの跡が残っている",
-          "崩れないでくれよ"
+        "routeDefault": {},
+        "routeConditions": [
+          {
+            "to": "D-3",
+            "label": "チャンス目を 2 回引く（上の道）",
+            "counters": {
+              "CHANCE": 2
+            },
+            "state": {},
+            "priority": 30,
+            "hidden": false
+          },
+          {
+            "to": "D-4",
+            "label": "ベルを 2 回引く",
+            "counters": {
+              "BELL": 2
+            },
+            "state": {},
+            "priority": 20,
+            "hidden": false
+          },
+          {
+            "to": "D-5",
+            "label": "リプレイを 4 回引く（下の道）",
+            "counters": {
+              "REPLAY": 4
+            },
+            "state": {},
+            "priority": 10,
+            "hidden": false
+          }
         ],
-        "desc": "遠回りの廃坑。宝は少ないが敵はそこそこ",
+        "back": "B-2",
+        "depth": 3,
+        "firstVisitSouls": 89,
+        "enterLines": [
+          "霧が深い……何か落ちていそうだ",
+          "ここから先は勘が頼りだ"
+        ],
+        "desc": "",
+        "color": ""
+      },
+      {
+        "id": "C-4",
+        "name": "ぬかるみ",
+        "column": "C",
+        "kind": "rest",
+        "spins": 35,
+        "mode": "",
+        "rank": 31,
+        "engageBoost": 0,
+        "bossRate": 0,
+        "treasure": {},
+        "routeByFlag": {},
+        "routeDefault": {},
+        "routeConditions": [
+          {
+            "to": "D-5",
+            "label": "チャンス目を 2 回引く（上の道）",
+            "counters": {
+              "CHANCE": 2
+            },
+            "state": {},
+            "priority": 30,
+            "hidden": false
+          },
+          {
+            "to": "D-6",
+            "label": "ベルを 2 回引く",
+            "counters": {
+              "BELL": 2
+            },
+            "state": {},
+            "priority": 20,
+            "hidden": false
+          },
+          {
+            "to": "D-6",
+            "label": "リプレイを 4 回引く",
+            "counters": {
+              "REPLAY": 4
+            },
+            "state": {},
+            "priority": 10,
+            "hidden": false
+          }
+        ],
+        "back": "B-2",
+        "depth": 3,
+        "firstVisitSouls": 79,
+        "enterLines": [
+          "霧が深い……何か落ちていそうだ",
+          "ここから先は勘が頼りだ"
+        ],
+        "desc": "",
         "color": ""
       },
       {
         "id": "D-1",
-        "name": "竜の巣",
+        "name": "廃坑",
         "column": "D",
-        "kind": "boss",
-        "spins": 30,
-        "mode": "C",
-        "rank": 3,
-        "engageBoost": 0,
-        "bossRate": 100,
+        "kind": "high",
+        "spins": 35,
+        "mode": "D",
+        "rank": 46,
+        "engageBoost": 8,
+        "bossRate": 0,
+        "treasure": {
+          "CHANCE": 22
+        },
+        "routeByFlag": {},
+        "routeDefault": {},
+        "routeConditions": [
+          {
+            "to": "E-1",
+            "label": "チェリーを 2 回引く（上の道）",
+            "counters": {
+              "CHERRY": 2
+            },
+            "state": {},
+            "priority": 30,
+            "hidden": false
+          },
+          {
+            "to": "E-2",
+            "label": "スイカを 2 回引く",
+            "counters": {
+              "SUICA": 2
+            },
+            "state": {},
+            "priority": 20,
+            "hidden": false
+          },
+          {
+            "to": "E-3",
+            "label": "リプレイを 4 回引く（下の道）",
+            "counters": {
+              "REPLAY": 4
+            },
+            "state": {},
+            "priority": 10,
+            "hidden": false
+          }
+        ],
+        "back": "C-1",
+        "depth": 4,
+        "firstVisitSouls": 170,
+        "enterLines": [
+          "……暗いな",
+          "つるはしの跡が残っている"
+        ],
+        "desc": "",
+        "color": "#ff4d6d"
+      },
+      {
+        "id": "D-2",
+        "name": "石切場",
+        "column": "D",
+        "kind": "treasure",
+        "spins": 35,
+        "mode": "",
+        "rank": 45,
+        "engageBoost": 4,
+        "bossRate": 0,
+        "treasure": {
+          "CHANCE": 45,
+          "SUICA": 12
+        },
+        "routeByFlag": {},
+        "routeDefault": {},
+        "routeConditions": [
+          {
+            "to": "E-1",
+            "label": "チェリーを 2 回引く（上の道）",
+            "counters": {
+              "CHERRY": 2
+            },
+            "state": {},
+            "priority": 30,
+            "hidden": false
+          },
+          {
+            "to": "E-2",
+            "label": "スイカを 2 回引く",
+            "counters": {
+              "SUICA": 2
+            },
+            "state": {},
+            "priority": 20,
+            "hidden": false
+          },
+          {
+            "to": "E-3",
+            "label": "リプレイを 4 回引く（下の道）",
+            "counters": {
+              "REPLAY": 4
+            },
+            "state": {},
+            "priority": 10,
+            "hidden": false
+          }
+        ],
+        "back": "C-2",
+        "depth": 4,
+        "firstVisitSouls": 159,
+        "enterLines": [
+          "……暗いな",
+          "つるはしの跡が残っている"
+        ],
+        "desc": "",
+        "color": "#ffcf3f"
+      },
+      {
+        "id": "D-3",
+        "name": "朽ちた社",
+        "column": "D",
+        "kind": "normal",
+        "spins": 35,
+        "mode": "",
+        "rank": 44,
+        "engageBoost": 2,
+        "bossRate": 0,
         "treasure": {},
         "routeByFlag": {},
         "routeDefault": {},
+        "routeConditions": [
+          {
+            "to": "E-3",
+            "label": "チェリーを 2 回引く（上の道）",
+            "counters": {
+              "CHERRY": 2
+            },
+            "state": {},
+            "priority": 30,
+            "hidden": false
+          },
+          {
+            "to": "E-4",
+            "label": "スイカを 2 回引く",
+            "counters": {
+              "SUICA": 2
+            },
+            "state": {},
+            "priority": 20,
+            "hidden": false
+          },
+          {
+            "to": "E-5",
+            "label": "リプレイを 4 回引く（下の道）",
+            "counters": {
+              "REPLAY": 4
+            },
+            "state": {},
+            "priority": 10,
+            "hidden": false
+          }
+        ],
+        "back": "C-3",
+        "depth": 4,
+        "firstVisitSouls": 147,
+        "enterLines": [
+          "……暗いな",
+          "つるはしの跡が残っている"
+        ],
+        "desc": "",
+        "color": ""
+      },
+      {
+        "id": "D-4",
+        "name": "崖の細道",
+        "column": "D",
+        "kind": "normal",
+        "spins": 35,
+        "mode": "",
+        "rank": 43,
+        "engageBoost": 2,
+        "bossRate": 0,
+        "treasure": {},
+        "routeByFlag": {},
+        "routeDefault": {},
+        "routeConditions": [
+          {
+            "to": "E-4",
+            "label": "チェリーを 2 回引く（上の道）",
+            "counters": {
+              "CHERRY": 2
+            },
+            "state": {},
+            "priority": 30,
+            "hidden": false
+          },
+          {
+            "to": "E-5",
+            "label": "スイカを 2 回引く",
+            "counters": {
+              "SUICA": 2
+            },
+            "state": {},
+            "priority": 20,
+            "hidden": false
+          },
+          {
+            "to": "E-6",
+            "label": "リプレイを 4 回引く（下の道）",
+            "counters": {
+              "REPLAY": 4
+            },
+            "state": {},
+            "priority": 10,
+            "hidden": false
+          }
+        ],
+        "back": "C-4",
+        "depth": 4,
+        "firstVisitSouls": 136,
+        "enterLines": [
+          "……暗いな",
+          "つるはしの跡が残っている"
+        ],
+        "desc": "",
+        "color": ""
+      },
+      {
+        "id": "D-5",
+        "name": "苔の洞",
+        "column": "D",
+        "kind": "normal",
+        "spins": 35,
+        "mode": "",
+        "rank": 42,
+        "engageBoost": 2,
+        "bossRate": 0,
+        "treasure": {},
+        "routeByFlag": {},
+        "routeDefault": {},
+        "routeConditions": [
+          {
+            "to": "E-6",
+            "label": "チェリーを 2 回引く（上の道）",
+            "counters": {
+              "CHERRY": 2
+            },
+            "state": {},
+            "priority": 30,
+            "hidden": false
+          },
+          {
+            "to": "E-7",
+            "label": "スイカを 2 回引く",
+            "counters": {
+              "SUICA": 2
+            },
+            "state": {},
+            "priority": 20,
+            "hidden": false
+          },
+          {
+            "to": "E-8",
+            "label": "リプレイを 4 回引く（下の道）",
+            "counters": {
+              "REPLAY": 4
+            },
+            "state": {},
+            "priority": 10,
+            "hidden": false
+          }
+        ],
+        "back": "C-4",
+        "depth": 4,
+        "firstVisitSouls": 124,
+        "enterLines": [
+          "……暗いな",
+          "つるはしの跡が残っている"
+        ],
+        "desc": "",
+        "color": ""
+      },
+      {
+        "id": "D-6",
+        "name": "枯れ谷",
+        "column": "D",
+        "kind": "rest",
+        "spins": 35,
+        "mode": "",
+        "rank": 41,
+        "engageBoost": 2,
+        "bossRate": 0,
+        "treasure": {},
+        "routeByFlag": {},
+        "routeDefault": {},
+        "routeConditions": [
+          {
+            "to": "E-7",
+            "label": "チェリーを 2 回引く（上の道）",
+            "counters": {
+              "CHERRY": 2
+            },
+            "state": {},
+            "priority": 30,
+            "hidden": false
+          },
+          {
+            "to": "E-8",
+            "label": "スイカを 2 回引く",
+            "counters": {
+              "SUICA": 2
+            },
+            "state": {},
+            "priority": 20,
+            "hidden": false
+          },
+          {
+            "to": "E-8",
+            "label": "リプレイを 4 回引く",
+            "counters": {
+              "REPLAY": 4
+            },
+            "state": {},
+            "priority": 10,
+            "hidden": false
+          }
+        ],
+        "back": "C-4",
+        "depth": 4,
+        "firstVisitSouls": 113,
+        "enterLines": [
+          "……暗いな",
+          "つるはしの跡が残っている"
+        ],
+        "desc": "",
+        "color": ""
+      },
+      {
+        "id": "E-1",
+        "name": "地下水路",
+        "column": "E",
+        "kind": "high",
+        "spins": 30,
+        "mode": "D",
+        "rank": 58,
+        "engageBoost": 8,
+        "bossRate": 0,
+        "treasure": {
+          "CHANCE": 22
+        },
+        "routeByFlag": {},
+        "routeDefault": {},
+        "routeConditions": [
+          {
+            "to": "F-1",
+            "label": "チャンス目を 2 回引く（上の道）",
+            "counters": {
+              "CHANCE": 3
+            },
+            "state": {},
+            "priority": 30,
+            "hidden": false
+          },
+          {
+            "to": "F-2",
+            "label": "ベルを 2 回引く",
+            "counters": {
+              "BELL": 3
+            },
+            "state": {},
+            "priority": 20,
+            "hidden": false
+          },
+          {
+            "to": "F-3",
+            "label": "リプレイを 3 回引く（下の道）",
+            "counters": {
+              "REPLAY": 4
+            },
+            "state": {},
+            "priority": 10,
+            "hidden": false
+          }
+        ],
+        "back": "D-1",
+        "depth": 5,
+        "firstVisitSouls": 240,
+        "enterLines": [
+          "水の音がする",
+          "空気がひんやりしている"
+        ],
+        "desc": "",
+        "color": "#ff4d6d"
+      },
+      {
+        "id": "E-2",
+        "name": "結晶の間",
+        "column": "E",
+        "kind": "treasure",
+        "spins": 30,
+        "mode": "",
+        "rank": 57,
+        "engageBoost": 4,
+        "bossRate": 0,
+        "treasure": {
+          "CHANCE": 45,
+          "SUICA": 12
+        },
+        "routeByFlag": {},
+        "routeDefault": {},
+        "routeConditions": [
+          {
+            "to": "F-1",
+            "label": "チャンス目を 2 回引く（上の道）",
+            "counters": {
+              "CHANCE": 3
+            },
+            "state": {},
+            "priority": 30,
+            "hidden": false
+          },
+          {
+            "to": "F-2",
+            "label": "ベルを 2 回引く",
+            "counters": {
+              "BELL": 3
+            },
+            "state": {},
+            "priority": 20,
+            "hidden": false
+          },
+          {
+            "to": "F-3",
+            "label": "リプレイを 3 回引く（下の道）",
+            "counters": {
+              "REPLAY": 4
+            },
+            "state": {},
+            "priority": 10,
+            "hidden": false
+          }
+        ],
+        "back": "D-2",
+        "depth": 5,
+        "firstVisitSouls": 227,
+        "enterLines": [
+          "水の音がする",
+          "空気がひんやりしている"
+        ],
+        "desc": "",
+        "color": "#ffcf3f"
+      },
+      {
+        "id": "E-3",
+        "name": "忘れられた書庫",
+        "column": "E",
+        "kind": "normal",
+        "spins": 30,
+        "mode": "",
+        "rank": 56,
+        "engageBoost": 2,
+        "bossRate": 0,
+        "treasure": {},
+        "routeByFlag": {},
+        "routeDefault": {},
+        "routeConditions": [
+          {
+            "to": "F-1",
+            "label": "チャンス目を 2 回引く（上の道）",
+            "counters": {
+              "CHANCE": 3
+            },
+            "state": {},
+            "priority": 30,
+            "hidden": false
+          },
+          {
+            "to": "F-2",
+            "label": "ベルを 2 回引く",
+            "counters": {
+              "BELL": 3
+            },
+            "state": {},
+            "priority": 20,
+            "hidden": false
+          },
+          {
+            "to": "F-3",
+            "label": "リプレイを 3 回引く（下の道）",
+            "counters": {
+              "REPLAY": 4
+            },
+            "state": {},
+            "priority": 10,
+            "hidden": false
+          }
+        ],
+        "back": "D-3",
+        "depth": 5,
+        "firstVisitSouls": 215,
+        "enterLines": [
+          "水の音がする",
+          "空気がひんやりしている"
+        ],
+        "desc": "",
+        "color": ""
+      },
+      {
+        "id": "E-4",
+        "name": "鏡の広間",
+        "column": "E",
+        "kind": "normal",
+        "spins": 30,
+        "mode": "",
+        "rank": 55,
+        "engageBoost": 2,
+        "bossRate": 0,
+        "treasure": {},
+        "routeByFlag": {},
+        "routeDefault": {},
+        "routeConditions": [
+          {
+            "to": "F-2",
+            "label": "チャンス目を 2 回引く（上の道）",
+            "counters": {
+              "CHANCE": 3
+            },
+            "state": {},
+            "priority": 30,
+            "hidden": false
+          },
+          {
+            "to": "F-3",
+            "label": "ベルを 2 回引く",
+            "counters": {
+              "BELL": 3
+            },
+            "state": {},
+            "priority": 20,
+            "hidden": false
+          },
+          {
+            "to": "F-4",
+            "label": "リプレイを 3 回引く（下の道）",
+            "counters": {
+              "REPLAY": 4
+            },
+            "state": {},
+            "priority": 10,
+            "hidden": false
+          }
+        ],
+        "back": "D-4",
+        "depth": 5,
+        "firstVisitSouls": 202,
+        "enterLines": [
+          "水の音がする",
+          "空気がひんやりしている"
+        ],
+        "desc": "",
+        "color": ""
+      },
+      {
+        "id": "E-5",
+        "name": "鐘楼",
+        "column": "E",
+        "kind": "normal",
+        "spins": 30,
+        "mode": "",
+        "rank": 54,
+        "engageBoost": 2,
+        "bossRate": 0,
+        "treasure": {},
+        "routeByFlag": {},
+        "routeDefault": {},
+        "routeConditions": [
+          {
+            "to": "F-2",
+            "label": "チャンス目を 2 回引く（上の道）",
+            "counters": {
+              "CHANCE": 3
+            },
+            "state": {},
+            "priority": 30,
+            "hidden": false
+          },
+          {
+            "to": "F-3",
+            "label": "ベルを 2 回引く",
+            "counters": {
+              "BELL": 3
+            },
+            "state": {},
+            "priority": 20,
+            "hidden": false
+          },
+          {
+            "to": "F-4",
+            "label": "リプレイを 3 回引く（下の道）",
+            "counters": {
+              "REPLAY": 4
+            },
+            "state": {},
+            "priority": 10,
+            "hidden": false
+          }
+        ],
+        "back": "D-5",
+        "depth": 5,
+        "firstVisitSouls": 190,
+        "enterLines": [
+          "水の音がする",
+          "空気がひんやりしている"
+        ],
+        "desc": "",
+        "color": ""
+      },
+      {
+        "id": "E-6",
+        "name": "地熱の泉",
+        "column": "E",
+        "kind": "normal",
+        "spins": 30,
+        "mode": "",
+        "rank": 53,
+        "engageBoost": 2,
+        "bossRate": 0,
+        "treasure": {},
+        "routeByFlag": {},
+        "routeDefault": {},
+        "routeConditions": [
+          {
+            "to": "F-3",
+            "label": "チャンス目を 2 回引く（上の道）",
+            "counters": {
+              "CHANCE": 3
+            },
+            "state": {},
+            "priority": 30,
+            "hidden": false
+          },
+          {
+            "to": "F-4",
+            "label": "ベルを 2 回引く",
+            "counters": {
+              "BELL": 3
+            },
+            "state": {},
+            "priority": 20,
+            "hidden": false
+          },
+          {
+            "to": "F-5",
+            "label": "リプレイを 3 回引く（下の道）",
+            "counters": {
+              "REPLAY": 4
+            },
+            "state": {},
+            "priority": 10,
+            "hidden": false
+          }
+        ],
+        "back": "D-6",
+        "depth": 5,
+        "firstVisitSouls": 177,
+        "enterLines": [
+          "水の音がする",
+          "空気がひんやりしている"
+        ],
+        "desc": "",
+        "color": ""
+      },
+      {
+        "id": "E-7",
+        "name": "虫の巣",
+        "column": "E",
+        "kind": "normal",
+        "spins": 30,
+        "mode": "",
+        "rank": 52,
+        "engageBoost": 2,
+        "bossRate": 0,
+        "treasure": {},
+        "routeByFlag": {},
+        "routeDefault": {},
+        "routeConditions": [
+          {
+            "to": "F-3",
+            "label": "チャンス目を 2 回引く（上の道）",
+            "counters": {
+              "CHANCE": 3
+            },
+            "state": {},
+            "priority": 30,
+            "hidden": false
+          },
+          {
+            "to": "F-4",
+            "label": "ベルを 2 回引く",
+            "counters": {
+              "BELL": 3
+            },
+            "state": {},
+            "priority": 20,
+            "hidden": false
+          },
+          {
+            "to": "F-5",
+            "label": "リプレイを 3 回引く（下の道）",
+            "counters": {
+              "REPLAY": 4
+            },
+            "state": {},
+            "priority": 10,
+            "hidden": false
+          }
+        ],
+        "back": "D-6",
+        "depth": 5,
+        "firstVisitSouls": 165,
+        "enterLines": [
+          "水の音がする",
+          "空気がひんやりしている"
+        ],
+        "desc": "",
+        "color": ""
+      },
+      {
+        "id": "E-8",
+        "name": "底なし沼",
+        "column": "E",
+        "kind": "rest",
+        "spins": 30,
+        "mode": "",
+        "rank": 51,
+        "engageBoost": 2,
+        "bossRate": 0,
+        "treasure": {},
+        "routeByFlag": {},
+        "routeDefault": {},
+        "routeConditions": [
+          {
+            "to": "F-4",
+            "label": "チャンス目を 2 回引く（上の道）",
+            "counters": {
+              "CHANCE": 3
+            },
+            "state": {},
+            "priority": 30,
+            "hidden": false
+          },
+          {
+            "to": "F-5",
+            "label": "ベルを 2 回引く",
+            "counters": {
+              "BELL": 3
+            },
+            "state": {},
+            "priority": 20,
+            "hidden": false
+          },
+          {
+            "to": "F-5",
+            "label": "リプレイを 3 回引く",
+            "counters": {
+              "REPLAY": 4
+            },
+            "state": {},
+            "priority": 10,
+            "hidden": false
+          }
+        ],
+        "back": "D-6",
+        "depth": 5,
+        "firstVisitSouls": 152,
+        "enterLines": [
+          "水の音がする",
+          "空気がひんやりしている"
+        ],
+        "desc": "",
+        "color": ""
+      },
+      {
+        "id": "F-1",
+        "name": "古代遺跡",
+        "column": "F",
+        "kind": "high",
+        "spins": 30,
+        "mode": "D",
+        "rank": 65,
+        "engageBoost": 8,
+        "bossRate": 0,
+        "treasure": {
+          "CHANCE": 22
+        },
+        "routeByFlag": {},
+        "routeDefault": {},
+        "routeConditions": [
+          {
+            "to": "G-1",
+            "label": "チェリーを 2 回引く（上の道）",
+            "counters": {
+              "CHERRY": 3
+            },
+            "state": {},
+            "priority": 30,
+            "hidden": false
+          },
+          {
+            "to": "G-2",
+            "label": "スイカを 2 回引く",
+            "counters": {
+              "SUICA": 3
+            },
+            "state": {},
+            "priority": 20,
+            "hidden": false
+          },
+          {
+            "to": "G-3",
+            "label": "リプレイを 3 回引く（下の道）",
+            "counters": {
+              "REPLAY": 4
+            },
+            "state": {},
+            "priority": 10,
+            "hidden": false
+          }
+        ],
+        "back": "E-1",
+        "depth": 6,
+        "firstVisitSouls": 251,
+        "enterLines": [
+          "壁の文様が光っている……",
+          "誰かがここに居た跡だ"
+        ],
+        "desc": "",
+        "color": "#ff4d6d"
+      },
+      {
+        "id": "F-2",
+        "name": "静寂の回廊",
+        "column": "F",
+        "kind": "treasure",
+        "spins": 30,
+        "mode": "",
+        "rank": 64,
+        "engageBoost": 4,
+        "bossRate": 0,
+        "treasure": {
+          "CHANCE": 45,
+          "SUICA": 12
+        },
+        "routeByFlag": {},
+        "routeDefault": {},
+        "routeConditions": [
+          {
+            "to": "G-1",
+            "label": "チェリーを 2 回引く（上の道）",
+            "counters": {
+              "CHERRY": 3
+            },
+            "state": {},
+            "priority": 30,
+            "hidden": false
+          },
+          {
+            "to": "G-1",
+            "label": "スイカを 2 回引く",
+            "counters": {
+              "SUICA": 3
+            },
+            "state": {},
+            "priority": 20,
+            "hidden": false
+          },
+          {
+            "to": "G-2",
+            "label": "リプレイを 3 回引く（下の道）",
+            "counters": {
+              "REPLAY": 4
+            },
+            "state": {},
+            "priority": 10,
+            "hidden": false
+          }
+        ],
+        "back": "E-2",
+        "depth": 6,
+        "firstVisitSouls": 238,
+        "enterLines": [
+          "壁の文様が光っている……",
+          "誰かがここに居た跡だ"
+        ],
+        "desc": "",
+        "color": "#ffcf3f"
+      },
+      {
+        "id": "F-3",
+        "name": "祭壇",
+        "column": "F",
+        "kind": "normal",
+        "spins": 30,
+        "mode": "",
+        "rank": 63,
+        "engageBoost": 2,
+        "bossRate": 0,
+        "treasure": {},
+        "routeByFlag": {},
+        "routeDefault": {},
+        "routeConditions": [
+          {
+            "to": "G-1",
+            "label": "チェリーを 2 回引く（上の道）",
+            "counters": {
+              "CHERRY": 3
+            },
+            "state": {},
+            "priority": 30,
+            "hidden": false
+          },
+          {
+            "to": "G-2",
+            "label": "スイカを 2 回引く",
+            "counters": {
+              "SUICA": 3
+            },
+            "state": {},
+            "priority": 20,
+            "hidden": false
+          },
+          {
+            "to": "G-3",
+            "label": "リプレイを 3 回引く（下の道）",
+            "counters": {
+              "REPLAY": 4
+            },
+            "state": {},
+            "priority": 10,
+            "hidden": false
+          }
+        ],
+        "back": "E-3",
+        "depth": 6,
+        "firstVisitSouls": 224,
+        "enterLines": [
+          "壁の文様が光っている……",
+          "誰かがここに居た跡だ"
+        ],
+        "desc": "",
+        "color": ""
+      },
+      {
+        "id": "F-4",
+        "name": "風の抜け道",
+        "column": "F",
+        "kind": "normal",
+        "spins": 30,
+        "mode": "",
+        "rank": 62,
+        "engageBoost": 2,
+        "bossRate": 0,
+        "treasure": {},
+        "routeByFlag": {},
+        "routeDefault": {},
+        "routeConditions": [
+          {
+            "to": "G-2",
+            "label": "チェリーを 2 回引く（上の道）",
+            "counters": {
+              "CHERRY": 3
+            },
+            "state": {},
+            "priority": 30,
+            "hidden": false
+          },
+          {
+            "to": "G-3",
+            "label": "スイカを 2 回引く",
+            "counters": {
+              "SUICA": 3
+            },
+            "state": {},
+            "priority": 20,
+            "hidden": false
+          },
+          {
+            "to": "G-3",
+            "label": "リプレイを 3 回引く",
+            "counters": {
+              "REPLAY": 4
+            },
+            "state": {},
+            "priority": 10,
+            "hidden": false
+          }
+        ],
+        "back": "E-4",
+        "depth": 6,
+        "firstVisitSouls": 210,
+        "enterLines": [
+          "壁の文様が光っている……",
+          "誰かがここに居た跡だ"
+        ],
+        "desc": "",
+        "color": ""
+      },
+      {
+        "id": "F-5",
+        "name": "瓦礫の海",
+        "column": "F",
+        "kind": "rest",
+        "spins": 30,
+        "mode": "",
+        "rank": 61,
+        "engageBoost": 2,
+        "bossRate": 0,
+        "treasure": {},
+        "routeByFlag": {},
+        "routeDefault": {},
+        "routeConditions": [
+          {
+            "to": "G-2",
+            "label": "チェリーを 2 回引く（上の道）",
+            "counters": {
+              "CHERRY": 3
+            },
+            "state": {},
+            "priority": 30,
+            "hidden": false
+          },
+          {
+            "to": "G-3",
+            "label": "スイカを 2 回引く",
+            "counters": {
+              "SUICA": 3
+            },
+            "state": {},
+            "priority": 20,
+            "hidden": false
+          },
+          {
+            "to": "G-3",
+            "label": "リプレイを 3 回引く",
+            "counters": {
+              "REPLAY": 4
+            },
+            "state": {},
+            "priority": 10,
+            "hidden": false
+          }
+        ],
+        "back": "E-5",
+        "depth": 6,
+        "firstVisitSouls": 197,
+        "enterLines": [
+          "壁の文様が光っている……",
+          "誰かがここに居た跡だ"
+        ],
+        "desc": "",
+        "color": ""
+      },
+      {
+        "id": "G-1",
+        "name": "竜の巣への道",
+        "column": "G",
+        "kind": "high",
+        "spins": 30,
+        "mode": "D",
+        "rank": 73,
+        "engageBoost": 8,
+        "bossRate": 0,
+        "treasure": {
+          "CHANCE": 22
+        },
+        "routeByFlag": {},
+        "routeDefault": {},
+        "routeConditions": [
+          {
+            "to": "H-1",
+            "label": "チャンス目を 2 回引く（上の道）",
+            "counters": {
+              "CHANCE": 3
+            },
+            "state": {},
+            "priority": 30,
+            "hidden": false
+          },
+          {
+            "to": "H-1",
+            "label": "ベルを 2 回引く",
+            "counters": {
+              "BELL": 3
+            },
+            "state": {},
+            "priority": 20,
+            "hidden": false
+          },
+          {
+            "to": "H-1",
+            "label": "リプレイを 3 回引く",
+            "counters": {
+              "REPLAY": 4
+            },
+            "state": {},
+            "priority": 10,
+            "hidden": false
+          }
+        ],
+        "back": "F-1",
+        "depth": 7,
+        "firstVisitSouls": 276,
+        "enterLines": [
+          "空気が焦げてきた",
+          "……近いな"
+        ],
+        "desc": "",
+        "color": "#ff4d6d"
+      },
+      {
+        "id": "G-2",
+        "name": "灼熱の岩場",
+        "column": "G",
+        "kind": "normal",
+        "spins": 30,
+        "mode": "",
+        "rank": 72,
+        "engageBoost": 2,
+        "bossRate": 0,
+        "treasure": {},
+        "routeByFlag": {},
+        "routeDefault": {},
+        "routeConditions": [
+          {
+            "to": "H-1",
+            "label": "チャンス目を 2 回引く（上の道）",
+            "counters": {
+              "CHANCE": 3
+            },
+            "state": {},
+            "priority": 30,
+            "hidden": false
+          },
+          {
+            "to": "H-1",
+            "label": "ベルを 2 回引く",
+            "counters": {
+              "BELL": 3
+            },
+            "state": {},
+            "priority": 20,
+            "hidden": false
+          },
+          {
+            "to": "H-1",
+            "label": "リプレイを 3 回引く",
+            "counters": {
+              "REPLAY": 4
+            },
+            "state": {},
+            "priority": 10,
+            "hidden": false
+          }
+        ],
+        "back": "F-2",
+        "depth": 7,
+        "firstVisitSouls": 261,
+        "enterLines": [
+          "空気が焦げてきた",
+          "……近いな"
+        ],
+        "desc": "",
+        "color": ""
+      },
+      {
+        "id": "G-3",
+        "name": "骨の道",
+        "column": "G",
+        "kind": "rest",
+        "spins": 30,
+        "mode": "",
+        "rank": 71,
+        "engageBoost": 2,
+        "bossRate": 0,
+        "treasure": {},
+        "routeByFlag": {},
+        "routeDefault": {},
+        "routeConditions": [
+          {
+            "to": "H-1",
+            "label": "チャンス目を 2 回引く（上の道）",
+            "counters": {
+              "CHANCE": 3
+            },
+            "state": {},
+            "priority": 30,
+            "hidden": false
+          },
+          {
+            "to": "H-1",
+            "label": "ベルを 2 回引く",
+            "counters": {
+              "BELL": 3
+            },
+            "state": {},
+            "priority": 20,
+            "hidden": false
+          },
+          {
+            "to": "H-1",
+            "label": "リプレイを 3 回引く",
+            "counters": {
+              "REPLAY": 4
+            },
+            "state": {},
+            "priority": 10,
+            "hidden": false
+          }
+        ],
+        "back": "F-3",
+        "depth": 7,
+        "firstVisitSouls": 246,
+        "enterLines": [
+          "空気が焦げてきた",
+          "……近いな"
+        ],
+        "desc": "",
+        "color": ""
+      },
+      {
+        "id": "H-1",
+        "name": "竜の巣",
+        "column": "H",
+        "kind": "boss",
+        "spins": 30,
+        "mode": "",
+        "rank": 81,
+        "engageBoost": 2,
+        "bossRate": 100,
+        "treasure": {
+          "CHANCE": 22
+        },
+        "routeByFlag": {},
+        "routeDefault": {},
+        "routeConditions": [],
+        "back": "",
+        "depth": 8,
+        "firstVisitSouls": 300,
         "enterLines": [
           "……来たな",
-          "空気が焦げている",
           "ここを抜ければ街だ"
         ],
-        "desc": "章の終点。到達すると中ボスが待ち構える",
+        "desc": "",
         "color": "#ff9a3c"
       }
     ],
@@ -2011,5 +3545,782 @@
         "BONUS": 20
       }
     }
+  },
+  "stats": {
+    "enabled": true,
+    "pointsPerLevel": 2,
+    "maxPerStat": 20,
+    "freeRespecOnChapterClear": true,
+    "respecCost": 200,
+    "life": {
+      "freeBetRate": 0.15,
+      "rescueBonus": 8.0,
+      "torchSpins": 0.5
+    },
+    "technique": {
+      "engageSpins": 0.05,
+      "defeatBonus": 1.4,
+      "battleDamage": 2.5
+    },
+    "luck": {
+      "rareRate": 0.06,
+      "replayRate": 0.08,
+      "treasureBonus": 0.5
+    }
+  },
+  "story": {
+    "enabled": true,
+    "highBranchMax": 2,
+    "lowBranchFromBottom": 1,
+    "chapters": [
+      {
+        "chapter": 1,
+        "title": "第1章  灯を継ぐ",
+        "theme": "引き返すことは、負けなのか",
+        "opening": [
+          {
+            "speaker": "",
+            "text": "街の灯を分けてもらった。これが尽きるまでが、今日の旅だ"
+          },
+          {
+            "speaker": "",
+            "text": "奥に「消えない灯」があるという。竜が守っているとも、食っているとも聞く"
+          },
+          {
+            "speaker": "",
+            "text": "……確かめに行く"
+          }
+        ],
+        "stages": [
+          {
+            "column": "A",
+            "high": [
+              {
+                "speaker": "",
+                "text": "風が背中を押している"
+              },
+              {
+                "speaker": "",
+                "text": "灯はまだ十分だ。行けるところまで行こう"
+              }
+            ],
+            "mid": [
+              {
+                "speaker": "",
+                "text": "……さて、行くか"
+              },
+              {
+                "speaker": "",
+                "text": "草原の風が気持ちいい"
+              }
+            ],
+            "low": [
+              {
+                "speaker": "",
+                "text": "出がけに灯を惜しんだ"
+              },
+              {
+                "speaker": "",
+                "text": "……足りるだろうか"
+              }
+            ]
+          },
+          {
+            "column": "B",
+            "high": [
+              {
+                "speaker": "",
+                "text": "丘の上から先が見えた。道は思ったより多い"
+              },
+              {
+                "speaker": "",
+                "text": "灯が強いと、遠くまで見えるものだな"
+              }
+            ],
+            "mid": [
+              {
+                "speaker": "",
+                "text": "坂が続く。足元に気をつけよう"
+              },
+              {
+                "speaker": "",
+                "text": "どちらの道も、行った者はいるらしい"
+              }
+            ],
+            "low": [
+              {
+                "speaker": "",
+                "text": "獣道に入ってしまった"
+              },
+              {
+                "speaker": "",
+                "text": "……戻る道は、覚えておこう"
+              }
+            ]
+          },
+          {
+            "column": "C",
+            "high": [
+              {
+                "speaker": "",
+                "text": "木の幹に印がある。誰かが同じ道を選んだ"
+              },
+              {
+                "speaker": "",
+                "text": "「ここまで来た」とだけ彫ってある"
+              }
+            ],
+            "mid": [
+              {
+                "speaker": "",
+                "text": "霧が深い。灯を高く掲げる"
+              },
+              {
+                "speaker": "",
+                "text": "……足元をよく見て進もう"
+              }
+            ],
+            "low": [
+              {
+                "speaker": "",
+                "text": "ぬかるみで足を取られた"
+              },
+              {
+                "speaker": "",
+                "text": "灯が揺れる。消えるなよ"
+              }
+            ]
+          },
+          {
+            "column": "D",
+            "high": [
+              {
+                "speaker": "",
+                "text": "ここは灯を掘る坑道だったのか"
+              },
+              {
+                "speaker": "",
+                "text": "壁がまだ温かい。掘り当てた者がいたんだ"
+              }
+            ],
+            "mid": [
+              {
+                "speaker": "",
+                "text": "……暗いな"
+              },
+              {
+                "speaker": "",
+                "text": "つるはしの跡が残っている"
+              }
+            ],
+            "low": [
+              {
+                "speaker": "",
+                "text": "坑道の底に落ちた"
+              },
+              {
+                "speaker": "",
+                "text": "掘った者たちは、ここから戻れたのだろうか"
+              }
+            ]
+          },
+          {
+            "column": "E",
+            "high": [
+              {
+                "speaker": "声",
+                "text": "……よく灯を保ったな"
+              },
+              {
+                "speaker": "",
+                "text": "誰だ。……姿はないのか"
+              }
+            ],
+            "mid": [
+              {
+                "speaker": "",
+                "text": "水の音がする。地下の層は広い"
+              },
+              {
+                "speaker": "",
+                "text": "どこを通っても、同じ深さには着くらしい"
+              }
+            ],
+            "low": [
+              {
+                "speaker": "",
+                "text": "底なし沼だ。ここを通る道は誰も選ばない"
+              },
+              {
+                "speaker": "",
+                "text": "……それでも、進める道ではある"
+              }
+            ]
+          },
+          {
+            "column": "F",
+            "high": [
+              {
+                "speaker": "",
+                "text": "壁の文様が、灯に応えて光っている"
+              },
+              {
+                "speaker": "声",
+                "text": "これは分けるものだ。抱えるものではない"
+              }
+            ],
+            "mid": [
+              {
+                "speaker": "",
+                "text": "誰かがここに居た跡だ"
+              },
+              {
+                "speaker": "",
+                "text": "灯を置いて、そのまま戻らなかった跡"
+              }
+            ],
+            "low": [
+              {
+                "speaker": "",
+                "text": "瓦礫ばかりだ。ここも掘り尽くされている"
+              },
+              {
+                "speaker": "",
+                "text": "……取り分は、もう残っていない"
+              }
+            ]
+          },
+          {
+            "column": "G",
+            "high": [
+              {
+                "speaker": "",
+                "text": "空気が焦げている。近い"
+              },
+              {
+                "speaker": "",
+                "text": "灯がまだ強い。これなら見える"
+              }
+            ],
+            "mid": [
+              {
+                "speaker": "",
+                "text": "岩が熱い。灯を持たなくても明るい"
+              },
+              {
+                "speaker": "",
+                "text": "……ここから先は、戻る道が長い"
+              }
+            ],
+            "low": [
+              {
+                "speaker": "",
+                "text": "骨が転がっている。灯を切らした者たちだ"
+              },
+              {
+                "speaker": "",
+                "text": "同じにはならない"
+              }
+            ]
+          },
+          {
+            "column": "H",
+            "high": [
+              {
+                "speaker": "",
+                "text": "竜がいた。腹の中で灯が燃えている"
+              },
+              {
+                "speaker": "声",
+                "text": "……分けに来たのか。奪いに来たのか"
+              },
+              {
+                "speaker": "",
+                "text": "分けてもらいに来た"
+              }
+            ],
+            "mid": [
+              {
+                "speaker": "",
+                "text": "竜がいた。灯を抱いて眠っている"
+              },
+              {
+                "speaker": "",
+                "text": "起こさずに、少しだけ分けてもらおう"
+              }
+            ],
+            "low": [
+              {
+                "speaker": "",
+                "text": "竜がいた。こちらの灯は、もう心もとない"
+              },
+              {
+                "speaker": "",
+                "text": "……見えるうちに、確かめるだけでいい"
+              }
+            ]
+          }
+        ],
+        "onBack": [
+          {
+            "speaker": "",
+            "text": "……道を間違えた。戻ろう"
+          },
+          {
+            "speaker": "",
+            "text": "戻れるうちに戻るのが、灯を持つ者の作法だ"
+          }
+        ],
+        "onTorchOut": [
+          {
+            "speaker": "",
+            "text": "松明が尽きた。ここまでだ"
+          },
+          {
+            "speaker": "",
+            "text": "道は覚えている。次はもっと持ってこよう"
+          }
+        ],
+        "onDeath": [
+          {
+            "speaker": "",
+            "text": "灯が……"
+          },
+          {
+            "speaker": "声",
+            "text": "……消える前に、帰る道を選べたはずだ"
+          },
+          {
+            "speaker": "",
+            "text": "……次は、選ぶ"
+          }
+        ],
+        "onClear": [
+          {
+            "speaker": "",
+            "text": "竜は灯を食っていたのではなかった"
+          },
+          {
+            "speaker": "",
+            "text": "誰も取りに来ないから、抱えていただけだ"
+          },
+          {
+            "speaker": "",
+            "text": "……街に持って帰ろう。分けるものだと言われた"
+          }
+        ],
+        "laps": {
+          "2": [
+            {
+              "speaker": "声",
+              "text": "また来たのか"
+            },
+            {
+              "speaker": "",
+              "text": "前より遠くまで見えている"
+            }
+          ],
+          "3": [
+            {
+              "speaker": "声",
+              "text": "三度目だ。道はもう覚えただろう"
+            },
+            {
+              "speaker": "",
+              "text": "道は覚えた。灯の持ち方は、まだだ"
+            }
+          ],
+          "5": [
+            {
+              "speaker": "声",
+              "text": "おまえは何度でも戻ってくるな"
+            },
+            {
+              "speaker": "",
+              "text": "戻れるからだ"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "equipment": {
+    "enabled": true,
+    "bagSize": 12,
+    "dropRateMob": 22,
+    "dropRateBoss": 100,
+    "dropRateHunt": 35,
+    "dropRateTreasure": 45,
+    "rarities": [
+      {
+        "id": "common",
+        "name": "並",
+        "color": "#9aa4b8",
+        "affixes": 0,
+        "power": 100,
+        "weight": 620,
+        "weightPerDepth": -55
+      },
+      {
+        "id": "fine",
+        "name": "上質",
+        "color": "#4da3ff",
+        "affixes": 1,
+        "power": 120,
+        "weight": 280,
+        "weightPerDepth": 10
+      },
+      {
+        "id": "rare",
+        "name": "稀少",
+        "color": "#ffcf3f",
+        "affixes": 2,
+        "power": 145,
+        "weight": 90,
+        "weightPerDepth": 26
+      },
+      {
+        "id": "legend",
+        "name": "伝説",
+        "color": "#ff7a45",
+        "affixes": 3,
+        "power": 175,
+        "weight": 10,
+        "weightPerDepth": 14
+      }
+    ],
+    "bases": [
+      {
+        "id": "w_blade",
+        "name": "刃",
+        "slot": "weapon",
+        "icon": "sword",
+        "effect": "defeatBonus",
+        "perLevel": 0.9,
+        "min": 2,
+        "weight": 100,
+        "minDepth": 1
+      },
+      {
+        "id": "w_spear",
+        "name": "槍",
+        "slot": "weapon",
+        "icon": "sword",
+        "effect": "battleDamage",
+        "perLevel": 2.2,
+        "min": 4,
+        "weight": 85,
+        "minDepth": 1
+      },
+      {
+        "id": "w_hammer",
+        "name": "大槌",
+        "slot": "weapon",
+        "icon": "sword",
+        "effect": "battleDamage",
+        "perLevel": 3.4,
+        "min": 6,
+        "weight": 55,
+        "minDepth": 3
+      },
+      {
+        "id": "a_coat",
+        "name": "外套",
+        "slot": "armor",
+        "icon": "shield",
+        "effect": "torchSpins",
+        "perLevel": 1.1,
+        "min": 2,
+        "weight": 100,
+        "minDepth": 1
+      },
+      {
+        "id": "a_mail",
+        "name": "鎖帷子",
+        "slot": "armor",
+        "icon": "shield",
+        "effect": "torchSpins",
+        "perLevel": 1.7,
+        "min": 3,
+        "weight": 70,
+        "minDepth": 1
+      },
+      {
+        "id": "a_plate",
+        "name": "重鎧",
+        "slot": "armor",
+        "icon": "shield",
+        "effect": "torchSpins",
+        "perLevel": 2.6,
+        "min": 5,
+        "weight": 45,
+        "minDepth": 4
+      },
+      {
+        "id": "t_charm",
+        "name": "お守り",
+        "slot": "trinket",
+        "icon": "amulet",
+        "effect": "soulGain",
+        "perLevel": 1.8,
+        "min": 3,
+        "weight": 100,
+        "minDepth": 1
+      },
+      {
+        "id": "t_ring",
+        "name": "指輪",
+        "slot": "trinket",
+        "icon": "amulet",
+        "effect": "atStartPercent",
+        "perLevel": 0.7,
+        "min": 1,
+        "weight": 80,
+        "minDepth": 1
+      },
+      {
+        "id": "t_lens",
+        "name": "水晶",
+        "slot": "trinket",
+        "icon": "amulet",
+        "effect": "atInitialSpins",
+        "perLevel": 0.8,
+        "min": 1,
+        "weight": 55,
+        "minDepth": 3
+      }
+    ],
+    "affixes": [
+      {
+        "id": "p_sharp",
+        "label": "鋭い",
+        "suffix": false,
+        "effect": "defeatBonus",
+        "perLevel": 0.7,
+        "min": 1,
+        "max": 30,
+        "slot": "weapon",
+        "weight": 100
+      },
+      {
+        "id": "p_heavy",
+        "label": "重い",
+        "suffix": false,
+        "effect": "battleDamage",
+        "perLevel": 1.8,
+        "min": 3,
+        "max": 60,
+        "slot": "weapon",
+        "weight": 100
+      },
+      {
+        "id": "p_lit",
+        "label": "灯る",
+        "suffix": false,
+        "effect": "torchSpins",
+        "perLevel": 1.0,
+        "min": 2,
+        "max": 40,
+        "slot": "",
+        "weight": 100
+      },
+      {
+        "id": "p_deep",
+        "label": "深淵の",
+        "suffix": false,
+        "effect": "soulGain",
+        "perLevel": 1.4,
+        "min": 2,
+        "max": 60,
+        "slot": "",
+        "weight": 100
+      },
+      {
+        "id": "p_lucky",
+        "label": "幸運の",
+        "suffix": false,
+        "effect": "atStartPercent",
+        "perLevel": 0.5,
+        "min": 1,
+        "max": 20,
+        "slot": "",
+        "weight": 100
+      },
+      {
+        "id": "s_hunter",
+        "label": "の狩人",
+        "suffix": true,
+        "effect": "battleDamage",
+        "perLevel": 1.6,
+        "min": 3,
+        "max": 55,
+        "slot": "weapon",
+        "weight": 100
+      },
+      {
+        "id": "s_walker",
+        "label": "の旅人",
+        "suffix": true,
+        "effect": "torchSpins",
+        "perLevel": 1.2,
+        "min": 2,
+        "max": 45,
+        "slot": "armor",
+        "weight": 100
+      },
+      {
+        "id": "s_scholar",
+        "label": "の研鑽",
+        "suffix": true,
+        "effect": "expGain",
+        "perLevel": 1.6,
+        "min": 2,
+        "max": 60,
+        "slot": "",
+        "weight": 100
+      },
+      {
+        "id": "s_cave",
+        "label": "の洞窟",
+        "suffix": true,
+        "effect": "atInitialSpins",
+        "perLevel": 0.6,
+        "min": 1,
+        "max": 18,
+        "slot": "",
+        "weight": 100
+      },
+      {
+        "id": "s_soul",
+        "label": "の魂寄",
+        "suffix": true,
+        "effect": "soulGain",
+        "perLevel": 1.5,
+        "min": 2,
+        "max": 60,
+        "slot": "trinket",
+        "weight": 100
+      }
+    ]
+  },
+  "curse": {
+    "enabled": true,
+    "offerRate": 35,
+    "minDepth": 2,
+    "maxStack": 4,
+    "curses": [
+      {
+        "id": "c_drain",
+        "name": "燃え急ぎ",
+        "desc": "松明の減りが {v}% 速くなる",
+        "effect": "torchDrain",
+        "perLevel": 6.0,
+        "min": 10,
+        "max": 70,
+        "weight": 100,
+        "minDepth": 1
+      },
+      {
+        "id": "c_hard",
+        "name": "道の険しさ",
+        "desc": "ルートの必要回数が +{v}",
+        "effect": "conditionHarder",
+        "perLevel": 0.34,
+        "min": 1,
+        "max": 3,
+        "weight": 70,
+        "minDepth": 1
+      },
+      {
+        "id": "c_cut",
+        "name": "目減り",
+        "desc": "払い出しが {v}% 減る",
+        "effect": "payoutCut",
+        "perLevel": 1.5,
+        "min": 3,
+        "max": 18,
+        "weight": 100,
+        "minDepth": 1
+      },
+      {
+        "id": "c_toll",
+        "name": "通行料",
+        "desc": "1 回転あたり {v} 多く灯を使う",
+        "effect": "betExtra",
+        "perLevel": 0.28,
+        "min": 1,
+        "max": 3,
+        "weight": 60,
+        "minDepth": 3
+      }
+    ],
+    "blessings": [
+      {
+        "id": "b_drop",
+        "name": "目利き",
+        "desc": "装備が落ちやすくなる（+{v}%）",
+        "effect": "dropRate",
+        "perLevel": 3.0,
+        "min": 6,
+        "max": 40,
+        "weight": 100,
+        "minDepth": 1
+      },
+      {
+        "id": "b_soul",
+        "name": "魂寄せ",
+        "desc": "ソウル +{v}%",
+        "effect": "soulGain",
+        "perLevel": 3.5,
+        "min": 6,
+        "max": 45,
+        "weight": 100,
+        "minDepth": 1
+      },
+      {
+        "id": "b_defeat",
+        "name": "手練",
+        "desc": "討伐率 +{v}%",
+        "effect": "defeatBonus",
+        "perLevel": 1.6,
+        "min": 3,
+        "max": 20,
+        "weight": 100,
+        "minDepth": 1
+      },
+      {
+        "id": "b_at",
+        "name": "導き",
+        "desc": "AT 期待度 +{v}%",
+        "effect": "atStartPercent",
+        "perLevel": 1.2,
+        "min": 2,
+        "max": 14,
+        "weight": 100,
+        "minDepth": 1
+      },
+      {
+        "id": "b_torch",
+        "name": "長い灯",
+        "desc": "松明 1 本のG数 +{v}",
+        "effect": "torchSpins",
+        "perLevel": 1.8,
+        "min": 3,
+        "max": 24,
+        "weight": 100,
+        "minDepth": 1
+      },
+      {
+        "id": "b_cave",
+        "name": "洞窟の地図",
+        "desc": "AT 初期G +{v}",
+        "effect": "atInitialSpins",
+        "perLevel": 1.1,
+        "min": 2,
+        "max": 14,
+        "weight": 100,
+        "minDepth": 1
+      }
+    ]
   }
 }

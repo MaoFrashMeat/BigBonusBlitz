@@ -40,12 +40,16 @@ namespace BBB.Runtime
             _audio = AudioManager.Create();
             _m = GameDataLoader.CreateMachine(new SystemRandom());
             if (!SaveData.Load(_m, _audio)) SaveData.LoadAudio(_audio);   // セーブが無くても音量設定は引き継ぐ
+            // 街に着いたら潜行中の拾い物と呪いは流す（恒久はソウル・ステータス・ショップだけ）
+            bool hadRun = _m.Equip.Bag.Count > 0 || _m.Equip.Worn.Count > 0 || _m.Curse.Taken.Count > 0;
+            _m.EndRun();
+            if (hadRun) SaveData.Save(_m, _audio);
             ArriveInTown();
             _audio.StartBgm();
             BuildUi();
         }
 
-        /// <summary>街に着いたときの処理。帰還の理由を消して、力尽きていたら路銀を最低限だけ補う。</summary>
+        /// <summary>街に着いたときの処理。帰還の理由を消して、力尽きていたらエンバーを最低限だけ補う。</summary>
         private string _arriveMessage = "";
 
         private void ArriveInTown()
@@ -57,8 +61,10 @@ namespace BBB.Runtime
             _m.Adv.returnReason = null;
             if (reason == "credit")
             {
-                if (res.rescueCredit > 0 && _m.Credit < res.rescueCredit) _m.Credit = res.rescueCredit;
-                _arriveMessage = $"力尽きて街に運ばれた。宿で一晩休み、路銀 {_m.Credit:N0} 枚で目が覚めた";
+                // 補填はライフの効果込みの値を使う
+                int rescue = _m.RescueCredit;
+                if (rescue > 0 && _m.Credit < rescue) _m.Credit = rescue;
+                _arriveMessage = $"力尽きて街に運ばれた。宿で一晩休み、エンバー {_m.Credit:N0} を分けてもらった";
             }
             else _arriveMessage = $"{res.name}が尽きて引き返した。補給すれば続きから行ける";
             SaveData.Save(_m, _audio);
@@ -87,15 +93,17 @@ namespace BBB.Runtime
 
             // ソウル残高
             var purse = UiSkin.Card(stage, "Purse", new Vector2(StageW * 0.5f - 130, StageH * 0.5f - 52), new Vector2(220, 52), 12);
-            UiFactory.Label(purse, "L", new Vector2(-58, 0), new Vector2(90, 24), "SOUL", 12, TextAnchor.MiddleLeft, UiSkin.TextSub);
-            _soulText = UiSkin.Number(purse, "V", new Vector2(-8, 0), new Vector2(190, 30), "0", 24, UiSkin.Hex("#8f6bff"));
+            // 左から順に領域を取る: アイコン → SOUL → 数字（docs/ui_rules.md 1 番）
+            UiSkin.Img(purse, "Icon", new Vector2(-92, 0), new Vector2(20, 20), UiSkin.Icon("soul", 64), Color.white);
+            UiFactory.Label(purse, "L", new Vector2(-52, 0), new Vector2(52, 24), "SOUL", 12, TextAnchor.MiddleLeft, UiSkin.TextSub);
+            _soulText = UiSkin.Number(purse, "V", new Vector2(55, 0), new Vector2(100, 30), "0", 22, UiSkin.Hex("#8f6bff"));
 
             // 左: 2 つの行き先（縦並び）。右: 冒険のステージマップ
             bool adv = _m.AdventureEnabled;
             if (adv)
             {
-                MapNode(stage, "Town", new Vector2(-330, 52), "街", "ソウルでスキルと装備を買う", UiSkin.Hex("#c8961e"), OpenShop, new Vector2(250, 150));
-                MapNode(stage, "Quest", new Vector2(-330, -116), "冒険", "", UiSkin.Accent, GoAdventure, new Vector2(250, 150));
+                MapNode(stage, "Town", new Vector2(-330, 78), "街", "ソウルでスキルと装備を買う", UiSkin.Hex("#c8961e"), OpenShop, new Vector2(250, 170));
+                MapNode(stage, "Quest", new Vector2(-330, -104), "冒険", "", UiSkin.Accent, GoAdventure, new Vector2(250, 170));
                 _mapPanel = UiSkin.Card(stage, "MapPanel", new Vector2(140, -32), new Vector2(640, 330), 14);
                 _stageInfo = UiFactory.Label(_mapPanel, "StageInfo", new Vector2(0, 330 * 0.5f - 18), new Vector2(600, 20), "", 13, TextAnchor.MiddleCenter, UiSkin.Text);
                 _stageInfo.fontStyle = FontStyle.Bold;
@@ -137,12 +145,21 @@ namespace BBB.Runtime
         {
             float w = size.x, h = size.y;
             var card = UiSkin.Card(parent, name, pos, size, 16);
-            UiSkin.Img(card, "Accent", new Vector2(0, h * 0.5f - 9), new Vector2(w - 2, 6), UiSkin.Rounded(3), color);
-            var t = UiFactory.Label(card, "Label", new Vector2(0, h * 0.5f - 51), new Vector2(w - 20, 40), label, h >= 180 ? 34 : 28, TextAnchor.MiddleCenter, UiSkin.Text);
+
+            // 上から順に領域を取る。隣の位置を前の要素から出すので、重なりが式の上で起きない
+            const float accentH = 6f, labelH = 34f, descH = 38f, btnH = 42f, gap = 6f, btnBottom = 16f;
+            float top = h * 0.5f;
+            float accentCy = top - accentH * 0.5f;
+            float labelCy = accentCy - accentH * 0.5f - gap - labelH * 0.5f;
+            float descCy = labelCy - labelH * 0.5f - 2f - descH * 0.5f;
+            float btnCy = -top + btnBottom + btnH * 0.5f;
+
+            UiSkin.Img(card, "Accent", new Vector2(0, accentCy), new Vector2(w - 2, accentH), UiSkin.Rounded(3), color);
+            var t = UiFactory.Label(card, "Label", new Vector2(0, labelCy), new Vector2(w - 20, labelH), label, h >= 180 ? 32 : 28, TextAnchor.MiddleCenter, UiSkin.Text);
             t.fontStyle = FontStyle.Bold;
-            var d = UiFactory.Label(card, "Desc", new Vector2(0, h * 0.5f - 89), new Vector2(w - 20, 40), desc, 13, TextAnchor.MiddleCenter, UiSkin.TextSub);
+            var d = UiFactory.Label(card, "Desc", new Vector2(0, descCy), new Vector2(w - 18, descH), desc, 12, TextAnchor.UpperCenter, UiSkin.TextSub);
             if (name == "Quest" && _m.AdventureEnabled) { _infoQuestDesc = d; RefreshQuestDesc(); }
-            UiSkin.Button(card, "Go", new Vector2(0, -h * 0.5f + 40), new Vector2(w - 80, 44), "ここへ行く", () => { _audio.UiPop(); onClick(); }, color, 17, true, 12);
+            UiSkin.Button(card, "Go", new Vector2(0, btnCy), new Vector2(w - 70, btnH), "ここへ行く", () => { _audio.UiPop(); onClick(); }, color, 16, true, 12);
         }
 
         private Text _infoQuestDesc;
@@ -154,7 +171,7 @@ namespace BBB.Runtime
             var n = _m.CurrentStage;
             var res = _m.Config.adventure?.resource;
             string line1 = n != null ? $"{n.id} {n.name} から再開" : "スロットを回して敵と戦う";
-            string line2 = res != null && res.enabled ? $"{res.name} {Mathf.Max(0, _m.Adv.torches)} 本   {_m.Credit:N0} 枚" : $"残り {_m.Adv.spinsLeft} G";
+            string line2 = res != null && res.enabled ? $"{res.name} {Mathf.Max(0, _m.Adv.torches)} 本   エンバー {_m.Credit:N0}" : $"残り {_m.Adv.spinsLeft} G";
             _infoQuestDesc.text = line1 + "\n" + line2;
         }
 
@@ -168,7 +185,8 @@ namespace BBB.Runtime
             _mapView.anchoredPosition = new Vector2(0, -18);
             var n = _m.CurrentStage;
             string next = _m.Adv.nextId != null ? cfg.Find(_m.Adv.nextId)?.name : null;
-            _stageInfo.text = $"{cfg.chapterName}   第{_m.Adv.chapter}章   現在地 {n?.id} {n?.name}" + (next != null ? $"   次 → {next}" : "");
+            string lap = _m.Adv.chapter > 1 ? $"（{_m.Adv.chapter} 周目）" : "";
+            _stageInfo.text = $"{cfg.chapterName}{lap}   現在地 {n?.id} {n?.name}" + (next != null ? $"   次 → {next}" : "");
             RefreshQuestDesc();
         }
 
@@ -198,7 +216,7 @@ namespace BBB.Runtime
             }
             if (_m.Credit < SlotMachine.BetCost)
             {
-                _infoText.text = "クレジットが足りない。街で路銀を買おう";
+                _infoText.text = "エンバーが足りない。街で分けてもらおう";
                 _infoText.color = UiSkin.Accent;
                 _audio.UiPop();
                 return;
@@ -212,7 +230,6 @@ namespace BBB.Runtime
             _fade.blocksRaycasts = true;
             yield return FadeTo(1f, 0.35f);
             SaveData.Save(_m, _audio);           // 買い物の結果を残してから本編へ
-            Destroy(_audio.gameObject);
             Destroy(_canvas.gameObject);
             GameController.Launch();
             yield return FadeOutOverlay();
@@ -226,7 +243,6 @@ namespace BBB.Runtime
             _fade.blocksRaycasts = true;
             yield return FadeTo(1f, 0.3f);
             SaveData.Save(_m, _audio);
-            Destroy(_audio.gameObject);
             Destroy(_canvas.gameObject);
             TitleScreen.Open();
             yield return FadeOutOverlay();

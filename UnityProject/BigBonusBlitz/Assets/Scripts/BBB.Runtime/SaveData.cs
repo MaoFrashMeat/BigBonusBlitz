@@ -25,6 +25,8 @@ namespace BBB.Runtime
         public string mode;
         public int playerLevel;
         public int playerExp;
+        // ステータス（ライフ / テクニック / ラック）
+        public int statLife, statTechnique, statLuck, statUnspent;
         public float bgmVolume = 0.5f;
         public float seVolume = 0.8f;
         public bool bgmEnabled = true;
@@ -45,6 +47,14 @@ namespace BBB.Runtime
         public int advTorches = -1;
         public int advTorchSpins;
         public string advReturnReason = "";
+        // 達成条件の数えもの（Dictionary は保存できないので 2 本の配列に分ける）
+        public string[] advCounterKeys = new string[0];
+        public int[] advCounterValues = new int[0];
+        public int advReplayChain;
+        public int advDecidedPriority;
+        // 潜行中の拾い物と呪い（構造が深いので JSON 文字列で持つ）
+        public string runEquip = "";
+        public string runCurse = "";
 
         public static void Save(SlotMachine m, AudioManager audio)
         {
@@ -61,6 +71,10 @@ namespace BBB.Runtime
                 mode = m.Mode.ToString(),
                 playerLevel = m.PlayerLevel,
                 playerExp = m.PlayerExp,
+                statLife = m.Stats.Life,
+                statTechnique = m.Stats.Technique,
+                statLuck = m.Stats.Luck,
+                statUnspent = m.Stats.Unspent,
                 bgmVolume = audio != null ? audio.BgmVolume : 0.5f,
                 seVolume = audio != null ? audio.SeVolume : 0.8f,
                 bgmEnabled = audio == null || audio.BgmEnabled,
@@ -77,7 +91,16 @@ namespace BBB.Runtime
                 advTorches = m.Adv.torches,
                 advTorchSpins = m.Adv.torchSpins,
                 advReturnReason = m.Adv.returnReason ?? "",
+                advReplayChain = m.Adv.replayChain,
+                advDecidedPriority = m.Adv.decidedPriority,
+                runEquip = RunIO.SaveEquip(m.Equip),
+                runCurse = RunIO.SaveCurse(m.Curse),
             };
+            var ck = new System.Collections.Generic.List<string>();
+            var cv = new System.Collections.Generic.List<int>();
+            foreach (var kv in m.Adv.counters) { if (kv.Value == 0) continue; ck.Add(kv.Key); cv.Add(kv.Value); }
+            d.advCounterKeys = ck.ToArray();
+            d.advCounterValues = cv.ToArray();
             var ids = new System.Collections.Generic.List<string>();
             var lvs = new System.Collections.Generic.List<int>();
             foreach (var kv in m.Wallet.Owned) { if (kv.Value <= 0) continue; ids.Add(kv.Key); lvs.Add(kv.Value); }
@@ -108,6 +131,11 @@ namespace BBB.Runtime
             if (System.Enum.TryParse<Mode>(d.mode, out var md)) m.Mode = md;
             m.PlayerLevel = Mathf.Max(1, d.playerLevel);
             m.PlayerExp = d.playerExp;
+            int statMax = Mathf.Max(1, m.Config.stats?.maxPerStat ?? 20);
+            m.Stats.Life = Mathf.Clamp(d.statLife, 0, statMax);
+            m.Stats.Technique = Mathf.Clamp(d.statTechnique, 0, statMax);
+            m.Stats.Luck = Mathf.Clamp(d.statLuck, 0, statMax);
+            m.Stats.Unspent = Mathf.Max(0, d.statUnspent);
             m.Wallet.Souls = Mathf.Max(0, d.souls);
             m.Wallet.TotalSouls = Mathf.Max(0, d.totalSouls);
             m.Wallet.Owned.Clear();
@@ -136,6 +164,14 @@ namespace BBB.Runtime
                 m.Adv.torchSpins = d.advTorchSpins;
                 m.Adv.returnReason = string.IsNullOrEmpty(d.advReturnReason) ? null : d.advReturnReason;
                 AdventureDirector.NormalizeTorches(cfg, m.Adv, m.TorchSpinsPerUnit);
+                m.Adv.counters.Clear();
+                if (d.advCounterKeys != null && d.advCounterValues != null)
+                    for (int i = 0; i < d.advCounterKeys.Length && i < d.advCounterValues.Length; i++)
+                        if (!string.IsNullOrEmpty(d.advCounterKeys[i])) m.Adv.counters[d.advCounterKeys[i]] = d.advCounterValues[i];
+                m.Adv.replayChain = Mathf.Max(0, d.advReplayChain);
+                m.Adv.decidedPriority = Mathf.Max(0, d.advDecidedPriority);
+                RunIO.LoadEquip(m.Equip, d.runEquip);
+                RunIO.LoadCurse(m.Curse, d.runCurse);
             }
             LoadAudio(audio);   // 音量は別キー（無ければこのセーブの値）から
             return true;

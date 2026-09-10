@@ -184,8 +184,7 @@ namespace BBB.Runtime
             _fade.blocksRaycasts = true;
             yield return FadeTo(1f, 0.45f);
             if (clearSave) SaveData.Clear();
-            // タイトルの BGM と UI を片付けてからゲーム本体を起動
-            Destroy(_audio.gameObject);
+            // UI だけ片付ける（AudioManager は画面をまたいで使い回すので消さない）
             Destroy(_canvas.gameObject);
             MapScreen.Open();   // まずミニマップ。街と冒険をここで選ぶ
             // ゲーム側の Canvas より前に黒幕を出して明転

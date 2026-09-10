@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace BBB.Core
@@ -30,6 +31,38 @@ namespace BBB.Core
     /// AT「洞窟」の設定。道中は押し順ベルで枚数を稼ぎ（番長型）、バトル当選でモンスター狩猟に入る（モンハン型）。
     /// 重み・確率は全て game_config.json の at で調整する。
     /// </summary>
+    /// <summary>
+    /// AT 中の特化ゾーン。一定G数のあいだ、引きや報酬が変わる。
+    /// kind: high（高確・ナビ率と上乗せが増える）/ beast（珍獣バトル）/ boost（上乗せ特化）/ rush（純増特化）
+    /// </summary>
+    [Serializable]
+    public sealed class AtZone
+    {
+        public string id = "";
+        public string name = "";
+        public string kind = "high";
+        /// <summary>継続G数。</summary>
+        public int spins = 10;
+        /// <summary>このゾーンに入る重み（役ごとの抽選で当たったあと、どれに入るかを決める）。</summary>
+        public int weight = 100;
+        /// <summary>押し順ナビが出る率に足す %（high / rush 向け）。</summary>
+        public int naviRateBonus;
+        /// <summary>ナビ正解の払い出しに足す枚数（rush 向け）。</summary>
+        public int payoutBonus;
+        /// <summary>1G ごとに上乗せする率 %（boost 向け）。</summary>
+        public int addSpinRate;
+        /// <summary>上乗せ 1 回のG数。</summary>
+        public int addSpins = 5;
+        /// <summary>ゾーン中のバトル当選率 %（beast 向け。0 なら通常どおり）。</summary>
+        public int battleRate;
+        /// <summary>ゾーン中に出るモンスターの id（空なら通常の抽選）。</summary>
+        public string monsterId = "";
+        /// <summary>ゾーンの色（"#rrggbb"）。</summary>
+        public string color = "";
+        /// <summary>入ったときの見出し。</summary>
+        public string slam = "";
+    }
+
     public sealed class AtConfig
     {
         /// <summary>AT の初期G数。</summary>
@@ -45,6 +78,18 @@ namespace BBB.Core
         public int flatRate = 20;
         /// <summary>押し順ナビに従ったときの払い出し枚数。</summary>
         public int naviCorrectPayout = 15;
+        /// <summary>1 セットのG数。使い切るたびに継続を抽選する。</summary>
+        public int setSpins = 50;
+        /// <summary>セット終了時に次のセットへ進む率 %。平均G数 = setSpins / (1 - continueRate/100)。</summary>
+        public int continueRate = 72;
+        /// <summary>押し順ナビが出る率 %。出ないベルは「共通ベル」として commonBellPayout を払う。</summary>
+        public int naviRate = 70;
+        /// <summary>共通ベル（ナビの出ないベル）の払い出し。</summary>
+        public int commonBellPayout = 8;
+        /// <summary>特化ゾーンに入る率 %（役ごと）。キーは BELL/REPLAY/CHERRY/SUICA/CHANCE/HAZE。</summary>
+        public Dictionary<string, int> zoneRate = new Dictionary<string, int>();
+        /// <summary>特化ゾーンの一覧。</summary>
+        public List<AtZone> zones = new List<AtZone>();
         /// <summary>ナビを外したときの払い出し枚数（こぼし）。</summary>
         public int naviWrongPayout = 3;
         /// <summary>バトル中のGで AT の残りGを消費するか。false なら狩猟中はGが減らない。</summary>
@@ -107,11 +152,34 @@ namespace BBB.Core
         }
 
         /// <summary>出現するモンスターを重みで選ぶ。</summary>
-        public static MonsterDef PickMonster(AtConfig cfg, IRandom rng)
+        /// <summary>特化ゾーンの当選（役ごとの率で当たり、重みでどのゾーンかを決める）。入らなければ null。</summary>
+        public static AtZone RollZone(AtConfig cfg, Flag flag, IRandom rng)
+        {
+            if (cfg?.zones == null || cfg.zones.Count == 0 || cfg.zoneRate == null) return null;
+            string key = PrecogDirector.RoleKey(flag);
+            if (!cfg.zoneRate.TryGetValue(key, out int rate) || rate <= 0) return null;
+            if (rng.NextDouble() * 100 >= rate) return null;
+            int total = 0;
+            foreach (var z in cfg.zones) total += Math.Max(0, z.weight);
+            if (total <= 0) return cfg.zones[0];
+            int r = rng.Next(total);
+            foreach (var z in cfg.zones)
+            {
+                int w = Math.Max(0, z.weight);
+                if (r < w) return z;
+                r -= w;
+            }
+            return cfg.zones[cfg.zones.Count - 1];
+        }
+
+        public static MonsterDef PickMonster(AtConfig cfg, IRandom rng, string forceId = null)
         {
             cfg = cfg ?? new AtConfig();
             var list = cfg.monsters;
             if (list == null || list.Count == 0) return new MonsterDef();
+            // ゾーンでモンスターが指定されていればそれを出す（珍獣バトルなど）
+            if (!string.IsNullOrEmpty(forceId))
+                foreach (var m in list) if (m != null && m.id == forceId) return m;
             int total = 0;
             foreach (var m in list) total += System.Math.Max(0, m.weight);
             if (total <= 0) return list[0];

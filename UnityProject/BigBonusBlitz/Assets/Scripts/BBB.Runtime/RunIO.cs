@@ -1,0 +1,77 @@
+using System.Collections.Generic;
+using BBB.Core;
+using UnityEngine;
+
+namespace BBB.Runtime
+{
+    /// <summary>
+    /// 潜行中の持ち物（装備・呪い）をセーブに載せるための橋渡し。
+    /// JsonUtility は入れ子の Dictionary を扱えないので、平らな入れ物に詰め替えて 1 本の文字列にする。
+    /// </summary>
+    public static class RunIO
+    {
+        [System.Serializable]
+        private sealed class EquipBlob
+        {
+            public List<EquipItem> bag = new List<EquipItem>();
+            public List<string> wornSlots = new List<string>();
+            public List<EquipItem> wornItems = new List<EquipItem>();
+        }
+
+        [System.Serializable]
+        private sealed class CurseBlob
+        {
+            public List<CurseInstance> taken = new List<CurseInstance>();
+        }
+
+        public static string SaveEquip(EquipInventory inv)
+        {
+            if (inv == null) return "";
+            var b = new EquipBlob();
+            b.bag.AddRange(inv.Bag);
+            foreach (var kv in inv.Worn)
+            {
+                if (kv.Value == null) continue;
+                b.wornSlots.Add(kv.Key);
+                b.wornItems.Add(kv.Value);
+            }
+            return JsonUtility.ToJson(b);
+        }
+
+        public static void LoadEquip(EquipInventory inv, string json)
+        {
+            if (inv == null) return;
+            inv.Clear();
+            if (string.IsNullOrEmpty(json)) return;
+            EquipBlob b;
+            try { b = JsonUtility.FromJson<EquipBlob>(json); }
+            catch (System.Exception) { return; }
+            if (b == null) return;
+            if (b.bag != null) foreach (var it in b.bag) if (it != null) inv.Bag.Add(it);
+            if (b.wornSlots != null && b.wornItems != null)
+                for (int i = 0; i < b.wornSlots.Count && i < b.wornItems.Count; i++)
+                    if (!string.IsNullOrEmpty(b.wornSlots[i]) && b.wornItems[i] != null)
+                        inv.Worn[b.wornSlots[i]] = b.wornItems[i];
+        }
+
+        public static string SaveCurse(CurseState st)
+        {
+            if (st == null) return "";
+            var b = new CurseBlob();
+            b.taken.AddRange(st.Taken);
+            return JsonUtility.ToJson(b);
+        }
+
+        public static void LoadCurse(CurseState st, string json)
+        {
+            if (st == null) return;
+            st.Clear();
+            if (string.IsNullOrEmpty(json)) return;
+            CurseBlob b;
+            try { b = JsonUtility.FromJson<CurseBlob>(json); }
+            catch (System.Exception) { return; }
+            if (b?.taken == null) return;
+            foreach (var c in b.taken) if (c != null) st.Taken.Add(c);
+        }
+    }
+}

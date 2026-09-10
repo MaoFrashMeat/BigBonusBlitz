@@ -33,6 +33,14 @@ namespace BBB.Core
         public Dictionary<string, Dictionary<string, int>> routeByFlag = new Dictionary<string, Dictionary<string, int>>();
         /// <summary>ステージ終了時に行き先が決まっていなければこの重みで選ぶ。空なら章クリア（終点）。</summary>
         public Dictionary<string, int> routeDefault = new Dictionary<string, int>();
+        /// <summary>達成条件で決まるルート（確率抽選より強い）。</summary>
+        public List<RouteCondition> routeConditions = new List<RouteCondition>();
+        /// <summary>条件を満たせなかったときに戻る先。空なら routeDefault、それも空ならその場に留まる。</summary>
+        public string back = "";
+        /// <summary>章の何番目か。深いほど良い報酬。表示と報酬の計算に使う。</summary>
+        public int depth;
+        /// <summary>はじめて到達したときだけ貰えるソウル（戻って再訪しても貰えない）。</summary>
+        public int firstVisitSouls;
         /// <summary>到着時に主人公が言うセリフ（ランダムに 1 つ）。</summary>
         public List<string> enterLines = new List<string>();
         /// <summary>マップの説明（1 行）。</summary>
@@ -42,6 +50,28 @@ namespace BBB.Core
 
         public bool IsGoal => routeDefault == null || routeDefault.Count == 0;
         public bool HasModeOverride => !string.IsNullOrEmpty(mode);
+    }
+
+    /// <summary>
+    /// ステージ滞在中の「達成条件」で決まるルート。確率抽選より強く、priority の高いものが勝つ。
+    /// counters は滞在中に数えた回数、state はそのGの時点の持ち物や状態。どちらも「以上」で判定し、
+    /// 並べたものを全部満たしたときだけ成立する。
+    /// </summary>
+    [Serializable]
+    public sealed class RouteCondition
+    {
+        /// <summary>成立したときの行き先。</summary>
+        public string to = "";
+        /// <summary>マップに出す名前（「リプレイを 15 回」など）。空なら自動で組み立てる。</summary>
+        public string label = "";
+        /// <summary>滞在中に数える回数。キーは AdventureDirector.CounterKeys 参照。</summary>
+        public Dictionary<string, int> counters = new Dictionary<string, int>();
+        /// <summary>そのGの時点の状態。キーは AdventureDirector.StateKeys 参照。</summary>
+        public Dictionary<string, int> state = new Dictionary<string, int>();
+        /// <summary>優先度。高いほど強い。確率で決まったルートは 0 として扱う。</summary>
+        public int priority = 10;
+        /// <summary>達成するまでマップに出さない（隠し条件）。</summary>
+        public bool hidden;
     }
 
     /// <summary>宝物 1 種。kind: souls / atSpins（次の AT に上乗せ）/ atExpect（次のボーナスの初期期待度）/ exp。</summary>
@@ -58,7 +88,7 @@ namespace BBB.Core
     /// <summary>
     /// 冒険の資源（松明）と、力尽きたときの扱い。
     /// 松明は通常時のGでだけ減り、尽きると街へ強制帰還する（進行は残る）。
-    /// クレジットが尽きたときは「力尽きた」扱いで、章の最初に戻される（進行を失う）。
+    /// エンバー（灯火）が尽きたときは「力尽きた」扱いで、章の最初に戻される（進行を失う）。
     /// </summary>
     [Serializable]
     public sealed class ResourceConfig
@@ -73,10 +103,10 @@ namespace BBB.Core
         public int spinsPerTorch = 60;
         /// <summary>松明 1 本のソウル価格。</summary>
         public int torchCost = 40;
-        /// <summary>路銀 1 口のソウル価格と、もらえるクレジット。</summary>
+        /// <summary>エンバー 1 口のソウル価格と、もらえる量。</summary>
         public int creditCost = 30;
         public int creditAmount = 50;
-        /// <summary>力尽きて街に戻ったとき、クレジットがこれ未満なら ここまで補填する（0 で補填なし）。</summary>
+        /// <summary>力尽きて街に戻ったとき、エンバーがこれ未満なら ここまで補填する（0 で補填なし）。</summary>
         public int rescueCredit = 50;
         /// <summary>力尽きたら章の最初へ戻す。</summary>
         public bool resetOnDeath = true;
@@ -132,6 +162,18 @@ namespace BBB.Core
         public int torches = -1;      // -1 = 未初期化（セーブが無いとき startTorches で埋める）
         /// <summary>使用中の松明の残りG。</summary>
         public int torchSpins;
+        /// <summary>ステージ滞在中に数えている回数（役の回数・G数・討伐数など）。ステージが変わると 0 に戻る。</summary>
+        public readonly Dictionary<string, int> counters = new Dictionary<string, int>();
+        /// <summary>いま何G連続でリプレイが続いているか。</summary>
+        public int replayChain;
+        /// <summary>行き先を決めた条件の優先度（確率で決まったときは 0）。</summary>
+        public int decidedPriority;
+        /// <summary>行き先を決めた条件の名前（表示用）。</summary>
+        public string decidedBy;
+        /// <summary>この章で到達した一番深いところ。</summary>
+        public int deepest;
+        /// <summary>この章で後退した回数（報酬の目減りに使う）。</summary>
+        public int setbacks;
         /// <summary>街へ強制帰還する理由（"torch" / "credit"）。街に着いたら空に戻す。</summary>
         public string returnReason;
         public bool MustReturn => !string.IsNullOrEmpty(returnReason);
@@ -139,6 +181,44 @@ namespace BBB.Core
 
     public static class AdventureDirector
     {
+        /// <summary>数えられる回数のキー。</summary>
+        public static readonly string[] CounterKeys = { "REPLAY", "BELL", "CHERRY", "SUICA", "CHANCE", "BONUS", "HAZE", "WIN", "SPINS", "DEFEAT", "TREASURE", "REPLAY_CHAIN", "PAYOUT" };
+        /// <summary>その時点の状態で見られるキー。</summary>
+        public static readonly string[] StateKeys = { "ember", "souls", "level", "torches" };
+
+        public static string CounterName(string key)
+        {
+            switch (key)
+            {
+                case "REPLAY": return "リプレイ";
+                case "BELL": return "ベル";
+                case "CHERRY": return "チェリー";
+                case "SUICA": return "スイカ";
+                case "CHANCE": return "チャンス目";
+                case "BONUS": return "ボーナス";
+                case "HAZE": return "ハズレ";
+                case "WIN": return "小役";
+                case "SPINS": return "ゲーム数";
+                case "DEFEAT": return "討伐";
+                case "TREASURE": return "宝";
+                case "REPLAY_CHAIN": return "リプレイ連続";
+                case "PAYOUT": return "獲得";
+                default: return key;
+            }
+        }
+
+        public static string StateName(string key)
+        {
+            switch (key)
+            {
+                case "ember": return "エンバー";
+                case "souls": return "ソウル";
+                case "level": return "レベル";
+                case "torches": return "松明";
+                default: return key;
+            }
+        }
+
         /// <summary>章の最初のステージに置く。</summary>
         public static void Reset(AdventureConfig cfg, AdventureState st)
         {
@@ -146,7 +226,10 @@ namespace BBB.Core
             var n = cfg?.Find(st.nodeId);
             st.spinsLeft = Math.Max(1, n?.spins ?? 1);
             st.nextId = null;
+            ClearProgress(st);
             st.visited.Clear();
+            st.deepest = n?.depth ?? 0;
+            st.setbacks = 0;
             if (!string.IsNullOrEmpty(st.nodeId)) st.visited.Add(st.nodeId);
         }
 
@@ -157,7 +240,144 @@ namespace BBB.Core
             var n = cfg?.Find(id);
             st.spinsLeft = Math.Max(1, n?.spins ?? 1);
             st.nextId = null;
+            ClearProgress(st);
+            if (n != null && n.depth > st.deepest) st.deepest = n.depth;
             if (!st.visited.Contains(id)) st.visited.Add(id);
+        }
+
+        /// <summary>そのステージにまだ足を踏み入れていないか（初回報酬の判定）。</summary>
+        public static bool IsFirstVisit(AdventureState st, string id) => st != null && !st.visited.Contains(id);
+
+        /// <summary>
+        /// ステージ終了時の行き先。条件を満たしていれば前へ、満たしていなければ戻る。
+        /// 戻り先が無ければその場に留まり、終点なら null（章クリア）。
+        /// forward には条件で決まった行き先が入る。
+        /// </summary>
+        public static string ResolveStep(AdventureConfig cfg, AdventureState st, IRandom rng, out bool advanced)
+        {
+            advanced = false;
+            var node = cfg?.Find(st.nodeId);
+            if (node == null) return null;
+
+            // 条件を満たしている（= 行き先が決まっている）なら前へ
+            if (!string.IsNullOrEmpty(st.nextId) && cfg.Find(st.nextId) != null)
+            {
+                advanced = true;
+                return st.nextId;
+            }
+            if (node.IsGoal && string.IsNullOrEmpty(node.back)) return null;   // 終点で条件も無ければ章クリア
+
+            // 満たせなかったので戻る
+            if (!string.IsNullOrEmpty(node.back) && cfg.Find(node.back) != null) return node.back;
+
+            // 戻り先が無いときは従来どおり既定の重みで選ぶ（後方互換）
+            string picked = Pick(node.routeDefault, rng);
+            if (!string.IsNullOrEmpty(picked) && picked != "NONE" && cfg.Find(picked) != null) { advanced = true; return picked; }
+            if (node.IsGoal) return null;
+            return st.nodeId;   // 留まる
+        }
+
+        /// <summary>ステージごとの数えものをリセットする。</summary>
+        public static void ClearProgress(AdventureState st)
+        {
+            st.counters.Clear();
+            st.replayChain = 0;
+            st.decidedPriority = 0;
+            st.decidedBy = null;
+        }
+
+        public static int GetCount(AdventureState st, string key)
+            => st != null && key != null && st.counters.TryGetValue(key, out var v) ? v : 0;
+
+        /// <summary>数えものを足す。</summary>
+        public static void AddCount(AdventureState st, string key, int n = 1)
+        {
+            if (st == null || string.IsNullOrEmpty(key) || n == 0) return;
+            st.counters[key] = GetCount(st, key) + n;
+        }
+
+        /// <summary>数えものを「これまでの最大」で更新する（リプレイ連続など）。</summary>
+        public static void MaxCount(AdventureState st, string key, int v)
+        {
+            if (st == null || string.IsNullOrEmpty(key)) return;
+            if (v > GetCount(st, key)) st.counters[key] = v;
+        }
+
+        private static int StateValue(string key, AdventureState st, int ember, int souls, int level)
+        {
+            switch (key)
+            {
+                case "ember": return ember;
+                case "souls": return souls;
+                case "level": return level;
+                case "torches": return Math.Max(0, st.torches);
+                default: return int.MaxValue;   // 知らないキーは条件として無視する
+            }
+        }
+
+        /// <summary>条件をすべて満たしているか。</summary>
+        public static bool Meets(RouteCondition c, AdventureState st, int ember, int souls, int level, int harder = 0)
+        {
+            if (c == null) return false;
+            if (c.counters != null)
+                foreach (var kv in c.counters)
+                    if (kv.Value > 0 && GetCount(st, kv.Key) < kv.Value + Math.Max(0, harder)) return false;
+            if (c.state != null)
+                foreach (var kv in c.state)
+                    if (kv.Value > 0 && StateValue(kv.Key, st, ember, souls, level) < kv.Value) return false;
+            return true;
+        }
+
+        /// <summary>
+        /// 今のステージの達成条件を見て、成立していて今より強いものがあれば返す。無ければ null。
+        /// </summary>
+        public static RouteCondition CheckConditions(AdventureConfig cfg, AdventureState st, int ember, int souls, int level, int harder = 0)
+        {
+            var node = cfg?.Find(st.nodeId);
+            if (node?.routeConditions == null || node.routeConditions.Count == 0) return null;
+            RouteCondition best = null;
+            foreach (var c in node.routeConditions)
+            {
+                if (c == null || string.IsNullOrEmpty(c.to) || cfg.Find(c.to) == null) continue;
+                if (c.priority <= st.decidedPriority) continue;          // 同じか弱い条件では覆さない
+                if (c.to == st.nextId) continue;                          // もう同じ行き先
+                if (!Meets(c, st, ember, souls, level, harder)) continue;
+                if (best == null || c.priority > best.priority) best = c;
+            }
+            return best;
+        }
+
+        /// <summary>条件の説明（label が空なら中身から組み立てる）。</summary>
+        public static string DescribeCondition(RouteCondition c)
+        {
+            if (c == null) return "";
+            if (!string.IsNullOrEmpty(c.label)) return c.label;
+            var parts = new List<string>();
+            if (c.counters != null) foreach (var kv in c.counters) if (kv.Value > 0) parts.Add($"{CounterName(kv.Key)} {kv.Value}");
+            if (c.state != null) foreach (var kv in c.state) if (kv.Value > 0) parts.Add($"{StateName(kv.Key)} {kv.Value} 以上");
+            return parts.Count == 0 ? "条件なし" : string.Join(" ＋ ", parts);
+        }
+
+        /// <summary>達成の進み具合（「リプレイ 12/15」の形）。</summary>
+        public static string ProgressText(RouteCondition c, AdventureState st, int ember, int souls, int level)
+        {
+            if (c == null) return "";
+            var parts = new List<string>();
+            if (c.counters != null)
+                foreach (var kv in c.counters)
+                {
+                    if (kv.Value <= 0) continue;
+                    parts.Add($"{CounterName(kv.Key)} {Math.Min(GetCount(st, kv.Key), kv.Value)}/{kv.Value}");
+                }
+            if (c.state != null)
+                foreach (var kv in c.state)
+                {
+                    if (kv.Value <= 0) continue;
+                    int v = StateValue(kv.Key, st, ember, souls, level);
+                    if (v == int.MaxValue) continue;
+                    parts.Add($"{StateName(kv.Key)} {v}/{kv.Value}");
+                }
+            return string.Join("  ", parts);
         }
 
         /// <summary>
@@ -167,6 +387,7 @@ namespace BBB.Core
         /// </summary>
         public static string RollRoute(AdventureConfig cfg, AdventureState st, string roleKey, IRandom rng)
         {
+            if (st.decidedPriority > 0) return null;   // 条件で決まったルートは確率で覆さない
             var node = cfg?.Find(st.nodeId);
             if (node?.routeByFlag == null || !node.routeByFlag.TryGetValue(roleKey, out var table) || table == null) return null;
             string picked = Pick(table, rng);
@@ -197,12 +418,12 @@ namespace BBB.Core
         }
 
         /// <summary>宝の抽選。役ごとの率 % で当たり、当たれば重みで宝を 1 つ選ぶ。</summary>
-        public static TreasureDef RollTreasure(AdventureConfig cfg, AdventureState st, string roleKey, IRandom rng)
+        public static TreasureDef RollTreasure(AdventureConfig cfg, AdventureState st, string roleKey, IRandom rng, float bonusRate = 0f)
         {
             var node = cfg?.Find(st.nodeId);
             if (node?.treasure == null || !node.treasure.TryGetValue(roleKey, out int rate) || rate <= 0) return null;
             if (cfg.treasures == null || cfg.treasures.Count == 0) return null;
-            if (rng.NextDouble() * 100 >= rate) return null;
+            if (rng.NextDouble() * 100 >= rate + bonusRate) return null;
             int total = 0;
             foreach (var t in cfg.treasures) total += Math.Max(0, t.weight);
             if (total <= 0) return cfg.treasures[0];

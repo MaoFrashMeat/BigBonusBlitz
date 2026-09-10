@@ -10,7 +10,7 @@ namespace BBB.Runtime
     /// ブラウザ版 main.js のゲーム進行（BET → レバー → 停止 → 判定 → 次G）を Unity 上で回す。
     /// UI・演出は全部コードで生成。キャラは Chr0001（仮）、敵3種、背景6層、Web版の音源。
     /// 操作: Ctrl=BET+レバー / Z,X,C or ←↓→=停止 / Space=BET→1→2→3 を順送り / A=オート
-    ///       F1〜F6=設定変更 / B=BGM / R=セーブ削除して再開 / +(テンキー) or ;=クレジット100追加
+    ///       F1〜F6=設定変更 / B=BGM / R=セーブ削除して再開 / +(テンキー) or ;=エンバー100追加
     /// </summary>
     public sealed class GameController : MonoBehaviour
     {
@@ -61,6 +61,9 @@ namespace BBB.Runtime
         private readonly SystemRandom _fxRng = new SystemRandom();
         private GameObject _naviBox;
         private Text[] _naviLabels = new Text[3];
+        private readonly RectTransform[] _naviCells = new RectTransform[3];
+        /// <summary>そのリールのバッジを押して消したか（1G ごとにリセット）。</summary>
+        private readonly bool[] _naviPopped = new bool[3];
         private Image[] _naviBg = new Image[3];
         private Image[] _naviGlow = new Image[3];
         // 会話 UI（旅人 ⇄ 主人公）
@@ -121,9 +124,21 @@ namespace BBB.Runtime
         private GameObject _graphBox;
         // 冒険マップ（ステージ札とモーダル）
         private Text _stageTag;
-        private Image _stageTagBg;
+        private Image _stageTagBg, _stageTagEdge;
+        // ステージのG数が止まっている間の錠前表示
+        private GameObject _holdBox;
+        private Text _holdText, _holdReason;
+        private Image _holdLock;
+        private readonly System.Collections.Generic.List<Image> _holdLinks = new System.Collections.Generic.List<Image>();
+        // 次のルートの達成条件（表示域の左）
+        private GameObject _routeBox;
+        private Text _routeTitle;
+        private readonly Text[] _routeArrow = new Text[3];
+        private readonly Text[] _routeText = new Text[3];
+        private readonly Image[] _routeBar = new Image[3];
         private GameObject _mapBox;
-        private RectTransform _mapBody, _mapView;
+        private GameObject _equipBox, _curseBox;
+        private RectTransform _mapBody, _mapView, _condList;
         private Text _mapInfo;
         private bool _leaving;   // 章クリア・帰還で街へ戻る途中
         private Text _torchTag;
@@ -157,6 +172,16 @@ namespace BBB.Runtime
             SetMessage((_m.HeldBonusFlag != Flag.HAZE && _m.BonusAnnounceRemaining <= 0) ? "ボーナス成立中  ―  揃えてください" : "Ctrl または Space で BET");
             _audio.StartBgm();
             PlayCharacter("walk");
+            // 章の頭に着いたところなら、導入を流す（周回なら「また来たのか」を足す）
+            if (_m.AdventureEnabled && _m.Adv.nodeId == _m.Config.adventure.start && _m.Adv.visited.Count <= 1)
+            {
+                var lines = new System.Collections.Generic.List<StoryLine>();
+                var op = StoryDirector.Opening(_m.Config.story, _m.Adv.chapter);
+                if (op != null) lines.AddRange(op);
+                var lap = StoryDirector.Lap(_m.Config.story, _m.Adv.chapter, _m.Adv.chapter);
+                if (lap != null) lines.AddRange(lap);
+                PlayStory(lines);
+            }
         }
 
         private void OnApplicationQuit() => SaveData.Save(_m, _audio);
@@ -289,6 +314,10 @@ namespace BBB.Runtime
             _idleFrames = ArtLoader.Strip("Art/Characters/chr0001_idle_strip", 4);
             _walkFrames = ArtLoader.Strip("Art/Characters/popora_walk_strip_25f", 25);
             _attackFrames = ArtLoader.Strip("Art/Characters/chr0001_attack_strip", 4);
+            // どれかが読めなかったら、読めたもので代用する（真っ白なキャラにしない）
+            if (_walkFrames.Length == 0) _walkFrames = _idleFrames.Length > 0 ? _idleFrames : _attackFrames;
+            if (_idleFrames.Length == 0) _idleFrames = _walkFrames.Length > 0 ? _walkFrames : _attackFrames;
+            if (_idleFrames.Length == 0) Debug.LogWarning("キャラの画像が読み込めていません（Resources/Art/Characters を確認）");
             const float charSize = 206f;
             _charRt = MakeImage(_area, "Character", new Vector2(-AreaW * 0.5f + 0.15f * AreaW + charSize * 0.5f, -AreaH * 0.5f + 6f + charSize * 0.5f), new Vector2(charSize, charSize), null);
             _charRt.GetComponent<Image>().color = Color.white;
@@ -328,22 +357,75 @@ namespace BBB.Runtime
 
             // 示唆セリフ（中央上。影付き）
             // ステージ札（左上の隅。§3: 見失っても死なない情報は隅に固定）。タップでマップ
-            var tagRt = UiSkin.Rect(_area, "StageTag", new Vector2(-AreaW * 0.5f + 8 + 118, AreaH * 0.5f - 8 - 12), new Vector2(236, 24));
-            _stageTagBg = UiSkin.Img(tagRt, "Bg", Vector2.zero, new Vector2(236, 24), UiSkin.Rounded(12), new Color(0.05f, 0.07f, 0.12f, 0.82f), true);
-            UiSkin.Img(tagRt, "Edge", new Vector2(-118 + 3, 0), new Vector2(4, 16), UiSkin.Rounded(2), ColGold);
-            _stageTag = UiFactory.Label(tagRt, "Text", new Vector2(6, 0), new Vector2(220, 24), "", 12, TextAnchor.MiddleLeft, ColText);
+            const float tagW = 330f, tagH = 30f;
+            float tagTop = AreaY + AreaH * 0.5f - 6 - tagH * 0.5f;   // 表示域の上端に沿わせる
+            var tagRt = UiSkin.Rect(stageCard, "StageTag", new Vector2(-AreaW * 0.5f + 10 + tagW * 0.5f, tagTop), new Vector2(tagW, tagH));
+            UiSkin.Img(tagRt, "Shadow", new Vector2(0, -3), new Vector2(tagW + 18, tagH + 16), UiSkin.Shadow(15, 10), new Color(0, 0, 0, 0.7f));
+            UiSkin.Img(tagRt, "Edge2", Vector2.zero, new Vector2(tagW + 2, tagH + 2), UiSkin.Rounded(16), new Color(1, 1, 1, 0.14f));
+            _stageTagBg = UiSkin.Img(tagRt, "Bg", Vector2.zero, new Vector2(tagW, tagH), UiSkin.Rounded(15), Hex("#0b1120"), true);
+            _stageTagEdge = UiSkin.Img(tagRt, "Edge", new Vector2(-tagW * 0.5f + 7, 0), new Vector2(5, 20), UiSkin.Rounded(2), ColGold);
+            _stageTag = UiFactory.Label(tagRt, "Text", new Vector2(9, 0), new Vector2(tagW - 28, tagH), "", 14, TextAnchor.MiddleLeft, ColText);
             _stageTag.fontStyle = FontStyle.Bold;
+            TextShadow(_stageTag, 1f);
             var tagBtn = _stageTagBg.gameObject.AddComponent<Button>();
             tagBtn.transition = Selectable.Transition.None;
             tagBtn.onClick.AddListener(ToggleMap);
             tagRt.gameObject.SetActive(_m.AdventureEnabled);
 
+            // ===== HOLD: ステージのG数が止まっている間、札を鎖と南京錠で封じる =====
+            var holdRt = UiSkin.Rect(tagRt, "Hold", Vector2.zero, new Vector2(tagW, tagH));
+            UiSkin.Img(holdRt, "Dim", Vector2.zero, new Vector2(tagW, tagH), UiSkin.Rounded(15), new Color(0.03f, 0.04f, 0.07f, 0.93f));
+            // 鎖を横に通す（ひとこまずつ並べる）
+            const float linkW = 30f, linkStep = 23f;
+            int links = Mathf.CeilToInt((tagW - 8f) / linkStep);
+            for (int i = 0; i < links; i++)
+            {
+                var lk = UiSkin.Img(holdRt, "Link" + i, new Vector2(-tagW * 0.5f + 6 + i * linkStep + linkW * 0.5f, 0),
+                                    new Vector2(linkW, 19), UiSkin.Icon("chain", 48), new Color(0.74f, 0.78f, 0.86f, 0.95f));
+                _holdLinks.Add(lk);
+            }
+            UiSkin.Img(holdRt, "ChainShade", new Vector2(0, -6), new Vector2(tagW, 8), null, new Color(0, 0, 0, 0.28f));
+            // 南京錠（左寄せ。鎖の上に載る）
+            _holdLock = UiSkin.Img(holdRt, "Lock", new Vector2(-tagW * 0.5f + 26, 1), new Vector2(30, 30), UiSkin.Icon("lock", 96), Color.white);
+            _holdText = UiFactory.Label(holdRt, "Text", new Vector2(14, 1), new Vector2(tagW - 80, tagH), "H O L D", 16, TextAnchor.MiddleCenter, ColGold);
+            _holdText.fontStyle = FontStyle.Bold;
+            TextShadow(_holdText, 1f);
+            _holdReason = UiFactory.Label(holdRt, "Reason", new Vector2(tagW * 0.5f - 36, 1), new Vector2(64, tagH), "", 10, TextAnchor.MiddleRight, UiSkin.TextSub);
+            _holdBox = holdRt.gameObject;
+            _holdBox.SetActive(false);
+
             // 松明の札（右上）。残り本数と、今の 1 本の残量ゲージ
-            _torchTagRt = UiSkin.Rect(_area, "TorchTag", new Vector2(AreaW * 0.5f - 8 - 78, AreaH * 0.5f - 8 - 12), new Vector2(156, 24));
-            UiSkin.Img(_torchTagRt, "Bg", Vector2.zero, new Vector2(156, 24), UiSkin.Rounded(12), new Color(0.05f, 0.07f, 0.12f, 0.82f));
-            _torchTag = UiFactory.Label(_torchTagRt, "Text", new Vector2(-4, 4), new Vector2(140, 18), "", 11, TextAnchor.MiddleLeft, ColText);
-            _torchFill = UiSkin.Gauge(_torchTagRt, "Gauge", new Vector2(0, -7), new Vector2(140, 4), Hex("#ffb45c"), out _torchTrack);
+            const float torchW = 232f, torchH = 34f;
+            _torchTagRt = UiSkin.Rect(stageCard, "TorchTag", new Vector2(AreaW * 0.5f - 10 - torchW * 0.5f, AreaY + AreaH * 0.5f - 6 - torchH * 0.5f), new Vector2(torchW, torchH));
+            UiSkin.Img(_torchTagRt, "Shadow", new Vector2(0, -3), new Vector2(torchW + 18, torchH + 16), UiSkin.Shadow(17, 10), new Color(0, 0, 0, 0.7f));
+            UiSkin.Img(_torchTagRt, "Edge2", Vector2.zero, new Vector2(torchW + 2, torchH + 2), UiSkin.Rounded(18), new Color(1, 1, 1, 0.14f));
+            UiSkin.Img(_torchTagRt, "Bg", Vector2.zero, new Vector2(torchW, torchH), UiSkin.Rounded(17), Hex("#0b1120"));
+            UiSkin.Img(_torchTagRt, "Edge", new Vector2(-torchW * 0.5f + 7, 0), new Vector2(5, 22), UiSkin.Rounded(2), Hex("#ffb45c"));
+            _torchTag = UiFactory.Label(_torchTagRt, "Text", new Vector2(9, 5), new Vector2(torchW - 28, 18), "", 13, TextAnchor.MiddleLeft, ColText);
+            _torchTag.fontStyle = FontStyle.Bold;
+            TextShadow(_torchTag, 1f);
+            _torchFill = UiSkin.Gauge(_torchTagRt, "Gauge", new Vector2(2, -9), new Vector2(torchW - 30, 5), Hex("#ffb45c"), out _torchTrack);
             _torchTagRt.gameObject.SetActive(false);
+
+            // 次のルートの条件（左側。キャラに掛からない幅に収める）
+            const float rtW = 134f, rtH = 118f, rtRow = 24f;   // キャラ（左端 -329）に掛からない幅
+            // 表示域（背景とマスクを持つ）の中ではなく、その親に置く。docs/ui_rules.md 3 番
+            var routeRt = UiSkin.Rect(stageCard, "RouteBox", new Vector2(-AreaW * 0.5f + 6 + rtW * 0.5f, AreaY + AreaH * 0.5f - 44 - rtH * 0.5f), new Vector2(rtW, rtH));
+            UiSkin.Img(routeRt, "Shadow", new Vector2(0, -3), new Vector2(rtW + 16, rtH + 16), UiSkin.Shadow(15, 10), new Color(0, 0, 0, 0.7f));
+            UiSkin.Img(routeRt, "Edge", Vector2.zero, new Vector2(rtW + 2, rtH + 2), UiSkin.Rounded(12), new Color(1, 1, 1, 0.13f));
+            UiSkin.Img(routeRt, "Bg", Vector2.zero, new Vector2(rtW, rtH), UiSkin.Rounded(11), Hex("#0b1120"));
+            _routeTitle = UiFactory.Label(routeRt, "Title", new Vector2(0, rtH * 0.5f - 13), new Vector2(rtW - 12, 18), "次のルート", 11, TextAnchor.MiddleCenter, ColTextSub);
+            for (int i = 0; i < 3; i++)
+            {
+                float ry = rtH * 0.5f - 26 - rtRow * 0.5f - i * rtRow;
+                _routeBar[i] = UiSkin.Img(routeRt, "Bar" + i, new Vector2(-rtW * 0.5f + 6, ry), new Vector2(4, rtRow - 6), UiSkin.Rounded(2), ColBtn);
+                _routeArrow[i] = UiFactory.Label(routeRt, "Arrow" + i, new Vector2(-rtW * 0.5f + 20, ry), new Vector2(16, rtRow), "", 13, TextAnchor.MiddleCenter, ColTextSub);
+                _routeArrow[i].fontStyle = FontStyle.Bold;
+                _routeText[i] = UiFactory.Label(routeRt, "Text" + i, new Vector2(6, ry), new Vector2(rtW - 40, rtRow), "", 11, TextAnchor.MiddleLeft, ColText);
+                TextShadow(_routeText[i], 1f);
+            }
+            _routeBox = routeRt.gameObject;
+            _routeBox.SetActive(false);
 
             _hint = UiFactory.Label(_area, "Hint", new Vector2(0, AreaH * 0.5f - 34), new Vector2(640, 36), "", 24, TextAnchor.MiddleCenter, ColAccent);
             _hint.fontStyle = FontStyle.Bold;
@@ -364,7 +446,8 @@ namespace BBB.Runtime
             _atChipBg = _atChip.transform.parent.Find("Bg").GetComponent<Image>();
             _atChipBox = _atChip.transform.parent.gameObject;
             _atChipBox.SetActive(false);
-            _message = UiFactory.Label(band, "Message", Vector2.zero, new Vector2(520, BandH), "", 16, TextAnchor.MiddleCenter, ColText);
+            // メッセージは左のチップ群（最大で右端 -188）と右の G 数（左端 332）の間に収める
+            _message = UiFactory.Label(band, "Message", new Vector2(36, 0), new Vector2(376, BandH), "", 16, TextAnchor.MiddleCenter, ColText);
             _message.fontStyle = FontStyle.Bold;
             TextShadow(_message, 0.6f);
             UiFactory.Label(band, "GLabel", new Vector2(ContentW * 0.5f - 8 - 92 - 20, 0), new Vector2(40, 20), "GAME", 10, TextAnchor.MiddleRight, UiSkin.TextDim);
@@ -393,16 +476,25 @@ namespace BBB.Runtime
             float cabW = reelPitch * 3 + 24;
             float innerW = SideW - 24;
 
-            // 左: CREDIT / PAYOUT（くぼんだ表示器、桁固定の右寄せ §8）
+            // 左: EMBER（灯火）/ PAYOUT（くぼんだ表示器、桁固定の右寄せ §8）
             var disp = UiSkin.Card(_stage, "Display", new Vector2(-ContentW * 0.5f + SideW * 0.5f, MidY), new Vector2(SideW, MidH), 12);
-            UiSkin.Heading(disp, "CreditLabel", new Vector2(0, 83), innerW, "CREDIT");
+            // 見出しのアイコンは左端に領域を取り、文字はその分だけ字下げする（docs/ui_rules.md 1 番）
+            const float HeadIco = 15f, HeadGap = 5f, HeadIndent = HeadIco + HeadGap;
+            UiSkin.Img(disp, "EmberIcon", new Vector2(-innerW * 0.5f + HeadIco * 0.5f, 83), new Vector2(HeadIco, HeadIco), UiSkin.Icon("ember", 64), Color.white);
+            UiSkin.Heading(disp, "CreditLabel", new Vector2(0, 83), innerW, "EMBER", HeadIndent);
             var creditInset = UiSkin.Inset(disp, "CreditInset", new Vector2(0, 49), new Vector2(innerW, 40), 8);
             _creditNum = UiSkin.Number(creditInset, "CreditNum", new Vector2(-6, 0), new Vector2(innerW - 20, 40), "50", 28, ColText);
-            UiSkin.Heading(disp, "PayoutLabel", new Vector2(0, 14), innerW, "PAYOUT");
+            UiSkin.Img(disp, "PayoutIcon", new Vector2(-innerW * 0.5f + HeadIco * 0.5f, 14), new Vector2(HeadIco, HeadIco), UiSkin.Circle(32), ColGold);
+            UiSkin.Img(disp, "PayoutIconIn", new Vector2(-innerW * 0.5f + HeadIco * 0.5f, 14), new Vector2(HeadIco * 0.5f, HeadIco * 0.5f), UiSkin.Circle(32), UiSkin.GoldDeep);
+            UiSkin.Heading(disp, "PayoutLabel", new Vector2(0, 14), innerW, "PAYOUT", HeadIndent);
             var payInset = UiSkin.Inset(disp, "PayoutInset", new Vector2(0, -20), new Vector2(innerW, 40), 8);
             _payoutNum = UiSkin.Number(payInset, "PayoutNum", new Vector2(-6, 0), new Vector2(innerW - 20, 40), "0", 28, ColGold);
-            _mode = UiFactory.Label(disp, "Mode", new Vector2(0, -76), new Vector2(innerW, 14), "", 11, TextAnchor.MiddleLeft, ColTextSub);
-            _soulText = UiFactory.Label(disp, "Soul", new Vector2(0, -76), new Vector2(innerW, 14), "", 11, TextAnchor.MiddleRight, Hex("#a98bff"));
+            // 下の行は 左=設定 / 右=ソウル。アイコンぶんを差し引いて領域を分ける
+            const float SoulIco = 14f;
+            float halfW = innerW * 0.5f;
+            _mode = UiFactory.Label(disp, "Mode", new Vector2(-innerW * 0.25f - 2, -76), new Vector2(halfW - 4, 14), "", 11, TextAnchor.MiddleLeft, ColTextSub);
+            _soulText = UiFactory.Label(disp, "Soul", new Vector2(innerW * 0.25f - SoulIco * 0.5f - 2, -76), new Vector2(halfW - SoulIco - 8, 14), "", 11, TextAnchor.MiddleRight, Hex("#a98bff"));
+            UiSkin.Img(disp, "SoulIcon", new Vector2(halfW - SoulIco * 0.5f, -76), new Vector2(SoulIco, SoulIco), UiSkin.Icon("soul", 64), Color.white);
 
             // 中央: リール筐体（金の縁 + くぼんだ窓 + ガラスの光沢 + 中段ラインのマーカー）
             var cabinet = UiSkin.Rect(_stage, "ReelCabinet", new Vector2(0, MidY), new Vector2(cabW, MidH));
@@ -452,12 +544,14 @@ namespace BBB.Runtime
 
             // 右: PLAYER / BONUS / 状態 / 設定
             var side = UiSkin.Card(_stage, "Side", new Vector2(ContentW * 0.5f - SideW * 0.5f, MidY), new Vector2(SideW, MidH), 12);
-            UiSkin.Heading(side, "PlayerLabel", new Vector2(0, 83), innerW, "PLAYER");
+            UiSkin.Img(side, "PlayerIcon", new Vector2(-innerW * 0.5f + HeadIco * 0.5f, 83), new Vector2(HeadIco, HeadIco), UiSkin.Icon("sword", 64), Color.white);
+            UiSkin.Heading(side, "PlayerLabel", new Vector2(0, 83), innerW, "PLAYER", HeadIndent);
             _player = UiFactory.Label(side, "Lv", new Vector2(0, 60), new Vector2(innerW, 20), "Lv 1", 16, TextAnchor.MiddleLeft, ColGold);
             _player.fontStyle = FontStyle.Bold;
             UiFactory.Label(side, "ExpLabel", new Vector2(0, 60), new Vector2(innerW, 20), "EXP", 10, TextAnchor.MiddleRight, UiSkin.TextDim);
             _expFill = UiSkin.Gauge(side, "Exp", new Vector2(0, 44), new Vector2(innerW, 8), ColGreen, out _expTrack);
-            UiSkin.Heading(side, "BonusHead", new Vector2(0, 24), innerW, "BONUS");
+            UiSkin.Img(side, "BonusIcon", new Vector2(-innerW * 0.5f + HeadIco * 0.5f, 24), new Vector2(HeadIco, HeadIco), UiSkin.Icon("amulet", 64), Color.white);
+            UiSkin.Heading(side, "BonusHead", new Vector2(0, 24), innerW, "BONUS", HeadIndent);
             _bonusLabel = UiFactory.Label(side, "BonusLabel", new Vector2(0, 3), new Vector2(innerW, 16), "―", 12, TextAnchor.MiddleLeft, ColGold);
             _bonusFill = UiSkin.Gauge(side, "BonusGauge", new Vector2(0, -12), new Vector2(innerW, 8), ColGold, out _bonusTrack);
             _status = UiFactory.Label(side, "Status", new Vector2(0, -40), new Vector2(innerW, 30), "", 12, TextAnchor.UpperLeft, ColText);
@@ -486,6 +580,7 @@ namespace BBB.Runtime
             for (int i = 0; i < 3; i++)
             {
                 var cell = UiSkin.Rect(navi, "Cell" + i, new Vector2((i - 1) * reelPitch, 0), new Vector2(badge, badge));
+                _naviCells[i] = cell;
                 _naviGlow[i] = UiSkin.Img(cell, "Glow", Vector2.zero, new Vector2(badge * 2.4f, badge * 2.4f), UiSkin.Glow(96), new Color(1, 0.85f, 0.3f, 0f));
                 UiSkin.Img(cell, "Shadow", new Vector2(0, -3), new Vector2(badge + 18, badge + 18), UiSkin.Shadow(33, 9), new Color(0, 0, 0, 0.6f));
                 _naviBg[i] = UiSkin.Img(cell, "Ring", Vector2.zero, new Vector2(badge, badge), UiSkin.Rounded(33), ColBtn);
@@ -513,7 +608,7 @@ namespace BBB.Runtime
             UiSkin.Button(sBody, "BackToTown", new Vector2(-96, -66), new Vector2(150, 30), "街へ戻る", OnBackToTown, Hex("#5b3fd0"), 12, false, 8);
             _resetConfirm = UiFactory.Label(sBody, "ResetConfirm", new Vector2(0, -60), new Vector2(360, 16), "", 11, TextAnchor.MiddleCenter, ColGold);
             UiFactory.Label(sBody, "Keys", new Vector2(0, -92), new Vector2(370, 16),
-                _isTouch ? "画面をタップ: BET / 順に停止      リールをタップ: そのリールを停止" : "B: BGM切替   G: グラフ   M: マップ   R: セーブ削除   F1〜F6: 設定   D: デバッグ   Esc: 閉じる", 10, TextAnchor.MiddleCenter, UiSkin.TextDim);
+                _isTouch ? "画面をタップ: BET / 順に停止      リールをタップ: そのリールを停止" : "B: BGM   G: グラフ   M: マップ   E: 装備   R: セーブ削除   F1〜F6: 設定   D: デバッグ   Esc: 閉じる", 10, TextAnchor.MiddleCenter, UiSkin.TextDim);
             _settingsBox.SetActive(false);
 
             // ===== モーダル: デバッグ =====
@@ -545,7 +640,7 @@ namespace BBB.Runtime
             DbgBtn("スイカ強制", () => _m.DebugForceFlag = Flag.SUICA_A, 0, 3);
             DbgBtn("チェリー強制", () => _m.DebugForceFlag = Flag.CHERRY_A, 1, 3);
             DbgBtn("ハズレ強制", () => _m.DebugForceFlag = Flag.HAZE, 0, 4);
-            DbgBtn("+1000枚", () => _m.Credit += 1000, 1, 4);
+            DbgBtn("エンバー+1000", () => _m.Credit += 1000, 1, 4);
             DbgBtn("旅人", () => { var c = _m.Config.travelers ?? TravelerConfig.Default(); var t = c.travelers[_fxRng.Next(c.travelers.Count)]; if (_traveler == null) SpawnTraveler(t, t.chatter.Count > 0 ? t.chatter[_fxRng.Next(t.chatter.Count)] : null, false); }, 0, 5);
             DbgBtn("AT開始", () => { if (!_m.InAt) { _m.PendingAt = true; SetMessage("DEBUG: 次G から AT", false, ColTextSub); } }, 1, 5, Hex("#5b3fd0"));
 
@@ -561,7 +656,7 @@ namespace BBB.Runtime
             _debugBox.SetActive(false);
 
             // ===== モーダル: スランプグラフ =====
-            _graphBox = BuildModal("Graph", new Vector2(720, 420), "スランプグラフ（クレジットの差枚）", ToggleGraph, out var gBody);
+            _graphBox = BuildModal("Graph", new Vector2(720, 420), "スランプグラフ（エンバーの増減）", ToggleGraph, out var gBody);
             _graph = SlumpGraph.Create(gBody, new Vector2(0, -6), new Vector2(660, 320), _m.Credit);
             UiSkin.Button(gBody, "GraphReset", new Vector2(720 * 0.5f - 90, -420 * 0.5f + 26), new Vector2(140, 30), "ここから取り直す",
                 () => { _audio.UiPop(); _graph.ResetTo(_m.Credit); }, ColBtn, 12, false, 8);
@@ -579,6 +674,11 @@ namespace BBB.Runtime
             // エフェクト層（舞台と一緒に縮尺。UI の上、発光オーバーレイの下）
             UiFx.Init(_stage);
 
+            // ステージ札と松明札はカード内の最前面へ（背景・キャラ・帯に隠れないように）
+            if (_stageTagBg != null) _stageTagBg.transform.parent.SetAsLastSibling();
+            if (_torchTagRt != null) _torchTagRt.SetAsLastSibling();
+            if (_routeBox != null) _routeBox.transform.SetAsLastSibling();
+
             // 赤発光オーバーレイ（画面全体・最前面）
             var glow = UiSkin.Img(root, "RedGlow", Vector2.zero, Vector2.zero, null, new Color(1, 0.1f, 0.1f, 0));
             UiSkin.Stretch(glow.rectTransform);
@@ -593,7 +693,6 @@ namespace BBB.Runtime
             SaveData.Save(_m, _audio);
             CloseModals();
             var canvasGo = _stage != null ? _stage.GetComponentInParent<Canvas>()?.gameObject : null;
-            Destroy(_audio.gameObject);
             if (canvasGo != null) Destroy(canvasGo);
             MapScreen.Open();
             Destroy(gameObject);
@@ -621,6 +720,38 @@ namespace BBB.Runtime
             string next = _m.Adv.nextId != null ? cfg.Find(_m.Adv.nextId)?.name : null;
             _mapInfo.text = $"{cfg.chapterName}   第{_m.Adv.chapter}章   現在地 {n?.id} {n?.name}   残り {_m.Adv.spinsLeft} G"
                             + (next != null ? $"   次 → {next}" : "") + (_m.Adv.treasuresFound > 0 ? $"   宝 {_m.Adv.treasuresFound}" : "");
+            BuildConditionList(n);
+        }
+
+        /// <summary>マップの下に、今のステージの達成条件と進み具合を並べる。</summary>
+        private void BuildConditionList(StageNode node)
+        {
+            if (_condList != null) Destroy(_condList.gameObject);
+            _condList = null;
+            var conds = node?.routeConditions;
+            if (conds == null || conds.Count == 0) return;
+            var cfg = _m.Config.adventure;
+
+            _condList = UiSkin.Rect(_mapBody, "Conditions", new Vector2(0, -460 * 0.5f + 66), new Vector2(700, 96));
+            UiFactory.Label(_condList, "Head", new Vector2(0, 38), new Vector2(700, 18), "このステージの分岐条件", 12, TextAnchor.MiddleCenter, ColTextSub);
+            int shown = 0;
+            foreach (var c in conds)
+            {
+                if (c == null || shown >= 3) continue;
+                bool met = AdventureDirector.Meets(c, _m.Adv, _m.Credit, _m.Wallet.Souls, _m.PlayerLevel);
+                if (c.hidden && !met) continue;
+                var to = cfg.Find(c.to);
+                float y = 16 - shown * 24;
+                var col = met ? ColGold : ColText;
+                UiSkin.Img(_condList, "Row" + shown, new Vector2(0, y), new Vector2(700, 22), UiSkin.Rounded(6), met ? new Color(1f, 0.82f, 0.25f, 0.14f) : new Color(1, 1, 1, 0.05f));
+                UiFactory.Label(_condList, "To" + shown, new Vector2(-300, y), new Vector2(120, 20), to != null ? $"→ {to.id}" : "→ ?", 12, TextAnchor.MiddleLeft, met ? ColGold : ColTextSub);
+                UiFactory.Label(_condList, "Desc" + shown, new Vector2(-60, y), new Vector2(360, 20), AdventureDirector.DescribeCondition(c), 12, TextAnchor.MiddleLeft, col);
+                UiFactory.Label(_condList, "Prog" + shown, new Vector2(250, y), new Vector2(220, 20),
+                    met ? "達成！" : AdventureDirector.ProgressText(c, _m.Adv, _m.Credit, _m.Wallet.Souls, _m.PlayerLevel),
+                    12, TextAnchor.MiddleRight, met ? ColGold : ColTextSub);
+                shown++;
+            }
+            if (shown == 0) Destroy(_condList.gameObject);
         }
 
         private void ToggleGraph()
@@ -630,7 +761,7 @@ namespace BBB.Runtime
             _audio.UiPop();
         }
         /// <summary>レバーオン・Esc でモーダルを閉じる（game-design §16.9: 遊技を止めさせない）。</summary>
-        private void CloseModals() { if (_settingsBox != null) _settingsBox.SetActive(false); if (_debugBox != null) _debugBox.SetActive(false); if (_graphBox != null) _graphBox.SetActive(false); if (_mapBox != null) _mapBox.SetActive(false); }
+        private void CloseModals() { if (_settingsBox != null) _settingsBox.SetActive(false); if (_debugBox != null) _debugBox.SetActive(false); if (_graphBox != null) _graphBox.SetActive(false); if (_mapBox != null) _mapBox.SetActive(false); if (_equipBox != null) { Destroy(_equipBox); _equipBox = null; } }
 
         /// <summary>セーブ削除は 3 秒以内の 2 度押しで確定（§6.1: 破壊的操作を連打で通過させない）。</summary>
         private void OnResetSavePressed()
@@ -638,7 +769,7 @@ namespace BBB.Runtime
             if (_m.IsGameActive) { _resetConfirm.text = "回転中は削除できません"; _resetConfirmUntil = Time.time + 2f; return; }
             if (Time.time <= _resetConfirmUntil) { _resetConfirm.text = ""; _resetConfirmUntil = 0; ResetSave(); CloseModals(); return; }
             _resetConfirmUntil = Time.time + 3f;
-            _resetConfirm.text = "クレジット・レベルが消えます。もう一度押すと確定";
+            _resetConfirm.text = "エンバー・レベルが消えます。もう一度押すと確定";
         }
 
         private static RectTransform MakeImage(Transform parent, string name, Vector2 pos, Vector2 size, Sprite sprite)
@@ -670,14 +801,25 @@ namespace BBB.Runtime
                 : held ? "ボーナス成立中  揃えよう" : "―";
             _bonusFill.rectTransform.sizeDelta = new Vector2(inBonus && _m.BonusPayoutTarget > 0 ? _bonusTrack.sizeDelta.x * Mathf.Clamp01((float)_m.BonusEarned / _m.BonusPayoutTarget) : 0f, _bonusTrack.sizeDelta.y);
             _mode.text = $"設定 {_m.Setting}   総 {_m.TotalSpinCount:N0} G";
-            _soulText.text = $"SOUL {_m.Wallet.Souls:N0}";
+            _soulText.text = _m.Wallet.Souls.ToString("N0");
             _gCount.text = $"{_m.SpinCount} G";
             if (_stageTag != null && _m.AdventureEnabled)
             {
                 var stg = _m.CurrentStage;
                 var sc = Hex(AdventureDirector.ColorFor(stg));
-                _stageTag.text = stg != null ? $"{stg.id}  {stg.name}   残り {_m.Adv.spinsLeft} G" : "";
-                _stageTagBg.transform.Find("Edge").GetComponent<Image>().color = sc;
+                _stageTag.text = stg != null ? $"{stg.id} {stg.name}   のこり {_m.Adv.spinsLeft}G" : "";
+                if (_stageTagEdge != null) _stageTagEdge.color = sc;
+
+                // ステージが止まっている間は鎖と錠で封じる
+                bool stageLocked = _m.StageHeld;
+                if (_holdBox != null && _holdBox.activeSelf != stageLocked)
+                {
+                    _holdBox.SetActive(stageLocked);
+                    if (stageLocked) _holdPulse = 0f;
+                }
+                if (stageLocked && _holdReason != null) _holdReason.text = _m.StageHeldReason;
+
+                RefreshRoutePanel(stg);
 
                 var res = _m.Config.adventure?.resource;
                 bool showTorch = res != null && res.enabled;
@@ -686,7 +828,7 @@ namespace BBB.Runtime
                 {
                     int have = Mathf.Max(0, _m.Adv.torches);
                     int per = Mathf.Max(1, _m.TorchSpinsPerUnit);
-                    _torchTag.text = $"{res.name}  {have} 本   残り {_m.Adv.torchSpins} G";
+                    _torchTag.text = $"{res.name} {have}本   のこり {_m.Adv.torchSpins}G";
                     // 最後の 1 本になったら橙、残り 10G を切ったら赤で警告
                     bool danger = have <= 1 && _m.Adv.torchSpins <= 10;
                     var col = danger ? ColAccent : have <= 1 ? Hex("#ff9a3c") : Hex("#ffb45c");
@@ -718,7 +860,7 @@ namespace BBB.Runtime
             if (inBonus) dbg.Append($"AT期待 {_m.AtExpectPercent}%  {atRank}\n");
             if (_m.InAt)
             {
-                dbg.Append($"AT     残り {_m.AtSpinsRemaining} G   {_m.AtPayout} 枚 / {_m.AtSpinCount} G\n");
+                dbg.Append($"AT     残り {_m.AtSpinsRemaining} G   {_m.AtPayout} エンバー / {_m.AtSpinCount} G\n");
                 if (_m.InBattle && _m.BattleMonster != null)
                     dbg.Append($"狩猟   {_m.BattleMonster.name}  HP {_m.BattleHp}/{_m.BattleHpMax}  残り {_m.BattleSpinsRemaining} G\n");
             }
@@ -731,13 +873,19 @@ namespace BBB.Runtime
             _expFill.rectTransform.sizeDelta = new Vector2(_expTrack.sizeDelta.x * Mathf.Clamp01((float)_m.PlayerExp / (_m.PlayerLevel * 100)), _expTrack.sizeDelta.y);
 
             _tier2Box.SetActive((_m.IsTier2 || _m.PendingTier2) && !_m.InAt);
-            _tier2.text = _m.IsTier2 ? $"残り {Mathf.Max(0, _m.Config.tier2MaxSpins - _m.Tier2SpinCount)} G" : "NEXT: ENGAGE";
+            _tier2.text = _m.IsTier2 ? $"残り {Mathf.Max(0, _m.EngageMaxSpins - _m.Tier2SpinCount)} G" : "NEXT: ENGAGE";
 
             // AT: 残りG と 獲得枚数（狩猟中は残りGが止まる旨も出す）
             _atChipBox.SetActive(_m.InAt);
             if (_m.InAt)
             {
-                _atChip.text = _m.InBattle ? $"残り {_m.AtSpinsRemaining} G （狩猟中）   {_m.AtPayout} 枚" : $"残り {_m.AtSpinsRemaining} G   {_m.AtPayout} 枚";
+                if (_m.AtZone != null)
+                    _atChip.text = $"{_m.AtZone.name} 残り {_m.AtZoneRemaining}G   AT {_m.AtSpinsRemaining}G   +{_m.AtPayout}";
+                else
+                    _atChip.text = _m.InBattle ? $"{_m.AtSet}set 残り {_m.AtSpinsRemaining}G （狩猟中）  +{_m.AtPayout}" : $"{_m.AtSet}set 残り {_m.AtSpinsRemaining}G   +{_m.AtPayout}";
+                if (_atChipBg != null)
+                    _atChipBg.color = _m.AtZone != null && !string.IsNullOrEmpty(_m.AtZone.color)
+                        ? Hex(_m.AtZone.color) * 0.55f : Hex("#2b1e5a");
                 _atChipBg.color = _m.InBattle ? new Color(0.55f, 0.2f, 0.08f) : Hex("#2b1e5a");
             }
             if (_m.InAt) _caveTint.color = new Color(0.06f, 0.04f, 0.16f, 0.45f);
@@ -779,6 +927,126 @@ namespace BBB.Runtime
 
         // ---------------------------------------------------------------- NAVI
         /// <summary>ナビ表示: 第一停止は「1」、残り2つは「? ATTACK」「? GUARD」。第一停止後に選択肢だけ残す。</summary>
+        /// <summary>押したナビのバッジを膨らませながら消す。</summary>
+        private IEnumerator PopNaviBadge(int i)
+        {
+            var cell = _naviCells[i];
+            if (cell == null) yield break;
+            var cg = cell.GetComponent<CanvasGroup>() ?? cell.gameObject.AddComponent<CanvasGroup>();
+            float t = 0f, d = 0.22f;
+            while (t < d)
+            {
+                t += Time.deltaTime;
+                float u = Mathf.Clamp01(t / d);
+                float e = 1f - (1f - u) * (1f - u);      // 勢いよく出て、すっと消える
+                cell.localScale = Vector3.one * (1f + 0.55f * e);
+                cg.alpha = 1f - e;
+                yield return null;
+            }
+            cell.localScale = Vector3.one * 1.55f;
+            cg.alpha = 0f;
+        }
+
+        /// <summary>ナビのバッジを全部もとに戻す（1G の始め）。</summary>
+        private void ResetNaviBadges()
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                _naviPopped[i] = false;
+                if (_naviCells[i] == null) continue;
+                _naviCells[i].localScale = Vector3.one;
+                var cg = _naviCells[i].GetComponent<CanvasGroup>();
+                if (cg != null) cg.alpha = 1f;
+            }
+        }
+
+        /// <summary>
+        /// 次のルートの達成条件を出す。基本ルートと、一度でも行ったことのある先は中身を見せ、
+        /// まだ分からない先は ？？？ のままにする。
+        /// </summary>
+        /// <summary>錠前と鎖をゆっくり呼吸させる（止まっていることを目で分からせる）。</summary>
+        private void UpdateHoldPulse()
+        {
+            if (_holdBox == null || !_holdBox.activeSelf) return;
+            _holdPulse += Time.deltaTime;
+            float k = 0.5f + 0.5f * Mathf.Sin(_holdPulse * 2.2f);
+            if (_holdText != null) _holdText.color = Color.Lerp(UiSkin.GoldDeep, ColGold, k);
+            if (_holdLock != null) _holdLock.color = Color.Lerp(new Color(0.78f, 0.80f, 0.86f), Color.white, k);
+            float shimmer = 0.72f + 0.28f * k;
+            for (int i = 0; i < _holdLinks.Count; i++)
+            {
+                if (_holdLinks[i] == null) continue;
+                // 端から順に光が流れる
+                float phase = Mathf.Repeat(_holdPulse * 0.9f - i * 0.12f, 2f);
+                float lit = phase < 0.35f ? 1f - phase / 0.35f : 0f;
+                float v = Mathf.Clamp01(shimmer + lit * 0.35f);
+                _holdLinks[i].color = new Color(v, v * 1.03f, v * 1.10f, 0.95f);
+            }
+        }
+
+        private float _holdPulse;
+
+        private void RefreshRoutePanel(StageNode node)
+        {
+            if (_routeBox == null) return;
+            var conds = node?.routeConditions;
+            if (conds == null || conds.Count == 0) { _routeBox.SetActive(false); return; }
+            _routeBox.SetActive(true);
+
+            // 強い条件（上の道）から順に 3 つまで
+            var list = new System.Collections.Generic.List<RouteCondition>(conds);
+            list.Sort((a, b) => b.priority.CompareTo(a.priority));
+            var cfg = _m.Config.adventure;
+
+            for (int i = 0; i < 3; i++)
+            {
+                bool has = i < list.Count;
+                _routeArrow[i].gameObject.SetActive(has);
+                _routeText[i].gameObject.SetActive(has);
+                _routeBar[i].gameObject.SetActive(has);
+                if (!has) continue;
+
+                var c = list[i];
+                bool met = AdventureDirector.Meets(c, _m.Adv, _m.Credit, _m.Wallet.Souls, _m.PlayerLevel);
+                bool basic = c.priority <= 20 && c.priority > 10;              // 基本ルート
+                bool been = _m.Adv.visited.Contains(c.to);                     // 行ったことがある先
+                bool known = (basic || been || met) && !(c.hidden && !met);
+
+                // 上 / 同じ高さ / 下 を矢印で
+                _routeArrow[i].text = c.priority >= 30 ? "▲" : c.priority <= 10 ? "▼" : "▶";
+                var tone = c.priority >= 30 ? ColGold : c.priority <= 10 ? Hex("#7f8aa3") : ColText;
+                _routeArrow[i].color = known ? tone : UiSkin.TextDim;
+
+                if (!known)
+                {
+                    _routeText[i].text = "？？？";
+                    _routeText[i].color = UiSkin.TextDim;
+                    _routeBar[i].color = ColBtn;
+                    continue;
+                }
+                _routeText[i].text = ShortCondition(c);
+                _routeText[i].color = met ? ColGold : ColText;
+                var dst = cfg?.Find(c.to);
+                _routeBar[i].color = met ? ColGold : (dst != null ? Hex(AdventureDirector.ColorFor(dst)) : ColBtn);
+            }
+        }
+
+        /// <summary>条件を 1 行に縮める（「スイカ 1/3」の形）。</summary>
+        private string ShortCondition(RouteCondition c)
+        {
+            if (c.counters != null)
+                foreach (var kv in c.counters)
+                {
+                    if (kv.Value <= 0) continue;
+                    int cur = Mathf.Min(AdventureDirector.GetCount(_m.Adv, kv.Key), kv.Value);
+                    return $"{AdventureDirector.CounterName(kv.Key)} {cur}/{kv.Value}";
+                }
+            if (c.state != null)
+                foreach (var kv in c.state)
+                    if (kv.Value > 0) return $"{AdventureDirector.StateName(kv.Key)} {kv.Value}";
+            return AdventureDirector.DescribeCondition(c);
+        }
+
         private void RefreshNavi()
         {
             // AT 道中の押し順ナビ: 正解のリールに「1」を出して教える（隠さない）
@@ -788,6 +1056,7 @@ namespace BBB.Runtime
                 int pressed2 = _m.PressOrder.Count;
                 for (int i = 0; i < 3; i++)
                 {
+                    if (_naviPopped[i]) continue;   // 押して消したバッジは戻さない
                     bool isFirst = i == _m.Navi2.first;
                     bool done = pressed2 > 0;
                     _naviLabels[i].text = isFirst ? "1" : "-";
@@ -805,6 +1074,7 @@ namespace BBB.Runtime
             var blue = new Color(0.3f, 0.55f, 1f);
             for (int i = 0; i < 3; i++)
             {
+                if (_naviPopped[i]) continue;   // 押して消したバッジは戻さない
                 string txt; Color ring, fg, glow;
                 if (i == n.first) { txt = "1"; ring = ColGold; fg = ColGold; glow = new Color(1f, 0.85f, 0.3f, pressed == 0 ? 0.45f : 0.12f); }
                 else { txt = "?"; ring = blue; fg = ColText; glow = new Color(0.4f, 0.6f, 1f, pressed == 1 && n.InChoice ? 0.45f : 0.2f); }
@@ -1140,6 +1410,7 @@ namespace BBB.Runtime
                 if (kb.dKey.wasPressedThisFrame) ToggleDebug();
                 if (kb.gKey.wasPressedThisFrame) ToggleGraph();
                 if (kb.mKey.wasPressedThisFrame) ToggleMap();
+                if (kb.eKey.wasPressedThisFrame) ToggleEquip();
                 if (kb.escapeKey.wasPressedThisFrame) CloseModals();
                 if (kb.rKey.wasPressedThisFrame && !_m.IsGameActive) ResetSave();
                 if ((kb.numpadPlusKey.wasPressedThisFrame || kb.semicolonKey.wasPressedThisFrame) && !_m.IsGameActive) { _m.Credit += 100; _audio.UiPop(); RefreshUi(); }
@@ -1150,6 +1421,7 @@ namespace BBB.Runtime
                 }
             }
             UpdateAtFrame();
+            UpdateHoldPulse();
             // 長押しの判定は入力ロック中も回す。ロック中に離してもオートが解除されるように
             if (kb != null) UpdateSpaceHold(kb, !_inputLocked);
             _fps = Mathf.Lerp(_fps, 1f / Mathf.Max(Time.unscaledDeltaTime, 1e-4f), 0.1f);
@@ -1211,7 +1483,7 @@ namespace BBB.Runtime
             bool wasReplay = _m.IsReplay;
             if (!_m.MaxBet())
             {
-                SetMessage("クレジットが足りません", false, ColAccent);
+                SetMessage("エンバーが足りません", false, ColAccent);
                 return;
             }
             if (!wasReplay) _audio.Bet();
@@ -1227,6 +1499,8 @@ namespace BBB.Runtime
             _charRt.localRotation = Quaternion.identity;
             ExitFocus();
             var legacyHint = _m.Lever();   // 抽選はレバーオン時点で確定（旧示唆は使わない）
+            ResetNaviBadges();             // 前のGのナビ（○×や消えたバッジ）を持ち越さない
+            RefreshNavi();
             var hint = HintKind.None;
             ApplyEngageHint();
             RollPrecog();                  // 事前察知（役の予告）。リール始動と同時に出す
@@ -1299,6 +1573,12 @@ namespace BBB.Runtime
                 else if (_m.PressOrder.Count == 2 && _m.CurrentCommand == BellCommand.Success) StartCoroutine(NaviSuccessRoutine());
                 else if (_m.PressOrder.Count == 2 && _m.CurrentCommand == BellCommand.Fail) StartCoroutine(NaviFailRoutine());
             }
+            // 押したバッジは膨らんで消える（打感。次のGのナビと混ざらないように）
+            if ((_m.Navi.Active || _m.Navi2.Active) && !_naviPopped[i])
+            {
+                _naviPopped[i] = true;
+                StartCoroutine(PopNaviBadge(i));
+            }
             RefreshNavi();
 
             // JS onStop: ベル時の第1/第2停止演出
@@ -1361,6 +1641,9 @@ namespace BBB.Runtime
             {
                 // 獲得音: ボーナス中（15枚）はデュルデュルの連打、通常時は控えめな音
                 if (_m.BonusMode != BonusMode.NORMAL) _audio.Payout(r.win.payout); else _audio.PayoutSmall(r.win.payout);
+                // リールから湧いた灯火が、エンバーの数字へ吸い込まれる
+                int emberDrops = Mathf.Clamp(2 + r.win.payout / 4, 3, 14);
+                UiFx.Absorb(_reels[1].GetComponent<RectTransform>(), _creditNum.rectTransform, UiFx.Preset.EmberSoul, emberDrops, 0.78f);
                 UiFx.Burst(_payoutNum.rectTransform, UiFx.Preset.Coins, new Vector2(0, -10));
                 UiFx.PopText(_payoutNum.rectTransform, $"+{r.win.payout}", ColGold, 24, new Vector2(0, 20));
                 RoleFx(r.win.winType, CellMaskFor(r.win));
@@ -1438,10 +1721,21 @@ namespace BBB.Runtime
                 ShowEnemy(r.enemyTable);
             }
 
-            if (r.soulsGained > 0) UiFx.PopText(_soulText.rectTransform, $"+{r.soulsGained} SOUL", Hex("#a98bff"), 20, new Vector2(0, 24));
+            if (r.soulsGained > 0)
+            {
+                // 敵から抜けた魂が主人公に集まり、そのあと SOUL の数字へ流れる
+                var src = (_m.EnemyActive || _m.InBattle) ? _enemyRt : _charRt;
+                int wisps = Mathf.Clamp(3 + r.soulsGained / 8, 4, 12);
+                UiFx.Absorb(src, _charRt, UiFx.Preset.SoulWisp, wisps, 0.62f);
+                StartCoroutine(DelayedFx(0.5f, () => UiFx.Absorb(_charRt, _soulText.rectTransform, UiFx.Preset.SoulWisp, Mathf.Min(6, wisps), 0.6f)));
+                UiFx.PopText(_soulText.rectTransform, $"+{r.soulsGained}", Hex("#a98bff"), 20, new Vector2(0, 24));
+            }
+            if (r.levelUp && _m.Stats.Unspent > 0)
+                UiFx.PopText(_player.rectTransform, $"ポイント +{_m.Config.stats?.pointsPerLevel ?? 0}", ColGold, 20, new Vector2(0, 26));
             AtExpectFx(r, rankBefore);
             AtFx(r);
             AdventureFx(r);
+            RogueFx(r);
             _graph?.Push(_m.Credit);
             if (_graphBox != null && _graphBox.activeSelf) _graph.Redraw();
             RollTraveler();
@@ -1451,6 +1745,110 @@ namespace BBB.Runtime
             if (r.chapterCleared) { StartCoroutine(ChapterClearRoutine(r)); return; }   // 街へ戻るのでオートは止める
             if (r.returnedToTown) { StartCoroutine(ReturnToTownRoutine(r)); return; }        // 松明切れ・力尽き
             if (_autoMode) StartAuto();
+        }
+
+        // ------------------------------------------------------ 装備・呪い
+        /// <summary>装備が落ちたとき、呪いが出たときの見せ方。</summary>
+        private void RogueFx(GameResult r)
+        {
+            if (r.equipDropped != null) StartCoroutine(DropRoutine(r));
+            if (r.curseOffer != null) StartCoroutine(DelayedFx(1.2f, ShowCurseOffer));
+        }
+
+        private IEnumerator DropRoutine(GameResult r)
+        {
+            var cfg = _m.Config.equipment;
+            var rar = EquipDirector.RarityOf(cfg, r.equipDropped);
+            var col = Hex(rar.color);
+            _audio.Win();
+            UiFx.Burst(_enemyRt != null && _m.EnemyActive ? _enemyRt : _charRt,
+                       r.equipDropped.rarity >= 2 ? UiFx.Preset.RainbowStars : UiFx.Preset.Coins, new Vector2(0, 20));
+            if (r.equipBagFull)
+            {
+                SetMessage($"{r.equipDropped.name} を見送った（手持ちの方が良い）", false, ColTextSub);
+                yield break;
+            }
+            // 落ちた場所から鞄（右上）へ吸い込む
+            UiFx.Absorb(_m.EnemyActive ? _enemyRt : _charRt, _stageTagBg.rectTransform, UiFx.Preset.SoulWisp, 5, 0.7f);
+            if (r.equipDropped.rarity >= 2)
+                yield return SlamTitle($"{rar.name}  {r.equipDropped.name}", col, 1.5f, 44);
+            else
+                UiFx.PopText(_charRt, r.equipDropped.name, col, 20, new Vector2(0, 60));
+            SetMessage(r.equipAutoWorn ? $"{r.equipDropped.name} を装備した" : $"{r.equipDropped.name} を拾った", true, col);
+        }
+
+        /// <summary>呪いを受けるかの選択。受けると呪い 1 つと祝福 1 つが同時に付く。</summary>
+        private void ShowCurseOffer()
+        {
+            if (_m.Curse.Offer == null || _curseBox != null) return;
+            var off = _m.Curse.Offer;
+            _inputLocked = true;
+            RefreshUi();
+
+            const float W = 520f, H = 260f;
+            var overlay = UiFactory.Panel(_stage, "CurseOverlay", Vector2.zero, new Vector2(4000, 4000), new Color(0, 0, 0, 0.88f));
+            var card = UiSkin.Card(overlay, "CurseCard", Vector2.zero, new Vector2(W, H), 16);
+            var head = UiFactory.Label(card, "Head", new Vector2(0, H * 0.5f - 30), new Vector2(W - 40, 26), "呪 い の 申 し 出", 20, TextAnchor.MiddleCenter, Hex("#c060ff"));
+            head.fontStyle = FontStyle.Bold;
+            UiSkin.Img(card, "Line", new Vector2(0, H * 0.5f - 48), new Vector2(W - 40, 1), null, new Color(1, 1, 1, 0.1f));
+
+            var cCard = UiSkin.Card(card, "Curse", new Vector2(-W * 0.25f + 4, 12), new Vector2(W * 0.5f - 24, 108), 10, UiSkin.PanelHi, true, false, false);
+            UiSkin.Img(cCard, "Bar", new Vector2(0, 50), new Vector2(W * 0.5f - 26, 4), UiSkin.Rounded(2), ColAccent);
+            UiFactory.Label(cCard, "T", new Vector2(0, 30), new Vector2(W * 0.5f - 40, 20), "呪い", 12, TextAnchor.MiddleCenter, ColAccent).fontStyle = FontStyle.Bold;
+            UiFactory.Label(cCard, "N", new Vector2(0, 8), new Vector2(W * 0.5f - 40, 22), off.curseName, 16, TextAnchor.MiddleCenter, ColText).fontStyle = FontStyle.Bold;
+            UiFactory.Label(cCard, "D", new Vector2(0, -22), new Vector2(W * 0.5f - 40, 34), CurseText(off.curseEffect, off.curseValue, true), 11, TextAnchor.UpperCenter, ColTextSub);
+
+            var bCard = UiSkin.Card(card, "Bless", new Vector2(W * 0.25f - 4, 12), new Vector2(W * 0.5f - 24, 108), 10, UiSkin.PanelHi, true, false, false);
+            UiSkin.Img(bCard, "Bar", new Vector2(0, 50), new Vector2(W * 0.5f - 26, 4), UiSkin.Rounded(2), ColGold);
+            UiFactory.Label(bCard, "T", new Vector2(0, 30), new Vector2(W * 0.5f - 40, 20), "祝福", 12, TextAnchor.MiddleCenter, ColGold).fontStyle = FontStyle.Bold;
+            UiFactory.Label(bCard, "N", new Vector2(0, 8), new Vector2(W * 0.5f - 40, 22), off.blessName, 16, TextAnchor.MiddleCenter, ColText).fontStyle = FontStyle.Bold;
+            UiFactory.Label(bCard, "D", new Vector2(0, -22), new Vector2(W * 0.5f - 40, 34), CurseText(off.blessEffect, off.blessValue, false), 11, TextAnchor.UpperCenter, ColTextSub);
+
+            void Close()
+            {
+                Destroy(_curseBox);
+                _curseBox = null;
+                _m.Curse.Offer = null;
+                _inputLocked = false;
+                SaveData.Save(_m, _audio);
+                RefreshUi();
+            }
+
+            UiSkin.Button(card, "Take", new Vector2(-100, -H * 0.5f + 34), new Vector2(180, 38), "受ける", () =>
+            {
+                _m.Curse.Taken.Add(off);
+                _audio.RoleChance();
+                StartCoroutine(EdgeGlow(Hex("#c060ff"), 1.2f, false));
+                Close();
+            }, Hex("#7a3fd0"), 15, true, 10);
+            UiSkin.Button(card, "Refuse", new Vector2(100, -H * 0.5f + 34), new Vector2(180, 38), "断る", () => { _audio.UiPop(); Close(); }, ColBtn, 15, false, 10);
+
+            _curseBox = overlay.gameObject;
+        }
+
+        private static string CurseText(string effect, int value, bool isCurse)
+        {
+            string v = value.ToString();
+            switch (effect)
+            {
+                case CurseEffects.TorchDrain: return $"松明の減りが {v}% 速くなる";
+                case CurseEffects.ConditionHarder: return $"ルートの必要回数が +{v}";
+                case CurseEffects.PayoutCut: return $"払い出しが {v}% 減る";
+                case CurseEffects.BetExtra: return $"1 回転あたり {v} 多く灯を使う";
+                default:
+                    return $"{EquipDirector.EffectName(effect)} {(isCurse ? "-" : "+")}{v}{EquipDirector.EffectUnit(effect)}";
+            }
+        }
+
+        /// <summary>装備画面の開け閉め（E キー）。</summary>
+        private void ToggleEquip()
+        {
+            if (_equipBox != null) { Destroy(_equipBox); _equipBox = null; _audio.UiPop(); return; }
+            if (_m.Config.equipment == null || !_m.Config.equipment.enabled) return;
+            CloseModals();
+            _audio.UiPop();
+            _equipBox = EquipScreen.Build(_stage, _m, _audio, () => SaveData.Save(_m, _audio),
+                                          () => { Destroy(_equipBox); _equipBox = null; });
         }
 
         // ------------------------------------------------------------ 冒険
@@ -1474,12 +1872,26 @@ namespace BBB.Runtime
                 var n = cfg.Find(r.routeDecided);
                 UiFx.Burst(_charRt, UiFx.Preset.SuccessStars, new Vector2(0, 40));
                 _audio.RoleChance();
-                if (_dialogRoutine == null && n != null)
+                if (r.routeCondition != null)
+                {
+                    // 達成条件で決まったときは、何を達成したのかを見せる
+                    StartCoroutine(RouteConditionRoutine(r.routeCondition, n));
+                }
+                else if (_dialogRoutine == null && n != null)
                     _dialogRoutine = StartCoroutine(HeroLineRoutine(tv.heroName ?? "主人公", $"……道が開けた。「{n.name}」へ向かおう", 2.6f));
                 else SetMessage($"ルート決定  →  {n?.name}", true, ColGold);
             }
-            if (r.stageChanged) StartCoroutine(StageEnterRoutine(cfg.Find(r.stageTo), r.bossAmbush));
+            if (r.stageChanged) StartCoroutine(StageEnterRoutine(cfg.Find(r.stageTo), r.bossAmbush, r.stageAdvanced, r.stageFrom == r.stageTo, r.firstVisitSouls));
             if (_mapBox != null && _mapBox.activeSelf) RedrawMap();
+        }
+
+        /// <summary>達成条件でルートが決まったときの告知。</summary>
+        private IEnumerator RouteConditionRoutine(RouteCondition c, StageNode to)
+        {
+            _audio.Win();
+            UiFx.Burst(_charRt, UiFx.Preset.RainbowStars, new Vector2(0, 40));
+            yield return SlamTitle($"条件達成！  {AdventureDirector.DescribeCondition(c)}", ColGold, 1.6f, 40);
+            if (to != null) yield return SlamTitle($"{to.id}  {to.name} へ", Hex(AdventureDirector.ColorFor(to)), 1.3f, 44);
         }
 
         private IEnumerator TreasureRoutine(TreasureDef t)
@@ -1498,16 +1910,35 @@ namespace BBB.Runtime
             SetMessage($"{t.name}   {what}", true, ColGold);
         }
 
-        private IEnumerator StageEnterRoutine(StageNode node, bool boss)
+        private IEnumerator StageEnterRoutine(StageNode node, bool boss, bool advanced = true, bool stayed = false, int firstSouls = 0)
         {
             if (node == null) yield break;
             var color = Hex(AdventureDirector.ColorFor(node));
-            _audio.EnemyAppearLand();
-            UiFx.Ring(_charRt, new Color(color.r, color.g, color.b, 0.8f), 40, 300, 0.5f);
-            yield return SlamTitle($"{node.id}   {node.name}", color, 1.6f, 50);
+            if (advanced)
+            {
+                _audio.EnemyAppearLand();
+                UiFx.Ring(_charRt, new Color(color.r, color.g, color.b, 0.8f), 40, 300, 0.5f);
+                yield return SlamTitle($"{node.id}   {node.name}", color, 1.6f, 50);
+                if (firstSouls > 0) yield return SlamTitle($"はじめての地   +{firstSouls} SOUL", ColGold, 1.2f, 36);
+            }
+            else
+            {
+                // 条件を落とした: 引き返す（色を落として、音も沈める）
+                _audio.EnemyEscape();
+                StartCoroutine(Effects.Miss(_charRt));
+                yield return SlamTitle(stayed ? "進めなかった……" : "来た道を引き返す……", ColTextSub, 1.4f, 38);
+                yield return SlamTitle($"{node.id}   {node.name}", new Color(color.r * 0.7f, color.g * 0.7f, color.b * 0.7f), 1.2f, 44);
+                PlayStory(StoryDirector.OnBack(_m.Config.story, _m.Adv.chapter));
+            }
             RefreshUi();
             if (boss) yield return SlamTitle("……何かが待ち構えている", Hex("#ff9a3c"), 1.1f, 34);
-            if (node.enterLines != null && node.enterLines.Count > 0 && _dialogRoutine == null)
+            // 物語が用意されていればそれを流す。無ければステージ固有の一言
+            var story = StoryDirector.OnEnter(_m.Config.story, _m.Config.adventure, _m.Adv.chapter, node.id);
+            if (story != null && _dialogRoutine == null)
+            {
+                _dialogRoutine = StartCoroutine(StoryRoutine(story));
+            }
+            else if (node.enterLines != null && node.enterLines.Count > 0 && _dialogRoutine == null)
             {
                 var tv = _m.Config.travelers ?? TravelerConfig.Default();
                 _dialogRoutine = StartCoroutine(HeroLineRoutine(tv.heroName ?? "主人公", node.enterLines[_fxRng.Next(node.enterLines.Count)], 2.4f));
@@ -1530,12 +1961,14 @@ namespace BBB.Runtime
                 string sub = res.resetOnDeath ? "章の最初からやり直し" : "街へ運ばれた";
                 if (lost > 0) sub += $"   ソウル -{lost:N0}";
                 yield return SlamTitle(sub, ColTextSub, 1.5f, 32);
+                if (PlayStory(StoryDirector.OnDeath(_m.Config.story, _m.Adv.chapter))) yield return new WaitForSeconds(2.4f);
             }
             else
             {
                 _audio.UiPop();
                 yield return SlamTitle($"{res.name}が尽きた……", Hex("#e08a2a"), 2.0f, 50);
                 yield return SlamTitle("街へ引き返す   進行はそのまま", ColTextSub, 1.4f, 30);
+                if (PlayStory(StoryDirector.OnTorchOut(_m.Config.story, _m.Adv.chapter))) yield return new WaitForSeconds(2.4f);
             }
             SaveData.Save(_m, _audio);
             _inputLocked = false;
@@ -1552,6 +1985,8 @@ namespace BBB.Runtime
             _audio.Win();
             UiFx.Burst(_charRt, UiFx.Preset.SuccessStars, new Vector2(0, 40));
             yield return SlamTitle($"第{Mathf.Max(1, _m.Adv.chapter - 1)}章  踏破！   +{r.chapterSouls} SOUL", ColGold, 2.4f, 50);
+            if (r.chapterSetbacks > 0) yield return SlamTitle($"引き返した回数 {r.chapterSetbacks}   報酬はその分だけ減った", ColTextSub, 1.4f, 28);
+            if (PlayStory(StoryDirector.OnClear(_m.Config.story, Mathf.Max(1, _m.Adv.chapter - 1)))) yield return new WaitForSeconds(3.2f);
             yield return SlamTitle("街へ戻る……", ColText, 1.0f, 34);
             SaveData.Save(_m, _audio);
             _inputLocked = false;
@@ -1648,6 +2083,15 @@ namespace BBB.Runtime
         /// <summary>AT のイベント演出（洞窟発見・バトル・討伐・終了）を一本にまとめて出す。</summary>
         private void AtFx(GameResult r)
         {
+            if (r.setContinued) StartCoroutine(SetContinueRoutine(r.continueSet));
+            if (r.zoneStarted != null) StartCoroutine(ZoneStartRoutine(r.zoneStarted));
+            else if (r.zoneEnded) SetMessage("ゾーン終了", true, ColTextSub);
+            if (r.zoneAddedSpins > 0)
+            {
+                UiFx.PopText(_atChip.rectTransform, $"+{r.zoneAddedSpins}G", ColGold, 22, new Vector2(0, 24));
+                UiFx.Burst(_atChip.rectTransform, UiFx.Preset.Sparks, new Vector2(0, 6));
+                _audio.RoleBell();
+            }
             if (r.atWon) { StartCoroutine(CaveFoundRoutine()); return; }   // 当選告知。実際に入るのは前兆のあと
             if (r.battleStarted) { StartCoroutine(BattleStartRoutine(r.battleMonster)); return; }
             if (r.battleResolved.HasValue || r.battleDamage > 0) { StartCoroutine(BattleHitRoutine(r)); return; }
@@ -1663,6 +2107,30 @@ namespace BBB.Runtime
             if (line == null) return;
             var cfg = _m.Config.travelers ?? TravelerConfig.Default();
             _dialogRoutine = StartCoroutine(HeroLineRoutine(cfg.heroName ?? "主人公", line));
+        }
+
+        /// <summary>物語の台詞を順に流す。話者が空なら主人公、それ以外はその名前で出す。</summary>
+        private IEnumerator StoryRoutine(System.Collections.Generic.List<StoryLine> lines, float seconds = 2.6f)
+        {
+            var tv = _m.Config.travelers ?? TravelerConfig.Default();
+            string hero = tv.heroName ?? "主人公";
+            foreach (var ln in lines)
+            {
+                if (ln == null || string.IsNullOrEmpty(ln.text)) continue;
+                bool isHero = string.IsNullOrEmpty(ln.speaker);
+                yield return ShowLine(isHero ? hero : ln.speaker, ln.text,
+                                      isHero ? ColGreen : Hex("#8f6bff"), ColBg, seconds);
+            }
+            HideDialogue();
+            _dialogRoutine = null;
+        }
+
+        /// <summary>節目の物語（引き返した・尽きた・踏破した）を流す。流したら true。</summary>
+        private bool PlayStory(System.Collections.Generic.List<StoryLine> lines)
+        {
+            if (lines == null || lines.Count == 0 || _dialogRoutine != null) return false;
+            _dialogRoutine = StartCoroutine(StoryRoutine(lines));
+            return true;
         }
 
         private IEnumerator HeroLineRoutine(string hero, string line, float seconds = 2.3f)
@@ -1952,6 +2420,28 @@ namespace BBB.Runtime
         }
 
         /// <summary>AT 当選: ボーナス終了Gに「洞窟を見つけた」。次Gから AT が始まる。</summary>
+        /// <summary>特化ゾーンに入ったときの叩きつけ。ゾーンごとに色と文言を変える。</summary>
+        /// <summary>セット継続。何セット目かを見せる（続くほど濃い色に）。</summary>
+        private IEnumerator SetContinueRoutine(int set)
+        {
+            _audio.Win();
+            var col = set >= 8 ? Hex("#ff4d6d") : set >= 4 ? ColGold : ColGreen;
+            UiFx.Burst(_charRt, set >= 8 ? UiFx.Preset.RainbowStars : UiFx.Preset.SuccessStars, new Vector2(0, 46));
+            StartCoroutine(EdgeGlow(col, 1.0f, set >= 8));
+            yield return SlamTitle($"継 続   {set} セット目", col, 1.5f, 56);
+        }
+
+        private IEnumerator ZoneStartRoutine(AtZone z)
+        {
+            var col = string.IsNullOrEmpty(z.color) ? ColGold : Hex(z.color);
+            _audio.RoleChance();
+            StartCoroutine(EdgeGlow(col, 1.4f, z.kind == "beast"));
+            UiFx.Burst(_charRt, z.kind == "boost" ? UiFx.Preset.Coins : UiFx.Preset.RainbowStars, new Vector2(0, 50));
+            UiFx.Ring(_area, new Color(col.r, col.g, col.b, 0.9f), 60, 520, 0.7f);
+            yield return SlamTitle(string.IsNullOrEmpty(z.slam) ? z.name : z.slam, col, 1.7f, 62);
+            SetMessage($"{z.name}   {z.spins} G", true, col);
+        }
+
         private IEnumerator CaveFoundRoutine()
         {
             _audio.Precog(2);
@@ -2048,7 +2538,7 @@ namespace BBB.Runtime
         /// <summary>AT 終了: 洞窟を出る。</summary>
         private IEnumerator AtEndRoutine(int payout, int spins)
         {
-            yield return SlamTitle($"洞窟を抜けた   {payout} 枚 / {spins} G", Hex("#8f6bff"), 1.6f, 40);
+            yield return SlamTitle($"洞窟を抜けた   エンバー +{payout} / {spins} G", Hex("#8f6bff"), 1.6f, 40);
             PlayCharacter("walk");
         }
 
@@ -2576,7 +3066,7 @@ namespace BBB.Runtime
                 bool win = _lastPayout > 0 || _lastWasReplay;
                 yield return new WaitForSeconds((win ? t.nextWin : t.next) / 1000f / sp);
                 if (!_autoMode || _inputLocked) yield break;
-                if (!_m.MaxBet()) { _autoMode = false; SetMessage("クレジットが足りません", false, ColAccent); RefreshUi(); yield break; }
+                if (!_m.MaxBet()) { _autoMode = false; SetMessage("エンバーが足りません", false, ColAccent); RefreshUi(); yield break; }
                 Lever();
                 yield break;
             }
@@ -2584,7 +3074,15 @@ namespace BBB.Runtime
             yield return new WaitUntil(() => !StopsLocked);
             // 押し順: ベル択ナビが出ていれば「1」を先に、残りの「?」はランダムに選ぶ。無ければ順押し
             int[] order = { 0, 1, 2 };
-            if (_m.Navi.Active)
+            if (_m.Navi2.Active)
+            {
+                // AT の押し順ナビ: 教えられたリールを第一停止（外すと 15 枚が 3 枚になる）
+                int f = _m.Navi2.first;
+                var rest2 = new System.Collections.Generic.List<int> { 0, 1, 2 };
+                rest2.Remove(f);
+                order = new[] { f, rest2[0], rest2[1] };
+            }
+            else if (_m.Navi.Active)
             {
                 int first = _m.Navi.first;
                 var rest = new System.Collections.Generic.List<int> { 0, 1, 2 };

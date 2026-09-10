@@ -32,11 +32,15 @@ namespace BBB.Runtime
         // ----------------------------------------------------------- sprites
         private static readonly Dictionary<string, Sprite> _cache = new Dictionary<string, Sprite>();
 
+        /// <summary>Play に入るたびにキャッシュを捨てる（前回の破棄済み Sprite を掴まないように）。</summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetCache() { _cache.Clear(); }
+
         /// <summary>角丸矩形（9スライス）。radius は px。</summary>
         public static Sprite Rounded(int radius)
         {
             string key = "r" + radius;
-            if (_cache.TryGetValue(key, out var s)) return s;
+            if (_cache.TryGetValue(key, out var s) && s != null) return s;
             int size = radius * 2 + 4;
             var tex = new Texture2D(size, size, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
             var px = new Color32[size * size];
@@ -53,7 +57,7 @@ namespace BBB.Runtime
         public static Sprite Shadow(int radius, int blur)
         {
             string key = $"s{radius}_{blur}";
-            if (_cache.TryGetValue(key, out var s)) return s;
+            if (_cache.TryGetValue(key, out var s) && s != null) return s;
             int pad = blur + radius;
             int size = pad * 2 + 4;
             var tex = new Texture2D(size, size, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
@@ -77,7 +81,7 @@ namespace BBB.Runtime
         public static Sprite GradientV(bool topOpaque = true)
         {
             string key = "gv" + (topOpaque ? 1 : 0);
-            if (_cache.TryGetValue(key, out var s)) return s;
+            if (_cache.TryGetValue(key, out var s) && s != null) return s;
             const int h = 64;
             var tex = new Texture2D(1, h, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
             for (int y = 0; y < h; y++)
@@ -96,7 +100,7 @@ namespace BBB.Runtime
         public static Sprite Circle(int diameter, float softness = 0.08f)
         {
             string key = $"c{diameter}_{softness}";
-            if (_cache.TryGetValue(key, out var s)) return s;
+            if (_cache.TryGetValue(key, out var s) && s != null) return s;
             var tex = new Texture2D(diameter, diameter, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
             float r = diameter * 0.5f;
             for (int y = 0; y < diameter; y++)
@@ -116,7 +120,7 @@ namespace BBB.Runtime
         public static Sprite Glow(int diameter)
         {
             string key = "g" + diameter;
-            if (_cache.TryGetValue(key, out var s)) return s;
+            if (_cache.TryGetValue(key, out var s) && s != null) return s;
             var tex = new Texture2D(diameter, diameter, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
             float r = diameter * 0.5f;
             for (int y = 0; y < diameter; y++)
@@ -149,6 +153,310 @@ namespace BBB.Runtime
         }
 
         // ---------------------------------------------------------- builders
+
+        // ------------------------------------------------------------ icons
+        /// <summary>
+        /// スキル・装備のアイコン。素材を使わず距離関数で描く（Resources/Art/Icons に同名の絵があればそちらを優先）。
+        /// kind: sword / soul / eye / book / lantern / amulet / oil / potion / boots / shield
+        /// </summary>
+        public static Sprite Icon(string kind, int size = 64)
+        {
+            string key = "icon_" + kind + "_" + size;
+            if (_cache.TryGetValue(key, out var cached) && cached != null) return cached;
+
+            var px = new Color32[size * size];
+            for (int i = 0; i < px.Length; i++) px[i] = new Color32(0, 0, 0, 0);
+
+            switch (kind)
+            {
+                case "sword": DrawSword(px, size); break;
+                case "soul": DrawSoul(px, size); break;
+                case "eye": DrawEye(px, size); break;
+                case "book": DrawBook(px, size); break;
+                case "lantern": DrawLantern(px, size); break;
+                case "amulet": DrawAmulet(px, size); break;
+                case "oil": DrawOil(px, size); break;
+                case "potion": DrawPotion(px, size); break;
+                case "boots": DrawBoots(px, size); break;
+                case "shield": DrawShield(px, size); break;
+                case "lock": DrawLock(px, size); break;
+                case "chain": DrawChain(px, size); break;
+                case "ember": DrawEmber(px, size); break;
+                default: DrawAmulet(px, size); break;
+            }
+
+            var tex = new Texture2D(size, size, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
+            tex.SetPixels32(px);
+            tex.Apply();
+            var s = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 100f);
+            _cache[key] = s;
+            return s;
+        }
+
+        // --- 描画の下ごしらえ（すべて -1..1 の座標で考える）---
+
+        /// <summary>距離関数 d(x,y) が 0 未満の所を色で塗る。境界はぼかす。</summary>
+        private static void Paint(Color32[] px, int size, System.Func<float, float, float> sdf, Color color)
+        {
+            float aa = 2.2f / size;
+            for (int y = 0; y < size; y++)
+                for (int x = 0; x < size; x++)
+                {
+                    float u = (x + 0.5f) / size * 2f - 1f;
+                    float v = (y + 0.5f) / size * 2f - 1f;
+                    float d = sdf(u, v);
+                    float a = Mathf.Clamp01(0.5f - d / aa);
+                    if (a <= 0.001f) continue;
+                    px[y * size + x] = Over(px[y * size + x], color, a * color.a);
+                }
+        }
+
+        private static Color32 Over(Color32 dst, Color src, float a)
+        {
+            float da = dst.a / 255f;
+            float outA = a + da * (1f - a);
+            if (outA <= 0.0001f) return new Color32(0, 0, 0, 0);
+            float r = (src.r * a + (dst.r / 255f) * da * (1f - a)) / outA;
+            float g = (src.g * a + (dst.g / 255f) * da * (1f - a)) / outA;
+            float b = (src.b * a + (dst.b / 255f) * da * (1f - a)) / outA;
+            return new Color32((byte)(Mathf.Clamp01(r) * 255), (byte)(Mathf.Clamp01(g) * 255), (byte)(Mathf.Clamp01(b) * 255), (byte)(Mathf.Clamp01(outA) * 255));
+        }
+
+        private static float SdCircle(float x, float y, float cx, float cy, float r)
+            => Mathf.Sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy)) - r;
+
+        private static float SdBox(float x, float y, float cx, float cy, float w, float h, float round = 0f)
+        {
+            float dx = Mathf.Abs(x - cx) - w + round;
+            float dy = Mathf.Abs(y - cy) - h + round;
+            float outside = Mathf.Sqrt(Mathf.Max(dx, 0) * Mathf.Max(dx, 0) + Mathf.Max(dy, 0) * Mathf.Max(dy, 0));
+            return outside + Mathf.Min(Mathf.Max(dx, dy), 0f) - round;
+        }
+
+        /// <summary>線分（太さ th）。</summary>
+        private static float SdSeg(float x, float y, float ax, float ay, float bx, float by, float th)
+        {
+            float pax = x - ax, pay = y - ay, bax = bx - ax, bay = by - ay;
+            float h = Mathf.Clamp01((pax * bax + pay * bay) / Mathf.Max(1e-5f, bax * bax + bay * bay));
+            float dx = pax - bax * h, dy = pay - bay * h;
+            return Mathf.Sqrt(dx * dx + dy * dy) - th;
+        }
+
+        /// <summary>上下に伸びる菱形（刀身や炎の芯に使う）。</summary>
+        private static float SdDiamond(float x, float y, float cx, float cy, float w, float h)
+        {
+            float dx = Mathf.Abs(x - cx) / Mathf.Max(1e-5f, w);
+            float dy = Mathf.Abs(y - cy) / Mathf.Max(1e-5f, h);
+            return (dx + dy - 1f) * Mathf.Min(w, h);
+        }
+
+        /// <summary>5 稜の星。</summary>
+        private static float SdStar(float x, float y, float cx, float cy, float r)
+        {
+            float px2 = x - cx, py2 = y - cy;
+            float ang = Mathf.Atan2(py2, px2) - Mathf.PI * 0.5f;
+            float len = Mathf.Sqrt(px2 * px2 + py2 * py2);
+            float seg = Mathf.PI * 2f / 5f;
+            float a = Mathf.Repeat(ang + seg * 0.5f, seg) - seg * 0.5f;
+            float rr = r * (0.55f + 0.45f * Mathf.Cos(a * 2.5f));
+            return len - rr;
+        }
+
+        private static readonly Color IconEdge = new Color(0.02f, 0.03f, 0.06f, 0.9f);
+
+        private static void DrawSword(Color32[] px, int n)
+        {
+            var steel = new Color(0.82f, 0.87f, 0.95f);
+            var edge = new Color(0.55f, 0.62f, 0.75f);
+            var grip = new Color(0.45f, 0.28f, 0.16f);
+            var gold = new Color(1f, 0.81f, 0.35f);
+            // 刀身
+            Paint(px, n, (x, y) => Mathf.Max(SdDiamond(x, y, 0f, 0.18f, 0.20f, 0.72f), -y - 0.20f), edge);
+            Paint(px, n, (x, y) => Mathf.Max(SdDiamond(x, y, 0f, 0.20f, 0.13f, 0.66f), -y - 0.18f), steel);
+            // 鍔
+            Paint(px, n, (x, y) => SdBox(x, y, 0f, -0.30f, 0.50f, 0.075f, 0.05f), gold);
+            // 柄
+            Paint(px, n, (x, y) => SdBox(x, y, 0f, -0.62f, 0.085f, 0.24f, 0.06f), grip);
+            Paint(px, n, (x, y) => SdCircle(x, y, 0f, -0.88f, 0.11f), gold);
+        }
+
+        private static void DrawSoul(Color32[] px, int n)
+        {
+            var outer = new Color(0.45f, 0.32f, 0.85f, 0.55f);
+            var mid = new Color(0.62f, 0.48f, 1f);
+            var core = new Color(0.92f, 0.90f, 1f);
+            Paint(px, n, (x, y) => SdCircle(x, y, 0f, 0f, 0.80f), outer);
+            Paint(px, n, (x, y) => SdCircle(x, y, 0f, 0.02f, 0.52f), mid);
+            Paint(px, n, (x, y) => SdCircle(x, y, -0.10f, 0.14f, 0.22f), core);
+            // 立ちのぼる尾
+            Paint(px, n, (x, y) => SdSeg(x, y, 0.02f, 0.55f, -0.10f, 0.92f, 0.055f), mid);
+        }
+
+        private static void DrawEye(Color32[] px, int n)
+        {
+            var white = new Color(0.93f, 0.95f, 1f);
+            var iris = new Color(0.25f, 0.72f, 0.95f);
+            var pupil = new Color(0.05f, 0.07f, 0.12f);
+            var lid = new Color(0.55f, 0.72f, 0.9f);
+            // 上下の弧が重なった形（レンズ）
+            Paint(px, n, (x, y) => Mathf.Max(SdCircle(x, y, 0f, -0.62f, 0.98f), SdCircle(x, y, 0f, 0.62f, 0.98f)), lid);
+            Paint(px, n, (x, y) => Mathf.Max(SdCircle(x, y, 0f, -0.66f, 0.94f), SdCircle(x, y, 0f, 0.66f, 0.94f)), white);
+            Paint(px, n, (x, y) => SdCircle(x, y, 0f, 0f, 0.30f), iris);
+            Paint(px, n, (x, y) => SdCircle(x, y, 0f, 0f, 0.14f), pupil);
+            Paint(px, n, (x, y) => SdCircle(x, y, -0.10f, 0.12f, 0.06f), new Color(1f, 1f, 1f, 0.85f));
+        }
+
+        private static void DrawBook(Color32[] px, int n)
+        {
+            var cover = new Color(0.30f, 0.45f, 0.75f);
+            var page = new Color(0.94f, 0.93f, 0.86f);
+            var band = new Color(1f, 0.81f, 0.35f);
+            Paint(px, n, (x, y) => SdBox(x, y, 0f, 0f, 0.62f, 0.74f, 0.08f), cover);
+            Paint(px, n, (x, y) => SdBox(x, y, 0.06f, 0f, 0.50f, 0.62f, 0.05f), page);
+            // 中央の綴じ目としおり
+            Paint(px, n, (x, y) => SdBox(x, y, -0.44f, 0f, 0.07f, 0.74f, 0.03f), band);
+            for (int i = 0; i < 3; i++)
+            {
+                float yy = 0.28f - i * 0.28f;
+                Paint(px, n, (x, y) => SdBox(x, y, 0.10f, yy, 0.32f, 0.035f, 0.02f), new Color(0.55f, 0.58f, 0.66f, 0.8f));
+            }
+        }
+
+        private static void DrawLantern(Color32[] px, int n)
+        {
+            var metal = new Color(0.68f, 0.55f, 0.28f);
+            var glass = new Color(1f, 0.86f, 0.45f, 0.55f);
+            var flame = new Color(1f, 0.65f, 0.15f);
+            var hot = new Color(1f, 0.95f, 0.7f);
+            // 吊り手
+            Paint(px, n, (x, y) => Mathf.Abs(SdCircle(x, y, 0f, 0.66f, 0.26f)) - 0.045f, metal);
+            // 本体
+            Paint(px, n, (x, y) => SdBox(x, y, 0f, 0.62f, 0.34f, 0.07f, 0.04f), metal);
+            Paint(px, n, (x, y) => SdBox(x, y, 0f, -0.05f, 0.44f, 0.56f, 0.12f), metal);
+            Paint(px, n, (x, y) => SdBox(x, y, 0f, -0.05f, 0.32f, 0.44f, 0.08f), glass);
+            Paint(px, n, (x, y) => SdBox(x, y, 0f, -0.72f, 0.40f, 0.10f, 0.05f), metal);
+            // 中の炎
+            Paint(px, n, (x, y) => SdDiamond(x, y, 0f, -0.06f, 0.15f, 0.30f), flame);
+            Paint(px, n, (x, y) => SdCircle(x, y, 0f, -0.16f, 0.11f), hot);
+        }
+
+        private static void DrawAmulet(Color32[] px, int n)
+        {
+            var chain = new Color(0.72f, 0.74f, 0.80f);
+            var ring = new Color(1f, 0.81f, 0.35f);
+            var gem = new Color(0.35f, 0.85f, 0.70f);
+            Paint(px, n, (x, y) => Mathf.Abs(SdCircle(x, y, 0f, 0.62f, 0.30f)) - 0.05f, chain);
+            Paint(px, n, (x, y) => Mathf.Abs(SdCircle(x, y, 0f, -0.18f, 0.60f)) - 0.10f, ring);
+            Paint(px, n, (x, y) => SdCircle(x, y, 0f, -0.18f, 0.50f), new Color(0.08f, 0.12f, 0.20f));
+            Paint(px, n, (x, y) => SdStar(x, y, 0f, -0.18f, 0.44f), gem);
+        }
+
+        private static void DrawOil(Color32[] px, int n)
+        {
+            var jar = new Color(0.35f, 0.55f, 0.42f);
+            var oil = new Color(1f, 0.78f, 0.30f);
+            var cork = new Color(0.55f, 0.38f, 0.22f);
+            // 壺（下が丸く、首が細い）
+            Paint(px, n, (x, y) => SdCircle(x, y, 0f, -0.28f, 0.60f), jar);
+            Paint(px, n, (x, y) => SdBox(x, y, 0f, 0.38f, 0.18f, 0.30f, 0.05f), jar);
+            Paint(px, n, (x, y) => SdBox(x, y, 0f, 0.70f, 0.25f, 0.09f, 0.04f), cork);
+            // 中の油
+            Paint(px, n, (x, y) => Mathf.Max(SdCircle(x, y, 0f, -0.28f, 0.46f), -(y + 0.42f) * -1f), oil);
+            Paint(px, n, (x, y) => SdCircle(x, y, -0.16f, -0.34f, 0.10f), new Color(1f, 0.94f, 0.65f, 0.8f));
+        }
+
+        private static void DrawPotion(Color32[] px, int n)
+        {
+            var glass = new Color(0.75f, 0.85f, 0.95f, 0.55f);
+            var liquid = new Color(0.95f, 0.30f, 0.45f);
+            var cork = new Color(0.55f, 0.38f, 0.22f);
+            Paint(px, n, (x, y) => SdCircle(x, y, 0f, -0.25f, 0.58f), glass);
+            Paint(px, n, (x, y) => SdBox(x, y, 0f, 0.42f, 0.16f, 0.32f, 0.04f), glass);
+            Paint(px, n, (x, y) => SdBox(x, y, 0f, 0.74f, 0.22f, 0.10f, 0.04f), cork);
+            Paint(px, n, (x, y) => Mathf.Max(SdCircle(x, y, 0f, -0.25f, 0.46f), y - 0.05f), liquid);
+        }
+
+        private static void DrawBoots(Color32[] px, int n)
+        {
+            var leather = new Color(0.48f, 0.32f, 0.20f);
+            var sole = new Color(0.25f, 0.20f, 0.18f);
+            var band = new Color(1f, 0.81f, 0.35f);
+            Paint(px, n, (x, y) => SdBox(x, y, -0.12f, 0.18f, 0.26f, 0.55f, 0.10f), leather);
+            Paint(px, n, (x, y) => SdBox(x, y, 0.16f, -0.44f, 0.54f, 0.20f, 0.10f), leather);
+            Paint(px, n, (x, y) => SdBox(x, y, 0.10f, -0.66f, 0.62f, 0.10f, 0.05f), sole);
+            Paint(px, n, (x, y) => SdBox(x, y, -0.12f, 0.30f, 0.30f, 0.07f, 0.03f), band);
+        }
+
+        /// <summary>灯火（エンバー）。芯の白い炎。</summary>
+        private static void DrawEmber(Color32[] px, int n)
+        {
+            var outer = new Color(1f, 0.42f, 0.10f, 0.85f);
+            var mid = new Color(1f, 0.66f, 0.18f);
+            var core = new Color(1f, 0.94f, 0.72f);
+            // 下がふくらみ、上がとがる炎の形
+            System.Func<float, float, float, float> flame = (x, y, w) =>
+            {
+                float t = Mathf.Clamp01((y + 0.85f) / 1.7f);
+                float half = w * (0.30f + 0.70f * Mathf.Sin(t * Mathf.PI * 0.92f)) * (1f - t * 0.55f);
+                float body = Mathf.Abs(x) - Mathf.Max(0.02f, half);
+                return Mathf.Max(body, Mathf.Max(-y - 0.86f, y - 0.90f));
+            };
+            Paint(px, n, (x, y) => flame(x, y + 0.02f, 0.92f), outer);
+            Paint(px, n, (x, y) => flame(x, y - 0.06f, 0.62f), mid);
+            Paint(px, n, (x, y) => flame(x, y - 0.20f, 0.32f), core);
+        }
+
+        /// <summary>南京錠。掛け金は鋼、本体は真鍮。</summary>
+        private static void DrawLock(Color32[] px, int n)
+        {
+            var steel = new Color(0.78f, 0.82f, 0.90f);
+            var steelDark = new Color(0.48f, 0.52f, 0.60f);
+            var brass = new Color(0.92f, 0.74f, 0.30f);
+            var brassDark = new Color(0.62f, 0.48f, 0.16f);
+            var hole = new Color(0.12f, 0.10f, 0.07f);
+            // 掛け金（上半分だけの輪）
+            Paint(px, n, (x, y) => Mathf.Max(Mathf.Abs(SdCircle(x, y, 0f, 0.26f, 0.36f)) - 0.11f, 0.26f - y), steelDark);
+            Paint(px, n, (x, y) => Mathf.Max(Mathf.Abs(SdCircle(x, y, 0f, 0.26f, 0.36f)) - 0.075f, 0.26f - y), steel);
+            // 本体
+            Paint(px, n, (x, y) => SdBox(x, y, 0f, -0.30f, 0.56f, 0.46f, 0.14f), brassDark);
+            Paint(px, n, (x, y) => SdBox(x, y, 0f, -0.30f, 0.50f, 0.40f, 0.12f), brass);
+            // 鍵穴
+            Paint(px, n, (x, y) => SdCircle(x, y, 0f, -0.20f, 0.14f), hole);
+            Paint(px, n, (x, y) => SdBox(x, y, 0f, -0.46f, 0.06f, 0.18f, 0.02f), hole);
+        }
+
+        /// <summary>鎖のひとこま（輪が 2 つ）。横に並べて鎖にする。</summary>
+        private static void DrawChain(Color32[] px, int n)
+        {
+            var metal = new Color(0.74f, 0.78f, 0.86f);
+            var dark = new Color(0.40f, 0.44f, 0.52f);
+            System.Func<float, float, float, float> ring = (x, y, cx) =>
+            {
+                float dx = (x - cx) / 0.54f, dy = y / 0.72f;
+                return Mathf.Abs(Mathf.Sqrt(dx * dx + dy * dy) - 0.70f) - 0.26f;
+            };
+            Paint(px, n, (x, y) => ring(x, y, -0.44f), dark);
+            Paint(px, n, (x, y) => ring(x, y, 0.44f), dark);
+            Paint(px, n, (x, y) => ring(x, y, -0.44f) + 0.055f, metal);
+            Paint(px, n, (x, y) => ring(x, y, 0.44f) + 0.055f, metal);
+        }
+
+        private static void DrawShield(Color32[] px, int n)
+        {
+            var steel = new Color(0.72f, 0.78f, 0.88f);
+            var trim = new Color(1f, 0.81f, 0.35f);
+            var crest = new Color(0.30f, 0.50f, 0.85f);
+            System.Func<float, float, float> body = (x, y) =>
+            {
+                float top = SdBox(x, y, 0f, 0.28f, 0.62f, 0.50f, 0.14f);
+                float tip = SdDiamond(x, y, 0f, -0.30f, 0.62f, 0.62f);
+                return Mathf.Min(top, tip);
+            };
+            Paint(px, n, (x, y) => body(x, y), trim);
+            Paint(px, n, (x, y) => body(x, y) + 0.09f, steel);
+            Paint(px, n, (x, y) => SdDiamond(x, y, 0f, 0.05f, 0.26f, 0.40f), crest);
+        }
+
         public static RectTransform Rect(Transform parent, string name, Vector2 pos, Vector2 size)
         {
             var go = new GameObject(name, typeof(RectTransform));
@@ -315,9 +623,13 @@ namespace BBB.Runtime
         }
 
         /// <summary>見出し（小さい大文字ラベル + 下線）。</summary>
-        public static Text Heading(Transform parent, string name, Vector2 pos, float width, string text)
+        /// <summary>
+        /// 小見出し（左寄せ＋下線）。indent はアイコンぶんの字下げ。
+        /// 左にアイコンを置くときは必ずこれを使い、文字と重ならない位置から書き始める。
+        /// </summary>
+        public static Text Heading(Transform parent, string name, Vector2 pos, float width, string text, float indent = 0f)
         {
-            var t = UiFactory.Label(parent, name, pos, new Vector2(width, 14), text, 11, TextAnchor.MiddleLeft, TextSub);
+            var t = UiFactory.Label(parent, name, new Vector2(pos.x + indent * 0.5f, pos.y), new Vector2(width - indent, 14), text, 11, TextAnchor.MiddleLeft, TextSub);
             t.fontStyle = FontStyle.Bold;
             Img(parent, name + "Line", new Vector2(pos.x, pos.y - 10), new Vector2(width, 1), null, new Color(1, 1, 1, 0.08f));
             return t;

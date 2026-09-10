@@ -44,6 +44,11 @@ namespace BBB.Runtime
             /// <summary>リプレイ: 青い小さな星がふわっと舞う。</summary>
             public static Preset Sparkle => new Preset { shape = Shape.Star, count = 14, sizeMin = 8, sizeMax = 15, speedMin = 60, speedMax = 170, gravity = 40, life = 1.0f, spread = 360, direction = 90, drag = 0.8f, spin = 420, colors = new[] { new Color(0.55f, 0.8f, 1f), Color.white, new Color(0.35f, 0.6f, 1f) } };
             /// <summary>チャンス目: 虹色の星＋紙吹雪。</summary>
+            /// <summary>灯火（エンバー）。ゆらぐ火の玉。</summary>
+            public static Preset EmberSoul => new Preset { shape = Shape.Circle, count = 1, sizeMin = 12, sizeMax = 22, life = 0.9f, colors = new[] { new Color(1f, 0.62f, 0.18f), new Color(1f, 0.82f, 0.35f), new Color(1f, 0.45f, 0.10f), new Color(1f, 0.94f, 0.72f) } };
+            /// <summary>魂（ソウル）。青紫の光。</summary>
+            public static Preset SoulWisp => new Preset { shape = Shape.Circle, count = 1, sizeMin = 11, sizeMax = 20, life = 0.9f, colors = new[] { new Color(0.62f, 0.48f, 1f), new Color(0.45f, 0.32f, 0.92f), new Color(0.85f, 0.80f, 1f) } };
+
             public static Preset RainbowStars => new Preset { shape = Shape.Star, count = 32, sizeMin = 12, sizeMax = 28, speedMin = 180, speedMax = 520, gravity = -300, life = 1.3f, spread = 360, direction = 90, spin = 600, colors = new[] { new Color(1f, 0.35f, 0.4f), new Color(1f, 0.85f, 0.3f), new Color(0.4f, 1f, 0.5f), new Color(0.4f, 0.75f, 1f), new Color(0.8f, 0.5f, 1f), Color.white } };
         }
 
@@ -111,10 +116,85 @@ namespace BBB.Runtime
         /// 役名カットイン: 角丸の帯にアイコン＋文字。ポップイン → 保持 → 右へ流れて消える。
         /// scale で大きさ、rainbow=true で縁と文字の色相が回る（チャンス目）。
         /// </summary>
+        /// <summary>
+        /// from から湧き出た光が、ふくらんでから to へ吸い込まれる。
+        /// 数値表示に「入った」ことを見せるためのもの。count は玉の数。
+        /// </summary>
+        public static void Absorb(RectTransform from, RectTransform to, Preset preset, int count = 8,
+                                  float duration = 0.75f, Vector2 fromOffset = default, Vector2 toOffset = default)
+        {
+            if (_inst == null || from == null || to == null) return;
+            _inst.StartCoroutine(_inst.AbsorbRoutine(_inst.ToLayer(from) + fromOffset, _inst.ToLayer(to) + toOffset, preset, count, duration));
+        }
+
         public static void Cutin(RectTransform at, string text, Color color, Sprite icon, float scale = 1f, float hold = 0.8f, bool rainbow = false, Vector2 offset = default)
         {
             if (_inst == null) return;
             _inst.StartCoroutine(_inst.CutinRoutine(_inst.ToLayer(at) + offset, text, color, icon, scale, hold, rainbow));
+        }
+
+        /// <summary>湧き出し → ふくらみ → 吸い込みの 3 段。玉ごとに少し遅らせて流れを作る。</summary>
+        private System.Collections.IEnumerator AbsorbRoutine(Vector2 from, Vector2 to, Preset pr, int count, float duration)
+        {
+            var rng = new System.Random();
+            for (int i = 0; i < count; i++)
+            {
+                StartCoroutine(AbsorbOne(from, to, pr, duration, i * 0.045f, rng.Next()));
+                if (i % 3 == 2) yield return null;
+            }
+        }
+
+        private System.Collections.IEnumerator AbsorbOne(Vector2 from, Vector2 to, Preset pr, float duration, float delay, int seed)
+        {
+            if (delay > 0f) yield return new WaitForSeconds(delay);
+            var rnd = new System.Random(seed);
+            float R(float a, float b) => a + (float)rnd.NextDouble() * (b - a);
+
+            var img = Get(pr.shape);
+            var rt = img.rectTransform;
+            float size = R(pr.sizeMin, pr.sizeMax);
+            var color = pr.colors[rnd.Next(pr.colors.Length)];
+            img.color = color;
+
+            // 湧き出す向きに散らしてから、弧を描いて吸い込まれる
+            float ang = R(0f, Mathf.PI * 2f);
+            float spread = R(28f, 92f);
+            var mid = from + new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * spread;
+            // 制御点を上に持ち上げて、たなびく軌道にする
+            var ctrl = Vector2.Lerp(mid, to, 0.45f) + new Vector2(R(-70f, 70f), R(40f, 130f));
+
+            float t = 0f, burst = duration * 0.28f;
+            while (t < duration)
+            {
+                t += Time.deltaTime;
+                float u = Mathf.Clamp01(t / duration);
+                Vector2 p;
+                float scale;
+                if (t < burst)
+                {
+                    // 湧き出し: from から散る
+                    float v = t / burst;
+                    p = Vector2.Lerp(from, mid, 1f - (1f - v) * (1f - v));
+                    scale = Mathf.Lerp(0.2f, 1.15f, v);
+                    img.color = new Color(color.r, color.g, color.b, Mathf.Lerp(0f, 1f, v * 2f));
+                }
+                else
+                {
+                    // 吸い込み: 弧を描いて to へ。終わりぎわに縮んで消える
+                    float v = (t - burst) / Mathf.Max(0.01f, duration - burst);
+                    float e = v * v;                        // だんだん速く
+                    var a = Vector2.Lerp(mid, ctrl, e);
+                    var b = Vector2.Lerp(ctrl, to, e);
+                    p = Vector2.Lerp(a, b, e);
+                    scale = Mathf.Lerp(1.15f, 0.25f, e * e);
+                    img.color = new Color(color.r, color.g, color.b, v > 0.82f ? Mathf.Lerp(1f, 0f, (v - 0.82f) / 0.18f) : 1f);
+                }
+                rt.anchoredPosition = p;
+                rt.sizeDelta = new Vector2(size * scale, size * scale);
+                yield return null;
+            }
+            img.gameObject.SetActive(false);
+            _pool.Push(img);
         }
 
         // ------------------------------------------------------- internals

@@ -20,7 +20,7 @@ public sealed class ProbabilityEditorWindow : EditorWindow
     private const string EnemyPath = "Assets/Resources/Data/enemy_tables.json";
     private const int Denom = 65536;
 
-    private static readonly string[] Tabs = { "小役確率", "天井・モード移行", "ワークフロー", "エネミー", "エンゲージ示唆", "旅人", "予告", "主人公", "AT期待度", "AT洞窟", "冒険" };
+    private static readonly string[] Tabs = { "小役確率", "天井・モード移行", "ワークフロー", "エネミー", "エンゲージ示唆", "旅人", "予告", "主人公", "AT期待度", "AT洞窟", "冒険", "ステータス", "物語" };
     private static readonly string[] TableKeys = { "probabilities_A", "probabilities_B", "probabilities_C", "probabilities_D", "probabilities_BB", "probabilities_RB" };
     private static readonly string[] TableNames = { "モードA", "モードB", "モードC", "モードD", "BB中", "RB中" };
     private static readonly string[] FlagKeys = Enum.GetNames(typeof(Flag));
@@ -82,7 +82,7 @@ public sealed class ProbabilityEditorWindow : EditorWindow
             if (GUILayout.Button("再読込", GUILayout.Width(70))) { if (!_dirty || EditorUtility.DisplayDialog("再読込", "未保存の変更を捨てますか？", "捨てる", "戻る")) Load(); }
             using (new EditorGUI.DisabledScope(!_dirty)) if (GUILayout.Button("保存", GUILayout.Width(70))) Save();
             GUILayout.Space(12);
-            _tab = GUILayout.Toolbar(_tab, Tabs, GUILayout.Width(1000));
+            _tab = GUILayout.Toolbar(_tab, Tabs, GUILayout.Width(1160));
         }
         EditorGUILayout.HelpBox(_status + (_dirty ? "  [未保存]" : ""), MessageType.None);
 
@@ -100,6 +100,8 @@ public sealed class ProbabilityEditorWindow : EditorWindow
             case 8: DrawAtExpect(); break;
             case 9: DrawAtCave(); break;
             case 10: DrawAdventure(); break;
+            case 11: DrawStats(); break;
+            case 12: DrawStory(); break;
         }
         EditorGUILayout.EndScrollView();
     }
@@ -315,7 +317,7 @@ public sealed class ProbabilityEditorWindow : EditorWindow
                 }
             }
         }
-        EditorGUILayout.HelpBox("BIG/REG は「獲得枚数で終了」する目標枚数。REPLAY は再遊技のコスト相当（クレジット表示用）。", MessageType.None);
+        EditorGUILayout.HelpBox("BIG/REG は「獲得量で終了」する目標エンバー。REPLAY は再遊技のコスト相当（エンバー表示用）。", MessageType.None);
     }
 
     // ----------------------------------------------------------- ワークフロー
@@ -687,10 +689,10 @@ public sealed class ProbabilityEditorWindow : EditorWindow
             if (nfr != fr) { at["flatRate"] = nfr; _dirty = true; }
         }
         int cp = at["naviCorrectPayout"]?.Value<int>() ?? 15;
-        int ncp = EditorGUILayout.IntField("押し順ナビ 正解の払い出し枚数", cp, GUILayout.Width(300));
+        int ncp = EditorGUILayout.IntField("押し順ナビ 正解の払い出し（エンバー）", cp, GUILayout.Width(300));
         if (ncp != cp) { at["naviCorrectPayout"] = Math.Max(0, ncp); _dirty = true; }
         int wp = at["naviWrongPayout"]?.Value<int>() ?? 3;
-        int nwp = EditorGUILayout.IntField("ナビを外したときの枚数（こぼし）", wp, GUILayout.Width(300));
+        int nwp = EditorGUILayout.IntField("ナビを外したときの払い出し（こぼし）", wp, GUILayout.Width(300));
         if (nwp != wp) { at["naviWrongPayout"] = Math.Max(0, nwp); _dirty = true; }
         bool bc = at["battleConsumesAtSpins"]?.Value<bool>() ?? false;
         bool nbc = EditorGUILayout.ToggleLeft("狩猟中も AT の残りGを消費する", bc);
@@ -719,7 +721,7 @@ public sealed class ProbabilityEditorWindow : EditorWindow
             double lose = nwp * bell / D + cherryPay * che / D + suicaPay * sui / D - 3 * (1 - rep / D);
             EditorGUILayout.HelpBox(
                 $"AT中の小役: ベル 1/{(bell > 0 ? D / bell : 0):F2}  リプレイ 1/{(rep > 0 ? D / rep : 0):F2}\n" +
-                $"純増: ナビ従 {gain:+0.00;-0.00} 枚/G（{ninit}G で {gain * ninit:+0;-0} 枚）  /  ナビ無視 {lose:+0.00;-0.00} 枚/G",
+                $"純増: ナビ従 {gain:+0.00;-0.00} /G（{ninit}G で {gain * ninit:+0;-0}）  /  ナビ無視 {lose:+0.00;-0.00} /G",
                 MessageType.Info);
         }
 
@@ -950,7 +952,191 @@ public sealed class ProbabilityEditorWindow : EditorWindow
         EditorGUILayout.HelpBox("主人公の名前は「旅人」タブの「主人公の名前」で変更。前兆セリフは会話UI（リールのすぐ上）に出る。", MessageType.None);
     }
 
+    // ------------------------------------------------------------ 物語
+    private static readonly string[] ToneKeys = { "high", "mid", "low" };
+    private static readonly string[] ToneNames = { "上の枝（灯が強い）", "真ん中", "下の枝（灯が弱い）" };
+    private int _storyChapter;
+
+    private void DrawStory()
+    {
+        var st = (JObject)_game["story"];
+        if (st == null) { EditorGUILayout.HelpBox("story が無い。game_config.json に追加してください。", MessageType.Warning); return; }
+        var chapters = (JArray)st["chapters"];
+        if (chapters == null || chapters.Count == 0) { EditorGUILayout.HelpBox("章がありません。", MessageType.Warning); return; }
+
+        bool en = st["enabled"]?.Value<bool>() ?? true;
+        bool nen = EditorGUILayout.ToggleLeft("物語を使う（OFF ならステージ固有の一言だけ）", en);
+        if (nen != en) { st["enabled"] = nen; _dirty = true; }
+        using (new EditorGUILayout.HorizontalScope())
+        {
+            GUILayout.Label("枝の高さの分け方", GUILayout.Width(110));
+            int hb = st["highBranchMax"]?.Value<int>() ?? 2;
+            int nhb = EditorGUILayout.IntField("上とみなす枝数", hb, GUILayout.Width(220));
+            if (nhb != hb) { st["highBranchMax"] = Math.Max(1, nhb); _dirty = true; }
+            int lb = st["lowBranchFromBottom"]?.Value<int>() ?? 1;
+            int nlb = EditorGUILayout.IntField("下とみなす枝数", lb, GUILayout.Width(220));
+            if (nlb != lb) { st["lowBranchFromBottom"] = Math.Max(1, nlb); _dirty = true; }
+        }
+
+        _storyChapter = Math.Min(_storyChapter, chapters.Count - 1);
+        var names = chapters.Select(c => (string)c["title"] ?? "章").ToArray();
+        _storyChapter = GUILayout.Toolbar(_storyChapter, names, GUILayout.Width(Math.Min(940, names.Length * 220)));
+        var ch = (JObject)chapters[_storyChapter];
+
+        string title = (string)ch["title"] ?? "";
+        string ntitle = EditorGUILayout.TextField("章の題", title, GUILayout.Width(600));
+        if (ntitle != title) { ch["title"] = ntitle; _dirty = true; }
+        string theme = (string)ch["theme"] ?? "";
+        string ntheme = EditorGUILayout.TextField("テーマ（問い。画面には出ない）", theme, GUILayout.Width(600));
+        if (ntheme != theme) { ch["theme"] = ntheme; _dirty = true; }
+
+        EditorGUILayout.Space(8);
+        DrawStoryLines(ch, "opening", "章の始め");
+        DrawStoryLines(ch, "onBack", "引き返したとき");
+        DrawStoryLines(ch, "onTorchOut", "松明が尽きたとき");
+        DrawStoryLines(ch, "onDeath", "灯が尽きたとき");
+        DrawStoryLines(ch, "onClear", "章を踏破したとき");
+
+        EditorGUILayout.Space(10);
+        EditorGUILayout.LabelField("段ごとの到達台詞（枝の高さで出し分ける）", EditorStyles.boldLabel);
+        var stages = (JArray)ch["stages"] ?? (JArray)(ch["stages"] = new JArray());
+        for (int i = 0; i < stages.Count; i++)
+        {
+            var sg = (JObject)stages[i];
+            using (new EditorGUILayout.VerticalScope("box"))
+            {
+                EditorGUILayout.LabelField($"段 {(string)sg["column"]}", EditorStyles.boldLabel);
+                for (int t = 0; t < ToneKeys.Length; t++) DrawStoryLines(sg, ToneKeys[t], ToneNames[t]);
+            }
+        }
+
+        EditorGUILayout.Space(10);
+        EditorGUILayout.LabelField("周回で足す台詞（キーは周回数）", EditorStyles.boldLabel);
+        var laps = (JObject)ch["laps"] ?? (JObject)(ch["laps"] = new JObject());
+        foreach (var prop in laps.Properties().ToList()) DrawStoryLines(laps, prop.Name, prop.Name + " 周目");
+
+        EditorGUILayout.HelpBox("話者を空にすると主人公。それ以外は名前がそのまま出る（「声」など）。\n"
+            + "「;」で行を分ける。前が話者、後ろが台詞（例: 声;……また来たのか）。話者を省くなら台詞だけ書く。", MessageType.None);
+    }
+
+    /// <summary>台詞の配列を 1 行のテキストで編集する（; 区切り、話者は : の前）。</summary>
+    private void DrawStoryLines(JObject owner, string key, string label)
+    {
+        var arr = (JArray)owner[key] ?? (JArray)(owner[key] = new JArray());
+        string cur = string.Join(" ; ", arr.Select(x =>
+        {
+            var o = (JObject)x;
+            string sp = (string)o["speaker"] ?? "";
+            string tx = (string)o["text"] ?? "";
+            return string.IsNullOrEmpty(sp) ? tx : sp + ":" + tx;
+        }));
+        string nv = EditorGUILayout.TextField(label, cur, GUILayout.Width(960));
+        if (nv == cur) return;
+        var next = new JArray();
+        foreach (var part in nv.Split(';'))
+        {
+            string t = part.Trim();
+            if (t.Length == 0) continue;
+            int colon = t.IndexOf(':');
+            string sp = colon > 0 ? t.Substring(0, colon).Trim() : "";
+            string tx = colon > 0 ? t.Substring(colon + 1).Trim() : t;
+            next.Add(new JObject { ["speaker"] = sp, ["text"] = tx });
+        }
+        owner[key] = next;
+        _dirty = true;
+    }
+
+    // ------------------------------------------------------------ ステータス
+    private void DrawStats()
+    {
+        var st = (JObject)_game["stats"];
+        if (st == null)
+        {
+            st = new JObject { ["enabled"] = true, ["pointsPerLevel"] = 2, ["maxPerStat"] = 20,
+                ["freeRespecOnChapterClear"] = true, ["respecCost"] = 200,
+                ["life"] = new JObject { ["freeBetRate"] = 0.6, ["rescueBonus"] = 10.0, ["torchSpins"] = 0.6 },
+                ["technique"] = new JObject { ["engageSpins"] = 0.12, ["defeatBonus"] = 1.4, ["battleDamage"] = 2.5 },
+                ["luck"] = new JObject { ["rareRate"] = 0.35, ["replayRate"] = 0.5, ["treasureBonus"] = 0.8 } };
+            _game["stats"] = st; _dirty = true;
+        }
+        EditorGUILayout.LabelField("レベルアップで振るステータス", EditorStyles.boldLabel);
+        bool en = st["enabled"]?.Value<bool>() ?? true;
+        bool nen = EditorGUILayout.ToggleLeft("ステータスを使う", en);
+        if (nen != en) { st["enabled"] = nen; _dirty = true; }
+        foreach (var (key, label, min, max) in new[] { ("pointsPerLevel", "レベルアップ 1 回で配るポイント", 0, 10), ("maxPerStat", "1 系統の上限", 1, 99), ("respecCost", "振り直しのソウル", 0, 99999) })
+        {
+            int v = st[key]?.Value<int>() ?? 0;
+            int nv = EditorGUILayout.IntField(label, v, GUILayout.Width(360));
+            if (nv != v) { st[key] = Math.Max(min, Math.Min(max, nv)); _dirty = true; }
+        }
+        bool fr = st["freeRespecOnChapterClear"]?.Value<bool>() ?? true;
+        bool nfr = EditorGUILayout.ToggleLeft("章をクリアしていれば振り直し無料", fr);
+        if (nfr != fr) { st["freeRespecOnChapterClear"] = nfr; _dirty = true; }
+
+        EditorGUILayout.Space(10);
+        DrawStatGroup(st, "life", "ライフ（延命）", new[] {
+            ("freeBetRate", "BET が無料になる率 %/pt"),
+            ("torchSpins", "松明 1 本のG数 +/pt"),
+            ("rescueBonus", "力尽きたときの補填 +/pt") });
+        DrawStatGroup(st, "technique", "テクニック（戦闘）", new[] {
+            ("engageSpins", "エンゲージのG数 +/pt"),
+            ("defeatBonus", "討伐率 +%/pt"),
+            ("battleDamage", "狩猟のダメージ +%/pt") });
+        DrawStatGroup(st, "luck", "ラック（引き）", new[] {
+            ("rareRate", "ハズレがレア役に化ける %/pt"),
+            ("replayRate", "ハズレがリプレイに化ける %/pt"),
+            ("treasureBonus", "宝の発見率 +%/pt") });
+
+        int mx = st["maxPerStat"]?.Value<int>() ?? 20;
+        var lk = (JObject)st["luck"];
+        float rr = lk?["rareRate"]?.Value<float>() ?? 0f, rp = lk?["replayRate"]?.Value<float>() ?? 0f;
+        EditorGUILayout.HelpBox($"ラックは通常時のハズレだけを引き上げる（設定差を壊さないため）。\n"
+            + $"上限 {mx} まで振ると、ハズレの {mx * rr:F1}% がレア役、{mx * rp:F1}% がリプレイになる。\n"
+            + "ライフの「BET 無料」とラックは出玉（機械割）に直結する。振り切った状態で機械割を測り直すこと。", MessageType.Info);
+    }
+
+    private void DrawStatGroup(JObject st, string key, string title, (string, string)[] fields)
+    {
+        var o = (JObject)st[key];
+        if (o == null) { o = new JObject(); st[key] = o; _dirty = true; }
+        EditorGUILayout.LabelField(title, EditorStyles.boldLabel);
+        foreach (var (f, label) in fields)
+        {
+            float v = o[f]?.Value<float>() ?? 0f;
+            float nv = EditorGUILayout.FloatField(label, v, GUILayout.Width(400));
+            if (Math.Abs(nv - v) > 0.0001f) { o[f] = Math.Max(0f, nv); _dirty = true; }
+        }
+        EditorGUILayout.Space(6);
+    }
+
     // ------------------------------------------------------------ 冒険
+    private static readonly string[] CounterKeys = { "REPLAY", "BELL", "CHERRY", "SUICA", "CHANCE", "BONUS", "HAZE", "WIN", "SPINS", "DEFEAT", "TREASURE", "REPLAY_CHAIN", "PAYOUT" };
+    private static readonly string[] CounterNames = { "リプレイ", "ベル", "チェリー", "スイカ", "チャンス目", "ボーナス", "ハズレ", "小役", "G数", "討伐", "宝", "リプ連", "獲得" };
+    private static readonly string[] StateKeys = { "ember", "souls", "level", "torches" };
+    private static readonly string[] StateNames = { "エンバー", "ソウル", "レベル", "松明" };
+
+    /// <summary>条件の入力欄を横並びで出す（0 なら条件として使わない）。</summary>
+    private void DrawCondRow(JObject o, string[] keys, string[] names)
+    {
+        int perRow = 7;
+        for (int start = 0; start < keys.Length; start += perRow)
+        {
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                for (int i = start; i < Math.Min(start + perRow, keys.Length); i++)
+                {
+                    using (new EditorGUILayout.VerticalScope(GUILayout.Width(76)))
+                    {
+                        GUILayout.Label(names[i], EditorStyles.miniLabel, GUILayout.Width(76));
+                        int v = o[keys[i]]?.Value<int>() ?? 0;
+                        int nv = EditorGUILayout.IntField(v, _num, GUILayout.Width(76));
+                        if (nv != v) { if (nv <= 0) o.Remove(keys[i]); else o[keys[i]] = nv; _dirty = true; }
+                    }
+                }
+            }
+        }
+    }
+
     private static readonly string[] StageKinds = { "normal", "high", "treasure", "boss", "rest" };
     private static readonly string[] StageKindNames = { "通常", "高確", "宝", "ボス", "休息" };
     private static readonly string[] StageModes = { "", "A", "B", "C", "D" };
@@ -995,7 +1181,7 @@ public sealed class ProbabilityEditorWindow : EditorWindow
         int nct = EditorGUILayout.IntField("章クリアでもらえる松明", ct, GUILayout.Width(300));
         if (nct != ct) { adv["chapterClearTorches"] = Math.Max(0, nct); _dirty = true; }
 
-        // ---- 資源（松明・路銀・力尽き）----
+        // ---- 資源（松明・エンバー・力尽き）----
         EditorGUILayout.Space(10);
         EditorGUILayout.LabelField("資源と帰還", EditorStyles.boldLabel);
         var res = (JObject)adv["resource"];
@@ -1016,8 +1202,8 @@ public sealed class ProbabilityEditorWindow : EditorWindow
             if (nrn != rn) { res["name"] = nrn; _dirty = true; }
             foreach (var (key, label, min) in new[] {
                 ("startTorches", "はじめの所持本数", 0), ("maxTorches", "最大所持本数", 1), ("spinsPerTorch", "1 本で進めるG数", 1),
-                ("torchCost", "1 本のソウル価格", 0), ("creditCost", "路銀 1 口のソウル価格", 0), ("creditAmount", "路銀 1 口の枚数", 0),
-                ("rescueCredit", "力尽きたとき補填する枚数（0 で無し）", 0) })
+                ("torchCost", "1 本のソウル価格", 0), ("creditCost", "エンバー 1 口のソウル価格", 0), ("creditAmount", "エンバー 1 口の量", 0),
+                ("rescueCredit", "力尽きたとき補填するエンバー（0 で無し）", 0) })
             {
                 int v = res[key]?.Value<int>() ?? 0;
                 int nv = EditorGUILayout.IntField(label, v, GUILayout.Width(360));
@@ -1146,6 +1332,57 @@ public sealed class ProbabilityEditorWindow : EditorWindow
                         if (nv != v) { if (nv <= 0) rd.Remove(t); else rd[t] = nv; _dirty = true; }
                     }
 
+                // ---- 達成条件のルート ----
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    EditorGUILayout.LabelField("達成条件で決まるルート（確率抽選より強い）", EditorStyles.miniBoldLabel, GUILayout.Width(300));
+                    if (GUILayout.Button("＋ 条件を追加", GUILayout.Width(110)))
+                    {
+                        var arr = (JArray)n["routeConditions"] ?? (JArray)(n["routeConditions"] = new JArray());
+                        arr.Add(new JObject { ["to"] = ids.FirstOrDefault(x => x != id) ?? "", ["label"] = "", ["counters"] = new JObject(), ["state"] = new JObject(), ["priority"] = 10, ["hidden"] = false });
+                        _dirty = true;
+                    }
+                }
+                var conds = (JArray)n["routeConditions"] ?? (JArray)(n["routeConditions"] = new JArray());
+                for (int ci = 0; ci < conds.Count; ci++)
+                {
+                    var c = (JObject)conds[ci];
+                    using (new EditorGUILayout.VerticalScope("helpbox"))
+                    {
+                        using (new EditorGUILayout.HorizontalScope())
+                        {
+                            GUILayout.Label("行き先", GUILayout.Width(44));
+                            string to = (string)c["to"] ?? "";
+                            var targetIds = ids.Where(x => x != id).ToArray();
+                            int ti = Math.Max(0, Array.IndexOf(targetIds, to));
+                            if (targetIds.Length > 0)
+                            {
+                                int nti = EditorGUILayout.Popup(ti, targetIds, GUILayout.Width(80));
+                                if (targetIds[nti] != to) { c["to"] = targetIds[nti]; _dirty = true; }
+                            }
+                            GUILayout.Label("名前", GUILayout.Width(32));
+                            string lb = (string)c["label"] ?? "";
+                            string nlb = EditorGUILayout.TextField(lb, GUILayout.Width(240));
+                            if (nlb != lb) { c["label"] = nlb; _dirty = true; }
+                            GUILayout.Label("優先度", GUILayout.Width(44));
+                            int pr = c["priority"]?.Value<int>() ?? 10;
+                            int npr = EditorGUILayout.IntField(pr, _num, GUILayout.Width(44));
+                            if (npr != pr) { c["priority"] = npr; _dirty = true; }
+                            bool hd = c["hidden"]?.Value<bool>() ?? false;
+                            bool nhd = EditorGUILayout.ToggleLeft("隠す", hd, GUILayout.Width(50));
+                            if (nhd != hd) { c["hidden"] = nhd; _dirty = true; }
+                            GUILayout.FlexibleSpace();
+                            if (GUILayout.Button("削除", GUILayout.Width(46))) { conds.RemoveAt(ci); _dirty = true; return; }
+                        }
+                        var cc = (JObject)c["counters"] ?? (JObject)(c["counters"] = new JObject());
+                        EditorGUILayout.LabelField("滞在中に数える回数（0 は条件にしない）", EditorStyles.miniLabel);
+                        DrawCondRow(cc, CounterKeys, CounterNames);
+                        var cst = (JObject)c["state"] ?? (JObject)(c["state"] = new JObject());
+                        EditorGUILayout.LabelField("そのGの持ち物・状態（以上）", EditorStyles.miniLabel);
+                        DrawCondRow(cst, StateKeys, StateNames);
+                    }
+                }
+
                 EditorGUILayout.LabelField("道中のルート抽選（役ごと。NONE=決まらない。決まっていても上位ランクなら書き換わる）", EditorStyles.miniBoldLabel);
                 var rbf = (JObject)n["routeByFlag"] ?? (JObject)(n["routeByFlag"] = new JObject());
                 foreach (var role in Roles)
@@ -1173,6 +1410,6 @@ public sealed class ProbabilityEditorWindow : EditorWindow
                 }
             }
         }
-        EditorGUILayout.HelpBox("ステージのG数と松明は通常時だけ減る（ボーナス・持ち越し・AT 中は止まる）。移動は敵戦闘や前兆を抱えていないGの終わりに起きる。\n宝・ルートの抽選はこぼしても「フラグ」で行う。ゲーム中は M キー／左上のステージ札でマップが開く。\n松明切れは進行を残して帰還、クレジット切れは章の最初へ戻る。補給は街のショップの「補給」タブ。", MessageType.None);
+        EditorGUILayout.HelpBox("ステージのG数と松明は通常時だけ減る（ボーナス・持ち越し・AT 中は止まる）。移動は敵戦闘や前兆を抱えていないGの終わりに起きる。\n宝・ルートの抽選はこぼしても「フラグ」で行う。ゲーム中は M キー／左上のステージ札でマップが開き、達成条件の進み具合もそこに出る。\n松明切れは進行を残して帰還、エンバー切れは章の最初へ戻る。補給は街のショップの「補給」タブ。", MessageType.None);
     }
 }

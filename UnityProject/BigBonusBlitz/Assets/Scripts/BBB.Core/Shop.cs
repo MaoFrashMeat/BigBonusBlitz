@@ -21,6 +21,8 @@ namespace BBB.Core
     /// </summary>
     public sealed class ShopItem
     {
+        /// <summary>アイコンの種類（sword/soul/eye/book/lantern/amulet/oil/potion/boots/shield）。空なら kind から選ぶ。</summary>
+        public string icon = "";
         public string id = "item";
         public string name = "名もなき品";
         /// <summary>1行の説明。{v} は現在のレベルでの効果量に置き換わる。</summary>
