@@ -128,7 +128,7 @@ def main():
             ng += 1
 
     print('\n素材')
-    for f, label in (('popora_ref.png', '参照画像'), ('poses/index.json', '骨格')):
+    for f, label in (('salia_ref.png', '参照画像'), ('poses/index.json', '骨格')):
         p = os.path.join(HERE, f)
         print(f'{OK if os.path.exists(p) else NG} {label}: {f}')
         if not os.path.exists(p):
@@ -141,7 +141,7 @@ def main():
         'server': '127.0.0.1:8188',
         'comfy_input': os.path.join(comfy, 'input'),
         'comfy_output': os.path.join(comfy, 'output'),
-        'ref_image': 'popora_ref.png',
+        'ref_image': 'salia_ref.png',
     }
     if os.path.exists(CONFIG):
         try:

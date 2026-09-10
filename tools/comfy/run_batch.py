@@ -27,12 +27,12 @@ CONFIG = os.path.join(HERE, 'config.json')
 STYLE = (
     "1girl, solo, full body, whole body visible from head to feet, "
     "front view, facing viewer, standing on the ground, "
-    # 参照画像と同じ意匠。ここを崩すと別人になる
-    "short pink hair, blue eyes, cheerful, "
-    "ornate white plate armor with gold trim, navy blue underlayer, "
-    "pauldrons with cyan gems, crescent moon emblem on skirt, white gloves, "
-    "white knee-high armored boots with gold wing motif, "
-    # 剣。crystalline と書くと青い塊になるので、素直な剣にする
+    # 設定資料（assets/Chr0001/001）のセリア。ここを崩すと別人になる
+    "long pink hair, white hair ribbon, ahoge, blue eyes, cheerful, "
+    "white plate armor with gold trim, blue accents, "
+    "white tassets with gold flame pattern, (blue pleated skirt:1.3), white frilled underskirt, "
+    "brown leather belt, brown gloves, "
+    "dark brown thighhighs, white knee-high armored boots with blue toe, "
     "empty hands, no weapon, "
     "flat cel shading, thick clean outline, "
     "(plain white background:1.3), (simple background:1.2), "
@@ -58,7 +58,7 @@ def load_config():
         'server': '127.0.0.1:8188',
         'comfy_input': r'F:\ComfyUI\ComfyUI_windows_portable\ComfyUI\input',
         'comfy_output': r'F:\ComfyUI\ComfyUI_windows_portable\ComfyUI\output',
-        'ref_image': 'popora_ref.png',
+        'ref_image': 'salia_ref.png',
     }
     if os.path.exists(CONFIG):
         with open(CONFIG, encoding='utf-8') as f:
@@ -118,7 +118,7 @@ def main():
     if not os.path.exists(ref_src):
         print('参照画像がありません:', ref_src)
         return
-    shutil.copy2(ref_src, os.path.join(inp, 'popora_ref.png'))
+    shutil.copy2(ref_src, os.path.join(inp, 'salia_ref.png'))
 
     os.makedirs(RAW, exist_ok=True)
     client_id = str(uuid.uuid4())
@@ -135,8 +135,8 @@ def main():
         prompt['2']['inputs']['text'] = positive
         prompt['3']['inputs']['text'] = NEGATIVE
         prompt['4']['inputs']['image'] = 'pose_' + it['file']
-        prompt['7']['inputs']['image'] = 'popora_ref.png'
-        prompt['13']['inputs']['filename_prefix'] = f"popora/{it['action']}_{it['frame']}"
+        prompt['7']['inputs']['image'] = 'salia_ref.png'
+        prompt['13']['inputs']['filename_prefix'] = f"salia/{it['action']}_{it['frame']}"
         prompt['11']['inputs']['seed'] = args.seed if args.seed else int(time.time() * 1000) % 2**31
 
         try:

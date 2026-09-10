@@ -19,16 +19,19 @@ OUT = os.path.join(HERE, 'sword.png')
 W, H = 512, 2048        # キャラの解像度が上がったので剣も倍で描く
 SS = 4                      # 4 倍で描いてから縮める（輪郭を滑らかにするため）
 
-# 色。キャラの意匠（白・紺・金・水色）に合わせる
-LINE = (38, 44, 68, 255)          # 輪郭
-STEEL_LIGHT = (238, 246, 255, 255)
-STEEL_DARK = (176, 196, 226, 255)
-GOLD = (226, 192, 116, 255)
-GOLD_DARK = (186, 148, 76, 255)
-NAVY = (46, 62, 116, 255)
-CYAN = (110, 206, 236, 255)
+# 色。設定資料（assets/Chr0001/001）の聖剣グランレーヴに合わせる
+LINE = (40, 46, 66, 255)          # 輪郭
+STEEL_LIGHT = (233, 241, 250, 255)
+STEEL_MID = (196, 212, 232, 255)
+STEEL_DARK = (150, 172, 200, 255)
+GOLD = (231, 196, 116, 255)
+GOLD_DARK = (188, 148, 72, 255)
+GOLD_LIGHT = (247, 226, 168, 255)
+NAVY = (44, 52, 78, 255)
+GEM = (74, 168, 226, 255)
+GEM_LIGHT = (150, 214, 244, 255)
 
-GRIP_Y = 0.815              # 握る位置（画像の上からの割合）
+GRIP_Y = 0.800              # 握る位置（画像の上からの割合）
 
 
 def draw(d, s):
@@ -43,47 +46,58 @@ def draw(d, s):
         return max(1, int(v * k * s))
 
     cx = 128
-    tip_y, guard_y = 48, 690
-    half = 30                                  # 刃の根元の半幅
+    tip_y, guard_y = 40, 660
+    half = 42                                  # 刃の根元の半幅。大剣なので広い
 
-    # 刃。先を尖らせた六角形
-    blade = P((cx, tip_y),
-              (cx + half, tip_y + 120),
+    # 刃。先端を斜めに切り落とした、幅の広い両刃
+    blade = P((cx - 14, tip_y), (cx + 14, tip_y),
+              (cx + half, tip_y + 96),
               (cx + half, guard_y),
               (cx - half, guard_y),
-              (cx - half, tip_y + 120))
-    d.polygon(blade, fill=STEEL_LIGHT, outline=LINE, width=LW(5))
-    # 刃の右半分を暗くして立体に見せる
-    d.polygon(P((cx, tip_y), (cx + half, tip_y + 120), (cx + half, guard_y), (cx, guard_y)),
-              fill=STEEL_DARK)
+              (cx - half, tip_y + 96))
+    d.polygon(blade, fill=STEEL_LIGHT)
+    # 右半分を暗くして厚みを見せる
+    d.polygon(P((cx, tip_y), (cx + 14, tip_y), (cx + half, tip_y + 96),
+               (cx + half, guard_y), (cx, guard_y)), fill=STEEL_MID)
+    d.polygon(P((cx + 24, tip_y + 70), (cx + half, tip_y + 96),
+               (cx + half, guard_y), (cx + 24, guard_y)), fill=STEEL_DARK)
     d.polygon(blade, outline=LINE, width=LW(5))
     # 樋（中央の溝）
-    d.line(P((cx, tip_y + 150), (cx, guard_y - 30)), fill=STEEL_LIGHT, width=LW(9))
+    d.line(P((cx, tip_y + 120), (cx, guard_y - 40)), fill=STEEL_LIGHT, width=LW(11))
+    d.line(P((cx, tip_y + 130), (cx, guard_y - 50)), fill=LINE, width=LW(3))
 
-    # 鍔。中央が厚く、両端が跳ね上がった形
-    gy0, gy1 = guard_y, guard_y + 46
-    d.polygon(P((cx - 96, gy0 + 26), (cx - 60, gy0), (cx + 60, gy0), (cx + 96, gy0 + 26),
-               (cx + 60, gy1), (cx - 60, gy1)),
+    # 鍔。両端が上へ跳ね上がった翼形
+    gy = guard_y
+    d.polygon(P((cx - 104, gy - 34), (cx - 74, gy + 6), (cx - 30, gy - 2),
+               (cx - 30, gy + 44), (cx - 78, gy + 44), (cx - 108, gy + 4)),
               fill=GOLD, outline=LINE, width=LW(5))
-    d.polygon(P((cx - 96, gy0 + 26), (cx - 60, gy1), (cx + 60, gy1), (cx + 96, gy0 + 26)),
-              fill=GOLD_DARK)
-    d.polygon(P((cx - 96, gy0 + 26), (cx - 60, gy0), (cx + 60, gy0), (cx + 96, gy0 + 26),
-               (cx + 60, gy1), (cx - 60, gy1)),
-              outline=LINE, width=LW(5))
-    # 鍔の中央の宝玉
-    d.ellipse(P((cx - 17, gy0 + 6), (cx + 17, gy0 + 40)), fill=CYAN, outline=LINE, width=LW(4))
+    d.polygon(P((cx + 104, gy - 34), (cx + 74, gy + 6), (cx + 30, gy - 2),
+               (cx + 30, gy + 44), (cx + 78, gy + 44), (cx + 108, gy + 4)),
+              fill=GOLD, outline=LINE, width=LW(5))
+    d.polygon(P((cx - 34, gy - 6), (cx + 34, gy - 6), (cx + 34, gy + 46), (cx - 34, gy + 46)),
+              fill=GOLD_DARK, outline=LINE, width=LW(5))
+    # 鍔の中央の宝玉（菱形）
+    d.polygon(P((cx, gy + 2), (cx + 20, gy + 20), (cx, gy + 38), (cx - 20, gy + 20)),
+              fill=GEM, outline=LINE, width=LW(4))
+    d.polygon(P((cx, gy + 8), (cx + 9, gy + 20), (cx, gy + 26), (cx - 9, gy + 20)),
+              fill=GEM_LIGHT)
 
-    # 柄
-    hy0, hy1 = gy1, gy1 + 186
-    d.rounded_rectangle(P((cx - 22, hy0), (cx + 22, hy1)), radius=LW(10),
+    # 柄。長めの両手持ち
+    hy0, hy1 = gy + 46, gy + 46 + 200
+    d.rounded_rectangle(P((cx - 20, hy0), (cx + 20, hy1)), radius=LW(8),
                         fill=NAVY, outline=LINE, width=LW(5))
-    for i in range(4):                          # 柄の巻き（i は拡大率 k と別物）
-        y = hy0 + 26 + i * 40
-        d.line(P((cx - 22, y), (cx + 22, y - 14)), fill=GOLD_DARK, width=LW(5))
+    for i in range(3):                          # 柄の金具（i は拡大率 k と別物）
+        y = hy0 + 34 + i * 56
+        d.rectangle(P((cx - 21, y), (cx + 21, y + 14)), fill=GOLD_DARK,
+                    outline=LINE, width=LW(3))
 
-    # 柄頭
-    d.ellipse(P((cx - 32, hy1 - 8), (cx + 32, hy1 + 56)), fill=GOLD, outline=LINE, width=LW(5))
-    d.ellipse(P((cx - 13, hy1 + 11), (cx + 13, hy1 + 37)), fill=CYAN, outline=LINE, width=LW(4))
+    # 柄頭。金の台に菱形の宝玉
+    d.polygon(P((cx - 30, hy1 - 4), (cx + 30, hy1 - 4), (cx + 22, hy1 + 30),
+               (cx - 22, hy1 + 30)), fill=GOLD, outline=LINE, width=LW(5))
+    d.polygon(P((cx, hy1 + 22), (cx + 22, hy1 + 48), (cx, hy1 + 76), (cx - 22, hy1 + 48)),
+              fill=GEM, outline=LINE, width=LW(4))
+    d.polygon(P((cx, hy1 + 32), (cx + 10, hy1 + 48), (cx, hy1 + 60), (cx - 10, hy1 + 48)),
+              fill=GEM_LIGHT)
 
 
 def main():
