@@ -62,6 +62,9 @@ namespace BBB.Runtime
 
         /// <summary>ロゴとボタンを置く横位置。絵の人物が右にいるので左へ寄せる。</summary>
         private const float TitleX = -236f;
+        /// <summary>ロゴの幅。高さは絵の縦横比から出す。</summary>
+        private const float LogoW = 456f;
+        private const float LogoY = 108f;
 
         // ------------------------------------------------------------------ UI
         private void BuildUi()
@@ -97,7 +100,7 @@ namespace BBB.Runtime
                 bg.IsWalking = true;
             }
             // 左半分を暗くしてロゴと文字を読みやすく（§9.2）。人物は右にいるので触らない
-            var scrim = UiSkin.Img(root, "Scrim", Vector2.zero, Vector2.zero, UiSkin.GradientH(false), new Color(0, 0, 0, 0.62f));
+            var scrim = UiSkin.Img(root, "Scrim", Vector2.zero, Vector2.zero, UiSkin.GradientH(false), new Color(0, 0, 0, 0.72f));
             UiSkin.Stretch(scrim.rectTransform);
             scrim.raycastTarget = false;
             UiSkin.Vignette(root, "DimBottom", Vector2.zero, Vector2.zero, 0.5f, false);
@@ -107,14 +110,20 @@ namespace BBB.Runtime
             _safe = SafeStage.Create(_canvas);
             var stage = _safe.Stage;
 
-            // ロゴ
-            var logoSprite = ArtLoader.Sprite("Art/UI/bbb_logo_casual_pop");
+            // ロゴ。幅を決めて、高さは絵の縦横比から出す（正方形の枠に収めると小さくなる）
+            var logoSprite = ArtLoader.Sprite("Art/UI/bbb_logo_main");
             var logoGo = new GameObject("Logo", typeof(RectTransform), typeof(Image));
             _logo = logoGo.GetComponent<RectTransform>();
             _logo.SetParent(stage, false);
             _logo.anchorMin = _logo.anchorMax = new Vector2(0.5f, 0.5f);
-            _logo.sizeDelta = new Vector2(300, 300);
-            _logo.anchoredPosition = new Vector2(TitleX, 96);
+            float logoH = LogoW / 3f;
+            if (logoSprite != null)
+            {
+                var lr = logoSprite.rect;
+                if (lr.width > 0) logoH = LogoW * lr.height / lr.width;
+            }
+            _logo.sizeDelta = new Vector2(LogoW, logoH);
+            _logo.anchoredPosition = new Vector2(TitleX, LogoY);
             var logoImg = logoGo.GetComponent<Image>();
             logoImg.sprite = logoSprite;
             logoImg.preserveAspect = true;
@@ -122,22 +131,24 @@ namespace BBB.Runtime
             if (logoSprite == null)
             {
                 logoImg.enabled = false;
-                UiFactory.Label(stage, "TitleText", new Vector2(TitleX, 96), new Vector2(420, 80), "BIG BONUS BLITZ", 40, TextAnchor.MiddleCenter, ColGold).fontStyle = FontStyle.Bold;
+                UiFactory.Label(stage, "TitleText", new Vector2(TitleX, LogoY), new Vector2(LogoW, 80), "BIG BONUS BLITZ", 40, TextAnchor.MiddleCenter, ColGold).fontStyle = FontStyle.Bold;
             }
 
             // ボタン
-            float by = -92f;
+            float by = -44f;
             if (_hasSave)
             {
                 _btnContinue = MakeButton(stage, "Continue", new Vector2(TitleX, by), "つづきから", () => Begin(false), ColAccent);
-                by -= 62f;
+                by -= 60f;
             }
             _btnNew = MakeButton(stage, "NewGame", new Vector2(TitleX, by), "はじめから", OnNewGame, _hasSave ? ColBtn : ColAccent);
-            _confirm = UiFactory.Label(stage, "Confirm", new Vector2(TitleX, by - 32), new Vector2(420, 24), "", 13, TextAnchor.MiddleCenter, ColGold);
+            _confirm = UiFactory.Label(stage, "Confirm", new Vector2(TitleX, by - 42), new Vector2(420, 24), "", 13, TextAnchor.MiddleCenter, ColGold);
 
-            // PRESS SPACE
+            // PRESS SPACE。明るい絵の上に出るので影を付ける
             _press = UiFactory.Label(stage, "Press", new Vector2(TitleX, -StageH * 0.5f + 62), new Vector2(420, 28),
                 _hasSave ? "SPACE / ENTER でつづきから" : "SPACE / ENTER でスタート", 15, TextAnchor.MiddleCenter, ColText);
+            Shade(_press);
+            Shade(_confirm);
 
             // フッター
             UiFactory.Label(stage, "Version", new Vector2(StageW * 0.5f - 90, -StageH * 0.5f + 16), new Vector2(170, 20),
@@ -151,6 +162,15 @@ namespace BBB.Runtime
             _fade.alpha = 1f;
             _fade.blocksRaycasts = false;
             StartCoroutine(FadeTo(0f, 0.6f));
+        }
+
+        /// <summary>明るい絵の上でも読めるよう、文字に影を付ける。</summary>
+        private static void Shade(Text t)
+        {
+            if (t == null) return;
+            var sh = t.gameObject.AddComponent<UnityEngine.UI.Shadow>();
+            sh.effectColor = new Color(0, 0, 0, 0.85f);
+            sh.effectDistance = new Vector2(1.5f, -1.5f);
         }
 
         private Button MakeButton(Transform parent, string name, Vector2 pos, string text, System.Action onClick, Color color)
