@@ -3526,6 +3526,20 @@
         "kind": "torch",
         "amount": 2,
         "weight": 15
+      },
+      {
+        "id": "ember_s",
+        "name": "燠火のかけら",
+        "kind": "embers",
+        "amount": 40,
+        "weight": 20
+      },
+      {
+        "id": "ember_l",
+        "name": "燠火の塊",
+        "kind": "embers",
+        "amount": 100,
+        "weight": 8
       }
     ],
     "resource": {
@@ -4427,5 +4441,15 @@
         "atGames": 0
       }
     ]
+  },
+  "embers": {
+    "start": 500,
+    "perMob": 6,
+    "perBoss": 40,
+    "perAtBattle": 15,
+    "perEscape": 2,
+    "chapterClear": 120,
+    "firstVisit": 10,
+    "perBonus": 12
   }
 }

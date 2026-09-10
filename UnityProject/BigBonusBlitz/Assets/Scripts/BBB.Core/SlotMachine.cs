@@ -306,6 +306,7 @@ namespace BBB.Core
             Strips = config.ReelSymbols();
             _rng = rng ?? new SystemRandom();
             SetSetting(setting);
+            Wallet.Embers = Math.Max(0, EmberCfg.start);   // はじめから のときの所持（セーブがあれば上書きされる）
             Mode = ModeTransition.Determine(Config, "initial", Setting, _rng);
             if (AdventureEnabled)
             {
@@ -747,6 +748,7 @@ namespace BBB.Core
                     BonusPayoutTarget = 0;
                     SpinCount = 0;
                     result.bonusEnded = true;
+                    GainEmbers(EmberCfg.perBonus);
                     // AT 抽選: 溜めた期待度をそのまま当選率にする（枠の色が嘘にならないように）
                     var atEntry = Config.at ?? new AtConfig();
                     int atRate = atEntry.useExpectAsRate ? AtExpectPercent : atEntry.flatRate;
@@ -807,8 +809,9 @@ namespace BBB.Core
                     result.levelUp = GainExp(result.enemyExp);
                     AdvanceMissions("defeat", "", result);
                     result.soulsGained += GainSouls(ActiveEnemyTable != null && ActiveEnemyTable.IsBoss ? soulCfg.perBoss : soulCfg.perMob);
+                    GainEmbers(ActiveEnemyTable != null && ActiveEnemyTable.IsBoss ? EmberCfg.perBoss : EmberCfg.perMob);
                 }
-                else result.soulsGained += GainSouls(soulCfg.perEscape);
+                else { result.soulsGained += GainSouls(soulCfg.perEscape); GainEmbers(EmberCfg.perEscape); }
                 IsTier2 = false;
                 EnemyActive = false;
             }
@@ -863,6 +866,7 @@ namespace BBB.Core
                         result.battleMonster = BattleMonster;
                         RollDrop(result, Config.equipment?.dropRateHunt ?? 0);
                         result.soulsGained += GainSouls((Config.souls ?? new SoulConfig()).perAtBattle);
+                        GainEmbers(EmberCfg.perAtBattle);
                         int add = Math.Max(0, BattleMonster?.rewardSpins ?? 0);
                         AtSpinsRemaining += add;
                         result.atSpinsAdded = add;
@@ -1060,6 +1064,7 @@ namespace BBB.Core
                         case "atExpect": Adv.stockAtExpect += Math.Max(0, t.amount); break;
                         case "exp": if (GainExp(ApplyExpBonus(t.amount))) result.levelUp = true; break;
                         case "torch": if (AdventureDirector.AddTorch(cfg, Adv, Math.Max(1, t.amount), TorchSpinsPerUnit) > 0) result.torchRefilled = true; break;
+                        case "embers": GainEmbers(t.amount); break;
                         default: result.soulsGained += GainSouls(t.amount); break;
                     }
                     AdventureDirector.AddCount(Adv, "TREASURE");
@@ -1116,6 +1121,7 @@ namespace BBB.Core
                 // まっすぐ進めたほど良い。戻った回数だけ報酬が目減りする（最低 30%）
                 float keep = Math.Max(0.3f, 1f - Adv.setbacks * 0.12f);
                 result.chapterSouls = GainSouls((int)(cfg.chapterClearSouls * keep));
+                GainEmbers((int)(EmberCfg.chapterClear * keep));
                 result.chapterSetbacks = Adv.setbacks;
                 result.soulsGained += result.chapterSouls;
                 if (AdventureDirector.AddTorch(cfg, Adv, cfg.chapterClearTorches, TorchSpinsPerUnit) > 0) result.torchRefilled = true;
@@ -1136,6 +1142,7 @@ namespace BBB.Core
             if (first && arrived != null && arrived.firstVisitSouls > 0)
             {
                 result.firstVisitSouls = GainSouls(arrived.firstVisitSouls);
+                if (arrived.firstVisitSouls > 0) GainEmbers(EmberCfg.firstVisit);
                 result.soulsGained += result.firstVisitSouls;
             }
 
@@ -1201,6 +1208,9 @@ namespace BBB.Core
         }
 
         /// <summary>エンバーを増やす。</summary>
+        /// <summary>エンバーの設定（未設定なら既定値）。</summary>
+        public EmberConfig EmberCfg => Config.embers ?? (Config.embers = new EmberConfig());
+
         public void GainEmbers(int amount)
         {
             if (amount <= 0) return;

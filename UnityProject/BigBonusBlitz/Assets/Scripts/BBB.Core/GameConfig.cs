@@ -46,6 +46,8 @@ namespace BBB.Core
         public TravelerConfig travelers;
         /// <summary>技術介入（ビタ押し・2コマ目押し・ミッション）。null なら既定。</summary>
         public TechConfig tech;
+        /// <summary>エンバー（補給の通貨）の入手量。</summary>
+        public EmberConfig embers = new EmberConfig();
         /// <summary>事前察知（レバーオン時の役予告）。null なら既定。</summary>
         public PrecogConfig precog;
         /// <summary>主人公のひとりごと。null なら既定。</summary>
@@ -206,4 +208,26 @@ namespace BBB.Core
 
         public bool IsBoss => string.Equals(group, "boss", System.StringComparison.OrdinalIgnoreCase);
     }
+
+    /// <summary>エンバーの入手量。ソウルと同じ場面で、別の量が入る。</summary>
+    public sealed class EmberConfig
+    {
+        /// <summary>はじめから始めたときの所持。</summary>
+        public int start = 500;
+        /// <summary>雑魚の討伐。</summary>
+        public int perMob = 6;
+        /// <summary>ボスの討伐。</summary>
+        public int perBoss = 40;
+        /// <summary>AT バトルの討伐。</summary>
+        public int perAtBattle = 15;
+        /// <summary>逃した敵。</summary>
+        public int perEscape = 2;
+        /// <summary>章クリア。</summary>
+        public int chapterClear = 120;
+        /// <summary>ステージに初めて着いたとき。</summary>
+        public int firstVisit = 10;
+        /// <summary>ボーナス 1 回の終了時。</summary>
+        public int perBonus = 12;
+    }
+
 }

@@ -834,7 +834,7 @@ namespace BBB.Runtime
                 : held ? "ボーナス成立中  揃えよう" : "―";
             _bonusFill.rectTransform.sizeDelta = new Vector2(inBonus && _m.BonusPayoutTarget > 0 ? _bonusTrack.sizeDelta.x * Mathf.Clamp01((float)_m.BonusEarned / _m.BonusPayoutTarget) : 0f, _bonusTrack.sizeDelta.y);
             _mode.text = $"設定 {_m.Setting}   総 {_m.TotalSpinCount:N0} G";
-            _soulText.text = $"{_m.Wallet.Souls:N0} / {_m.Wallet.Embers:N0}";
+            _soulText.text = $"魂 {_m.Wallet.Souls:N0}   火 {_m.Wallet.Embers:N0}";
             _gCount.text = $"{_m.SpinCount} G";
             if (_stageTag != null && _m.AdventureEnabled)
             {
