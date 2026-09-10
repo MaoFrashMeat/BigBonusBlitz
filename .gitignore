@@ -2,3 +2,6 @@
 # ComfyUI 生成物（大きいので追跡しない。骨格と設定だけ共有する）
 tools/comfy/raw/
 tools/comfy/sheets/
+
+# ComfyUI の場所は PC ごとに違う（check_env.py が書く）
+tools/comfy/config.json

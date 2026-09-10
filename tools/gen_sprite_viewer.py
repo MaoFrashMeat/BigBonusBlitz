@@ -15,6 +15,17 @@ OUT = os.path.join(HERE, 'sprite_viewer.html')
 
 # (グループ, 表示名, [(ファイル, 表示名, コマ数, 1周の秒数)])
 SETS = [
+    ('gen', '主人公 生成版（ComfyUI）', 'HeroGen', [
+        ('hero_idle',    '待機 idle',      4, 1.6),
+        ('hero_walk',    '歩行 walk',      6, 0.8),
+        ('hero_attack',  '攻撃 attack',    4, 0.6),
+        ('hero_slash',   '薙ぎ払い slash', 4, 0.5),
+        ('hero_cast',    '大技 cast',      4, 0.8),
+        ('hero_guard',   'ガード guard',   2, 0.6),
+        ('hero_hit',     '被弾 hit',       2, 0.5),
+        ('hero_victory', '勝利 victory',   4, 0.9),
+        ('hero_focus',   '集中 focus',     4, 1.2),
+    ]),
     ('chibi', '主人公 ちび（2.5頭身）', 'HeroChibi', [
         ('hero_idle',    '待機 idle',      4, 1.6),
         ('hero_walk',    '歩行 walk',      6, 0.8),

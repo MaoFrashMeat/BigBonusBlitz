@@ -1,0 +1,7 @@
+{
+  "_comment": "check_env.py が自動で書く。手で書くときはこの形。PC ごとに違うので追跡しない",
+  "server": "127.0.0.1:8188",
+  "comfy_input": "D:\\ComfyUI\\ComfyUI_windows_portable\\ComfyUI\\input",
+  "comfy_output": "D:\\ComfyUI\\ComfyUI_windows_portable\\ComfyUI\\output",
+  "ref_image": "popora_ref.png"
+}

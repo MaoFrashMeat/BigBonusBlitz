@@ -15,6 +15,7 @@ CONFIG = os.path.join(HERE, 'config.json')
 
 # ComfyUI がありそうな場所。ここに無ければ手で聞く
 CANDIDATES = [
+    r'D:\Mao-PC\ComfyUI\ComfyUI_windows_portable',
     r'F:\ComfyUI\ComfyUI_windows_portable',
     r'D:\ComfyUI\ComfyUI_windows_portable',
     r'C:\ComfyUI\ComfyUI_windows_portable',
@@ -36,22 +37,46 @@ NEED_NODES = [('comfyui_ipadapter_plus', 'IPAdapter のノード')]
 
 OK, NG, WARN = '  [OK]', '  [NG]', '  [--]'
 
-def find_comfy():
-    """ComfyUI の本体フォルダ（models と custom_nodes を持つ階層）を探す。"""
-    seen = []
+def model_count(root):
+    """その ComfyUI が持っているモデルの数。空の入れ物を掴まないための目安。"""
+    models = os.path.join(root, 'models')
+    if not os.path.isdir(models):
+        return -1
+    n = 0
+    for d in ('checkpoints', 'unet', 'diffusion_models', 'controlnet', 'ipadapter', 'clip_vision', 'loras'):
+        p = os.path.join(models, d)
+        if not os.path.isdir(p):
+            continue
+        n += len([x for x in os.listdir(p) if x.endswith(('.safetensors', '.ckpt', '.gguf', '.pth', '.bin'))])
+    return n
+
+
+def find_comfy(verbose=False):
+    """
+    ComfyUI の本体フォルダを探す。**見つかった順ではなく、モデルが多い方を選ぶ。**
+    空の ComfyUI が先に見つかると、本体があるのに「モデルが無い」と誤診するため。
+    """
+    found = {}
     for base in CANDIDATES:
         for cand in (os.path.join(base, 'ComfyUI'), base):
             if os.path.isdir(os.path.join(cand, 'models')) and os.path.isdir(os.path.join(cand, 'custom_nodes')):
-                return cand
-            seen.append(cand)
-    # ドライブ直下をざっと探す（時間がかかるので 2 階層まで）
+                found[os.path.normpath(cand)] = model_count(cand)
+    # ドライブ直下もざっと見る（2 階層まで）
     for drive in 'CDEFG':
         root = drive + ':\\'
         if not os.path.isdir(root):
             continue
-        for p in glob.glob(root + '*/ComfyUI*/ComfyUI/models') + glob.glob(root + '*/ComfyUI/models'):
-            return os.path.dirname(p)
-    return None
+        for m in glob.glob(root + '*/ComfyUI*/ComfyUI/models') + glob.glob(root + '*/ComfyUI/models'):
+            cand = os.path.dirname(m)
+            if os.path.isdir(os.path.join(cand, 'custom_nodes')):
+                found.setdefault(os.path.normpath(cand), model_count(cand))
+    if not found:
+        return None
+    if verbose and len(found) > 1:
+        print('  この PC で見つかった ComfyUI:')
+        for k, v in sorted(found.items(), key=lambda x: -x[1]):
+            print('    %-58s モデル %d 個' % (k, v))
+    return max(found.items(), key=lambda x: x[1])[0]
 
 def main():
     print('=== スプライト生成の環境チェック ===\n')
@@ -72,7 +97,7 @@ def main():
         print(f'{WARN} rembg は無い（白背景なら無くても動く）  →  pip install rembg')
 
     print('\nComfyUI')
-    comfy = find_comfy()
+    comfy = find_comfy(verbose=True)
     if not comfy:
         print(f'{NG} 見つからない。config.json に手で書いてください')
         print('       例: "comfy_input": "D:\\\\ComfyUI\\\\ComfyUI_windows_portable\\\\ComfyUI\\\\input"')
