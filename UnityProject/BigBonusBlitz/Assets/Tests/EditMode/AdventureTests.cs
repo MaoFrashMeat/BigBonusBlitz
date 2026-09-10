@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using BBB.Core;
 using BBB.Runtime;
 using NUnit.Framework;
@@ -215,6 +215,7 @@ namespace BBB.Tests
             res.maxTorches = 1000;                     // このテストではライフ切れで止めない
             res.bonusBellHealRate = 100;               // 必ず回復させて経路だけ見る
             res.bonusBellHealAmount = 5;
+            res.replayHealAmount = 0;                  // リプレイの回復と混ざらないよう切る
             AdventureDirector.SetHp(m.Config.adventure, m.Adv, 6000, m.TorchSpinsPerUnit);
             m.Credit = 100_000;
 
@@ -231,6 +232,40 @@ namespace BBB.Tests
             }
             Assert.AreEqual(5, healed, "ボーナス中のベルで回復しない");
             Assert.AreEqual(0, healsInNormal, "通常時に回復した");
+        }
+
+        [Test]
+        public void 通常時のリプレイでライフが回復する()
+        {
+            var m = NewMachine(23);
+            m.Config.adventure = TinyConfig();
+            var res = m.Config.adventure.resource;
+            res.maxTorches = 1000;                     // このテストではライフ切れで止めない
+            res.bonusBellHealRate = 0;                 // ベルの回復と混ざらないよう切る
+            res.replayHealAmount = 3;
+            AdventureDirector.SetHp(m.Config.adventure, m.Adv, 6000, m.TorchSpinsPerUnit);
+            m.Credit = 100_000;
+
+            var push = new SystemRandom(7);
+            int replayHeals = 0, healsWhileHeld = 0, replaysInNormal = 0;
+            for (int g = 0; g < 20000; g++)
+            {
+                bool held = m.StageHeld;
+                var r = PlayOne(m, push);
+                bool replay = r.win.isReplay;
+                if (replay && !held) replaysInNormal++;
+                if (r.hpHealed <= 0) continue;
+                if (held) healsWhileHeld++;
+                else
+                {
+                    Assert.IsTrue(replay, "リプレイ以外で回復した");
+                    Assert.AreEqual(3, r.hpHealed, "回復量が設定と違う");
+                    replayHeals++;
+                }
+            }
+            Assert.Greater(replaysInNormal, 0, "通常時のリプレイが 1 回も出ていない（テストが無意味）");
+            Assert.AreEqual(replaysInNormal, replayHeals, "通常時のリプレイで回復していない回がある");
+            Assert.AreEqual(0, healsWhileHeld, "ライフが止まっている間に回復した");
         }
 
         [Test]

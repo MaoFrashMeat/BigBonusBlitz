@@ -810,6 +810,14 @@ namespace BBB.Core
                 Bet = BetCost;
                 IsReplay = true;
                 RollDefeat(WinType.REPLAY);
+                // 通常時のリプレイはライフが回復する。
+                // ライフが減るのも通常時だけなので、止まっている間は回復もしない
+                var repRes = Config.adventure?.resource;
+                if (AdventureEnabled && repRes != null && repRes.enabled
+                    && !StageHeld && repRes.replayHealAmount > 0)
+                {
+                    result.hpHealed += HealHp(repRes.replayHealAmount);
+                }
             }
             else
             {

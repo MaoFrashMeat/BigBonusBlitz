@@ -1,4 +1,4 @@
-{
+﻿{
   "payouts": {
     "BIG": 300,
     "REG": 90,
@@ -3552,6 +3552,7 @@
       "torchCost": 40,
       "bonusBellHealRate": 30,
       "bonusBellHealAmount": 8,
+      "replayHealAmount": 3,
       "creditCost": 30,
       "creditAmount": 50,
       "rescueCredit": 50,

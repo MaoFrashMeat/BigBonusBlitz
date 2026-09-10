@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -1189,6 +1189,7 @@ public sealed class ProbabilityEditorWindow : EditorWindow
         {
             res = new JObject { ["enabled"] = true, ["name"] = "回復薬", ["hpName"] = "ライフ", ["startTorches"] = 3, ["maxTorches"] = 9, ["spinsPerTorch"] = 60,
                 ["torchCost"] = 40, ["creditCost"] = 30, ["creditAmount"] = 50, ["rescueCredit"] = 50,
+                ["bonusBellHealRate"] = 30, ["bonusBellHealAmount"] = 8, ["replayHealAmount"] = 3,
                 ["resetOnDeath"] = true, ["deathSoulPenalty"] = 0, ["refillByFlag"] = new JObject() };
             adv["resource"] = res; _dirty = true;
         }
@@ -1203,7 +1204,10 @@ public sealed class ProbabilityEditorWindow : EditorWindow
             foreach (var (key, label, min) in new[] {
                 ("startTorches", "はじめの所持本数", 0), ("maxTorches", "最大所持本数", 1), ("spinsPerTorch", "1 本で進めるG数", 1),
                 ("torchCost", "1 本のソウル価格", 0), ("creditCost", "エンバー 1 口のソウル価格", 0), ("creditAmount", "エンバー 1 口の量", 0),
-                ("rescueCredit", "力尽きたとき補填するエンバー（0 で無し）", 0) })
+                ("rescueCredit", "力尽きたとき補填するエンバー（0 で無し）", 0),
+                ("bonusBellHealRate", "ボーナス中のベルで回復する率 %（0 で無し）", 0),
+                ("bonusBellHealAmount", "そのときの回復量", 0),
+                ("replayHealAmount", "通常時のリプレイで回復するライフ（0 で無し）", 0) })
             {
                 int v = res[key]?.Value<int>() ?? 0;
                 int nv = EditorGUILayout.IntField(label, v, GUILayout.Width(360));

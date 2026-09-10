@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace BBB.Core
@@ -116,6 +116,8 @@ namespace BBB.Core
         public int bonusBellHealRate = 30;
         /// <summary>そのときの回復量。</summary>
         public int bonusBellHealAmount = 8;
+        /// <summary>通常時にリプレイが揃ったとき回復するライフ。0 で回復なし。</summary>
+        public int replayHealAmount = 3;
         /// <summary>エンバー 1 口のソウル価格と、もらえる量。</summary>
         public int creditCost = 30;
         public int creditAmount = 50;

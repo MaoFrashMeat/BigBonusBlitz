@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using BBB.Core;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -2016,13 +2016,17 @@ namespace BBB.Runtime
                 UiFx.PopText(_torchTagRt, $"{res?.name ?? "回復薬"} +1", Hex("#ffb45c"), 20, new Vector2(0, -22));
                 UiFx.Burst(_torchTagRt, UiFx.Preset.Sparks, new Vector2(0, -8));
             }
-            // ボーナス中のベルでライフが回復した。バーは通常時しか出ないので主人公の上に出す
+            // ライフが回復した（通常時のリプレイ／ボーナス中のベル）。
+            // 通常時はバーが出ているのでその上に、止まっている間は主人公の上に出す
             if (r.hpHealed > 0)
             {
                 var res = _m.Config.adventure?.resource;
                 _audio.RoleBell();
-                UiFx.PopText(_charRt, $"{res?.hpName ?? "ライフ"} +{r.hpHealed}", Hex("#7ee0a0"), 22, new Vector2(0, 52));
-                UiFx.Burst(_charRt, UiFx.Preset.SuccessStars, new Vector2(0, 30));
+                bool barShown = _torchTagRt != null && _torchTagRt.gameObject.activeInHierarchy;
+                var at = barShown ? _torchTagRt : _charRt;
+                var off = barShown ? new Vector2(0, 20) : new Vector2(0, 52);
+                UiFx.PopText(at, $"{res?.hpName ?? "ライフ"} +{r.hpHealed}", Hex("#7ee0a0"), 22, off);
+                UiFx.Burst(at, UiFx.Preset.SuccessStars, barShown ? new Vector2(0, 6) : new Vector2(0, 30));
             }
             if (r.atStockUsed > 0) UiFx.PopText(_atChip.rectTransform, $"地図 +{r.atStockUsed} G", ColGold, 20, new Vector2(0, 22));
             if (r.routeDecided != null && !r.stageChanged)
