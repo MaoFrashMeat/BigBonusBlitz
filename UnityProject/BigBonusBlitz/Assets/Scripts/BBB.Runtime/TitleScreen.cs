@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -60,6 +60,9 @@ namespace BBB.Runtime
             BuildUi();
         }
 
+        /// <summary>ロゴとボタンを置く横位置。絵の人物が右にいるので左へ寄せる。</summary>
+        private const float TitleX = -236f;
+
         // ------------------------------------------------------------------ UI
         private void BuildUi()
         {
@@ -69,15 +72,35 @@ namespace BBB.Runtime
             var bgFull = UiSkin.Img(root, "BG", Vector2.zero, Vector2.zero, null, ColBg);
             UiSkin.Stretch(bgFull.rectTransform);
 
-            // 背景: ゲーム画面と同じパララックスを画面全体（セーフエリア外も）に流す
-            var bgArea = UiSkin.Rect(root, "BgArea", Vector2.zero, new Vector2(1920, StageH));
+            // 背景: 1 枚絵を画面いっぱいに（セーフエリア外も覆う）。
+            // 端末の縦横比が絵と違うぶんは、余白ではなく切って詰める
+            var bgArea = UiSkin.Rect(root, "BgArea", Vector2.zero, Vector2.zero);
+            UiSkin.Stretch(bgArea);
             bgArea.gameObject.AddComponent<RectMask2D>();
-            var bg = ParallaxBackground.Create(bgArea);
-            bg.IsWalking = true;
-            // 上下を暗くしてロゴと文字を読みやすく（§9.2）
-            UiSkin.Vignette(root, "DimTop", Vector2.zero, Vector2.zero, 0.55f, true);
-            UiSkin.Stretch(root.Find("DimTop").GetComponent<RectTransform>());
-            UiSkin.Vignette(root, "DimBottom", Vector2.zero, Vector2.zero, 0.7f, false);
+            var titleSprite = ArtLoader.Sprite("Art/UI/title_bg");
+            if (titleSprite != null)
+            {
+                var artGo = new GameObject("TitleArt", typeof(RectTransform), typeof(Image));
+                var artRt = artGo.GetComponent<RectTransform>();
+                artRt.SetParent(bgArea, false);
+                artRt.anchorMin = artRt.anchorMax = new Vector2(0.5f, 0.5f);
+                var img = artGo.GetComponent<Image>();
+                img.sprite = titleSprite;
+                img.raycastTarget = false;
+                var r = titleSprite.rect;
+                AspectCover.Attach(artRt, r.height > 0 ? r.width / r.height : 16f / 9f);
+            }
+            else
+            {
+                // 絵が無いときはこれまでどおりパララックスで見せる
+                var bg = ParallaxBackground.Create(bgArea);
+                bg.IsWalking = true;
+            }
+            // 左半分を暗くしてロゴと文字を読みやすく（§9.2）。人物は右にいるので触らない
+            var scrim = UiSkin.Img(root, "Scrim", Vector2.zero, Vector2.zero, UiSkin.GradientH(false), new Color(0, 0, 0, 0.62f));
+            UiSkin.Stretch(scrim.rectTransform);
+            scrim.raycastTarget = false;
+            UiSkin.Vignette(root, "DimBottom", Vector2.zero, Vector2.zero, 0.5f, false);
             UiSkin.Stretch(root.Find("DimBottom").GetComponent<RectTransform>());
 
             // セーフエリアに収まる舞台（960×540、縮小のみ）
@@ -91,7 +114,7 @@ namespace BBB.Runtime
             _logo.SetParent(stage, false);
             _logo.anchorMin = _logo.anchorMax = new Vector2(0.5f, 0.5f);
             _logo.sizeDelta = new Vector2(300, 300);
-            _logo.anchoredPosition = new Vector2(0, 92);
+            _logo.anchoredPosition = new Vector2(TitleX, 96);
             var logoImg = logoGo.GetComponent<Image>();
             logoImg.sprite = logoSprite;
             logoImg.preserveAspect = true;
@@ -99,22 +122,22 @@ namespace BBB.Runtime
             if (logoSprite == null)
             {
                 logoImg.enabled = false;
-                UiFactory.Label(stage, "TitleText", new Vector2(0, 92), new Vector2(800, 80), "BIG BONUS BLITZ", 56, TextAnchor.MiddleCenter, ColGold).fontStyle = FontStyle.Bold;
+                UiFactory.Label(stage, "TitleText", new Vector2(TitleX, 96), new Vector2(420, 80), "BIG BONUS BLITZ", 40, TextAnchor.MiddleCenter, ColGold).fontStyle = FontStyle.Bold;
             }
 
             // ボタン
             float by = -92f;
             if (_hasSave)
             {
-                _btnContinue = MakeButton(stage, "Continue", new Vector2(0, by), "つづきから", () => Begin(false), ColAccent);
+                _btnContinue = MakeButton(stage, "Continue", new Vector2(TitleX, by), "つづきから", () => Begin(false), ColAccent);
                 by -= 62f;
             }
-            _btnNew = MakeButton(stage, "NewGame", new Vector2(0, by), "はじめから", OnNewGame, _hasSave ? ColBtn : ColAccent);
-            _confirm = UiFactory.Label(stage, "Confirm", new Vector2(0, by - 30), new Vector2(600, 24), "", 13, TextAnchor.MiddleCenter, ColGold);
+            _btnNew = MakeButton(stage, "NewGame", new Vector2(TitleX, by), "はじめから", OnNewGame, _hasSave ? ColBtn : ColAccent);
+            _confirm = UiFactory.Label(stage, "Confirm", new Vector2(TitleX, by - 32), new Vector2(420, 24), "", 13, TextAnchor.MiddleCenter, ColGold);
 
             // PRESS SPACE
-            _press = UiFactory.Label(stage, "Press", new Vector2(0, -StageH * 0.5f + 62), new Vector2(600, 28),
-                _hasSave ? "SPACE / ENTER でつづきから" : "SPACE / ENTER でスタート", 16, TextAnchor.MiddleCenter, ColText);
+            _press = UiFactory.Label(stage, "Press", new Vector2(TitleX, -StageH * 0.5f + 62), new Vector2(420, 28),
+                _hasSave ? "SPACE / ENTER でつづきから" : "SPACE / ENTER でスタート", 15, TextAnchor.MiddleCenter, ColText);
 
             // フッター
             UiFactory.Label(stage, "Version", new Vector2(StageW * 0.5f - 90, -StageH * 0.5f + 16), new Vector2(170, 20),

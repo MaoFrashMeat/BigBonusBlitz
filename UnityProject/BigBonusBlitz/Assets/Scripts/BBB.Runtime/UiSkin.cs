@@ -85,6 +85,26 @@ namespace BBB.Runtime
             return s;
         }
 
+        /// <summary>横グラデ（rightOpaque が false なら 左=白 → 右=透明）。色は Image.color で付ける。</summary>
+        public static Sprite GradientH(bool rightOpaque = true)
+        {
+            string key = "gh" + (rightOpaque ? 1 : 0);
+            if (_cache.TryGetValue(key, out var s) && s != null) return s;
+            const int w = 64;
+            var tex = new Texture2D(w, 1, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
+            for (int x = 0; x < w; x++)
+            {
+                float t = (float)x / (w - 1);
+                // 端は一気に落とさず、真ん中あたりで消えるようにする
+                float a = rightOpaque ? t : 1f - t;
+                tex.SetPixel(x, 0, new Color(1, 1, 1, a * a));
+            }
+            tex.Apply();
+            s = Sprite.Create(tex, new Rect(0, 0, w, 1), new Vector2(0.5f, 0.5f), 1f, 0, SpriteMeshType.FullRect);
+            _cache[key] = s;
+            return s;
+        }
+
         /// <summary>縦グラデ（上=白、下=透明）。色は Image.color で付ける。</summary>
         public static Sprite GradientV(bool topOpaque = true)
         {
