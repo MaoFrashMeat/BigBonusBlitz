@@ -48,20 +48,67 @@ def remove_bg(im):
             stack.extend(((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)))
     return im
 
-def trim_and_align(im, box_h, canvas):
+def body_span(im):
+    """体の上端・下端・足元の左右中心を返す。
+
+    外接枠をそのまま使うと、剣の先が飛び出したコマだけ小さく揃ってしまう。
+    横に太い行だけを体とみなすことで、細い剣を無視する。
     """
-    足元を下端に合わせ、身長を box_h に揃える。
-    コマごとに大きさが違うと、並べたときに伸び縮みして見えるのを防ぐ。
+    a = im.getchannel('A')
+    w, h = im.size
+    px = a.load()
+    rows = []
+    for y in range(h):
+        n = 0
+        for x in range(0, w, 2):          # 2 画素おきで足りる
+            if px[x, y] > 128:
+                n += 1
+        rows.append(n * 2)
+    body = max(rows) if rows else 0
+    if body == 0:
+        return None
+    thick = max(8, int(body * 0.22))      # 体は最大幅の 2 割以上ある。剣は届かない
+    ys = [y for y, n in enumerate(rows) if n >= thick]
+    if not ys:
+        return None
+    top, bottom = ys[0], ys[-1]
+    # 足元の左右中心（下から 12% ぶん）
+    y0 = bottom - max(1, int((bottom - top) * 0.12))
+    acc = tot = 0
+    for y in range(y0, bottom + 1):
+        for x in range(w):
+            if px[x, y] > 128:
+                acc += x
+                tot += 1
+    cx = (acc / tot) if tot else w * 0.5
+    return top, bottom, cx
+
+def align_all(images, box_h, canvas):
+    """全コマを **同じ背丈** に揃え、足元を同じ高さに置く。
+
+    倍率はコマごとに「頭から足まで」で決める。こうすると剣を振り上げても
+    キャラの大きさは変わらない。はみ出した剣は枠の外に出るぶんだけ切る。
     """
-    bb = im.getbbox()
-    if not bb:
-        return Image.new('RGBA', (canvas, canvas), (0, 0, 0, 0))
-    body = im.crop(bb)
-    scale = box_h / body.height
-    nw, nh = max(1, int(body.width * scale)), max(1, int(body.height * scale))
-    body = body.resize((nw, nh), Image.LANCZOS)
-    out = Image.new('RGBA', (canvas, canvas), (0, 0, 0, 0))
-    out.paste(body, ((canvas - nw) // 2, canvas - nh - int(canvas * 0.04)), body)
+    spans = [body_span(im) for im in images]
+    floor_y = canvas - int(canvas * 0.06)
+
+    out = []
+    for im, sp in zip(images, spans):
+        blank = Image.new('RGBA', (canvas, canvas), (0, 0, 0, 0))
+        if not sp:
+            out.append(blank)
+            continue
+        top, bottom, cx = sp
+        sc = box_h / max(1, bottom - top)
+        bb = im.getbbox()
+        body = im.crop(bb)
+        nw, nh = max(1, int(body.width * sc)), max(1, int(body.height * sc))
+        body = body.resize((nw, nh), Image.LANCZOS)
+        # 足の裏を floor_y に、足元の左右中心を画面中央に
+        x = int(canvas * 0.5 - (cx - bb[0]) * sc)
+        y = int(floor_y - (bottom - bb[1]) * sc)
+        blank.paste(body, (x, y), body)
+        out.append(blank)
     return out
 
 def pixelate(im, dots, colors):
@@ -92,19 +139,27 @@ def main():
         actions.setdefault(it['action'], []).append(it['frame'])
     os.makedirs(SHEETS, exist_ok=True)
 
-    box_h = int(args.dots * 0.80)          # 身長はコマの 8 割で固定
-    made = 0
+    # 先に全コマを読む。倍率はここで 1 つだけ決めて、全アクションに同じものを使う。
+    # アクションごとに決めると、立ちと勝利でキャラの背丈が変わってしまう。
+    loaded = {}
     for action, frames in actions.items():
-        cells = []
         for fr in sorted(frames):
-            p = os.path.join(RAW, f'{action}_{fr}.png')
-            if not os.path.exists(p):
+            fp = os.path.join(RAW, f'{action}_{fr}.png')
+            if not os.path.exists(fp):
                 print(f'  なし: {action}_{fr}.png（このコマは飛ばします）')
                 continue
-            im = remove_bg(Image.open(p).convert('RGBA'))
-            # 元は 1024 四方。まず大きいまま位置と身長を揃えてから、最後にドット化する
-            im = trim_and_align(im, int(1024 * 0.80), 1024)
-            cells.append(pixelate(im, args.dots, args.colors))
+            loaded[(action, fr)] = remove_bg(Image.open(fp).convert('RGBA'))
+    if not loaded:
+        print('raw/ に画像がありません')
+        return
+    keys = list(loaded.keys())
+    aligned = align_all([loaded[k] for k in keys], int(1024 * 0.72), 1024)
+    aligned = dict(zip(keys, aligned))
+
+    made = 0
+    for action, frames in actions.items():
+        cells = [pixelate(aligned[(action, fr)], args.dots, args.colors)
+                 for fr in sorted(frames) if (action, fr) in aligned]
         if not cells:
             continue
         strip = Image.new('RGBA', (args.dots * len(cells), args.dots), (0, 0, 0, 0))

@@ -23,20 +23,36 @@ CONFIG = os.path.join(HERE, 'config.json')
 
 # --- 見た目を決める言葉。ここを直すと全コマに効く ---
 STYLE = (
-    "masterpiece, best quality, very aware, official art, "
-    "1girl, solo, full body, standing on ground, side view facing right, "
-    "pink short hair, blue eyes, white and blue knight armor with gold trim, "
-    "white frilled skirt, blue cape, white thigh boots with wing motif, "
-    "holding a huge crystalline greatsword, "
-    "simple flat shading, thick outline, game sprite, "
-    "plain white background, no shadow on background"
+    "masterpiece, best quality, "
+    "1girl, solo, full body, whole body visible from head to feet, "
+    "front view, facing viewer, "
+    # 参照画像と同じ意匠。ここを崩すと別人になる
+    "short pink hair, blue eyes, cheerful, "
+    "ornate white plate armor with (gold filigree trim:1.45), navy blue underlayer, "
+    "pauldrons with cyan gems, (crescent moon emblem on skirt:1.2), white gloves, "
+    "white frilled skirt with navy panel, brown leather belt, "
+    "white knee-high armored boots with gold wing motif, "
+    # 剣。crystalline と書くと青い塊になるので、素直な剣にする
+    "(holding exactly one sword:1.1), silver straight blade with cross guard and blue hilt, "
+    "flat cel shading, clean thick outline, game character sprite, "
+    "(pure white background:1.3), simple background, no shadow on background"
 )
 NEGATIVE = (
     "worst quality, low quality, blurry, jpeg artifacts, "
-    "multiple views, multiple characters, text, watermark, signature, "
-    "cropped, out of frame, cut off, "
+    "character sheet, multiple views, turnaround, reference sheet, "
+    "multiple characters, text, watermark, signature, "
+    "cropped, out of frame, cut off, close-up, portrait, upper body, headshot, "
+    # 前回これが出た: 頭の羽根、巨大な結晶の塊、体が隠れるほどの武器
+    "head wings, horns, headgear, crystal, glowing aura, "
+    "oversized weapon covering the body, floating weapon, detached cape, "
+    "large flowing cloth, floating fabric, banner, flag, ribbon, cape, cloak, "
+    "(two swords:1.3), dual wielding, extra weapon, giant sword, "
+    "extra arms, extra legs, missing hands, shapeless boots, "
+    "angel wings, feathered wings, halo, "
     "realistic, 3d render, photo, "
-    "complex background, scenery, gradient background, dark background"
+    "complex background, scenery, gradient background, dark background, "
+    "beige background, cream background, colored background, vignette, "
+    "wooden club, plank, staff, axe, blunt weapon"
 )
 
 def load_config():
@@ -80,7 +96,9 @@ def wait(server, pid, timeout=600):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--only', help='このアクションだけ（例: attack）')
-    ap.add_argument('--seed', type=int, default=0, help='0 なら毎回ランダム')
+    ap.add_argument('--seed', type=int, default=771113,
+                    help='全コマで同じ種を使う。0 を渡すと毎回ランダム（別人になりやすい）')
+    ap.add_argument('--frame', type=int, help='このコマ番号だけ（--only と併用）')
     ap.add_argument('--pull', action='store_true', help='生成物を raw/ へ回収する')
     args = ap.parse_args()
 
@@ -108,6 +126,8 @@ def main():
     os.makedirs(RAW, exist_ok=True)
     client_id = str(uuid.uuid4())
     todo = [it for it in index if not args.only or it['action'] == args.only]
+    if args.frame is not None:
+        todo = [it for it in todo if it['frame'] == args.frame]
     print(f'{len(todo)} コマを生成します')
 
     for n, it in enumerate(todo, 1):

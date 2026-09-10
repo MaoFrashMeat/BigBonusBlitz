@@ -5,3 +5,7 @@ tools/comfy/sheets/
 
 # ComfyUI の場所は PC ごとに違う（check_env.py が書く）
 tools/comfy/config.json
+
+# Python の一時ファイル
+__pycache__/
+*.pyc
