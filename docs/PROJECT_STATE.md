@@ -196,6 +196,27 @@ MonoBehaviour に依存しない。テストとハーネスはここだけ見る
 
 ---
 
+## 3.5 別の PC で開くとき
+
+**Unity のバージョンは 6000.3.15f1 で固定。** 違う版で開くと全アセットが作り直され、
+`ProjectVersion.txt` が書き換わって他の PC も巻き込む。
+
+作業前に必ず:
+
+```bash
+git pull --rebase
+git lfs pull
+py -3 docs/check_project.py
+```
+
+`git lfs pull` を忘れると画像と音の実体が来ず、絵が出ない。
+`check_project.py` は Unity のバージョン、git の遅れ、LFS の実体、`.meta` の欠け、
+パッケージの固定版を一度に見て、ずれていれば直しかたを出す。
+
+同期されないもの（`Library/` / `UserSettings/` / セーブデータ）と詳しい手順は `docs/SETUP.md`。
+
+---
+
 ## 4. 検証のしかた
 
 Unity を開かずに確かめる。**変更したら必ず全部走らせる。**
