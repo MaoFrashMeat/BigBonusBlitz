@@ -43,6 +43,9 @@ namespace BBB.Runtime
         private RectTransform _charRt;
         private SpriteAnimator _charAnim;
         private Sprite[] _idleFrames, _walkFrames, _attackFrames;
+        private Sprite[] _slashFrames, _castFrames, _guardFrames, _hitFrames, _victoryFrames, _focusFrames;
+        private string _charState = "";        // 今流している動き。同じものを再指定しても頭出しし直さない
+        private float _charHoldUntil;           // 一度きりの動き（斬る・被弾など）を守る時刻
 
         private RectTransform _enemyRt;
         private Image _enemyImg;
@@ -60,6 +63,7 @@ namespace BBB.Runtime
         private TravelerView _traveler;
         private readonly SystemRandom _fxRng = new SystemRandom();
         private GameObject _naviBox;
+        private Text _techBanner;      // 課題の内容（リール帯の上）
         private Text[] _naviLabels = new Text[3];
         private readonly RectTransform[] _naviCells = new RectTransform[3];
         /// <summary>そのリールのバッジを押して消したか（1G ごとにリセット）。</summary>
@@ -311,13 +315,36 @@ namespace BBB.Runtime
             _bg = ParallaxBackground.Create(_area);
 
             // キャラ（左 15%、足元 6px）
-            _idleFrames = ArtLoader.Strip("Art/Characters/chr0001_idle_strip", 4);
-            _walkFrames = ArtLoader.Strip("Art/Characters/popora_walk_strip_25f", 25);
-            _attackFrames = ArtLoader.Strip("Art/Characters/chr0001_attack_strip", 4);
+            // ポポラ（Art/Hero）。無ければ旧素材（Art/Characters）に戻す
+            _idleFrames = ArtLoader.Strip("Art/Hero/hero_idle", 4);
+            if (_idleFrames.Length > 0)
+            {
+                _walkFrames = ArtLoader.Strip("Art/Hero/hero_walk", 6);
+                _attackFrames = ArtLoader.Strip("Art/Hero/hero_attack", 4);
+                _slashFrames = ArtLoader.Strip("Art/Hero/hero_slash", 4);
+                _castFrames = ArtLoader.Strip("Art/Hero/hero_cast", 4);
+                _guardFrames = ArtLoader.Strip("Art/Hero/hero_guard", 2);
+                _hitFrames = ArtLoader.Strip("Art/Hero/hero_hit", 2);
+                _victoryFrames = ArtLoader.Strip("Art/Hero/hero_victory", 4);
+                _focusFrames = ArtLoader.Strip("Art/Hero/hero_focus", 4);
+            }
+            else
+            {
+                _idleFrames = ArtLoader.Strip("Art/Characters/chr0001_idle_strip", 4);
+                _walkFrames = ArtLoader.Strip("Art/Characters/popora_walk_strip_25f", 25);
+                _attackFrames = ArtLoader.Strip("Art/Characters/chr0001_attack_strip", 4);
+                _slashFrames = _castFrames = _guardFrames = _hitFrames = _victoryFrames = _focusFrames = _attackFrames;
+            }
             // どれかが読めなかったら、読めたもので代用する（真っ白なキャラにしない）
             if (_walkFrames.Length == 0) _walkFrames = _idleFrames.Length > 0 ? _idleFrames : _attackFrames;
             if (_idleFrames.Length == 0) _idleFrames = _walkFrames.Length > 0 ? _walkFrames : _attackFrames;
-            if (_idleFrames.Length == 0) Debug.LogWarning("キャラの画像が読み込めていません（Resources/Art/Characters を確認）");
+            if (_slashFrames.Length == 0) _slashFrames = _attackFrames;
+            if (_castFrames.Length == 0) _castFrames = _attackFrames;
+            if (_guardFrames.Length == 0) _guardFrames = _idleFrames;
+            if (_hitFrames.Length == 0) _hitFrames = _idleFrames;
+            if (_victoryFrames.Length == 0) _victoryFrames = _attackFrames;
+            if (_focusFrames.Length == 0) _focusFrames = _idleFrames;
+            if (_idleFrames.Length == 0) Debug.LogWarning("キャラの画像が読み込めていません（Resources/Art/Hero か Art/Characters を確認）");
             const float charSize = 206f;
             _charRt = MakeImage(_area, "Character", new Vector2(-AreaW * 0.5f + 0.15f * AreaW + charSize * 0.5f, -AreaH * 0.5f + 6f + charSize * 0.5f), new Vector2(charSize, charSize), null);
             _charRt.GetComponent<Image>().color = Color.white;
@@ -593,6 +620,12 @@ namespace BBB.Runtime
             _naviBox = navi.gameObject;
             _naviBox.SetActive(false);
 
+            // 技術介入の課題バナー（ナビと同じ帯。両方同時には出ない）
+            _techBanner = UiFactory.Label(_stage, "TechBanner", new Vector2(0, naviY), new Vector2(cabW, 28), "", 15, TextAnchor.MiddleCenter, ColGold);
+            _techBanner.fontStyle = FontStyle.Bold;
+            TextShadow(_techBanner);
+            _techBanner.gameObject.SetActive(false);
+
             // ===== モーダル: 音量・設定 =====
             _settingsBox = BuildModal("Settings", new Vector2(400, 236), "サウンド / 設定", ToggleSettings, out var sBody);
             UiFactory.Label(sBody, "BgmLabel", new Vector2(-140, 40), new Vector2(60, 20), "BGM", 12, TextAnchor.MiddleLeft, ColTextSub);
@@ -801,7 +834,7 @@ namespace BBB.Runtime
                 : held ? "ボーナス成立中  揃えよう" : "―";
             _bonusFill.rectTransform.sizeDelta = new Vector2(inBonus && _m.BonusPayoutTarget > 0 ? _bonusTrack.sizeDelta.x * Mathf.Clamp01((float)_m.BonusEarned / _m.BonusPayoutTarget) : 0f, _bonusTrack.sizeDelta.y);
             _mode.text = $"設定 {_m.Setting}   総 {_m.TotalSpinCount:N0} G";
-            _soulText.text = _m.Wallet.Souls.ToString("N0");
+            _soulText.text = $"{_m.Wallet.Souls:N0} / {_m.Wallet.Embers:N0}";
             _gCount.text = $"{_m.SpinCount} G";
             if (_stageTag != null && _m.AdventureEnabled)
             {
@@ -852,7 +885,16 @@ namespace BBB.Runtime
             string enemy = _m.ActiveEnemyTable != null && _m.EnemyActive ? _m.ActiveEnemyTable.name : "";
             string line1 = (_autoMode ? "AUTO ON" : "") + (_autoMode && _m.IsReplay ? "   " : "") + (_m.IsReplay ? "リプレイ" : "");
             string line2 = _m.IsTier2 ? $"敵: {enemy}" : _m.PendingTier2 ? "次G から敵戦闘" : _m.PrecursorRemaining > 0 ? $"前兆 残り {_m.PrecursorRemaining} G" : "";
-            _status.text = line1 + (line1.Length > 0 && line2.Length > 0 ? "\n" : "") + line2;
+            string mission = "";
+            if (_m.Missions.Count > 0)
+            {
+                var ms = _m.Missions[0];
+                var def = TechDirector.FindMission(_m.Config.tech, ms.id);
+                if (def != null) mission = $"任務: {def.name} {ms.progress}/{def.target}";
+            }
+            string body = line1 + (line1.Length > 0 && line2.Length > 0 ? "\n" : "") + line2;
+            if (mission.Length > 0) body = body.Length > 0 ? body + "\n" + mission : mission;
+            _status.text = body;
             var dbg = new System.Text.StringBuilder();
             dbg.Append($"FLAG   {_m.CurrentFlag}\nRNG    {_m.CurrentRng}\nHELD   {_m.HeldBonusFlag}\nMODE   {_m.Mode}\nSLIP   {_m.Slip[0]}, {_m.Slip[1]}, {_m.Slip[2]}\n");
             if (_m.BonusAnnounceRemaining > 0 || _m.PseudoPlay)
@@ -923,6 +965,80 @@ namespace BBB.Runtime
             _message.text = text;
             _message.color = color ?? ColText;
             _messageFlashUntil = flash ? Time.time + _m.Config.timings.nextWin / 1000f : 0f;
+        }
+
+        // -------------------------------------------------------- TECH FX
+        /// <summary>技術介入とミッションの結果を出す。失敗しても取り上げるものは無い。</summary>
+        private void ShowTechResult(GameResult r)
+        {
+            if (r.tech.Active)
+            {
+                if (r.techSuccess)
+                {
+                    _audio.NaviSuccess();
+                    UiFx.Burst(_reels[r.tech.reel].GetComponent<RectTransform>(), UiFx.Preset.SuccessStars);
+                    UiFx.Ring(_reels[r.tech.reel].GetComponent<RectTransform>(), new Color(1f, 0.9f, 0.4f, 0.9f), 40, 260, 0.5f);
+                    var parts = new System.Collections.Generic.List<string>();
+                    if (r.techSouls > 0) parts.Add($"SOUL +{r.techSouls}");
+                    if (r.techEmbers > 0) parts.Add($"EMB +{r.techEmbers}");
+                    if (r.techExp > 0) parts.Add($"EXP +{r.techExp}");
+                    if (r.techAtGames > 0) parts.Add($"+{r.techAtGames}G");
+                    SetMessage("技術介入 成功！  " + string.Join("  ", parts), true, ColGold);
+                    PlayCharacter("victory");
+                }
+                else
+                {
+                    UiFx.PopText(_reels[r.tech.reel].GetComponent<RectTransform>(), "MISS", ColTextSub, 20, new Vector2(0, 40));
+                }
+            }
+            if (r.missionCleared != null)
+            {
+                _audio.NaviSuccess();
+                UiFx.Burst(_area, UiFx.Preset.Confetti, new Vector2(0, 40));
+                SetMessage($"任務達成！  {r.missionCleared.name}", true, ColGold);
+            }
+            else if (r.missionStarted != null && !r.tech.Active)
+            {
+                SetMessage($"任務を受けた: {r.missionStarted.name}", false, ColTextSub);
+            }
+        }
+
+        // ------------------------------------------------------------ TECH
+        /// <summary>技術介入の課題を、対象リールの上のバッジと帯で示す。</summary>
+        private void RefreshTech()
+        {
+            var t = _m.Tech;
+            if (!t.Active || !_m.IsGameActive) { if (_techBanner != null) _techBanner.gameObject.SetActive(false); return; }
+            _techBanner.gameObject.SetActive(true);
+            string reel = t.reel == 0 ? "左" : t.reel == 1 ? "中" : "右";
+            string how = t.kind == TechKind.Vita ? "中段にビタ" : "枠内に";
+            bool done = _m.Stopped[t.reel] != null;
+            if (!done)
+            {
+                _techBanner.text = $"技術介入   {reel}リールから  {SymbolName(t.symbol)} を {how}";
+                _techBanner.color = t.kind == TechKind.Vita ? ColAccent : ColGold;
+            }
+            else
+            {
+                bool ok = TechDirector.Judge(t, _m.Stopped[t.reel]);
+                _techBanner.text = ok ? "技術介入 成功！" : "技術介入 失敗（損はしない）";
+                _techBanner.color = ok ? ColGold : ColTextSub;
+            }
+        }
+
+        private static string SymbolName(Symbol s)
+        {
+            switch (s)
+            {
+                case Symbol.RED7: return "赤7";
+                case Symbol.BLUE7: return "青7";
+                case Symbol.BAR: return "BAR";
+                case Symbol.STAR: return "★";
+                case Symbol.WATERMELON: return "スイカ";
+                case Symbol.CHERRY: return "チェリー";
+                case Symbol.REPLAY: return "リプレイ";
+                default: return "ブランク";
+            }
         }
 
         // ---------------------------------------------------------------- NAVI
@@ -1049,6 +1165,7 @@ namespace BBB.Runtime
 
         private void RefreshNavi()
         {
+            RefreshTech();
             // AT 道中の押し順ナビ: 正解のリールに「1」を出して教える（隠さない）
             if (_m.Navi2.Active && _m.IsGameActive)
             {
@@ -1097,6 +1214,7 @@ namespace BBB.Runtime
         private void EnterFocus()
         {
             _audio.SetFocus(true);
+            PlayCharacter("focus");
             _darken.color = new Color(0.02f, 0.05f, 0.12f, 0.35f);
             UiFx.Burst(_charRt, UiFx.Preset.Focus, new Vector2(0, 40));
             _hint.text = "……";
@@ -1260,21 +1378,45 @@ namespace BBB.Runtime
         }
 
         // --------------------------------------------------------- CHARACTER
-        /// <summary>main.js playCharacterAnimation。敵がいる間は walk を idle に置き換える。</summary>
+        /// <summary>
+        /// 主人公の動きを切り替える。
+        ///   ループ: idle / walk / focus
+        ///   一度きり: attack-f1 / attack-f2 / attack-f3-4 / slash / cast / guard / hit / victory
+        /// 一度きりの動きは再生が終わるまで、あとから来た walk / idle で上書きしない。
+        /// </summary>
         private void PlayCharacter(string type)
         {
             if (type == "walk" && (_m.EnemyActive || _m.PrecursorRemaining > 0)) type = "idle";
+            bool loop = type == "idle" || type == "walk" || type == "focus";
+            if (loop && Time.time < _charHoldUntil) return;       // 決め動作の途中は邪魔しない
+            if (loop && type == _charState) { _bg.IsWalking = type == "walk"; _bgOuter.IsWalking = _bg.IsWalking; return; }
+
             _bg.IsWalking = type == "walk"; _bgOuter.IsWalking = _bg.IsWalking;
+            _charState = loop ? type : "";
             switch (type)
             {
                 case "idle": _charAnim.Play(_idleFrames, 1.6f, true); break;
-                case "walk": _charAnim.Play(_walkFrames, 2.4f, true); break;
+                case "walk": _charAnim.Play(_walkFrames, 0.8f, true); break;
+                case "focus": PlayOnce(_focusFrames, 1.2f, true); break;
                 case "attack-f1": if (_attackFrames.Length > 0) _charAnim.Show(_attackFrames[0]); break;
                 case "attack-f2": if (_attackFrames.Length > 1) _charAnim.Show(_attackFrames[1]); break;
                 case "attack-f3-4":
-                    if (_attackFrames.Length > 3) _charAnim.Play(new[] { _attackFrames[2], _attackFrames[3] }, 0.2f, false);
+                    if (_attackFrames.Length > 3) PlayOnce(new[] { _attackFrames[2], _attackFrames[3] }, 0.2f, false);
                     break;
+                case "slash": PlayOnce(_slashFrames, 0.4f, false); break;
+                case "cast": PlayOnce(_castFrames, 0.6f, false); break;
+                case "guard": PlayOnce(_guardFrames, 0.5f, false); break;
+                case "hit": PlayOnce(_hitFrames, 0.45f, false); break;
+                case "victory": PlayOnce(_victoryFrames, 0.9f, false); break;
             }
+        }
+
+        /// <summary>一度きりの動きを流し、終わるまでループ系に奪われないようにする。</summary>
+        private void PlayOnce(Sprite[] frames, float seconds, bool loop)
+        {
+            if (frames == null || frames.Length == 0) return;
+            _charAnim.Play(frames, seconds, loop);
+            _charHoldUntil = Time.time + (loop ? 0f : seconds);
         }
 
         /// <summary>敵テーブルの見た目（大きさ・基本色）を反映する。中ボスは大きく、色が付く。</summary>
@@ -1498,6 +1640,7 @@ namespace BBB.Runtime
             if (_m.EnemyActive) _enemyCg.alpha = 1f;   // JS onLever: 潰した敵を戻す
             _charRt.localRotation = Quaternion.identity;
             ExitFocus();
+            _m.AutoPlaying = _autoMode;    // オート中は技術介入の課題を出さない
             var legacyHint = _m.Lever();   // 抽選はレバーオン時点で確定（旧示唆は使わない）
             ResetNaviBadges();             // 前のGのナビ（○×や消えたバッジ）を持ち越さない
             RefreshNavi();
@@ -1567,6 +1710,7 @@ namespace BBB.Runtime
                 UiFx.Ring(reelRt, new Color(1f, 0.85f, 0.3f, 0.7f), 60, 220, 0.5f);
                 _audio.ReelPullIn();
             }
+            if (_m.Tech.Active && i == _m.Tech.reel) RefreshTech();
             if (_m.Navi.Active)
             {
                 if (_m.PressOrder.Count == 1 && _m.Navi.InChoice) EnterFocus();
@@ -1628,6 +1772,7 @@ namespace BBB.Runtime
             if (r.bonusStarted)
             {
                 SetMessage($"BONUS START! 0 / {_m.BonusPayoutTarget}", true, Color.yellow);
+                PlayCharacter("victory");
                 StartCoroutine(Effects.Watermelon(_charRt));   // anim-bonus の代用（ジャンプ）
                 if (r.win.winType == WinType.BIG) StartCoroutine(BigBonusStartRoutine());
                 else _audio.Win();
@@ -1654,11 +1799,13 @@ namespace BBB.Runtime
                         if (_m.EnemyActive && r.command != BellCommand.Fail) StartCoroutine(BellHit());
                         break;
                     case WinType.CHERRY:
+                        PlayCharacter("slash");
                         StartCoroutine(Effects.Cherry(_charRt));
                         if (_m.EnemyActive) { StartCoroutine(Effects.Hit(_enemyRt)); UiFx.Slash(_enemyRt, 10f, 200f, new Color(1f, 0.5f, 0.7f)); }
                         else UiFx.Slash(_charRt, 10f, 180f, new Color(1f, 0.5f, 0.7f));
                         break;
                     case WinType.WATERMELON:
+                        PlayCharacter("cast");
                         StartCoroutine(Effects.Watermelon(_charRt));
                         if (_m.EnemyActive) StartCoroutine(Effects.Hit(_enemyRt));
                         StartCoroutine(Effects.Shake(_stage));
@@ -1682,6 +1829,7 @@ namespace BBB.Runtime
             {
                 if (_m.BonusMode == BonusMode.NORMAL)
                 {
+                    PlayCharacter("hit");
                     StartCoroutine(Effects.Miss(_charRt));
                     if (_m.EnemyActive) { StartCoroutine(Effects.Hit(_enemyRt)); UiFx.Burst(_charRt, UiFx.Preset.RedShards, new Vector2(20, 20)); }
                 }
@@ -1738,6 +1886,7 @@ namespace BBB.Runtime
             RogueFx(r);
             _graph?.Push(_m.Credit);
             if (_graphBox != null && _graphBox.activeSelf) _graph.Redraw();
+            ShowTechResult(r);
             RollTraveler();
             RollHeroMonologue(r);
             SaveData.Save(_m, _audio);

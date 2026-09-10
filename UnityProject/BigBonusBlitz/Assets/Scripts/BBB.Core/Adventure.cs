@@ -504,7 +504,7 @@ namespace BBB.Core
             if (wallet != null && r.deathSoulPenalty > 0)
             {
                 lost = Math.Max(0, wallet.Souls * Math.Min(100, r.deathSoulPenalty) / 100);
-                wallet.Souls -= lost;
+                wallet.Souls -= lost;   // 力尽きた代償はソウル（スキル資源）から
             }
             if (r.resetOnDeath) Reset(cfg, st);
             return lost;

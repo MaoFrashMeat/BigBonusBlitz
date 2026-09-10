@@ -44,6 +44,8 @@ namespace BBB.Core
         public BellCommandConfig bellCommand = new BellCommandConfig();
         /// <summary>通常時に通り過ぎる旅人（モード示唆）。null なら既定。</summary>
         public TravelerConfig travelers;
+        /// <summary>技術介入（ビタ押し・2コマ目押し・ミッション）。null なら既定。</summary>
+        public TechConfig tech;
         /// <summary>事前察知（レバーオン時の役予告）。null なら既定。</summary>
         public PrecogConfig precog;
         /// <summary>主人公のひとりごと。null なら既定。</summary>

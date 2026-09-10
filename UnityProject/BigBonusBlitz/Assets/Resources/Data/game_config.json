@@ -4322,5 +4322,110 @@
         "minDepth": 1
       }
     ]
+  },
+  "tech": {
+    "enabled": true,
+    "missionSlots": 1,
+    "rates": {
+      "normal": 4,
+      "engage": 12,
+      "bonus": 8,
+      "at": 10
+    },
+    "levels": [
+      {
+        "id": "easy_star",
+        "name": "★を枠内に",
+        "kind": "TwoKoma",
+        "weight": 40,
+        "symbols": [
+          "STAR"
+        ],
+        "reels": [],
+        "souls": 8,
+        "embers": 4,
+        "exp": 5,
+        "atGames": 0
+      },
+      {
+        "id": "mid_melon",
+        "name": "スイカを枠内に",
+        "kind": "TwoKoma",
+        "weight": 30,
+        "symbols": [
+          "WATERMELON"
+        ],
+        "reels": [],
+        "souls": 16,
+        "embers": 8,
+        "exp": 10,
+        "atGames": 0
+      },
+      {
+        "id": "hard_bar",
+        "name": "BAR をビタ押し",
+        "kind": "Vita",
+        "weight": 20,
+        "symbols": [
+          "BAR"
+        ],
+        "reels": [],
+        "souls": 45,
+        "embers": 25,
+        "exp": 30,
+        "atGames": 5
+      },
+      {
+        "id": "extreme_seven",
+        "name": "赤7 を中段ビタ",
+        "kind": "Vita",
+        "weight": 10,
+        "symbols": [
+          "RED7"
+        ],
+        "reels": [
+          0
+        ],
+        "souls": 90,
+        "embers": 50,
+        "exp": 60,
+        "atGames": 10
+      }
+    ],
+    "missions": [
+      {
+        "id": "m_bar3",
+        "name": "BAR をビタ押し 3 回",
+        "type": "techSuccess",
+        "filterId": "hard_bar",
+        "target": 3,
+        "souls": 120,
+        "embers": 60,
+        "exp": 80,
+        "atGames": 0
+      },
+      {
+        "id": "m_cherry10",
+        "name": "チェリーを 10 回引く",
+        "type": "win",
+        "filterId": "CHERRY",
+        "target": 10,
+        "souls": 60,
+        "embers": 40,
+        "exp": 40,
+        "atGames": 0
+      },
+      {
+        "id": "m_defeat5",
+        "name": "敵を 5 体討伐する",
+        "type": "defeat",
+        "filterId": "",
+        "target": 5,
+        "souls": 100,
+        "embers": 70,
+        "exp": 100,
+        "atGames": 0
+      }
+    ]
   }
 }

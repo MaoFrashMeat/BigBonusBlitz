@@ -68,12 +68,15 @@ namespace BBB.Core
         public int Souls;
         /// <summary>累計で稼いだソウル（実績表示用）。</summary>
         public int TotalSouls;
+        /// <summary>エンバー: ライフ・松明・満腹度・装備など、自分の状態を整える通貨。</summary>
+        public int Embers;
+        public int TotalEmbers;
         /// <summary>品ID → 所持レベル。</summary>
         public readonly Dictionary<string, int> Owned = new Dictionary<string, int>();
 
         public int LevelOf(string id) => id != null && Owned.TryGetValue(id, out var l) ? l : 0;
 
-        public void Clear() { Souls = 0; TotalSouls = 0; Owned.Clear(); }
+        public void Clear() { Souls = 0; TotalSouls = 0; Embers = 0; TotalEmbers = 0; Owned.Clear(); }
     }
 
     public static class ShopDirector

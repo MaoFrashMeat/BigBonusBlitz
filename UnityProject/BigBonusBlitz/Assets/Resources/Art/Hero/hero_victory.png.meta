@@ -1,43 +1,31 @@
 fileFormatVersion: 2
-guid: 40e185e1fc283ab44b7ae6c6db87d2f8
+guid: dbb976374e795c24ba32492a31ebac14
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 2862797406034663007
-    second: traveler_D_0
+      213: -8195495142399802324
+    second: hero_victory_0
   - first:
-      213: 2278601516726523999
-    second: traveler_D_1
+      213: 5425038194350206042
+    second: hero_victory_1
   - first:
-      213: 586131916343610179
-    second: traveler_D_2
+      213: -6407781468816104296
+    second: hero_victory_2
   - first:
-      213: 5831325106158971637
-    second: traveler_D_3
+      213: -8432974030656668404
+    second: hero_victory_3
   - first:
-      213: -484741660248155466
-    second: traveler_D_4
+      213: 6143243138185822652
+    second: hero_victory_4
   - first:
-      213: -2281721066402970594
-    second: traveler_D_5
+      213: -1122386584579504745
+    second: hero_victory_5
   - first:
-      213: -4563677148821230599
-    second: traveler_D_6
+      213: -1815709854646677777
+    second: hero_victory_6
   - first:
-      213: 2614596616243836114
-    second: traveler_D_7
-  - first:
-      213: -5031632382376819237
-    second: traveler_D_8
-  - first:
-      213: 2057718198334238247
-    second: traveler_D_9
-  - first:
-      213: -4288402163991238794
-    second: traveler_D_10
-  - first:
-      213: 1370725633056415087
-    second: traveler_D_11
+      213: -2903083246169150956
+    second: hero_victory_7
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -70,7 +58,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 0
+    filterMode: 1
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -130,7 +118,7 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
-    buildTarget: iOS
+    buildTarget: Android
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
@@ -143,11 +131,11 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
-    buildTarget: Android
-    maxTextureSize: 8192
+    buildTarget: iOS
+    maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 0
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -159,13 +147,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: traveler_D_0
+      name: hero_victory_0
       rect:
         serializedVersion: 2
-        x: 51
-        y: 147
-        width: 78
-        height: 86
+        x: 67
+        y: 55
+        width: 102
+        height: 233
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -174,20 +162,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: f561b92b213bab720800000000000000
-      internalID: 2862797406034663007
+      spriteID: c2402dee690c34e80800000000000000
+      internalID: -8195495142399802324
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: traveler_D_1
+      name: hero_victory_1
       rect:
         serializedVersion: 2
-        x: 243
-        y: 151
-        width: 78
-        height: 86
+        x: 323
+        y: 71
+        width: 102
+        height: 217
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -196,20 +184,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: f589625c1083f9f10800000000000000
-      internalID: 2278601516726523999
+      spriteID: a5cab23ae7b994b40800000000000000
+      internalID: 5425038194350206042
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: traveler_D_2
+      name: hero_victory_2
       rect:
         serializedVersion: 2
-        x: 435
-        y: 147
-        width: 78
-        height: 86
+        x: 579
+        y: 79
+        width: 102
+        height: 209
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -218,20 +206,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 34b0e295fdb522800800000000000000
-      internalID: 586131916343610179
+      spriteID: 894a2e834bcf217a0800000000000000
+      internalID: -6407781468816104296
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: traveler_D_3
+      name: hero_victory_3
       rect:
         serializedVersion: 2
-        x: 627
-        y: 151
-        width: 78
-        height: 86
+        x: 835
+        y: 67
+        width: 102
+        height: 221
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -240,20 +228,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5fa2c62d9470de050800000000000000
-      internalID: 5831325106158971637
+      spriteID: c0d7d968cce08fa80800000000000000
+      internalID: -8432974030656668404
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: traveler_D_4
+      name: hero_victory_4
       rect:
         serializedVersion: 2
-        x: 35
-        y: 23
-        width: 90
-        height: 122
+        x: 47
+        y: 3
+        width: 130
+        height: 14
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -262,20 +250,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 6ba531d370ad549f0800000000000000
-      internalID: -484741660248155466
+      spriteID: cb10c6cf51f214550800000000000000
+      internalID: 6143243138185822652
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: traveler_D_5
+      name: hero_victory_5
       rect:
         serializedVersion: 2
-        x: 227
-        y: 27
-        width: 90
-        height: 122
+        x: 303
+        y: 3
+        width: 130
+        height: 14
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -284,20 +272,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e14868877c2b550e0800000000000000
-      internalID: -2281721066402970594
+      spriteID: 7958975195b7c60f0800000000000000
+      internalID: -1122386584579504745
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: traveler_D_6
+      name: hero_victory_6
       rect:
         serializedVersion: 2
-        x: 419
-        y: 23
-        width: 90
-        height: 122
+        x: 559
+        y: 3
+        width: 130
+        height: 14
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -306,20 +294,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 9fb61f200df8aa0c0800000000000000
-      internalID: -4563677148821230599
+      spriteID: feecb9ad18d4dc6e0800000000000000
+      internalID: -1815709854646677777
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: traveler_D_7
+      name: hero_victory_7
       rect:
         serializedVersion: 2
-        x: 611
-        y: 27
-        width: 90
-        height: 122
+        x: 815
+        y: 3
+        width: 130
+        height: 14
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -328,96 +316,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 2d4f62e05c9e84420800000000000000
-      internalID: 2614596616243836114
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: traveler_D_8
-      rect:
-        serializedVersion: 2
-        x: 51
-        y: 7
-        width: 82
-        height: 10
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: bd5c318c10d0c2ab0800000000000000
-      internalID: -5031632382376819237
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: traveler_D_9
-      rect:
-        serializedVersion: 2
-        x: 243
-        y: 7
-        width: 82
-        height: 10
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 72ea1939ccb7e8c10800000000000000
-      internalID: 2057718198334238247
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: traveler_D_10
-      rect:
-        serializedVersion: 2
-        x: 435
-        y: 7
-        width: 82
-        height: 10
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 6772949e3f88c74c0800000000000000
-      internalID: -4288402163991238794
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: traveler_D_11
-      rect:
-        serializedVersion: 2
-        x: 627
-        y: 7
-        width: 82
-        height: 10
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: f6d99da63bbc50310800000000000000
-      internalID: 1370725633056415087
+      spriteID: 41a23b63b2d26b7d0800000000000000
+      internalID: -2903083246169150956
       vertices: []
       indices: 
       edges: []

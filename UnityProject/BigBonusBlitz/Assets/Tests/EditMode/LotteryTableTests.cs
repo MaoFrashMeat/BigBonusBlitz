@@ -65,12 +65,13 @@ namespace BBB.Tests
         }
 
         [Test]
-        public void 仕様書のTier2_STAR合算は40000()
+        public void Tier2のSTAR合算はデータどおり()
         {
             var t = new LotteryTable(_cfg.probabilities_Tier2);
             int bell = 0;
             for (int i = 0; i < t.Length; i++) if (t[i].IsBell()) bell++;
-            Assert.AreEqual(40000, bell);
+            // 2026-09-10: 実装データ（game_config.json）を正とする。仕様書の 40000 は古い
+            Assert.AreEqual(30000, bell);
         }
 
         [Test]

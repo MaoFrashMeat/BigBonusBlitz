@@ -24,6 +24,16 @@ namespace BBB.Core
         public bool naviDefeatGuaranteed;
         /// <summary>正解で得た EXP。</summary>
         public int naviExp;
+        /// <summary>このGに出ていた技術介入の課題（Active=false なら無し）。</summary>
+        public TechChallenge tech;
+        /// <summary>技術介入の成否（課題が出ていたときだけ意味がある）。</summary>
+        public bool techSuccess;
+        /// <summary>技術介入の報酬。</summary>
+        public int techSouls, techEmbers, techExp, techAtGames;
+        /// <summary>このGで達成したミッション（無ければ null）。</summary>
+        public MissionDef missionCleared;
+        /// <summary>新しく受注したミッション（無ければ null）。</summary>
+        public MissionDef missionStarted;
         public Flag flag;
         public WinResult win;
         public bool bonusStarted;
@@ -199,6 +209,12 @@ namespace BBB.Core
         public int PrecursorTotal;
         /// <summary>今Gのベル択ナビ（Active=false なら無し）。</summary>
         public BellNavi Navi;
+        /// <summary>今Gの技術介入の課題。</summary>
+        public TechChallenge Tech;
+        /// <summary>オート中は技術介入を出さない。外から毎G設定する。</summary>
+        public bool AutoPlaying;
+        /// <summary>受注中のミッション。</summary>
+        public readonly List<MissionState> Missions = new List<MissionState>();
         /// <summary>今Gの押し順（停止した順にリール番号）。</summary>
         public readonly List<int> PressOrder = new List<int>();
         /// <summary>今Gの択結果（第二停止時点で決まる）。</summary>
@@ -361,6 +377,7 @@ namespace BBB.Core
             CurrentCommand = BellCommand.None;
             Navi = default;
             Navi2 = default;
+            Tech = default;
             AtJustStarted = false;
 
             var hint = HintKind.None;
@@ -385,7 +402,46 @@ namespace BBB.Core
                 // 第一停止は常に「中」。左右のどちらが正解かはランダム（隠し）
                 Navi = new BellNavi { first = 1, correctReel = _rng.NextDouble() * 100 < Config.bellCommand.correctLeftRate ? 0 : 2, Active = true, InChoice = false };
             }
+            // 技術介入の課題（オート中と、押し順ナビ・択ナビが出ているGは出さない。指示が重なると読めない）
+            string scene = BonusMode != BonusMode.NORMAL ? "bonus" : InAt ? "at" : (IsTier2 && EnemyActive) ? "engage" : "normal";
+            Tech = (Navi.Active || Navi2.Active)
+                ? default
+                : TechDirector.Roll(Config.tech, scene, AutoPlaying, Strips, _rng);
+            if (Tech.Active && !SetAimOrCancel(ref Tech)) Tech = default;
+
+            // ミッションの受注（空きがあれば）
+            var techCfg = Config.tech ?? TechConfig.Default();
+            if (Missions.Count < Math.Max(0, techCfg.missionSlots))
+            {
+                var m = TechDirector.PickNew(techCfg, Missions, _rng);
+                if (m != null) { Missions.Add(new MissionState { id = m.id, progress = 0 }); _missionStarted = m; }
+            }
             return hint;
+        }
+
+        private MissionDef _missionStarted;
+
+        /// <summary>
+        /// 課題の狙い位置を決める。制御の滑りに邪魔されて取れないGは課題を出さない（false を返す）。
+        /// 対象リールを最初に押す前提で調べる。腕以外の理由で失敗させないための下ごしらえ。
+        /// </summary>
+        private bool SetAimOrCancel(ref TechChallenge t)
+        {
+            var strip = Strips[t.reel];
+            var aims = TechDirector.AimIndices(strip, t.symbol, t.row >= 0 ? t.row : 1);
+            if (aims.Count == 0) return false;
+            var held = CurrentFlag == HeldBonusFlag ? HeldBonusFlag : Flag.HAZE;
+            bool pullIn = held != Flag.HAZE && CurrentFlag.IsBonus() && BonusAnnounceRemaining <= 0;
+            int slipMax = pullIn ? Math.Min(strip.Length - 1, Math.Max(SlipController.DefaultMaxSlip, Config.bonusPullInSlip))
+                                 : SlipController.DefaultMaxSlip;
+            var empty = new[] { -1, -1, -1 };
+            // 候補をシャッフルせず順に見て、最初に成功する位置を採用する
+            foreach (var aim in aims)
+            {
+                var res = SlipController.Stop(Strips, t.reel, aim, CurrentFlag, held, empty, slipMax);
+                if (TechDirector.Judge(t, res.symbols)) { t.aimIndex = aim; return true; }
+            }
+            return false;
         }
 
         private void DrawLottery()
@@ -749,6 +805,7 @@ namespace BBB.Core
                     int exp = ActiveEnemyTable != null && ActiveEnemyTable.expOnDefeat > 0 ? ActiveEnemyTable.expOnDefeat : Config.expPerDefeat;
                     result.enemyExp = ApplyExpBonus(exp);
                     result.levelUp = GainExp(result.enemyExp);
+                    AdvanceMissions("defeat", "", result);
                     result.soulsGained += GainSouls(ActiveEnemyTable != null && ActiveEnemyTable.IsBoss ? soulCfg.perBoss : soulCfg.perMob);
                 }
                 else result.soulsGained += GainSouls(soulCfg.perEscape);
@@ -853,6 +910,28 @@ namespace BBB.Core
                     }
                 }
             }
+
+            // ---- 技術介入の判定（第3停止後）----
+            result.tech = Tech;
+            result.missionStarted = _missionStarted;
+            _missionStarted = null;
+            if (Tech.Active)
+            {
+                result.techSuccess = TechDirector.Judge(Tech, Stopped[Tech.reel]);
+                if (result.techSuccess)
+                {
+                    var def = TechDirector.FindLevel(Config.tech ?? TechConfig.Default(), Tech.id);
+                    if (def != null)
+                    {
+                        if (def.souls > 0) { result.techSouls = def.souls; GainSouls(def.souls); }
+                        if (def.embers > 0) { result.techEmbers = def.embers; GainEmbers(def.embers); }
+                        if (def.exp > 0) { result.techExp = def.exp; if (GainExp(def.exp)) result.levelUp = true; }
+                        if (def.atGames > 0 && InAt) { result.techAtGames = def.atGames; AtSpinsRemaining += def.atGames; }
+                    }
+                    AdvanceMissions("techSuccess", Tech.id, result);
+                }
+            }
+            if (win.winType != WinType.NONE) AdvanceMissions("win", win.winType.ToString(), result);
 
             // ワークフロー抽選（JS: リプレイ時も実行される）
             var roleKey = WorkflowLottery.RoleKey(win.winType, win.isReplay);
@@ -1119,6 +1198,36 @@ namespace BBB.Core
             if (baseExp <= 0) return 0;
             int bonus = BonusOf(ShopEffects.ExpGain);
             return System.Math.Max(0, baseExp * (100 + bonus) / 100);
+        }
+
+        /// <summary>エンバーを増やす。</summary>
+        public void GainEmbers(int amount)
+        {
+            if (amount <= 0) return;
+            Wallet.Embers += amount;
+            Wallet.TotalEmbers += amount;
+        }
+
+        /// <summary>ミッションを1つ進める。達成したら報酬を渡して外す。</summary>
+        private void AdvanceMissions(string type, string filterId, GameResult result)
+        {
+            var cfg = Config.tech ?? TechConfig.Default();
+            for (int i = Missions.Count - 1; i >= 0; i--)
+            {
+                var st = Missions[i];
+                var def = TechDirector.FindMission(cfg, st.id);
+                if (def == null) { Missions.RemoveAt(i); continue; }
+                if (def.type != type) continue;
+                if (!string.IsNullOrEmpty(def.filterId) && def.filterId != filterId) continue;
+                st.progress++;
+                if (st.progress < Math.Max(1, def.target)) continue;
+                Missions.RemoveAt(i);
+                result.missionCleared = def;
+                if (def.souls > 0) GainSouls(def.souls);
+                if (def.embers > 0) GainEmbers(def.embers);
+                if (def.exp > 0 && GainExp(def.exp)) result.levelUp = true;
+                if (def.atGames > 0 && InAt) AtSpinsRemaining += def.atGames;
+            }
         }
 
         private bool GainExp(int amount)

@@ -33,6 +33,10 @@ namespace BBB.Runtime
         // --- ソウルと持ち物（Dictionary は JsonUtility で保存できないので 2 本の配列に分けて持つ）---
         public int souls;
         public int totalSouls;
+        public int embers;
+        public int totalEmbers;
+        public string[] missionIds = new string[0];
+        public int[] missionProgress = new int[0];
         public string[] ownedIds = new string[0];
         public int[] ownedLevels = new int[0];
         // --- 冒険（ステージ制マップ）---
@@ -80,6 +84,8 @@ namespace BBB.Runtime
                 bgmEnabled = audio == null || audio.BgmEnabled,
                 souls = m.Wallet.Souls,
                 totalSouls = m.Wallet.TotalSouls,
+                embers = m.Wallet.Embers,
+                totalEmbers = m.Wallet.TotalEmbers,
                 advNode = m.Adv.nodeId ?? "",
                 advSpinsLeft = m.Adv.spinsLeft,
                 advNext = m.Adv.nextId ?? "",
@@ -106,6 +112,11 @@ namespace BBB.Runtime
             foreach (var kv in m.Wallet.Owned) { if (kv.Value <= 0) continue; ids.Add(kv.Key); lvs.Add(kv.Value); }
             d.ownedIds = ids.ToArray();
             d.ownedLevels = lvs.ToArray();
+            var mid = new System.Collections.Generic.List<string>();
+            var mpr = new System.Collections.Generic.List<int>();
+            foreach (var ms in m.Missions) { mid.Add(ms.id); mpr.Add(ms.progress); }
+            d.missionIds = mid.ToArray();
+            d.missionProgress = mpr.ToArray();
             PlayerPrefs.SetString(Key, JsonUtility.ToJson(d));
             SaveAudio(audio);
             PlayerPrefs.Save();
@@ -138,6 +149,13 @@ namespace BBB.Runtime
             m.Stats.Unspent = Mathf.Max(0, d.statUnspent);
             m.Wallet.Souls = Mathf.Max(0, d.souls);
             m.Wallet.TotalSouls = Mathf.Max(0, d.totalSouls);
+            m.Wallet.Embers = Mathf.Max(0, d.embers);
+            m.Wallet.TotalEmbers = Mathf.Max(0, d.totalEmbers);
+            m.Missions.Clear();
+            if (d.missionIds != null && d.missionProgress != null)
+                for (int i = 0; i < d.missionIds.Length && i < d.missionProgress.Length; i++)
+                    if (!string.IsNullOrEmpty(d.missionIds[i]) && TechDirector.FindMission(m.Config.tech, d.missionIds[i]) != null)
+                        m.Missions.Add(new MissionState { id = d.missionIds[i], progress = Mathf.Max(0, d.missionProgress[i]) });
             m.Wallet.Owned.Clear();
             if (d.ownedIds != null && d.ownedLevels != null)
                 for (int i = 0; i < d.ownedIds.Length && i < d.ownedLevels.Length; i++)

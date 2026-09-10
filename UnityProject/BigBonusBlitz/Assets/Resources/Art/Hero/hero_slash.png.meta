@@ -1,43 +1,31 @@
 fileFormatVersion: 2
-guid: 40e185e1fc283ab44b7ae6c6db87d2f8
+guid: 2e524775b6d797747870059bd4c8a581
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 2862797406034663007
-    second: traveler_D_0
+      213: 2822103118694807553
+    second: hero_slash_0
   - first:
-      213: 2278601516726523999
-    second: traveler_D_1
+      213: -7365128505176362423
+    second: hero_slash_1
   - first:
-      213: 586131916343610179
-    second: traveler_D_2
+      213: -5435409255675523639
+    second: hero_slash_2
   - first:
-      213: 5831325106158971637
-    second: traveler_D_3
+      213: -8652249193012568390
+    second: hero_slash_3
   - first:
-      213: -484741660248155466
-    second: traveler_D_4
+      213: 1112580300578488544
+    second: hero_slash_4
   - first:
-      213: -2281721066402970594
-    second: traveler_D_5
+      213: -5541259200075229273
+    second: hero_slash_5
   - first:
-      213: -4563677148821230599
-    second: traveler_D_6
+      213: 695779101092227963
+    second: hero_slash_6
   - first:
-      213: 2614596616243836114
-    second: traveler_D_7
-  - first:
-      213: -5031632382376819237
-    second: traveler_D_8
-  - first:
-      213: 2057718198334238247
-    second: traveler_D_9
-  - first:
-      213: -4288402163991238794
-    second: traveler_D_10
-  - first:
-      213: 1370725633056415087
-    second: traveler_D_11
+      213: -5822816605901278788
+    second: hero_slash_7
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -70,7 +58,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 0
+    filterMode: 1
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -130,7 +118,7 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
-    buildTarget: iOS
+    buildTarget: Android
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
@@ -143,11 +131,11 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
-    buildTarget: Android
-    maxTextureSize: 8192
+    buildTarget: iOS
+    maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 0
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -159,13 +147,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: traveler_D_0
+      name: hero_slash_0
       rect:
         serializedVersion: 2
-        x: 51
-        y: 147
-        width: 78
-        height: 86
+        x: 0
+        y: 55
+        width: 157
+        height: 210
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -174,20 +162,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: f561b92b213bab720800000000000000
-      internalID: 2862797406034663007
+      spriteID: 108735595df1a2720800000000000000
+      internalID: 2822103118694807553
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: traveler_D_1
+      name: hero_slash_1
       rect:
         serializedVersion: 2
-        x: 243
-        y: 151
-        width: 78
-        height: 86
+        x: 319
+        y: 55
+        width: 98
+        height: 233
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -196,20 +184,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: f589625c1083f9f10800000000000000
-      internalID: 2278601516726523999
+      spriteID: 942fbdb85aec9c990800000000000000
+      internalID: -7365128505176362423
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: traveler_D_2
+      name: hero_slash_2
       rect:
         serializedVersion: 2
-        x: 435
-        y: 147
-        width: 78
-        height: 86
+        x: 571
+        y: 55
+        width: 198
+        height: 210
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -218,20 +206,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 34b0e295fdb522800800000000000000
-      internalID: 586131916343610179
+      spriteID: 9cd079a741c8194b0800000000000000
+      internalID: -5435409255675523639
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: traveler_D_3
+      name: hero_slash_3
       rect:
         serializedVersion: 2
-        x: 627
-        y: 151
-        width: 78
-        height: 86
+        x: 827
+        y: 55
+        width: 197
+        height: 210
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -240,20 +228,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5fa2c62d9470de050800000000000000
-      internalID: 5831325106158971637
+      spriteID: abe535653390de780800000000000000
+      internalID: -8652249193012568390
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: traveler_D_4
+      name: hero_slash_4
       rect:
         serializedVersion: 2
-        x: 35
-        y: 23
-        width: 90
-        height: 122
+        x: 47
+        y: 3
+        width: 130
+        height: 14
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -262,20 +250,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 6ba531d370ad549f0800000000000000
-      internalID: -484741660248155466
+      spriteID: 0e0041083eda07f00800000000000000
+      internalID: 1112580300578488544
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: traveler_D_5
+      name: hero_slash_5
       rect:
         serializedVersion: 2
-        x: 227
-        y: 27
-        width: 90
-        height: 122
+        x: 303
+        y: 3
+        width: 130
+        height: 14
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -284,20 +272,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e14868877c2b550e0800000000000000
-      internalID: -2281721066402970594
+      spriteID: 7a7962bcd1e7913b0800000000000000
+      internalID: -5541259200075229273
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: traveler_D_6
+      name: hero_slash_6
       rect:
         serializedVersion: 2
-        x: 419
-        y: 23
-        width: 90
-        height: 122
+        x: 559
+        y: 3
+        width: 130
+        height: 14
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -306,20 +294,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 9fb61f200df8aa0c0800000000000000
-      internalID: -4563677148821230599
+      spriteID: b7b2eb2f767e7a900800000000000000
+      internalID: 695779101092227963
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: traveler_D_7
+      name: hero_slash_7
       rect:
         serializedVersion: 2
-        x: 611
-        y: 27
-        width: 90
-        height: 122
+        x: 815
+        y: 3
+        width: 130
+        height: 14
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -328,96 +316,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 2d4f62e05c9e84420800000000000000
-      internalID: 2614596616243836114
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: traveler_D_8
-      rect:
-        serializedVersion: 2
-        x: 51
-        y: 7
-        width: 82
-        height: 10
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: bd5c318c10d0c2ab0800000000000000
-      internalID: -5031632382376819237
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: traveler_D_9
-      rect:
-        serializedVersion: 2
-        x: 243
-        y: 7
-        width: 82
-        height: 10
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 72ea1939ccb7e8c10800000000000000
-      internalID: 2057718198334238247
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: traveler_D_10
-      rect:
-        serializedVersion: 2
-        x: 435
-        y: 7
-        width: 82
-        height: 10
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 6772949e3f88c74c0800000000000000
-      internalID: -4288402163991238794
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: traveler_D_11
-      rect:
-        serializedVersion: 2
-        x: 627
-        y: 7
-        width: 82
-        height: 10
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: f6d99da63bbc50310800000000000000
-      internalID: 1370725633056415087
+      spriteID: cb13205c523313fa0800000000000000
+      internalID: -5822816605901278788
       vertices: []
       indices: 
       edges: []

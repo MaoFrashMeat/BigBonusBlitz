@@ -1,55 +1,49 @@
 fileFormatVersion: 2
-guid: c96da20a7d33df14aa677924bab0d1ae
+guid: 2565aa30e5138674cbc5d51d4e2990d1
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -7533036466239154518
-    second: traveler_E_0
+      213: -5510394624477560379
+    second: hero_cast_0
   - first:
-      213: 7440711657521887837
-    second: traveler_E_1
+      213: -4120814591912598045
+    second: hero_cast_1
   - first:
-      213: -6553318500111974441
-    second: traveler_E_2
+      213: -549689825904348183
+    second: hero_cast_2
   - first:
-      213: 1800604995492172836
-    second: traveler_E_3
+      213: -1145293092455531053
+    second: hero_cast_3
   - first:
-      213: 5427069125172645717
-    second: traveler_E_4
+      213: 1963419291856584930
+    second: hero_cast_4
   - first:
-      213: 91001756395519739
-    second: traveler_E_5
+      213: 1456426496962261119
+    second: hero_cast_5
   - first:
-      213: 1748468308446572676
-    second: traveler_E_6
+      213: 5063156344473920558
+    second: hero_cast_6
   - first:
-      213: -7704116372507648771
-    second: traveler_E_7
+      213: 5853251394672697236
+    second: hero_cast_7
   - first:
-      213: -718030505763340043
-    second: traveler_E_8
+      213: 213141255900393441
+    second: hero_cast_8
   - first:
-      213: 4534384419535310572
-    second: traveler_E_9
+      213: -5879306380159782667
+    second: hero_cast_9
   - first:
-      213: -4462840684902836768
-    second: traveler_E_10
+      213: -8226042793257001568
+    second: hero_cast_10
   - first:
-      213: 2165662337128945514
-    second: traveler_E_11
+      213: 1858160861994173646
+    second: hero_cast_11
   - first:
-      213: 1262042840951954154
-    second: traveler_E_12
+      213: 247180274670566390
+    second: hero_cast_12
   - first:
-      213: 8653248659135678001
-    second: traveler_E_13
-  - first:
-      213: 8273700580875853056
-    second: traveler_E_14
-  - first:
-      213: -4639129202618696303
-    second: traveler_E_15
+      213: -6201126345024028630
+    second: hero_cast_13
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -82,7 +76,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 0
+    filterMode: 1
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -142,7 +136,7 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
-    buildTarget: iOS
+    buildTarget: Android
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
@@ -155,11 +149,11 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
-    buildTarget: Android
-    maxTextureSize: 8192
+    buildTarget: iOS
+    maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 0
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -171,13 +165,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: traveler_E_0
+      name: hero_cast_0
       rect:
         serializedVersion: 2
-        x: 59
-        y: 147
-        width: 62
-        height: 86
+        x: 67
+        y: 123
+        width: 94
+        height: 165
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -186,64 +180,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: aa650c5ee37457790800000000000000
-      internalID: -7533036466239154518
+      spriteID: 5c10bcbc8452783b0800000000000000
+      internalID: -5510394624477560379
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: traveler_E_1
-      rect:
-        serializedVersion: 2
-        x: 131
-        y: 63
-        width: 50
-        height: 178
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: d5a33b674d7b24760800000000000000
-      internalID: 7440711657521887837
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: traveler_E_2
-      rect:
-        serializedVersion: 2
-        x: 251
-        y: 151
-        width: 62
-        height: 86
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 7df74dc8b8fed05a0800000000000000
-      internalID: -6553318500111974441
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: traveler_E_3
+      name: hero_cast_1
       rect:
         serializedVersion: 2
         x: 323
-        y: 67
-        width: 50
-        height: 178
+        y: 135
+        width: 94
+        height: 153
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -252,20 +202,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 424da1114b80df810800000000000000
-      internalID: 1800604995492172836
+      spriteID: 3e5adcf26fcefc6c0800000000000000
+      internalID: -4120814591912598045
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: traveler_E_4
+      name: hero_cast_2
       rect:
         serializedVersion: 2
-        x: 443
-        y: 147
-        width: 62
-        height: 86
+        x: 579
+        y: 55
+        width: 138
+        height: 233
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -274,20 +224,42 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 55fc7619d92d05b40800000000000000
-      internalID: 5427069125172645717
+      spriteID: 9e33356040c1f58f0800000000000000
+      internalID: -549689825904348183
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: traveler_E_5
+      name: hero_cast_3
       rect:
         serializedVersion: 2
-        x: 515
+        x: 835
+        y: 35
+        width: 94
+        height: 230
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3ddba7c100a1b10f0800000000000000
+      internalID: -1145293092455531053
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: hero_cast_4
+      rect:
+        serializedVersion: 2
+        x: 79
         y: 63
-        width: 50
-        height: 178
+        width: 30
+        height: 54
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -296,20 +268,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: bfe34e38d9d434100800000000000000
-      internalID: 91001756395519739
+      spriteID: 2e0c24c71777f3b10800000000000000
+      internalID: 1963419291856584930
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: traveler_E_6
+      name: hero_cast_5
       rect:
         serializedVersion: 2
-        x: 635
-        y: 151
-        width: 62
-        height: 86
+        x: 115
+        y: 63
+        width: 30
+        height: 54
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -318,20 +290,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 4807cf9a9aec34810800000000000000
-      internalID: 1748468308446572676
+      spriteID: f70f6e8be24463410800000000000000
+      internalID: 1456426496962261119
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: traveler_E_7
+      name: hero_cast_6
       rect:
         serializedVersion: 2
-        x: 707
-        y: 67
-        width: 50
-        height: 178
+        x: 335
+        y: 71
+        width: 30
+        height: 54
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -340,20 +312,42 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: dfc19643afa751590800000000000000
-      internalID: -7704116372507648771
+      spriteID: e2422aa9ed1f34640800000000000000
+      internalID: 5063156344473920558
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: traveler_E_8
+      name: hero_cast_7
       rect:
         serializedVersion: 2
-        x: 51
-        y: 23
+        x: 371
+        y: 71
+        width: 30
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 49f9680b12dea3150800000000000000
+      internalID: 5853251394672697236
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: hero_cast_8
+      rect:
+        serializedVersion: 2
+        x: 767
+        y: 55
         width: 74
-        height: 122
+        height: 18
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -362,20 +356,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5f0051e2f0b0906f0800000000000000
-      internalID: -718030505763340043
+      spriteID: 1ef6cecc7da35f200800000000000000
+      internalID: 213141255900393441
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: traveler_E_9
+      name: hero_cast_9
       rect:
         serializedVersion: 2
-        x: 243
-        y: 27
-        width: 74
-        height: 122
+        x: 927
+        y: 55
+        width: 66
+        height: 18
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -384,20 +378,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: ceec779fa9e5dee30800000000000000
-      internalID: 4534384419535310572
+      spriteID: 5f073e44ff1886ea0800000000000000
+      internalID: -5879306380159782667
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: traveler_E_10
+      name: hero_cast_10
       rect:
         serializedVersion: 2
-        x: 435
-        y: 23
-        width: 74
-        height: 122
+        x: 47
+        y: 3
+        width: 130
+        height: 14
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -406,20 +400,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 0e5943fca0ec012c0800000000000000
-      internalID: -4462840684902836768
+      spriteID: 0ad11c8b9a937dd80800000000000000
+      internalID: -8226042793257001568
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: traveler_E_11
+      name: hero_cast_11
       rect:
         serializedVersion: 2
-        x: 627
-        y: 27
-        width: 74
-        height: 122
+        x: 303
+        y: 3
+        width: 130
+        height: 14
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -428,20 +422,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a675304eb6afd0e10800000000000000
-      internalID: 2165662337128945514
+      spriteID: ec442b2857389c910800000000000000
+      internalID: 1858160861994173646
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: traveler_E_12
+      name: hero_cast_12
       rect:
         serializedVersion: 2
-        x: 51
-        y: 7
-        width: 82
-        height: 10
+        x: 559
+        y: 3
+        width: 130
+        height: 14
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -450,20 +444,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: aea144af64da38110800000000000000
-      internalID: 1262042840951954154
+      spriteID: 6fbf83376292e6300800000000000000
+      internalID: 247180274670566390
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: traveler_E_13
+      name: hero_cast_13
       rect:
         serializedVersion: 2
-        x: 243
-        y: 7
-        width: 82
-        height: 10
+        x: 815
+        y: 3
+        width: 130
+        height: 14
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -472,52 +466,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 13648e00fc3861870800000000000000
-      internalID: 8653248659135678001
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: traveler_E_14
-      rect:
-        serializedVersion: 2
-        x: 435
-        y: 7
-        width: 82
-        height: 10
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 00d5c05a7d612d270800000000000000
-      internalID: 8273700580875853056
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: traveler_E_15
-      rect:
-        serializedVersion: 2
-        x: 627
-        y: 7
-        width: 82
-        height: 10
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 19d75c2c1908e9fb0800000000000000
-      internalID: -4639129202618696303
+      spriteID: a20c685b17c21f9a0800000000000000
+      internalID: -6201126345024028630
       vertices: []
       indices: 
       edges: []

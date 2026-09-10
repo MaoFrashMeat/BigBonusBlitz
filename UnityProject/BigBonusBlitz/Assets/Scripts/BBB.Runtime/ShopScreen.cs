@@ -42,7 +42,9 @@ namespace BBB.Runtime
 
             var title = UiFactory.Label(card, "Title", new Vector2(titleCx, headY), new Vector2(titleW, 28), "街のショップ", 20, TextAnchor.MiddleLeft, UiSkin.Text);
             title.fontStyle = FontStyle.Bold;
-            var soul = UiSkin.Number(card, "Soul", new Vector2(soulCx, headY), new Vector2(soulW, 28), "", 19, UiSkin.Hex("#8f6bff"));
+            // 所持は 1 枠に 2 種。ソウル=スキル・装備 / エンバー=補給（松明・路銀）
+            var soul = UiSkin.Number(card, "Soul", new Vector2(soulCx, headY + 7), new Vector2(soulW, 16), "", 14, UiSkin.Hex("#8f6bff"));
+            var ember = UiSkin.Number(card, "Ember", new Vector2(soulCx, headY - 8), new Vector2(soulW, 16), "", 14, UiSkin.Hex("#ffb45c"));
             UiSkin.Img(card, "Line", new Vector2(0, H * 0.5f - 48), new Vector2(W - 36, 1), null, new Color(1, 1, 1, 0.09f));
             UiSkin.IconButton(card, "Close", new Vector2(closeCx, H * 0.5f - 26), closeD, "×", () => onClose?.Invoke(), UiSkin.Btn, 17);
 
@@ -156,7 +158,7 @@ namespace BBB.Runtime
             // ===== 補給タブ: 松明とエンバー =====
             if (hasSupply)
             {
-                var head = UiFactory.Label(supplyRoot, "SupHead", new Vector2(0, H * 0.5f - 76), new Vector2(W - 60, 20), "冒険に持っていくもの", 14, TextAnchor.MiddleCenter, UiSkin.TextSub);
+                var head = UiFactory.Label(supplyRoot, "SupHead", new Vector2(0, H * 0.5f - 76), new Vector2(W - 60, 20), "冒険に持っていくもの（エンバーで買う）", 14, TextAnchor.MiddleCenter, UiSkin.TextSub);
 
                 var torchCard = UiSkin.Card(supplyRoot, "TorchCard", new Vector2(-186, 40), new Vector2(340, 170), 12, UiSkin.PanelHi, true, false, false);
                 UiSkin.Img(torchCard, "Bar", new Vector2(0, 82), new Vector2(338, 5), UiSkin.Rounded(2), UiSkin.Hex("#e08a2a"));
@@ -168,10 +170,10 @@ namespace BBB.Runtime
                 buyTorch = UiSkin.Button(torchCard, "Buy", new Vector2(0, -52), new Vector2(260, 38), "", () =>
                 {
                     int cost = Mathf.Max(0, res.torchCost);
-                    if (m.Wallet.Souls < cost) { note.text = "ソウルが足りません"; note.color = UiSkin.Accent; RefreshAll(); return; }
+                    if (m.Wallet.Embers < cost) { note.text = "エンバーが足りません"; note.color = UiSkin.Accent; RefreshAll(); return; }
                     if (AdventureDirector.AddTorch(m.Config.adventure, m.Adv, 1, m.TorchSpinsPerUnit) <= 0)
                     { note.text = $"{res.name} はもう持てません"; note.color = UiSkin.Accent; RefreshAll(); return; }
-                    m.Wallet.Souls -= cost;
+                    m.Wallet.Embers -= cost;
                     audio?.UiPop();
                     SaveData.Save(m, audio);
                     note.text = $"{res.name} を 1 本 買いました";
@@ -189,8 +191,8 @@ namespace BBB.Runtime
                 buyCredit = UiSkin.Button(coinCard, "Buy", new Vector2(0, -52), new Vector2(260, 38), "", () =>
                 {
                     int cost = Mathf.Max(0, res.creditCost);
-                    if (m.Wallet.Souls < cost) { note.text = "ソウルが足りません"; note.color = UiSkin.Accent; RefreshAll(); return; }
-                    m.Wallet.Souls -= cost;
+                    if (m.Wallet.Embers < cost) { note.text = "エンバーが足りません"; note.color = UiSkin.Accent; RefreshAll(); return; }
+                    m.Wallet.Embers -= cost;
                     m.Credit += Mathf.Max(0, res.creditAmount);
                     audio?.UiPop();
                     SaveData.Save(m, audio);
@@ -209,17 +211,18 @@ namespace BBB.Runtime
                     tHave.text = $"{have} / {res.maxTorches} 本";
                     tDesc.text = $"1 本で {per} G 進める" + (have > 0 ? $"（今の 1 本は残り {m.Adv.torchSpins} G）" : "");
                     UiSkin.SetButtonText(buyTorch, $"1 本 買う   {res.torchCost:N0}");
-                    buyTorch.interactable = m.Wallet.Souls >= res.torchCost && have < res.maxTorches;
+                    buyTorch.interactable = m.Wallet.Embers >= res.torchCost && have < res.maxTorches;
                     cHave.text = $"{m.Credit:N0}";
                     cDesc.text = $"1 口で {res.creditAmount} 分けてもらう";
                     UiSkin.SetButtonText(buyCredit, $"1 口 もらう   {res.creditCost:N0}");
-                    buyCredit.interactable = m.Wallet.Souls >= res.creditCost;
+                    buyCredit.interactable = m.Wallet.Embers >= res.creditCost;
                 });
             }
 
             void RefreshAll()
             {
                 soul.text = $"SOUL {m.Wallet.Souls:N0}";
+                ember.text = $"EMBER {m.Wallet.Embers:N0}";
                 foreach (var r in rows) r();
                 onSoulsChanged?.Invoke();
             }
