@@ -44,6 +44,8 @@ namespace BBB.Runtime
         /// <summary>元絵と同じ比の板。花びらの「立ち絵の枠」の座標の基準。</summary>
         private RectTransform _artBoard;
         private Text _press, _confirm;
+        /// <summary>TAP TO START の絵（無ければ null で、文字だけ）。</summary>
+        private Image _pressArt;
         private CanvasGroup _fade;
         private Button _btnContinue, _btnNew;
         private GameObject _settingsBox;
@@ -173,13 +175,27 @@ namespace BBB.Runtime
 
             // 左端の縦書きの惹句は 2026-09-11 に外した（本人の判断。絵の邪魔になる）。VerticalText は残してある
 
-            // TAP TO START。上下に細い飾り線
-            UiSkin.Img(stage, "TapLineTop", new Vector2(TitleX, TapY + 26), new Vector2(340, 1), null, new Color(1, 1, 1, 0.5f));
-            UiSkin.Img(stage, "TapLineBottom", new Vector2(TitleX, TapY - 26), new Vector2(340, 1), null, new Color(1, 1, 1, 0.5f));
-            _press = UiFactory.Label(stage, "Press", new Vector2(TitleX, TapY), new Vector2(420, 32),
-                "T A P   T O   S T A R T", 22, TextAnchor.MiddleCenter, ColText);
-            _press.fontStyle = FontStyle.Bold;
-            Shade(_press);
+            // TAP TO START。絵（frames_V2/Start.png）があればそれを置き、無ければ文字と飾り線
+            var tapArt = ArtLoader.Sprite("Art/UI/Title/tap_to_start");
+            if (tapArt != null)
+            {
+                float tapW = 420f, tapH = tapW * tapArt.rect.height / tapArt.rect.width;
+                _pressArt = UiSkin.Img(stage, "PressArt", new Vector2(TitleX, TapY), new Vector2(tapW, tapH), tapArt, Color.white);
+                _pressArt.preserveAspect = true;
+                // 文字は絵に入っているので、Text は空のまま持っておく（START! の切り替えに使う）
+                _press = UiFactory.Label(stage, "Press", new Vector2(TitleX, TapY), new Vector2(420, 32), "", 22, TextAnchor.MiddleCenter, ColText);
+                _press.fontStyle = FontStyle.Bold;
+                Shade(_press);
+            }
+            else
+            {
+                UiSkin.Img(stage, "TapLineTop", new Vector2(TitleX, TapY + 26), new Vector2(340, 1), null, new Color(1, 1, 1, 0.5f));
+                UiSkin.Img(stage, "TapLineBottom", new Vector2(TitleX, TapY - 26), new Vector2(340, 1), null, new Color(1, 1, 1, 0.5f));
+                _press = UiFactory.Label(stage, "Press", new Vector2(TitleX, TapY), new Vector2(420, 32),
+                    "T A P   T O   S T A R T", 22, TextAnchor.MiddleCenter, ColText);
+                _press.fontStyle = FontStyle.Bold;
+                Shade(_press);
+            }
             // 画面のどこを押しても始まる（見本と同じ挙動）
             var tapAll = UiFactory.Panel(stage, "TapArea", Vector2.zero, new Vector2(StageW, StageH), new Color(0, 0, 0, 0));
             var tapBtn = tapAll.gameObject.AddComponent<Button>();
@@ -351,6 +367,7 @@ namespace BBB.Runtime
                 var c = _press.color;
                 c.a = 0.55f + 0.45f * Mathf.Abs(Mathf.Sin(_t * 2.2f));
                 _press.color = c;
+                if (_pressArt != null) { var ac = _pressArt.color; ac.a = c.a; _pressArt.color = ac; }
             }
             if (_confirm != null && _confirm.text.Length > 0 && Time.time > _confirmUntil) _confirm.text = "";
 
@@ -382,6 +399,7 @@ namespace BBB.Runtime
             if (_btnNew != null) _btnNew.interactable = false;
             _press.text = "S T A R T !";
             _press.color = ColGold;
+            if (_pressArt != null) _pressArt.gameObject.SetActive(false);   // 絵を引っ込めて START! の文字だけ
             StartCoroutine(BeginRoutine(clearSave));
         }
 
