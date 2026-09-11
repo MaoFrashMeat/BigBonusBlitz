@@ -35,7 +35,8 @@
     <label>札（ステージ・ライフ・小ボタン） <select data-group="tag"><option value="art">絵</option><option value="proc">前</option></select></label>
     <label><input type="checkbox" id="grid"> 20px グリッド</label>
     <label><input type="checkbox" id="phone" checked> iPhone 横持ち（19.5:9）の余白を見せる</label>
-    <label>倍率 <input type="range" id="zoom" min="0.6" max="1.6" step="0.1" value="1"><span id="zoomV">1.0</span></label>
+    <label>倍率 <input type="range" id="zoom" min="0.6" max="2.2" step="0.1" value="1"><span id="zoomV">1.0</span></label>
+    <button id="real">iPhone 実寸（2556×1179 = 2.18 倍）</button>
   </div>
   <div class="phone" id="phone"><div class="stage" id="stage"><div class="grid" id="gridEl"></div><div class="safe"></div></div></div>
   <div class="note" id="note"></div>
@@ -181,6 +182,7 @@ for (const sel of document.querySelectorAll('select[data-group]')) sel.onchange 
 function toggle(id) { for (const b of ['modeArt','modeProc']) document.getElementById(b).classList.toggle('on', b === id); }
 document.getElementById('grid').onchange = e => document.getElementById('gridEl').style.display = e.target.checked ? 'block' : 'none';
 document.getElementById('phone').onchange = e => { const p = document.getElementById('phone'); p.style.width = e.target.checked ? '1170px' : '960px'; stage.style.left = e.target.checked ? '105px' : '0'; };
-document.getElementById('zoom').oninput = e => { const z = parseFloat(e.target.value); document.getElementById('zoomV').textContent = z.toFixed(1); const p = document.getElementById('phone'); p.style.transform = `scale(${z})`; p.style.transformOrigin = '50% 0'; p.style.marginBottom = (540 * (z - 1)) + 'px'; };
+document.getElementById('real').onclick = () => { const z = document.getElementById('zoom'); z.value = 2.183; z.dispatchEvent(new Event('input')); };
+document.getElementById('zoom').oninput = e => { const z = parseFloat(e.target.value); document.getElementById('zoomV').textContent = z.toFixed(2); const p = document.getElementById('phone'); p.style.transform = `scale(${z})`; p.style.transformOrigin = '50% 0'; p.style.marginBottom = (540 * (z - 1)) + 'px'; };
 document.getElementById('note').textContent = '位置・大きさは GameController の定数（docs/ui_frames.md）そのまま。枠は Resources の画像を 9 分割で伸ばしていて、縁の幅は UiSkin.FrameBorders と同じ。文字と数字は見本。背景と図柄は色の板。';
 </script>
