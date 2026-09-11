@@ -275,7 +275,7 @@ namespace BBB.Tests
                     m.Lever();
 
                     Assert.IsFalse(m.Navi.Active && m.Navi2.Active, "2種類のナビが同時に出ている");
-                    Assert.IsFalse(m.Navi2.Active && !m.InAt, "AT でないのに AT ナビが出ている");
+                    Assert.IsFalse(m.Navi2.Active && !m.InAt && m.BonusMode == BonusMode.NORMAL, "AT でもボーナスでもないのに押し順ナビが出ている");
                     Assert.IsFalse(m.Navi.Active && m.BonusMode != BonusMode.NORMAL, "ボーナス中に択ナビが出ている");
                     Assert.IsFalse(m.PseudoPlay && m.HeldBonusFlag == Flag.HAZE, "持ち越しが無いのに擬似遊技");
                     Assert.IsFalse(m.InBattle && m.BattleMonster == null, "バトル中なのにモンスターが居ない");
