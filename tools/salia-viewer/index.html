@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ja">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="サリアのパーツとアイドルモーションを確認する専用2Dビューア"><title>Salia — Motion Atelier</title><link rel="stylesheet" href="viewer.css"></head>
+<body>
+<header><a class="brand" href="./"><span class="crest">✦</span><span>SALIA <small>MOTION ATELIER</small></span></a><div class="top-status"><i></i><span id="status">素材を読み込み中</span></div><button id="fullscreen" class="quiet" title="全画面">⛶ 全画面</button></header>
+<main>
+<section class="stage-wrap" aria-label="キャラクタープレビュー">
+  <div class="stage-heading"><span class="eyebrow">CHARACTER / 01</span><h1>サリア</h1><p>手を伸ばす、その一瞬に息を。</p></div>
+  <div id="stage" class="stage"><canvas id="scene" aria-label="服・呼吸・目パチ・髪の揺れを再生するサリア"></canvas><div id="loading">モデルを組み立てています…</div></div>
+  <div class="stage-bottom"><div class="nameplate"><span class="diamond">◇</span><span>REACH <small>Idle motion study</small></span></div><div class="view-tools"><button id="reset-view" title="表示をリセット">リセット</button><label for="zoom">倍率</label><input id="zoom" type="range" min="0.7" max="1.8" step="0.01" value="1"><output id="zoom-value">100%</output></div></div>
+  <div class="transport"><button id="play" class="play" aria-label="一時停止">Ⅱ</button><div><strong id="play-label">モーション再生中</strong><span id="time">00:00</span></div><div class="wave"><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b></div><button id="blink-now">目パチ ↗</button></div>
+</section>
+<aside>
+  <div class="panel-title"><span class="eyebrow">MOTION CONTROL</span><h2>動きの調整</h2><p>ゆっくり、自然に。お好みの強さで。</p></div>
+  <div class="tabs" role="tablist"><button id="motion-tab" class="active" role="tab" aria-selected="true">モーション</button><button id="parts-tab" role="tab" aria-selected="false">パーツ</button></div>
+  <div id="motion-panel" role="tabpanel">
+    <div class="control"><label for="breath"><span><b>01</b> 息遣い</span><output id="breath-value">65%</output></label><input id="breath" type="range" min="0" max="1.5" step="0.01" value="0.65"><p>胸元と肩が穏やかに上下</p></div>
+    <div class="control"><label for="hair"><span><b>02</b> 髪の揺れ</span><output id="hair-value">70%</output></label><input id="hair" type="range" min="0" max="1.5" step="0.01" value="0.7"><p>毛先に遅れて伝わる、柔らかな動き</p></div>
+    <div class="control"><label for="cloth"><span><b>03</b> 服の揺れ</span><output id="cloth-value">65%</output></label><input id="cloth" type="range" min="0" max="1.5" step="0.01" value="0.65"><p>左右の裾とスカートに小さな風</p></div>
+    <div class="toggle-row"><div><strong>目パチ</strong><p>間隔にゆらぎを付けて自動再生</p></div><label class="switch"><input id="auto-blink" type="checkbox" checked aria-label="自動目パチ"><span></span></label></div>
+    <label class="check"><input id="hold-blink" type="checkbox"> 閉じ目を固定して確認</label>
+    <div class="control speed"><label for="speed"><span>再生速度</span><output id="speed-value">1.00×</output></label><input id="speed" type="range" min="0.25" max="2" step="0.05" value="1"></div>
+    <div class="control speed"><label for="range"><span>可動域</span><output id="range-value">1.35×</output></label><input id="range" type="range" min="0.5" max="2" step="0.05" value="1.35"><p>切り口をつなげたまま揺れを調整します</p></div>
+    <button id="reset-motion" class="wide">初期設定に戻す</button>
+  </div>
+  <div id="parts-panel" role="tabpanel" hidden><p class="parts-hint">パーツを選ぶと、塗り足しを含めて単独表示します。</p><select id="part-select" aria-label="パーツを選択"><option value="all">すべてのパーツ</option></select><p id="paint-status" class="parts-hint"></p><div id="part-list" class="part-list"></div><a class="download" href="../../assets/title/Character/salia-rig/salia-layered.psd" download>↓ 塗り足し付きPSD</a><a class="download" href="../../assets/title/Character/salia-rig/rig-layered.json" download>↓ パーツ定義 JSON</a></div>
+  <div class="display-options"><span class="eyebrow">VIEW</span><div class="bg-row"><span>背景</span><div class="swatches"><button class="swatch active" data-bg="night" aria-label="夜色の背景" title="夜色"></button><button class="swatch paper" data-bg="paper" aria-label="明るい背景" title="明るい背景"></button><button class="swatch checker" data-bg="checker" aria-label="透過確認背景" title="透過確認"></button></div></div><label class="check"><input id="show-mesh" type="checkbox"> メッシュを表示</label><label class="check"><input id="show-parts" type="checkbox"> パーツを色分け</label><button id="snapshot" class="wide">↓ 透過PNGを保存</button></div>
+  <p class="format-note">Web / Unity用レイヤーモデル<br>13パーツ塗り足し済み・目パチ差分付き<br>Live2D Cubism形式への書き出しは未実施</p>
+</aside>
+</main><footer><span>BIG BONUS BLITZ <em>/</em> CHARACTER MOTION LAB</span><span id="model-info">—</span></footer>
+<script src="viewer.js"></script>
+</body></html>

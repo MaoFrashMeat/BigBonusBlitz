@@ -1,0 +1,141 @@
+{
+  "width": 1672,
+  "height": 941,
+  "parts": [
+    {
+      "id": "body",
+      "x": 81,
+      "y": 0,
+      "width": 1471,
+      "height": 941,
+      "motionClass": 0,
+      "file": "layers/body"
+    },
+    {
+      "id": "sword",
+      "x": 426,
+      "y": 61,
+      "width": 1019,
+      "height": 458,
+      "motionClass": 0,
+      "file": "layers/sword"
+    },
+    {
+      "id": "hair-back-left",
+      "x": 410,
+      "y": 281,
+      "width": 401,
+      "height": 457,
+      "motionClass": 1,
+      "file": "layers/hair-back-left"
+    },
+    {
+      "id": "hair-back-right",
+      "x": 855,
+      "y": 14,
+      "width": 272,
+      "height": 315,
+      "motionClass": 1,
+      "file": "layers/hair-back-right"
+    },
+    {
+      "id": "coat-left",
+      "x": 71,
+      "y": 585,
+      "width": 829,
+      "height": 356,
+      "motionClass": 2,
+      "file": "layers/coat-left"
+    },
+    {
+      "id": "coat-right",
+      "x": 1006,
+      "y": 590,
+      "width": 615,
+      "height": 351,
+      "motionClass": 2,
+      "file": "layers/coat-right"
+    },
+    {
+      "id": "skirt",
+      "x": 738,
+      "y": 610,
+      "width": 464,
+      "height": 313,
+      "motionClass": 2,
+      "file": "layers/skirt"
+    },
+    {
+      "id": "hair-crown",
+      "x": 599,
+      "y": 2,
+      "width": 312,
+      "height": 233,
+      "motionClass": 1,
+      "file": "layers/hair-crown"
+    },
+    {
+      "id": "ribbon",
+      "x": 819,
+      "y": 0,
+      "width": 157,
+      "height": 179,
+      "motionClass": 0,
+      "file": "layers/ribbon"
+    },
+    {
+      "id": "arm-right",
+      "x": 935,
+      "y": 345,
+      "width": 389,
+      "height": 306,
+      "motionClass": 0,
+      "file": "layers/arm-right"
+    },
+    {
+      "id": "arm-left",
+      "x": 453,
+      "y": 270,
+      "width": 377,
+      "height": 447,
+      "motionClass": 0,
+      "file": "layers/arm-left"
+    },
+    {
+      "id": "armor",
+      "x": 754,
+      "y": 302,
+      "width": 290,
+      "height": 394,
+      "motionClass": 0,
+      "file": "layers/armor"
+    },
+    {
+      "id": "head",
+      "x": 562,
+      "y": 39,
+      "width": 365,
+      "height": 286,
+      "motionClass": 0,
+      "file": "layers/head"
+    },
+    {
+      "id": "eye-left",
+      "x": 689,
+      "y": 207,
+      "width": 65,
+      "height": 48,
+      "motionClass": 0,
+      "file": "layers/eye-left"
+    },
+    {
+      "id": "eye-right",
+      "x": 778,
+      "y": 165,
+      "width": 72,
+      "height": 55,
+      "motionClass": 0,
+      "file": "layers/eye-right"
+    }
+  ]
+}

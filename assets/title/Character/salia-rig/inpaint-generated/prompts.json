@@ -1,0 +1,62 @@
+[
+  {
+    "id": "body",
+    "path": "C:\\Users\\sato_takuma\\.codex\\generated_images\\01a08e74-9d1d-75e0-82c2-898804e1e7be\\exec-95b436f8-f27c-4ab6-8b44-f14415eae716.png",
+    "prompt": "Use case: precise-object-edit. Layer reconstruction for a 2D character rig. Image 1 is the EDIT TARGET: one cut-out part on the original 1672x941 canvas. Image 2 is the original full artwork as alignment/style reference ONLY. Reconstruct the underlying central body: clothed torso, neck, belt, thighs and brown stockings. Remove the foreground hair, sword, arms, outer coattails and blue skirt so their occluded areas can be painted behind them. Keep modest costume coverage. The most important area is the covered top of the thighs and waist, continuing from the surviving lower leg pixels. Extend cut attachment edges and reconstruct occluded surfaces generously (40-70 pixels) so the layer can move without holes. Preserve exact original canvas, scale, position, pose and tilt. Do not recenter or enlarge the object. Render ONLY the requested part at its original coordinates. Background must be SOLID vivid green #00ff00, with no shadow, grid, labels or other objects. Do NOT include the full character. Preserve the original anime linework and highlights. One image, not a sheet."
+  },
+  {
+    "id": "hair-back-left",
+    "path": "C:\\Users\\sato_takuma\\.codex\\generated_images\\01a08e74-9d1d-75e0-82c2-898804e1e7be\\exec-93a1d5c0-0833-4d52-b7e7-0c5cf9854929.png",
+    "prompt": "Use case: precise-object-edit. Layer reconstruction for a 2D character rig. Image 1 is the EDIT TARGET: one cut-out part on the original 1672x941 canvas. Image 2 is the original full artwork as alignment/style reference ONLY. Reconstruct ONLY the long pink back hair on screen LEFT, including the missing roots and hair behind the outstretched arm/hand and shoulder armor. Fill the big holes with continuous flowing pink hair, not skin or armor. Hair spans about x410..810 y290..724. Keep the visible hair strands and silhouette registered. Extend cut attachment edges and reconstruct occluded surfaces generously (40-70 pixels) so the layer can move without holes. Preserve exact original canvas, scale, position, pose and tilt. Do not recenter or enlarge the object. Render ONLY the requested part at its original coordinates. Background must be SOLID vivid green #00ff00, with no shadow, grid, labels or other objects. Do NOT include the full character. Preserve the original anime linework and highlights. One image, not a sheet."
+  },
+  {
+    "id": "hair-back-right",
+    "path": "C:\\Users\\sato_takuma\\.codex\\generated_images\\01a08e74-9d1d-75e0-82c2-898804e1e7be\\exec-75a689b3-db9d-4ab4-b855-7bc01306f24c.png",
+    "prompt": "Use case: precise-object-edit. Layer reconstruction for a 2D character rig. Image 1 is the EDIT TARGET: one cut-out part on the original 1672x941 canvas. Image 2 is the original full artwork as alignment/style reference ONLY. Reconstruct ONLY the pink back hair tuft on screen RIGHT, including missing roots behind the ribbon and head, and lower tips behind the sword. Fill all angular holes with continuous pink hair. Main hair spans about x850..1130 y25..318. No ribbon, sword, head or face in this layer. Extend cut attachment edges and reconstruct occluded surfaces generously (40-70 pixels) so the layer can move without holes. Preserve exact original canvas, scale, position, pose and tilt. Do not recenter or enlarge the object. Render ONLY the requested part at its original coordinates. Background must be SOLID vivid green #00ff00, with no shadow, grid, labels or other objects. Do NOT include the full character. Preserve the original anime linework and highlights. One image, not a sheet."
+  },
+  {
+    "id": "coat-left",
+    "path": "C:\\Users\\sato_takuma\\.codex\\generated_images\\01a08e74-9d1d-75e0-82c2-898804e1e7be\\exec-737e857f-0e85-4a31-8f79-13bdbe47a44b.png",
+    "prompt": "Use case: precise-object-edit. Reconstruct occluded areas of an isolated Live2D layer. Image1 edit target, image2 original artwork for alignment only. ONLY the LEFT white-and-gold outer coat tail, blue lining, from x165 to885 and y615 to941. Extend the cut waist attachment upward behind the belt and fill missing cloth behind hand and skirt. Continue gold embroidery and fabric folds. Keep the entire part in the bottom-left of the original canvas with lots of empty space above. Preserve original 1672x941 canvas with exact original placement and SCALE. Do not recenter. Fill cut edges by 50 pixels to allow overlaps. Render ONLY this clothing piece; no character or other parts. Background uniform vivid green #00ff00. No labels, checkerboard, or shadows on background. Same anime linework/colors."
+  },
+  {
+    "id": "coat-right",
+    "path": "C:\\Users\\sato_takuma\\.codex\\generated_images\\01a08e74-9d1d-75e0-82c2-898804e1e7be\\exec-19eb798a-e3f1-4b83-949b-44bc14e18163.png",
+    "prompt": "Use case: precise-object-edit. Reconstruct occluded areas of an isolated Live2D layer. Image1 edit target, image2 original artwork for alignment only. ONLY the RIGHT white-and-gold outer coat tail with blue lining from x1020 to1620 and y628 to941. Extend its cut waist attachment leftwards/upwards behind belt, arm and skirt. Remove the brown diagonal scabbard from this cloth layer and paint continuous white fabric beneath it. Keep part in bottom-right of original canvas. Preserve original 1672x941 canvas with exact original placement and SCALE. Do not recenter. Fill cut edges by 50 pixels to allow overlaps. Render ONLY this clothing piece; no character or other parts. Background uniform vivid green #00ff00. No labels, checkerboard, or shadows on background. Same anime linework/colors."
+  },
+  {
+    "id": "skirt",
+    "path": "C:\\Users\\sato_takuma\\.codex\\generated_images\\01a08e74-9d1d-75e0-82c2-898804e1e7be\\exec-dba1bfe8-2f80-4804-b2e5-9444c8138a20.png",
+    "prompt": "Use case: precise-object-edit. Reconstruct occluded areas of an isolated Live2D layer. Image1 edit target, image2 original artwork for alignment only. ONLY the blue pleated skirt with white frilled hem, x730 to1210 y630 to940. Complete the skirt waist behind belt and upper sides behind white coat. Fill missing inner fabric. Keep original tilted foreshortened pose. No skin or thighs. Keep this small part at BOTTOM CENTER, not enlarged. Preserve original 1672x941 canvas with exact original placement and SCALE. Do not recenter. Fill cut edges by 50 pixels to allow overlaps. Render ONLY this clothing piece; no character or other parts. Background uniform vivid green #00ff00. No labels, checkerboard, or shadows on background. Same anime linework/colors."
+  },
+  {
+    "id": "sword",
+    "path": "C:\\Users\\sato_takuma\\.codex\\generated_images\\01a08e74-9d1d-75e0-82c2-898804e1e7be\\exec-f9a485c6-21d0-4d56-bb47-e74cc71692da.png",
+    "prompt": "Use case: precise-object-edit. Paint missing occluded surfaces of a single animation layer. Image1 edit target; image2 reference full character only. ONLY the large sword, blade tip x425 y65, blade runs diagonally behind the head to the gold guard at x1160 y360 and blue handle ending x1438 y506. Fill in all missing blade sections behind the head and missing grip under the glove. Remove any pink hair painted over the blade; restore steel there. Preserve straight blade edges and all blue gems. Preserve the original 1672x941 canvas and precise placement. Leave empty areas empty; do not enlarge/recenter the part. Extend cut attachment edges by 40-60 pixels. ONLY requested part on uniform vivid green #00ff00. No grid, shadow, labels. Same anime illustration style."
+  },
+  {
+    "id": "head",
+    "path": "C:\\Users\\sato_takuma\\.codex\\generated_images\\01a08e74-9d1d-75e0-82c2-898804e1e7be\\exec-d84e2836-0895-4201-abb8-43e6181b7505.png",
+    "prompt": "Use case: precise-object-edit. Animation layer reconstruction. Image1 EDIT TARGET, image2 full reference ONLY. Only the head layer with pink front hair, face and ears. Fill the missing crown boundary behind the top hair and ribbon and extend the neck below the cut edge. Fill the two eye cutouts with plain matching face skin (no eyes; eye artwork will be separate layers). Keep the smiling mouth, face tilt and front hair. Original position x560..925 y40..330; do not enlarge or recenter. Complete occluded surfaces by 40 pixels for layered animation. Exact 1672x941 canvas. Preserve the original design and anime linework. Render only the requested layer on SOLID green #00ff00 background. No other objects, no checkerboard, no text."
+  },
+  {
+    "id": "hair-crown",
+    "path": "C:\\Users\\sato_takuma\\.codex\\generated_images\\01a08e74-9d1d-75e0-82c2-898804e1e7be\\exec-5b36e9b4-a39a-4548-913a-85fd32338fb0.png",
+    "prompt": "Use case: precise-object-edit. Animation layer reconstruction. Image1 EDIT TARGET, image2 full reference ONLY. Only the pink top hair/crown and curled ahoge. Paint the missing root section downwards under the front bangs, preserving the existing curled strand and highlights. Original position x598..830 y0..145; no face or other hair sections. Do not enlarge or recenter. Complete occluded surfaces by 40 pixels for layered animation. Exact 1672x941 canvas. Preserve the original design and anime linework. Render only the requested layer on SOLID green #00ff00 background. No other objects, no checkerboard, no text."
+  },
+  {
+    "id": "ribbon",
+    "path": "C:\\Users\\sato_takuma\\.codex\\generated_images\\01a08e74-9d1d-75e0-82c2-898804e1e7be\\exec-0352fd71-e7c0-476a-acf9-2c6930308ead.png",
+    "prompt": "Use case: precise-object-edit. Animation layer reconstruction. Image1 EDIT TARGET, image2 full reference ONLY. Only the white hair ribbon with knot and two tails. Fill the missing folded fabric at cut attachment edges and knot behind the hair. Original position x815..984 y0..184. No pink hair in the ribbon layer. Keep size and position, do not enlarge. Complete occluded surfaces by 40 pixels for layered animation. Exact 1672x941 canvas. Preserve the original design and anime linework. Render only the requested layer on SOLID green #00ff00 background. No other objects, no checkerboard, no text."
+  },
+  {
+    "id": "arm-left",
+    "path": "C:\\Users\\sato_takuma\\.codex\\generated_images\\01a08e74-9d1d-75e0-82c2-898804e1e7be\\exec-8b7b7df3-e211-481d-8732-d3f2660fae18.png",
+    "prompt": "Use case: precise-object-edit. A costume prop layer for an anime animation. Image1 edit target is the sleeve/glove cutout, image2 original artwork used only for registration. Isolated white-and-gold armored sleeve with brown leather glove reaching toward the viewer, palm open and fingers spread. Reconstruct the missing upper shoulder/arm attachment and continue the sleeve behind the torso. Keep the exact foreshortening of the hand and pose. Original bounds x450..790 y290..715. Remove pink hair trapped between glove fingers; those spaces should be green background. Only this fully covered armored arm and glove, no torso or other body parts. Fill missing costume material near cut edges for overlapping layers. Preserve scale, original position and 1672x941 canvas, no recentering. Keep original intricate armor design and brown glove stitching. Uniform vivid green #00ff00 background. No labels, grid, background shadows or other objects."
+  },
+  {
+    "id": "arm-right",
+    "path": "C:\\Users\\sato_takuma\\.codex\\generated_images\\01a08e74-9d1d-75e0-82c2-898804e1e7be\\exec-e8c66ad8-f5b8-4291-a98e-92ff23fb58ed.png",
+    "prompt": "Use case: precise-object-edit. A costume prop layer for an anime animation. Image1 edit target is the sleeve/glove cutout, image2 original artwork used only for registration. Isolated bent white-and-gold armored sleeve and closed brown leather glove holding an imaginary handle. Reconstruct hidden shoulder socket and upper sleeve behind the torso. Keep the elbow bend and gripping glove pose. Original bounds x950..1330 y345..652. Do not include the sword handle, torso or any other body parts. Only this fully covered armored sleeve and glove. Fill missing costume material near cut edges for overlapping layers. Preserve scale, original position and 1672x941 canvas, no recentering. Keep original intricate armor design and brown glove stitching. Uniform vivid green #00ff00 background. No labels, grid, background shadows or other objects."
+  }
+]

@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -125,11 +125,14 @@ namespace BBB.Runtime
                 // 花びらを立ち絵の後ろに置く設定なら、ここ（背景の上・立ち絵の下）に花びらだけ出す
                 if (petalCfg.behindChar) TitleAmbience.Create(artRt, artRt, petalCfg, 0, -1);
 
-                // 体と髪を別々に重ねる。体は呼吸だけ、髪はそれより大きく揺れる。
-                // 3 枚とも元絵と同じ画布なので、板いっぱいに広げれば位置は合う
-                AddLayer(artRt, "Char", charSprite, TitleCharacterWarp.Mode.Body);
-                AddLayer(artRt, "Hair", ArtLoader.Sprite("Art/UI/title_hair"),
-                         TitleCharacterWarp.Mode.Hair);
+                // 補完済みの独立レイヤーで呼吸・髪・裾・目パチを再生する。
+                // 素材が読み込めない場合は従来の立ち絵へ戻す。
+                if (SaliaTitleModel.Create(artRt) == null)
+                {
+                    AddLayer(artRt, "Char", charSprite, TitleCharacterWarp.Mode.Body);
+                    AddLayer(artRt, "Hair", ArtLoader.Sprite("Art/UI/title_hair"),
+                             TitleCharacterWarp.Mode.Hair);
+                }
                 // 「立ち絵より手前」の層を立ち絵の上へ
                 parallax?.RaiseFront();
             }

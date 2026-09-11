@@ -1,0 +1,1104 @@
+{
+  "format": "salia-layered-v2",
+  "cubism": false,
+  "width": 1672,
+  "height": 941,
+  "source": "../salia_title_reach.png",
+  "closedEyes": "eyes-closed.png",
+  "partsMap": "parts-map.png",
+  "parts": [
+    {
+      "id": "body",
+      "name": "胴体・首・脚",
+      "color": "#8795bb",
+      "x": 81,
+      "y": 0,
+      "width": 1471,
+      "height": 941,
+      "pixels": 53372,
+      "file": "layers/body.png",
+      "underpaintFile": "underpaint/body.png",
+      "motionClass": 0,
+      "paintedPixels": 143378,
+      "paintStatus": "painted-overlap",
+      "generatedSource": "body"
+    },
+    {
+      "id": "sword",
+      "name": "剣",
+      "color": "#b8bce4",
+      "polygon": [
+        [
+          418,
+          60
+        ],
+        [
+          527,
+          57
+        ],
+        [
+          647,
+          113
+        ],
+        [
+          883,
+          216
+        ],
+        [
+          998,
+          266
+        ],
+        [
+          1130,
+          319
+        ],
+        [
+          1177,
+          308
+        ],
+        [
+          1176,
+          252
+        ],
+        [
+          1234,
+          218
+        ],
+        [
+          1265,
+          268
+        ],
+        [
+          1226,
+          345
+        ],
+        [
+          1303,
+          411
+        ],
+        [
+          1449,
+          467
+        ],
+        [
+          1450,
+          526
+        ],
+        [
+          1307,
+          484
+        ],
+        [
+          1227,
+          437
+        ],
+        [
+          1211,
+          484
+        ],
+        [
+          1180,
+          529
+        ],
+        [
+          1127,
+          534
+        ],
+        [
+          1101,
+          484
+        ],
+        [
+          1118,
+          421
+        ],
+        [
+          1065,
+          415
+        ],
+        [
+          885,
+          332
+        ],
+        [
+          649,
+          203
+        ],
+        [
+          483,
+          150
+        ]
+      ],
+      "x": 426,
+      "y": 61,
+      "width": 1019,
+      "height": 458,
+      "pixels": 56824,
+      "file": "layers/sword.png",
+      "underpaintFile": "underpaint/sword.png",
+      "motionClass": 0,
+      "paintedPixels": 37347,
+      "paintStatus": "painted-overlap",
+      "generatedSource": "sword"
+    },
+    {
+      "id": "hair-back-left",
+      "name": "後ろ髪・左",
+      "color": "#ef8daa",
+      "polygon": [
+        [
+          641,
+          297
+        ],
+        [
+          706,
+          328
+        ],
+        [
+          756,
+          483
+        ],
+        [
+          810,
+          580
+        ],
+        [
+          766,
+          667
+        ],
+        [
+          649,
+          715
+        ],
+        [
+          503,
+          726
+        ],
+        [
+          397,
+          558
+        ],
+        [
+          401,
+          449
+        ],
+        [
+          496,
+          371
+        ],
+        [
+          581,
+          350
+        ]
+      ],
+      "x": 410,
+      "y": 281,
+      "width": 401,
+      "height": 457,
+      "pixels": 42237,
+      "file": "layers/hair-back-left.png",
+      "underpaintFile": "underpaint/hair-back-left.png",
+      "motionClass": 1,
+      "paintedPixels": 53909,
+      "paintStatus": "painted-overlap",
+      "generatedSource": "hair-back-left"
+    },
+    {
+      "id": "hair-back-right",
+      "name": "後ろ髪・右",
+      "color": "#dc638e",
+      "polygon": [
+        [
+          854,
+          14
+        ],
+        [
+          977,
+          14
+        ],
+        [
+          1110,
+          102
+        ],
+        [
+          1145,
+          252
+        ],
+        [
+          1035,
+          305
+        ],
+        [
+          953,
+          310
+        ],
+        [
+          875,
+          340
+        ],
+        [
+          852,
+          235
+        ]
+      ],
+      "x": 855,
+      "y": 14,
+      "width": 272,
+      "height": 315,
+      "pixels": 30726,
+      "file": "layers/hair-back-right.png",
+      "underpaintFile": "underpaint/hair-back-right.png",
+      "motionClass": 1,
+      "paintedPixels": 11194,
+      "paintStatus": "painted-overlap",
+      "generatedSource": "hair-back-right"
+    },
+    {
+      "id": "coat-left",
+      "name": "外套・左裾",
+      "color": "#64bbb7",
+      "polygon": [
+        [
+          824,
+          606
+        ],
+        [
+          728,
+          627
+        ],
+        [
+          628,
+          690
+        ],
+        [
+          471,
+          733
+        ],
+        [
+          301,
+          778
+        ],
+        [
+          190,
+          858
+        ],
+        [
+          158,
+          941
+        ],
+        [
+          671,
+          941
+        ],
+        [
+          784,
+          804
+        ],
+        [
+          879,
+          667
+        ]
+      ],
+      "x": 71,
+      "y": 585,
+      "width": 829,
+      "height": 356,
+      "pixels": 126577,
+      "file": "layers/coat-left.png",
+      "underpaintFile": "underpaint/coat-left.png",
+      "motionClass": 2,
+      "paintedPixels": 13108,
+      "paintStatus": "painted-overlap",
+      "generatedSource": "coat-left"
+    },
+    {
+      "id": "coat-right",
+      "name": "外套・右裾",
+      "color": "#4b969f",
+      "polygon": [
+        [
+          1079,
+          646
+        ],
+        [
+          1251,
+          630
+        ],
+        [
+          1390,
+          666
+        ],
+        [
+          1492,
+          714
+        ],
+        [
+          1562,
+          787
+        ],
+        [
+          1628,
+          895
+        ],
+        [
+          1615,
+          941
+        ],
+        [
+          1151,
+          941
+        ],
+        [
+          1082,
+          847
+        ],
+        [
+          1024,
+          697
+        ]
+      ],
+      "x": 1006,
+      "y": 590,
+      "width": 615,
+      "height": 351,
+      "pixels": 120918,
+      "file": "layers/coat-right.png",
+      "underpaintFile": "underpaint/coat-right.png",
+      "motionClass": 2,
+      "paintedPixels": 2557,
+      "paintStatus": "painted-overlap",
+      "generatedSource": "coat-right"
+    },
+    {
+      "id": "skirt",
+      "name": "スカート・フリル",
+      "color": "#6b7be5",
+      "polygon": [
+        [
+          913,
+          637
+        ],
+        [
+          1004,
+          655
+        ],
+        [
+          1069,
+          720
+        ],
+        [
+          1099,
+          785
+        ],
+        [
+          1202,
+          879
+        ],
+        [
+          1195,
+          923
+        ],
+        [
+          1067,
+          906
+        ],
+        [
+          1005,
+          811
+        ],
+        [
+          934,
+          789
+        ],
+        [
+          891,
+          768
+        ],
+        [
+          816,
+          799
+        ],
+        [
+          742,
+          855
+        ],
+        [
+          738,
+          780
+        ],
+        [
+          826,
+          706
+        ]
+      ],
+      "x": 738,
+      "y": 610,
+      "width": 464,
+      "height": 313,
+      "pixels": 50952,
+      "file": "layers/skirt.png",
+      "underpaintFile": "underpaint/skirt.png",
+      "motionClass": 2,
+      "paintedPixels": 7373,
+      "paintStatus": "painted-overlap",
+      "generatedSource": "skirt"
+    },
+    {
+      "id": "hair-crown",
+      "name": "頭頂・アホ毛",
+      "color": "#f57798",
+      "polygon": [
+        [
+          588,
+          16
+        ],
+        [
+          797,
+          0
+        ],
+        [
+          841,
+          30
+        ],
+        [
+          802,
+          63
+        ],
+        [
+          751,
+          77
+        ],
+        [
+          707,
+          108
+        ],
+        [
+          658,
+          126
+        ],
+        [
+          606,
+          121
+        ]
+      ],
+      "x": 599,
+      "y": 2,
+      "width": 312,
+      "height": 233,
+      "pixels": 12543,
+      "file": "layers/hair-crown.png",
+      "underpaintFile": "underpaint/hair-crown.png",
+      "motionClass": 1,
+      "paintedPixels": 21167,
+      "paintStatus": "painted-overlap",
+      "generatedSource": "hair-crown"
+    },
+    {
+      "id": "ribbon",
+      "name": "リボン",
+      "color": "#d4cbe9",
+      "polygon": [
+        [
+          810,
+          3
+        ],
+        [
+          853,
+          0
+        ],
+        [
+          882,
+          20
+        ],
+        [
+          918,
+          12
+        ],
+        [
+          941,
+          68
+        ],
+        [
+          928,
+          104
+        ],
+        [
+          982,
+          120
+        ],
+        [
+          962,
+          183
+        ],
+        [
+          916,
+          152
+        ],
+        [
+          900,
+          123
+        ],
+        [
+          861,
+          112
+        ],
+        [
+          845,
+          65
+        ]
+      ],
+      "x": 819,
+      "y": 0,
+      "width": 157,
+      "height": 179,
+      "pixels": 10673,
+      "file": "layers/ribbon.png",
+      "underpaintFile": "underpaint/ribbon.png",
+      "motionClass": 0,
+      "paintedPixels": 209,
+      "paintStatus": "painted-overlap",
+      "generatedSource": "ribbon"
+    },
+    {
+      "id": "arm-right",
+      "name": "右腕・握り手",
+      "color": "#d29c75",
+      "polygon": [
+        [
+          964,
+          345
+        ],
+        [
+          1010,
+          365
+        ],
+        [
+          1073,
+          458
+        ],
+        [
+          1122,
+          498
+        ],
+        [
+          1170,
+          484
+        ],
+        [
+          1208,
+          414
+        ],
+        [
+          1204,
+          372
+        ],
+        [
+          1241,
+          356
+        ],
+        [
+          1290,
+          374
+        ],
+        [
+          1327,
+          409
+        ],
+        [
+          1320,
+          456
+        ],
+        [
+          1278,
+          485
+        ],
+        [
+          1250,
+          552
+        ],
+        [
+          1180,
+          620
+        ],
+        [
+          1110,
+          651
+        ],
+        [
+          1025,
+          610
+        ],
+        [
+          1024,
+          548
+        ],
+        [
+          1016,
+          471
+        ]
+      ],
+      "x": 935,
+      "y": 345,
+      "width": 389,
+      "height": 306,
+      "pixels": 50308,
+      "file": "layers/arm-right.png",
+      "underpaintFile": "underpaint/arm-right.png",
+      "motionClass": 0,
+      "paintedPixels": 9889,
+      "paintStatus": "painted-overlap",
+      "generatedSource": "arm-right"
+    },
+    {
+      "id": "arm-left",
+      "name": "左腕・差し出した手",
+      "color": "#b08b71",
+      "polygon": [
+        [
+          639,
+          314
+        ],
+        [
+          692,
+          291
+        ],
+        [
+          748,
+          305
+        ],
+        [
+          785,
+          366
+        ],
+        [
+          786,
+          428
+        ],
+        [
+          751,
+          477
+        ],
+        [
+          725,
+          518
+        ],
+        [
+          675,
+          548
+        ],
+        [
+          681,
+          594
+        ],
+        [
+          726,
+          624
+        ],
+        [
+          727,
+          655
+        ],
+        [
+          679,
+          659
+        ],
+        [
+          635,
+          634
+        ],
+        [
+          636,
+          698
+        ],
+        [
+          604,
+          717
+        ],
+        [
+          578,
+          659
+        ],
+        [
+          562,
+          715
+        ],
+        [
+          534,
+          711
+        ],
+        [
+          529,
+          645
+        ],
+        [
+          480,
+          677
+        ],
+        [
+          449,
+          665
+        ],
+        [
+          462,
+          627
+        ],
+        [
+          501,
+          571
+        ],
+        [
+          521,
+          535
+        ],
+        [
+          486,
+          527
+        ],
+        [
+          477,
+          501
+        ],
+        [
+          511,
+          488
+        ],
+        [
+          603,
+          484
+        ],
+        [
+          623,
+          432
+        ],
+        [
+          610,
+          401
+        ]
+      ],
+      "x": 453,
+      "y": 270,
+      "width": 377,
+      "height": 447,
+      "pixels": 66003,
+      "file": "layers/arm-left.png",
+      "underpaintFile": "underpaint/arm-left.png",
+      "motionClass": 0,
+      "paintedPixels": 8377,
+      "paintStatus": "painted-overlap",
+      "generatedSource": "arm-left"
+    },
+    {
+      "id": "armor",
+      "name": "胸甲・腹部・ベルト",
+      "color": "#d4b576",
+      "polygon": [
+        [
+          762,
+          322
+        ],
+        [
+          861,
+          309
+        ],
+        [
+          966,
+          351
+        ],
+        [
+          1023,
+          397
+        ],
+        [
+          1046,
+          498
+        ],
+        [
+          1006,
+          572
+        ],
+        [
+          1044,
+          646
+        ],
+        [
+          988,
+          696
+        ],
+        [
+          899,
+          656
+        ],
+        [
+          823,
+          629
+        ],
+        [
+          754,
+          637
+        ],
+        [
+          759,
+          592
+        ],
+        [
+          800,
+          573
+        ],
+        [
+          773,
+          526
+        ],
+        [
+          761,
+          459
+        ]
+      ],
+      "x": 754,
+      "y": 302,
+      "width": 290,
+      "height": 394,
+      "pixels": 76238,
+      "file": "layers/armor.png",
+      "underpaintFile": "underpaint/armor.png",
+      "motionClass": 0,
+      "paintedPixels": 1801,
+      "paintStatus": "painted-overlap",
+      "generatedSource": "body"
+    },
+    {
+      "id": "head",
+      "name": "顔・前髪・横髪",
+      "color": "#f2a0bb",
+      "polygon": [
+        [
+          605,
+          71
+        ],
+        [
+          703,
+          11
+        ],
+        [
+          824,
+          25
+        ],
+        [
+          882,
+          77
+        ],
+        [
+          927,
+          177
+        ],
+        [
+          919,
+          261
+        ],
+        [
+          871,
+          324
+        ],
+        [
+          795,
+          325
+        ],
+        [
+          724,
+          299
+        ],
+        [
+          673,
+          330
+        ],
+        [
+          610,
+          313
+        ],
+        [
+          559,
+          274
+        ],
+        [
+          578,
+          165
+        ]
+      ],
+      "x": 562,
+      "y": 39,
+      "width": 365,
+      "height": 286,
+      "pixels": 65644,
+      "file": "layers/head.png",
+      "underpaintFile": "underpaint/head.png",
+      "motionClass": 0,
+      "paintedPixels": 5316,
+      "paintStatus": "painted-overlap",
+      "generatedSource": "head"
+    },
+    {
+      "id": "eye-left",
+      "name": "左目・開",
+      "color": "#55bbed",
+      "polygon": [
+        [
+          689,
+          218
+        ],
+        [
+          702,
+          208
+        ],
+        [
+          721,
+          207
+        ],
+        [
+          741,
+          214
+        ],
+        [
+          754,
+          232
+        ],
+        [
+          753,
+          248
+        ],
+        [
+          738,
+          255
+        ],
+        [
+          712,
+          253
+        ],
+        [
+          698,
+          242
+        ]
+      ],
+      "x": 689,
+      "y": 207,
+      "width": 65,
+      "height": 48,
+      "pixels": 2333,
+      "file": "layers/eye-left.png",
+      "underpaintFile": "underpaint/eye-left.png",
+      "motionClass": 0,
+      "paintedPixels": 0,
+      "paintStatus": "expression-ready",
+      "generatedSource": null
+    },
+    {
+      "id": "eye-right",
+      "name": "右目・開",
+      "color": "#258ac5",
+      "polygon": [
+        [
+          778,
+          184
+        ],
+        [
+          789,
+          172
+        ],
+        [
+          811,
+          165
+        ],
+        [
+          839,
+          166
+        ],
+        [
+          850,
+          176
+        ],
+        [
+          847,
+          199
+        ],
+        [
+          834,
+          214
+        ],
+        [
+          808,
+          220
+        ],
+        [
+          787,
+          209
+        ]
+      ],
+      "x": 778,
+      "y": 165,
+      "width": 72,
+      "height": 55,
+      "pixels": 2983,
+      "file": "layers/eye-right.png",
+      "underpaintFile": "underpaint/eye-right.png",
+      "motionClass": 0,
+      "paintedPixels": 0,
+      "paintStatus": "expression-ready",
+      "generatedSource": null
+    }
+  ],
+  "expressions": [
+    {
+      "id": "eye-left-closed",
+      "name": "左目・閉",
+      "x": 684,
+      "y": 202,
+      "width": 76,
+      "height": 59,
+      "hidden": true,
+      "file": "parts/eye-left-closed.png"
+    },
+    {
+      "id": "eye-right-closed",
+      "name": "右目・閉",
+      "x": 773,
+      "y": 160,
+      "width": 83,
+      "height": 66,
+      "hidden": true,
+      "file": "parts/eye-right-closed.png"
+    }
+  ],
+  "parameters": {
+    "breath": {
+      "default": 0.65,
+      "period": 4.8
+    },
+    "hair": {
+      "default": 0.7
+    },
+    "cloth": {
+      "default": 0.65
+    },
+    "blink": {
+      "default": true,
+      "interval": [
+        3.2,
+        5.6
+      ],
+      "duration": 0.22
+    }
+  },
+  "verification": {
+    "paintedPixels": 315625,
+    "paintedParts": 13,
+    "psdLayers": 30,
+    "visibleOriginalRgbPreserved": true,
+    "nearOpaqueAlphaNormalized": "250..254 to 255"
+  },
+  "limitations": [
+    "Not a Cubism moc3/cmo3 model.",
+    "Hidden surfaces support subtle title-screen motion; extreme poses are not rigged.",
+    "Generated support artwork is registered approximately; visible original RGB is retained."
+  ],
+  "renderMode": "independent-overlapping-layers",
+  "motionRange": 1.35,
+  "pendingParts": []
+}
