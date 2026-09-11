@@ -832,7 +832,8 @@ namespace BBB.Runtime
             if (frame != null)
             {
                 // 画像の枠。色は絵に含まれているので、押したときだけ暗く掛ける
-                bool small = frameOverride == null ? (size.x < 110f || size.y < 40f) : frameOverride == "pill_navy_sm";
+                // 自動で小さいピルに落ちたときだけ役割の色を薄く掛ける。枠を明示したときは絵の色のまま（ビューアと同じ）
+                bool small = frameOverride == null && (size.x < 110f || size.y < 40f);
                 var tint = small ? SmallFrameTint(color) : Color.white;
                 body = Img(root, "Body", Vector2.zero, size, frame, tint, true);
                 var label0 = UiFactory.Label(root, "Label", Vector2.zero, size, text, fontSize, TextAnchor.MiddleCenter, Text);

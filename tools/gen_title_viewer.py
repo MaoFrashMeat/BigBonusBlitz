@@ -323,7 +323,6 @@ const UI_DEFS = [
   { id:'pillNews', name:'お知らせ', kind:'pill', x:-380, y:-186, w:152, h:40, frame:'pill_navy_sm', icon:'bell', label:'お知らせ', font:13, iconSize:18, iconX:26, labelX:11 },
   { id:'pillConfig', name:'設定', kind:'pill', x:-216, y:-186, w:152, h:40, frame:'pill_navy_sm', icon:'gear', label:'設定', font:13, iconSize:18, iconX:26, labelX:11 },
   { id:'pillTransfer', name:'引き継ぎ', kind:'pill', x:-52, y:-186, w:152, h:40, frame:'pill_navy_sm', icon:'chain', label:'引き継ぎ', font:13, iconSize:18, iconX:26, labelX:11 },
-  { id:'menu', name:'右上メニュー', kind:'pill', x:446, y:236, w:44, h:44, frame:'', icon:'', label:'≡', font:22, iconSize:18, iconX:22, labelX:0 },
 ];
 const UI_BASE = Object.fromEntries(UI_DEFS.map(d => [d.id, { x:d.x, y:d.y, w:d.w, h:d.h, frame:d.frame||'', icon:d.icon||'', label:d.label||'', font:d.font||13, iconSize:d.iconSize||18, iconX:d.iconX||26, labelX:d.labelX||0, visible:true }]));
 let ui = JSON.parse(JSON.stringify(UI_BASE));

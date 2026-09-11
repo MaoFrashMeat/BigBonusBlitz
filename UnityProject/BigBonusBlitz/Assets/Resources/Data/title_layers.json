@@ -143,20 +143,6 @@
       "iconX": 26,
       "labelX": 3,
       "visible": true
-    },
-    "menu": {
-      "x": 417,
-      "y": 209,
-      "w": 44,
-      "h": 44,
-      "frame": "",
-      "icon": "",
-      "label": "≡",
-      "font": 22,
-      "iconSize": 18,
-      "iconX": 22,
-      "labelX": 0,
-      "visible": true
     }
   },
   "guide": {

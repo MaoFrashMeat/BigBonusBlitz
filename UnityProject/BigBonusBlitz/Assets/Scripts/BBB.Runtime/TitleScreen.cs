@@ -219,11 +219,7 @@ namespace BBB.Runtime
             px += PillW + 12f;
             Pill(stage, "Transfer", TitleUiLayout.Get("pillTransfer", px, PillY, PillW, PillH, "chain", "引き継ぎ", "pill_navy_sm"), () => Notice("引き継ぎは準備中です"));
 
-            // 右上のメニュー
-            var Lmenu = TitleUiLayout.Get("menu", StageW * 0.5f - 34, StageH * 0.5f - 34, 44, 44, null, "≡", null);
-            var menu = UiSkin.Button(stage, "Menu", Lmenu.Pos, Lmenu.Size, Lmenu.label, ToggleSettings, ColBtn, Lmenu.font > 0 ? Lmenu.font : 22, false, 10, Lmenu.frame);
-            UiSkin.SetButtonColor(menu, ColBtn, ColGold);
-            menu.gameObject.SetActive(Lmenu.visible);
+            // 右上のメニューは 2026-09-11 に外した（設定は下のピルから開く）
 
             // フッター
             var ver = UiFactory.Label(stage, "Version", new Vector2(-StageW * 0.5f + 90, -StageH * 0.5f + 18), new Vector2(160, 18),
@@ -275,6 +271,9 @@ namespace BBB.Runtime
             // 枠・アイコン・文字・位置は title_layers.json の ui から（無ければ既定の pill_navy_sm）
             var b = UiSkin.Button(parent, name, L.Pos, L.Size, "",
                 () => { _audio.UiPop(); onClick(); }, ColBtn, L.font > 0 ? L.font : 13, false, 20, string.IsNullOrEmpty(L.frame) ? "pill_navy_sm" : L.frame);
+            // 枠の絵には影を付けない（ビューアと同じ見え方にする。絵に縁が入っている）
+            var shadow = b.transform.Find("Shadow");
+            if (shadow != null && !string.IsNullOrEmpty(L.frame) && L.frame != "none") shadow.gameObject.SetActive(false);
             var t = b.GetComponentInChildren<Text>();
             if (t != null)
             {
@@ -284,8 +283,9 @@ namespace BBB.Runtime
                 t.rectTransform.anchoredPosition = new Vector2(L.labelX, 0);
                 Shade(t);
             }
+            // アイコンは絵に色が入っているので、金を掛けない（掛けると紺が黄ばむ）
             if (!string.IsNullOrEmpty(L.icon))
-                UiSkin.Img(b.transform, "Icon", new Vector2(-L.w * 0.5f + L.iconX, 0), new Vector2(L.iconSize, L.iconSize), UiSkin.Icon(L.icon, 64), ColGold);
+                UiSkin.Img(b.transform, "Icon", new Vector2(-L.w * 0.5f + L.iconX, 0), new Vector2(L.iconSize, L.iconSize), UiSkin.Icon(L.icon, 64), Color.white);
             b.gameObject.SetActive(L.visible);
             return b;
         }
