@@ -41,6 +41,8 @@ namespace BBB.Runtime
         private SafeStage _safe;
         private AudioManager _audio;
         private RectTransform _logo;
+        /// <summary>元絵と同じ比の板。花びらの「立ち絵の枠」の座標の基準。</summary>
+        private RectTransform _artBoard;
         private Text _press, _confirm;
         private CanvasGroup _fade;
         private Button _btnContinue, _btnNew;
@@ -91,6 +93,7 @@ namespace BBB.Runtime
             bgArea.gameObject.AddComponent<RectMask2D>();
             // 背景と立ち絵を別々に置く。立ち絵は格子に割って波打たせるので、
             // 後ろに「キャラのいない背景」が要る（tools/comfy で作ったもの）
+            var petalCfg = TitleAmbience.LoadConfig();   // 花びらを立ち絵の前後どちらに置くかもここで決まる
             var titleSprite = ArtLoader.Sprite("Art/UI/title_bg");
             var charSprite = ArtLoader.Sprite("Art/UI/title_char");
             if (titleSprite != null)
@@ -112,6 +115,9 @@ namespace BBB.Runtime
                     UiSkin.Stretch(bgImg.rectTransform);
                     bgImg.raycastTarget = false;
                 }
+                _artBoard = artRt;
+                // 花びらを立ち絵の後ろに置く設定なら、ここ（背景の上・立ち絵の下）に花びらだけ出す
+                if (petalCfg.behindChar) TitleAmbience.Create(artRt, artRt, petalCfg, 0, -1);
 
                 // 体と髪を別々に重ねる。体は呼吸だけ、髪はそれより大きく揺れる。
                 // 3 枚とも元絵と同じ画布なので、板いっぱいに広げれば位置は合う
@@ -135,7 +141,7 @@ namespace BBB.Runtime
             UiSkin.Stretch(root.Find("DimBottom").GetComponent<RectTransform>());
 
             // 光の玉と桜の花びら。暗みより手前、ロゴや文字より後ろに漂わせる
-            TitleAmbience.Create(root);
+            TitleAmbience.Create(root, _artBoard, petalCfg, -1, petalCfg.behindChar ? 0 : -1);
 
             // セーフエリアに収まる舞台（960×540、縮小のみ）
             _safe = SafeStage.Create(_canvas);
