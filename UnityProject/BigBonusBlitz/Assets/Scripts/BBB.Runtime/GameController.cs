@@ -79,6 +79,13 @@ namespace BBB.Runtime
         private readonly string[] _naviGlyph = new string[3];
         /// <summary>文字が変わってからの秒数（出現の弾み用）。</summary>
         private readonly float[] _naviPopT = new float[3];
+        /// <summary>
+        /// 奥行き。いま押す番のバッジを手前（1.0）、次の候補を少し奥、済み・無効をさらに奥に置いて、
+        /// 大きさで順番を読ませる。押すたびに次のバッジが手前へ出てくる。
+        /// </summary>
+        private readonly float[] _naviDepth = { 1f, 1f, 1f };
+        private readonly float[] _naviDepthTarget = { 1f, 1f, 1f };
+        private static readonly float[] NaviDepthScale = { 1f, 0.83f, 0.66f };  // 手前 / 次（手前と奥の中間） / 奥
         // 会話 UI（旅人 ⇄ 主人公）
         private GameObject _dialogBox;
         private Text _dialogName, _dialogText;
@@ -1390,6 +1397,11 @@ namespace BBB.Runtime
         /// </summary>
         private void ApplyNaviBadge(int i, string txt, Color ring, Color fg, Color glow)
         {
+            // 奥行き: 押す番=手前、次の候補=少し奥、済み・無効=奥。
+            // 「?」は第一停止の前は候補（奥）、第一停止のあとは押す番（手前）
+            int rank = txt == "-" ? 2 : txt == "?" && _m.PressOrder.Count == 0 ? 1 : 0;
+            _naviDepthTarget[i] = NaviDepthScale[rank];
+
             string file = NaviGlyphFile(txt);
             var glyph = file != null ? ArtLoader.Sprite("Art/UI/Navi/" + file) : null;
             var bg = glyph != null ? ArtLoader.Sprite("Art/UI/Navi/navi_bg") : null;
@@ -1426,13 +1438,18 @@ namespace BBB.Runtime
             float t = Time.time;
             for (int i = 0; i < 3; i++)
             {
+                // 奥行きは絵でも丸＋文字でも同じに効かせる。手前へ出るときは少し勢いよく
+                _naviDepth[i] = Mathf.Lerp(_naviDepth[i], _naviDepthTarget[i], 1f - Mathf.Exp(-Time.deltaTime * 9f));
+                float depth = _naviDepth[i];
+                if (_naviProc[i] != null && _naviProc[i].activeSelf) _naviProc[i].transform.localScale = Vector3.one * depth;
+
                 var bg = _naviEmblemBg[i]; var fg = _naviEmblemFg[i];
                 if (bg == null || fg == null || !bg.gameObject.activeSelf) continue;
                 float ph = i * 0.9f;
                 // 背景: 上下 2.5px・回転 ±2.5°・大きさ ±3%
                 bg.rectTransform.anchoredPosition = new Vector2(0, 2.5f * Mathf.Sin(t * 1.5f + ph));
                 bg.rectTransform.localRotation = Quaternion.Euler(0, 0, 2.5f * Mathf.Sin(t * 0.9f + ph));
-                bg.rectTransform.localScale = Vector3.one * (1f + 0.03f * Mathf.Sin(t * 1.5f + ph + 1.2f));
+                bg.rectTransform.localScale = Vector3.one * (depth * (1f + 0.03f * Mathf.Sin(t * 1.5f + ph + 1.2f)));
                 // 文字: 上下 3.5px・左右 1.5px・大きさ ±5%。背景と逆位相ぎみにして浮いて見せる
                 _naviPopT[i] += Time.deltaTime;
                 float pop = 1f;
@@ -1442,7 +1459,7 @@ namespace BBB.Runtime
                     pop = 1.4f - 0.4f * (1f - (1f - u) * (1f - u));   // 大きく出て、すっと収まる
                 }
                 fg.rectTransform.anchoredPosition = new Vector2(1.5f * Mathf.Sin(t * 1.1f + ph), 2f + 3.5f * Mathf.Sin(t * 2.3f + ph + 2.4f));
-                fg.rectTransform.localScale = Vector3.one * (pop * (1f + 0.05f * Mathf.Sin(t * 2.3f + ph)));
+                fg.rectTransform.localScale = Vector3.one * (depth * pop * (1f + 0.05f * Mathf.Sin(t * 2.3f + ph)));
             }
         }
 

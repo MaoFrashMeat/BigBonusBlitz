@@ -52,21 +52,23 @@ HTML = r'''<!doctype html>
     <label>文字の揺れ <input type="range" id="fgAmp" min="0" max="3" step="0.1" value="1"><span class="val" id="fgAmpV">1.0</span></label>
     <label>速さ <input type="range" id="speed" min="0.2" max="3" step="0.1" value="1"><span class="val" id="speedV">1.0</span></label>
     <label>表示倍率 <input type="range" id="zoom" min="1" max="3" step="0.5" value="2"><span class="val" id="zoomV">2.0</span></label>
+    <label>奥の大きさ <input type="range" id="back" min="0.4" max="1" step="0.02" value="0.66"><span class="val" id="backV">0.66</span></label>
     <button id="pop">文字をぽんと出す</button>
   </div>
-  <div class="note">式は GameController.AnimateNavi と同じ。倍率 1.0 が今の Unity の値。気に入った倍率を言ってもらえれば C# に写す。</div>
+  <div class="note">式は GameController.AnimateNavi と同じ。倍率 1.0・奥 0.66 が今の Unity の値。「ナビ開始」→「第一停止後」で ? が手前に出てくる。気に入った値を言ってもらえれば C# に写す。</div>
 </div>
 <script>
 const IMG = {
 __IMG__
 };
 // 状態の並び: 各リールの文字と、光の色・明るさ・暗さ
+// [文字, 光の色, 光の強さ, 暗くするか, 奥行き(0=手前 1=次 2=奥)]
 const PRESETS = {
-  'ナビ開始（1 ? ?）': [['1','gold',0.45,false],['?','blue',0.2,false],['?','blue',0.2,false]],
-  '第一停止後・択（- ? ?）': [['-','none',0,true],['?','blue',0.45,false],['?','blue',0.45,false]],
-  '成功（- ○ -）': [['-','none',0,true],['○','gold',0.6,false],['-','none',0,true]],
-  '失敗（- ○ ×）': [['-','none',0,true],['○','none',0,true],['×','red',0.5,false]],
-  'AT 押し順（1 - -）': [['1','gold',0.55,false],['-','none',0,true],['-','none',0,true]],
+  'ナビ開始（1 ? ?）': [['1','gold',0.45,false,0],['?','blue',0.2,false,1],['?','blue',0.2,false,1]],
+  '第一停止後・択（- ? ?）': [['-','none',0,true,2],['?','blue',0.45,false,0],['?','blue',0.45,false,0]],
+  '成功（- ○ -）': [['-','none',0,true,2],['○','gold',0.6,false,0],['-','none',0,true,2]],
+  '失敗（- ○ ×）': [['-','none',0,true,2],['○','none',0,true,0],['×','red',0.5,false,0]],
+  'AT 押し順（1 - -）': [['1','gold',0.55,false,0],['-','none',0,true,2],['-','none',0,true,2]],
 };
 const GLYPH = {'1':'navi_01','2':'navi_02','3':'navi_03','?':'navi_question','○':'navi_circle','×':'navi_cross','-':'navi_hyphen'};
 const GLOW = { gold:'rgba(255,217,77,1)', blue:'rgba(102,153,255,1)', red:'rgba(255,77,102,1)', none:'rgba(0,0,0,0)' };
@@ -77,19 +79,20 @@ for (let i = 0; i < 3; i++) {
   const c = document.createElement('div'); c.className = 'cell'; c.style.left = (274 + 140*i + 66/2 + 0) + 'px';
   c.innerHTML = '<div class="glow"></div><img class="bg"><img class="fg">';
   stage.appendChild(c);
-  cells.push({ el:c, glow:c.querySelector('.glow'), bg:c.querySelector('.bg'), fg:c.querySelector('.fg'), glyph:null, popT:9 });
+  cells.push({ el:c, glow:c.querySelector('.glow'), bg:c.querySelector('.bg'), fg:c.querySelector('.fg'), glyph:null, popT:9, depth:1, depthTarget:1 });
 }
-const P = { bgAmp:1, fgAmp:1, speed:1, zoom:2 };
-for (const k of ['bgAmp','fgAmp','speed','zoom']) {
+const P = { bgAmp:1, fgAmp:1, speed:1, zoom:2, back:0.66 };
+for (const k of ['bgAmp','fgAmp','speed','zoom','back']) {
   const el = document.getElementById(k), v = document.getElementById(k+'V');
-  el.oninput = () => { P[k] = parseFloat(el.value); v.textContent = P[k].toFixed(1); if (k==='zoom') applyZoom(); };
+  el.oninput = () => { P[k] = parseFloat(el.value); v.textContent = P[k].toFixed(k==='back'?2:1); if (k==='zoom') applyZoom(); };
 }
 function applyZoom(){ stage.style.transform = 'scale(' + P.zoom + ')'; stage.style.transformOrigin = '50% 0'; stage.style.marginBottom = (300*(P.zoom-1)) + 'px'; }
 applyZoom();
 
 function apply(preset) {
-  preset.forEach(([txt, glow, ga, dim], i) => {
+  preset.forEach(([txt, glow, ga, dim, rank], i) => {
     const c = cells[i];
+    c.rank = rank;
     c.bg.src = IMG.navi_bg;
     const g = GLYPH[txt];
     if (c.glyph !== g) { c.glyph = g; c.fg.src = IMG[g]; c.popT = 0; }
@@ -112,16 +115,20 @@ function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now; t += dt * P.speed;
   cells.forEach((c, i) => {
     const ph = i * 0.9;
+    // 奥行き: 手前 1.0 / 次 は手前と奥の中間 / 奥 = スライダー。押す番が変わると手前へ出てくる
+    const target = c.rank === 0 ? 1 : c.rank === 1 ? (1 + P.back) / 2 : P.back;
+    c.depth += (target - c.depth) * (1 - Math.exp(-dt * 9));
+    const depth = c.depth;
     const by = 2.5 * Math.sin(t*1.5 + ph) * P.bgAmp;
     const br = 2.5 * Math.sin(t*0.9 + ph) * P.bgAmp;
-    const bs = 1 + 0.03 * Math.sin(t*1.5 + ph + 1.2) * P.bgAmp;
+    const bs = depth * (1 + 0.03 * Math.sin(t*1.5 + ph + 1.2) * P.bgAmp);
     c.bg.style.transform = `translate(0px, ${-by}px) rotate(${-br}deg) scale(${bs})`;   // Unity は y 上向きなので符号を反転
     c.popT += dt;
     let pop = 1;
     if (c.popT < 0.28) { const u = c.popT / 0.28; pop = 1.4 - 0.4 * (1 - (1-u)*(1-u)); }
     const fx = 1.5 * Math.sin(t*1.1 + ph) * P.fgAmp;
     const fy = 2 + 3.5 * Math.sin(t*2.3 + ph + 2.4) * P.fgAmp;
-    const fs = pop * (1 + 0.05 * Math.sin(t*2.3 + ph) * P.fgAmp);
+    const fs = depth * pop * (1 + 0.05 * Math.sin(t*2.3 + ph) * P.fgAmp);
     c.fg.style.transform = `translate(${fx}px, ${-fy}px) scale(${fs})`;
   });
   requestAnimationFrame(frame);
