@@ -235,25 +235,33 @@ ICONS = {
 }
 
 
-NAVI_SRC = os.path.join(ROOT, 'assets', 'navi')     # navi_normal_01..03.png（押し順の紋章。1254px）
-NAVI_SIZE = 256                                     # 画面では 66〜84px。2 倍端末でも 256 あれば足りる
+NAVI_SRC = os.path.join(ROOT, 'assets', 'navi')     # navi_BG.png + navi_normal_*.png（同じ 1254px の紙に描いてある）
+NAVI_SIZE = 256                                     # 画面では 90px。2 倍端末でも 256 あれば足りる
+NAVI_FILES = {
+    'navi_BG.png': 'navi_bg',
+    'navi_normal_01.png': 'navi_01', 'navi_normal_02.png': 'navi_02', 'navi_normal_03.png': 'navi_03',
+    'navi_normal_question.png': 'navi_question', 'navi_normal_circle.png': 'navi_circle',
+    'navi_normal_cross.png': 'navi_cross', 'navi_normal_hyphen.png': 'navi_hyphen',
+}
 
 
 def install_navi():
-    """押し順バッジの紋章を縮めて Resources へ。元は 1254px で 3 枚 18MB になるので 256px にする。"""
+    """
+    ナビの紋章（背景）と文字（手前）を縮めて Resources へ。
+    どれも同じ大きさの紙に位置を合わせて描いてあるので、切り詰めずに紙ごと縮める（重ねたときズレない）。
+    """
     if not os.path.isdir(NAVI_SRC):
         return
     dst = os.path.join(UNITY_UI, 'Navi')
     os.makedirs(dst, exist_ok=True)
     n = 0
-    for i in (1, 2, 3):
-        src = os.path.join(NAVI_SRC, f'navi_normal_0{i}.png')
+    for src_name, out_name in NAVI_FILES.items():
+        src = os.path.join(NAVI_SRC, src_name)
         if not os.path.exists(src):
             continue
-        im = trim(Image.open(src).convert('RGBA'))
-        im = square(im)
-        im = im.resize((NAVI_SIZE, NAVI_SIZE), Image.LANCZOS)
-        im.save(os.path.join(dst, f'navi_0{i}.png'))
+        im = Image.open(src).convert('RGBA')
+        im = im.resize((NAVI_SIZE, round(im.height * NAVI_SIZE / im.width)), Image.LANCZOS)
+        im.save(os.path.join(dst, out_name + '.png'))
         n += 1
     print(f'  ナビ {n} 枚 → {dst}')
 

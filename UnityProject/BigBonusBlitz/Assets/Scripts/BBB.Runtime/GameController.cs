@@ -72,8 +72,13 @@ namespace BBB.Runtime
         private Image[] _naviGlow = new Image[3];
         /// <summary>手続き描画のバッジ（丸＋文字）。紋章を出すときは丸ごと隠す。</summary>
         private readonly GameObject[] _naviProc = new GameObject[3];
-        /// <summary>押し順の紋章（Art/UI/Navi/navi_01..03）。数字のときだけ出す。</summary>
-        private readonly Image[] _naviEmblem = new Image[3];
+        /// <summary>ナビの絵。背景の紋章（navi_bg）と、手前の文字（navi_01 / question / circle / cross / hyphen）。</summary>
+        private readonly Image[] _naviEmblemBg = new Image[3];
+        private readonly Image[] _naviEmblemFg = new Image[3];
+        /// <summary>いま出している文字の絵の名前（変わった瞬間にぽんと出すため）。</summary>
+        private readonly string[] _naviGlyph = new string[3];
+        /// <summary>文字が変わってからの秒数（出現の弾み用）。</summary>
+        private readonly float[] _naviPopT = new float[3];
         // 会話 UI（旅人 ⇄ 主人公）
         private GameObject _dialogBox;
         private Text _dialogName, _dialogText;
@@ -663,10 +668,14 @@ namespace BBB.Runtime
                 _naviLabels[i] = UiFactory.Label(proc, "L", new Vector2(0, 2), new Vector2(badge, badge), "", 40, TextAnchor.MiddleCenter, ColText);
                 _naviLabels[i].fontStyle = FontStyle.Bold;
                 TextShadow(_naviLabels[i]);
-                // 押し順の紋章（1・2・3 が絵に入っている）。丸より少し大きく出して「リールの上に乗る」見せ方
-                _naviEmblem[i] = UiSkin.Img(cell, "Emblem", new Vector2(0, 2), new Vector2(badge + 20, badge + 20), null, Color.white);
-                _naviEmblem[i].preserveAspect = true;
-                _naviEmblem[i].gameObject.SetActive(false);
+                // 絵のバッジ: 背景の紋章と手前の文字の 2 層。丸より大きく出して「リールの上に浮いている」見せ方。
+                // 揺れは AnimateNavi が毎フレーム付ける（背景と文字で周期を変えてふわふわさせる）
+                _naviEmblemBg[i] = UiSkin.Img(cell, "EmblemBg", Vector2.zero, new Vector2(badge + 26, badge + 26), null, Color.white);
+                _naviEmblemBg[i].preserveAspect = true;
+                _naviEmblemBg[i].gameObject.SetActive(false);
+                _naviEmblemFg[i] = UiSkin.Img(cell, "EmblemFg", Vector2.zero, new Vector2(badge + 26, badge + 26), null, Color.white);
+                _naviEmblemFg[i].preserveAspect = true;
+                _naviEmblemFg[i].gameObject.SetActive(false);
             }
             _naviBox = navi.gameObject;
             _naviBox.SetActive(false);
@@ -1358,21 +1367,83 @@ namespace BBB.Runtime
             }
         }
 
+        /// <summary>バッジの文字 → 絵のファイル名。無い文字は null（丸＋文字に戻る）。</summary>
+        private static string NaviGlyphFile(string txt)
+        {
+            switch (txt)
+            {
+                case "1": return "navi_01";
+                case "2": return "navi_02";
+                case "3": return "navi_03";
+                case "?": return "navi_question";
+                case "○": return "navi_circle";
+                case "×": return "navi_cross";
+                case "-": return "navi_hyphen";
+                default: return null;
+            }
+        }
+
         /// <summary>
-        /// バッジ 1 つを更新する。数字（1〜3）なら押し順の紋章の絵に切り替え、
-        /// それ以外（? / ○ / × / -）は丸＋文字で出す。紋章が無ければ数字も丸＋文字。
+        /// バッジ 1 つを更新する。絵（背景の紋章 + 手前の文字）があればそれを出し、
+        /// 無ければ丸＋文字で出す。色の意味は絵では出せないので、明るさと後ろの光で出す:
+        /// 押す番=そのまま＋金の光 / 待ち=そのまま / 外れ=赤い光 / 済み・無効=暗く。
         /// </summary>
         private void ApplyNaviBadge(int i, string txt, Color ring, Color fg, Color glow)
         {
-            var emblem = txt == "1" || txt == "2" || txt == "3" ? ArtLoader.Sprite("Art/UI/Navi/navi_0" + txt) : null;
-            bool useEmblem = emblem != null && _naviEmblem[i] != null;
-            if (_naviProc[i] != null) _naviProc[i].SetActive(!useEmblem);
-            if (_naviEmblem[i] != null)
+            string file = NaviGlyphFile(txt);
+            var glyph = file != null ? ArtLoader.Sprite("Art/UI/Navi/" + file) : null;
+            var bg = glyph != null ? ArtLoader.Sprite("Art/UI/Navi/navi_bg") : null;
+            bool useArt = glyph != null && bg != null && _naviEmblemBg[i] != null && _naviEmblemFg[i] != null;
+            if (_naviProc[i] != null) _naviProc[i].SetActive(!useArt);
+            if (_naviEmblemBg[i] != null) _naviEmblemBg[i].gameObject.SetActive(useArt);
+            if (_naviEmblemFg[i] != null) _naviEmblemFg[i].gameObject.SetActive(useArt);
+            if (useArt)
             {
-                _naviEmblem[i].gameObject.SetActive(useEmblem);
-                if (useEmblem) _naviEmblem[i].sprite = emblem;
+                bool dim = ring == ColBtnDisabled;
+                var tint = dim ? new Color(0.55f, 0.58f, 0.68f, 0.9f) : Color.white;
+                _naviEmblemBg[i].sprite = bg;
+                _naviEmblemBg[i].color = tint;
+                _naviEmblemFg[i].color = tint;
+                if (_naviGlyph[i] != file)
+                {
+                    _naviGlyph[i] = file;
+                    _naviEmblemFg[i].sprite = glyph;
+                    _naviPopT[i] = 0f;                      // 文字が変わった。ぽんと出す
+                }
             }
+            else _naviGlyph[i] = null;
             _naviLabels[i].text = txt; _naviLabels[i].color = fg; _naviBg[i].color = ring; _naviGlow[i].color = glow;
+        }
+
+        /// <summary>
+        /// ナビの絵をふわふわ揺らす。背景の紋章はゆっくり大きく、手前の文字は速く小さく、
+        /// リールごとに位相をずらして同期させない（揃うと機械的に見える）。
+        /// 文字が変わった直後は 1.4 倍から弾んで収まる（§7: 押す番が来たことを手触りで返す）。
+        /// </summary>
+        private void AnimateNavi()
+        {
+            if (_naviBox == null || !_naviBox.activeSelf) return;
+            float t = Time.time;
+            for (int i = 0; i < 3; i++)
+            {
+                var bg = _naviEmblemBg[i]; var fg = _naviEmblemFg[i];
+                if (bg == null || fg == null || !bg.gameObject.activeSelf) continue;
+                float ph = i * 0.9f;
+                // 背景: 上下 2.5px・回転 ±2.5°・大きさ ±3%
+                bg.rectTransform.anchoredPosition = new Vector2(0, 2.5f * Mathf.Sin(t * 1.5f + ph));
+                bg.rectTransform.localRotation = Quaternion.Euler(0, 0, 2.5f * Mathf.Sin(t * 0.9f + ph));
+                bg.rectTransform.localScale = Vector3.one * (1f + 0.03f * Mathf.Sin(t * 1.5f + ph + 1.2f));
+                // 文字: 上下 3.5px・左右 1.5px・大きさ ±5%。背景と逆位相ぎみにして浮いて見せる
+                _naviPopT[i] += Time.deltaTime;
+                float pop = 1f;
+                if (_naviPopT[i] < 0.28f)
+                {
+                    float u = _naviPopT[i] / 0.28f;
+                    pop = 1.4f - 0.4f * (1f - (1f - u) * (1f - u));   // 大きく出て、すっと収まる
+                }
+                fg.rectTransform.anchoredPosition = new Vector2(1.5f * Mathf.Sin(t * 1.1f + ph), 2f + 3.5f * Mathf.Sin(t * 2.3f + ph + 2.4f));
+                fg.rectTransform.localScale = Vector3.one * (pop * (1f + 0.05f * Mathf.Sin(t * 2.3f + ph)));
+            }
         }
 
         /// <summary>択の最中: BGM がこもり（水中）、画面が少し沈む＝集中。</summary>
@@ -1702,6 +1773,7 @@ namespace BBB.Runtime
         // --------------------------------------------------------------- INPUT
         private void Update()
         {
+            AnimateNavi();
             // Play 中にスクリプトが再コンパイルされると非シリアライズ参照が消える。その状態で回さない（NRE の連打防止）
             if (_m == null || _creditNum == null) return;
             var kb = Keyboard.current;
