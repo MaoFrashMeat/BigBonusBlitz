@@ -10,3 +10,7 @@ tools/comfy/config.json
 __pycache__/
 *.pyc
 tools/comfy/layers/
+
+# Editor が Play ごとに書く（コミット数とハッシュ）。追跡しない
+UnityProject/BigBonusBlitz/Assets/Resources/Data/build_info.json
+UnityProject/BigBonusBlitz/Assets/Resources/Data/build_info.json.meta

@@ -222,8 +222,9 @@ namespace BBB.Runtime
             // 右上のメニューは 2026-09-11 に外した（設定は下のピルから開く）
 
             // フッター
-            var ver = UiFactory.Label(stage, "Version", new Vector2(-StageW * 0.5f + 90, -StageH * 0.5f + 18), new Vector2(160, 18),
-                "Ver." + Application.version, 11, TextAnchor.MiddleLeft, ColTextSub);
+            // 開発中なので版番号ではなく「dev コミット数 · ハッシュ」を出す（Editor が build_info.json を書く）
+            var ver = UiFactory.Label(stage, "Version", new Vector2(-StageW * 0.5f + 90, -StageH * 0.5f + 18), new Vector2(200, 18),
+                BuildInfo.Label, 11, TextAnchor.MiddleLeft, ColTextSub);
             Shade(ver);
             var cp1 = UiFactory.Label(stage, "Copy1", new Vector2(StageW * 0.5f - 150, -StageH * 0.5f + 28), new Vector2(280, 16),
                 "© 2026 BIG BONUS BLITZ", 10, TextAnchor.MiddleRight, ColTextSub);
