@@ -827,6 +827,7 @@ namespace BBB.Runtime
             var glow = UiSkin.Img(root, "RedGlow", Vector2.zero, Vector2.zero, null, new Color(1, 0.1f, 0.1f, 0));
             UiSkin.Stretch(glow.rectTransform);
             _redGlow = glow;
+            AdventureUiV2.Apply(_stage);
         }
 
         /// <summary>街（ミニマップ）へ戻る。回転中は戻れない。セーブしてから画面を差し替える。</summary>
@@ -1021,11 +1022,11 @@ namespace BBB.Runtime
             bool held = _m.HeldBonusFlag != Flag.HAZE && _m.BonusAnnounceRemaining <= 0;   // 前兆中はまだ明かさない
             string atRank = inBonus ? AtDirector.RankFor(_m.Config.atExpect, _m.AtExpectPercent)?.name : null;
             _bonusLabel.text = inBonus
-                ? $"{(_m.BonusMode == BonusMode.BB ? "BIG" : "REG")}   {_m.BonusEarned} / {_m.BonusPayoutTarget}" + (atRank != null ? $"   AT期待度 {atRank}" : "")
+                ? $"{(_m.BonusMode == BonusMode.BB ? "BIG" : "REG")}   {_m.BonusEarned} / {_m.BonusPayoutTarget}" + (atRank != null ? $"\nAT期待度  {atRank}" : "")
                 : held ? "ボーナス成立中  揃えよう" : "―";
             _bonusFill.rectTransform.sizeDelta = new Vector2(inBonus && _m.BonusPayoutTarget > 0 ? _bonusTrack.sizeDelta.x * Mathf.Clamp01((float)_m.BonusEarned / _m.BonusPayoutTarget) : 0f, _bonusTrack.sizeDelta.y);
-            _mode.text = $"設定 {_m.Setting}   総 {_m.TotalSpinCount:N0} G";
-            _soulText.text = $"魂 {_m.Wallet.Souls:N0}   火 {_m.Wallet.Embers:N0}";
+            _mode.text = $"設定 {_m.Setting}\n総 {_m.TotalSpinCount:N0} G";
+            _soulText.text = $"魂 {_m.Wallet.Souls:N0}\n火 {_m.Wallet.Embers:N0}";
             _gCount.text = $"{_m.SpinCount} G";
             if (_stageTag != null && _m.AdventureEnabled)
             {

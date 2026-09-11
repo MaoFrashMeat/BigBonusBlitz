@@ -131,7 +131,7 @@ namespace BBB.Runtime
             { "book", "tome" }, { "potion", "orb" }, { "bell", "star_gold" },
         };
 
-        private static bool IsFrame(Sprite s) => s != null && _frameSet.Contains(s);
+        private static bool IsFrame(Sprite s) => s != null && (_frameSet.Contains(s) || MapUiV2.IsFrame(s));
 
         /// <summary>
         /// ボタンの色から枠の絵を選ぶ。色の役割（§13）を絵に置き換える:
@@ -890,9 +890,10 @@ namespace BBB.Runtime
                 // 画像の枠: 色を掛けるのではなく、役割に合う枠へ差し替える
                 var size = ((RectTransform)b.transform).sizeDelta;
                 bool small = size.x < 110f || size.y < 40f;
-                var frame = Frame(ButtonFrameFor(color, size));
+                bool v2 = MapUiV2.IsFrame(body.sprite);
+                var frame = v2 ? null : Frame(ButtonFrameFor(color, size));
                 if (frame != null) body.sprite = frame;
-                var tint = small ? SmallFrameTint(color) : Color.white;
+                var tint = v2 ? Color.Lerp(Color.white, color, .12f) : small ? SmallFrameTint(color) : Color.white;
                 var cb0 = b.colors;
                 cb0.normalColor = tint; cb0.highlightedColor = tint; cb0.selectedColor = tint;
                 cb0.pressedColor = tint * new Color(0.72f, 0.74f, 0.82f, 1f);

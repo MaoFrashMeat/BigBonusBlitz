@@ -11,6 +11,7 @@ namespace BBB.Runtime
         private static readonly Dictionary<string, Sprite> Cache = new Dictionary<string, Sprite>();
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetCache() => Cache.Clear();
+        public static bool IsFrame(Sprite sprite) => sprite != null && sprite.border.sqrMagnitude > 0 && Cache.ContainsValue(sprite);
 
         public static Sprite Sprite(string name)
         {

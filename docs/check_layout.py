@@ -147,10 +147,9 @@ stack('右パネルの縦（PLAYER 〜 常駐スランプ）', [
     ('Lv', 60, 20),
     ('EXPゲージ', 44, 8),
     ('BONUS見出し', 24, 16),
-    ('BONUS文字', 3, 16),
-    ('BONUSゲージ', -12, 8),
-    ('状態', -33, 18),
-    ('ボタン3つ', -58, 24),
+    ('BONUS文字', 0, 32),
+    ('BONUSゲージ', -24, 8),
+    ('状態', -51, 32),
     ('常駐スランプ', -83, 22),
 ], top=MidH / 2 - CardEdge, bottom=-MidH / 2 + CardEdge)
 
@@ -214,6 +213,8 @@ for name, w, h in [('ゲーム中', 700.0, 340.0), ('街', 564.0, 258.0)]:
           f'縦{"OK" if ok_v else "NG"} 横{"OK" if ok_h else "NG"}  名前表示 {"あり" if g >= 44 else "なし"}')
 
 # ---------------------------------------------------------------- 結果
+stack('Adventure V2 amounts', [('ember caption',76,20), ('ember value',39,44), ('payout caption',-5,20), ('payout value',-37,36), ('resources',-76,32)], top=98, bottom=-98)
+row('Adventure V2 controls', [('BET',-351,242), ('settings',-78,144), ('graph',78,144), ('AUTO',351,242)], left=-480, right=480)
 print()
 if FAIL:
     print('NG が %d 件:' % len(FAIL))
