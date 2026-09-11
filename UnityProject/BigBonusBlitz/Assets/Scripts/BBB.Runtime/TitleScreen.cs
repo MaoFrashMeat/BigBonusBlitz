@@ -66,8 +66,6 @@ namespace BBB.Runtime
         /// <summary>ロゴの幅。高さは絵の縦横比から出す。</summary>
         /// <summary>元のタイトル絵の縦横比（絵が読めないときの保険）。</summary>
         private const float TitleArtAspect = 1847f / 851f;
-        /// <summary>立ち絵が元絵のどこから始まるか（tools/comfy/layers の切り出し位置）。</summary>
-        private const float CharX0 = 0.3433f;
         private const float LogoW = 470f;
         /// <summary>ロゴの高さ。今のロゴは比 1.73 で縦に高いので、
         /// TAP TO START との隙間が 12px 残る位置に上げてある。</summary>
@@ -110,20 +108,11 @@ namespace BBB.Runtime
                 UiSkin.Stretch(bgImg.rectTransform);
                 bgImg.raycastTarget = false;
 
-                if (charSprite != null)
-                {
-                    var cgo = new GameObject("Char", typeof(RectTransform), typeof(Image));
-                    var crt = cgo.GetComponent<RectTransform>();
-                    crt.SetParent(artRt, false);
-                    // 元絵のどこに居たか（tools/comfy/layers の切り出し位置）
-                    crt.anchorMin = new Vector2(CharX0, 0f);
-                    crt.anchorMax = new Vector2(1f, 1f);
-                    crt.offsetMin = crt.offsetMax = Vector2.zero;
-                    var ci = cgo.GetComponent<Image>();
-                    ci.sprite = charSprite;
-                    ci.raycastTarget = false;
-                    cgo.AddComponent<TitleCharacterWarp>();
-                }
+                // 体と髪を別々に重ねる。体は呼吸だけ、髪はそれより大きく揺れる。
+                // 3 枚とも元絵と同じ画布なので、板いっぱいに広げれば位置は合う
+                AddLayer(artRt, "Char", charSprite, TitleCharacterWarp.Mode.Body);
+                AddLayer(artRt, "Hair", ArtLoader.Sprite("Art/UI/title_hair"),
+                         TitleCharacterWarp.Mode.Hair);
             }
             else
             {
@@ -315,6 +304,21 @@ namespace BBB.Runtime
             if (_settingsBox == null) return;
             _settingsBox.SetActive(!_settingsBox.activeSelf);
             _audio.UiPop();
+        }
+
+        /// <summary>タイトル絵の板に 1 枚重ねる。板いっぱいに広げ、指定の動きを付ける。</summary>
+        private static void AddLayer(RectTransform art, string name, Sprite sprite,
+                                     TitleCharacterWarp.Mode mode)
+        {
+            if (sprite == null) return;
+            var go = new GameObject(name, typeof(RectTransform), typeof(Image));
+            var rt = go.GetComponent<RectTransform>();
+            rt.SetParent(art, false);
+            UiSkin.Stretch(rt);
+            var img = go.GetComponent<Image>();
+            img.sprite = sprite;
+            img.raycastTarget = false;
+            go.AddComponent<TitleCharacterWarp>().mode = mode;
         }
 
         /// <summary>明るい絵の上でも読めるよう、文字に影を付ける。</summary>

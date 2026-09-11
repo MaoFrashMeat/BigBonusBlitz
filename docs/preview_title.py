@@ -37,10 +37,9 @@ if CW / CH > ar: nw, nh = CW*SS, int(CW*SS/ar)
 else:            nh, nw = CH*SS, int(CH*SS*ar)
 ox, oy = (CW*SS-nw)//2, (CH*SS-nh)//2
 im.alpha_composite(art.resize((nw, nh), Image.LANCZOS), (ox, oy))
-CharX0 = 0.3433
-ch = Image.open(R+'title_char.png').convert('RGBA')
-cw = int(nw*(1.0-CharX0)); chh = nh
-im.alpha_composite(ch.resize((cw, chh), Image.LANCZOS), (ox+int(nw*CharX0), oy))
+for layer in ('title_char.png', 'title_hair.png'):
+    lay = Image.open(R+layer).convert('RGBA').resize((nw, nh), Image.LANCZOS)
+    im.alpha_composite(lay, (ox, oy))
 
 scr = Image.new('RGBA', im.size, (0,0,0,0)); sd = ImageDraw.Draw(scr)
 for x in range(CW*SS):

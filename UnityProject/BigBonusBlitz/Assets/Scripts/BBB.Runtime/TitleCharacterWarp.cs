@@ -1,39 +1,40 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 namespace BBB.Runtime
 {
     /// <summary>
-    /// 立ち絵を波打たせて「生きている」ように見せる。Live2D の代わり。
+    /// 立ち絵を動かして「生きている」ように見せる。Live2D の代わり。
     ///
-    /// 絵をレイヤーに切って動かすやりかたもあるが、それだと重なりの裏を描き足す
-    /// 必要があり、動かすと輪郭が二重に見えやすい。ここでは 1 枚のまま、
-    /// 板を細かい格子に割って頂点をずらす。Live2D の変形と同じ考えかたで、
-    /// 素材は 1 枚で済む。
+    /// 絵を格子に割って頂点をずらす（Live2D の変形と同じ考えかた）。
+    /// 大事なのは **体と髪で動きを変える** こと。全身を同じ波で揺らすと
+    /// 絵が波打っているようにしか見えず、生きている感じにならない。
     ///
-    /// 動きは 3 つを重ねている。
-    ///   呼吸  … 足元を軸に、上ほど大きく縦に伸び縮みする
-    ///   揺れ  … 横方向の波。下（裾）と左右の端（髪）ほど大きい
-    ///   傾き  … 全体をごくわずかに左右へ
+    ///   体（Mode.Body） … 足元を軸にした呼吸だけ。横には動かさない
+    ///   髪（Mode.Hair） … 横の波。毛先ほど大きく、体より遅れて揺れる
+    ///
+    /// 体と髪は別の絵に分けてある（tools/comfy/split_hair.py が作る）。
+    /// 髪を抜いたあとの穴は塞いであるので、揺らしても下から何も出ない。
     /// </summary>
     [RequireComponent(typeof(Graphic))]
     public sealed class TitleCharacterWarp : BaseMeshEffect
     {
+        public enum Mode { Body, Hair }
+
+        /// <summary>体として動かすか、髪として動かすか。</summary>
+        public Mode mode = Mode.Body;
+
         /// <summary>格子の細かさ。多いほど滑らかだが、毎フレーム作り直すので程々に。</summary>
         public int cols = 10, rows = 14;
 
-        [Header("呼吸")]
-        public float breathAmount = 0.007f;   // 縦の伸び縮み（1 = 等倍）
-        public float breathSpeed = 0.62f;
+        [Header("呼吸（体）")]
+        public float breathAmount = 0.006f;   // 縦の伸び縮み（1 = 等倍）
+        public float breathSpeed = 0.28f;
 
-        [Header("揺れ")]
-        public float swayAmount = 3.2f;       // 横のずれ（px）
-        public float swaySpeed = 0.85f;
-        public float swayWaves = 1.6f;        // 縦に何回うねるか
-
-        [Header("傾き")]
-        public float leanAmount = 1.6f;       // 上端の横ずれ（px）
-        public float leanSpeed = 0.31f;
+        [Header("揺れ（髪）")]
+        public float swayAmount = 5.5f;       // 毛先の横のずれ（px）
+        public float swaySpeed = 0.33f;
+        public float swayWaves = 0.9f;        // 縦に何回うねるか
 
         private float _t;
         private readonly UIVertex[] _quad = new UIVertex[4];
@@ -74,8 +75,9 @@ namespace BBB.Runtime
             float w = xMax - xMin, h = yMax - yMin;
             if (w <= 0f || h <= 0f) return;
 
-            float breath = 1f + Mathf.Sin(_t * breathSpeed * Mathf.PI * 2f) * breathAmount;
-            float lean = Mathf.Sin(_t * leanSpeed * Mathf.PI * 2f) * leanAmount;
+            bool hair = mode == Mode.Hair;
+            float breath = 1f + Mathf.Sin(_t * breathSpeed * Mathf.PI * 2f)
+                             * (hair ? breathAmount * 0.6f : breathAmount);
 
             vh.Clear();
             var vert = UIVertex.simpleVert;
@@ -87,16 +89,19 @@ namespace BBB.Runtime
                 {
                     float tx = (float)i / cx;             // 0 = 左、1 = 右
 
-                    // 呼吸: 足元は動かさず、上へいくほど伸びる
+                    // 呼吸: 足元は動かさず、上へいくほど伸びる。体も髪も同じだけ伸びる
                     float y = yMin + h * ty * breath;
 
-                    // 揺れ: 縦にうねる波。中央より端のほうが大きく揺れる（髪と裾）
-                    float edge = Mathf.Abs(tx - 0.5f) * 2f;           // 0 = 中央, 1 = 端
-                    float lower = 1f - ty;                            // 下ほど大きい
-                    float amp = swayAmount * (0.25f + 0.75f * edge) * (0.3f + 0.7f * lower);
-                    float x = xMin + w * tx
-                            + Mathf.Sin((_t * swaySpeed + ty * swayWaves) * Mathf.PI * 2f) * amp
-                            + lean * ty;                              // 傾きは上ほど効く
+                    float x = xMin + w * tx;
+                    if (hair)
+                    {
+                        // 髪だけ横に揺らす。毛先（下）ほど大きく、左右の端ほど大きい。
+                        // 体は動かさないので、髪が遅れて付いてくるように見える
+                        float edge = Mathf.Abs(tx - 0.5f) * 2f;
+                        float lower = 1f - ty;
+                        float amp = swayAmount * (0.35f + 0.65f * edge) * lower * lower;
+                        x += Mathf.Sin((_t * swaySpeed + ty * swayWaves) * Mathf.PI * 2f) * amp;
+                    }
 
                     vert.position = new Vector3(x, y, 0f);
                     vert.uv0 = new Vector2(Mathf.Lerp(uMin, uMax, tx), Mathf.Lerp(vMin, vMax, ty));
