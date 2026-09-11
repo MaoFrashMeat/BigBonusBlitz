@@ -158,13 +158,7 @@ namespace BBB.Runtime
                 UiFactory.Label(stage, "TitleText", new Vector2(TitleX, LogoY), new Vector2(LogoW, 80), "BIG BONUS BLITZ", 40, TextAnchor.MiddleCenter, ColGold).fontStyle = FontStyle.Bold;
             }
 
-            // 左端の縦書き。日本語の縦組みは右の行から読むので、1 行目を右に置く
-            VerticalText(stage, "Tag1", new Vector2(-StageW * 0.5f + 52, 44), "―みんなの笑顔を", 15, ColText);
-            VerticalText(stage, "Tag2", new Vector2(-StageW * 0.5f + 30, 30), "守るために！", 15, ColText);
-            VerticalText(stage, "Tag3", new Vector2(-StageW * 0.5f + 8, -74), "いっくよー！", 15, ColGold);
-
-            // 見本には右上にも縦書きがあるが、この絵は右上に剣が来るので置かない。
-            // 空が抜けている絵に差し替えたら戻す
+            // 左端の縦書きの惹句は 2026-09-11 に外した（本人の判断。絵の邪魔になる）。VerticalText は残してある
 
             // TAP TO START。上下に細い飾り線
             UiSkin.Img(stage, "TapLineTop", new Vector2(TitleX, TapY + 26), new Vector2(340, 1), null, new Color(1, 1, 1, 0.5f));
