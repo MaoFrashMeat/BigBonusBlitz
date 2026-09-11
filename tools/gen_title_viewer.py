@@ -107,8 +107,9 @@ HTML = r'''<!doctype html>
   .item.sel { outline:1px solid #ffcf3f; }
   .item .nm { flex:1; }
   .item button { padding:1px 6px; font-size:11px; }
-  .prop { display:grid; grid-template-columns: 6em 1fr 3.5em; gap:4px 6px; align-items:center; }
+  .prop { display:grid; grid-template-columns: 6em 1fr 4.6em; gap:4px 6px; align-items:center; }
   .prop .v { color:#ffcf3f; text-align:right; font-variant-numeric:tabular-nums; }
+  .prop input.numv { width:100%; background:#1b2030; color:#ffcf3f; border:1px solid #3a4562; border-radius:6px; padding:2px 4px; text-align:right; font:inherit; font-variant-numeric:tabular-nums; }
   .note { color:#98a3b8; font-size:12px; }
   #msg { color:#3ddc84; font-size:12px; min-width:12em; }
   .petals { position:absolute; inset:0; pointer-events:none; overflow:hidden; }
@@ -170,6 +171,17 @@ HTML = r'''<!doctype html>
 </div>
 <script>
 const IMG = __IMG__, ASPECT = __ASPECT__, SAVED = __SAVED__;
+// スライダー + 数値の欄。数値は直接打てて、スライダーの範囲外も受け付ける
+function numRow(grid, label, value, mn, mx, st, onChange) {
+  const a = document.createElement('div'); a.textContent = label; grid.appendChild(a);
+  const r = document.createElement('input'); r.type = 'range'; r.min = mn; r.max = mx; r.step = st; r.value = value; grid.appendChild(r);
+  const n = document.createElement('input'); n.type = 'number'; n.className = 'numv'; n.step = st; n.value = value; grid.appendChild(n);
+  const dec = st < 0.01 ? 3 : st < 1 ? 2 : 0;
+  r.oninput = () => { const v = +r.value; n.value = v.toFixed(dec); onChange(v); };
+  n.onchange = () => { const v = +n.value; if (isNaN(v)) return; r.value = v; onChange(v); };
+  n.onkeydown = ev => { if (ev.key === 'Enter') { n.blur(); } ev.stopPropagation(); };
+  return { set: v => { r.value = v; n.value = (+v).toFixed(dec); } };
+}
 const BW = 1847, BH = 851;                   // 板（元絵の比）
 const PHONE = 2556 / 1179;                   // 見える範囲: 板を高さ合わせで覆い、横をこの比で切る
 const MOTIONS = { none:'なし', float:'ゆっくり上下', drift:'漂う（現状）', sway:'左右に振れる', breathe:'脈だけ', orbit:'小さな円', figure8:'8 の字', tilt:'傾くだけ' };
@@ -267,12 +279,8 @@ function renderPetalProps() {
   const addRow = (label, el, v) => { const a = document.createElement('div'); a.textContent = label; p.appendChild(a); p.appendChild(el); const s = document.createElement('div'); s.className = 'v'; s.textContent = v; p.appendChild(s); return s; };
   const bc = document.createElement('input'); bc.type = 'checkbox'; bc.checked = !!petals.behindChar; bc.onchange = () => { petals.behindChar = bc.checked; buildPetals(); };
   addRow('立ち絵の後ろ', bc, '');
-  for (const [k, label, mn, mx, st] of PFIELDS) {
-    const r = document.createElement('input'); r.type = 'range'; r.min = mn; r.max = mx; r.step = st; r.value = petals[k];
-    const fmt = v => (+v).toFixed(st < 0.1 ? 2 : st < 1 ? 2 : 0);
-    const sv = addRow(label, r, fmt(petals[k]));
-    r.oninput = () => { petals[k] = +r.value; sv.textContent = fmt(r.value); if (['count','orbs','blur','glow','glowSize'].includes(k)) buildPetals(); };
-  }
+  for (const [k, label, mn, mx, st] of PFIELDS)
+    numRow(p, label, petals[k], mn, mx, st, v => { petals[k] = v; if (['count','orbs','blur','glow','glowSize'].includes(k)) buildPetals(); });
 }
 let sel = 0, zoom = 0.6, t = 0, speed = 1, anim = true, dragging = null;
 
@@ -366,7 +374,7 @@ function uiRenderProps() {
   if (!d) return;
   const e = ui[d.id];
   const row = (label, el, v) => { const a = document.createElement('div'); a.textContent = label; p.appendChild(a); p.appendChild(el); const s = document.createElement('div'); s.className = 'v'; s.textContent = v ?? ''; p.appendChild(s); return s; };
-  const num = (k, label, mn, mx, st) => { const r = document.createElement('input'); r.type = 'range'; r.min = mn; r.max = mx; r.step = st; r.value = e[k]; const sv = row(label, r, Math.round(e[k])); r.oninput = () => { e[k] = +r.value; if (k === 'w' && d.keepAspect) e.h = e.w * d.h / d.w; sv.textContent = Math.round(e[k]); uiPlace(d.id); }; };
+  const num = (k, label, mn, mx, st) => numRow(p, label, e[k], mn, mx, st, v => { e[k] = v; if (k === 'w' && d.keepAspect) e.h = e.w * d.h / d.w; uiPlace(d.id); });
   num('x', 'x', -480, 480, 1); num('y', 'y', -270, 270, 1); num('w', '幅', 20, 960, 1);
   if (!d.keepAspect) num('h', '高さ', 12, 540, 1);
   if (d.kind === 'pill') {
@@ -476,11 +484,8 @@ function renderProps() {
   const addRow = (label, el, v) => { const a = document.createElement('div'); a.textContent = label; p.appendChild(a); p.appendChild(el); const s = document.createElement('div'); s.className = 'v'; s.textContent = v; p.appendChild(s); return s; };
   const ms = document.createElement('select'); for (const [k, n] of Object.entries(MOTIONS)) { const o = document.createElement('option'); o.value = k; o.textContent = n; ms.appendChild(o); } ms.value = l.motion; ms.onchange = () => { l.motion = ms.value; };
   addRow('揺れ方', ms, '');
-  for (const [k, label, mn, mx, st] of FIELDS) {
-    const r = document.createElement('input'); r.type = 'range'; r.min = mn; r.max = mx; r.step = st; r.value = l[k];
-    const s = addRow(label, r, (+l[k]).toFixed(st < 0.01 ? 3 : st < 1 ? 2 : 0));
-    r.oninput = () => { l[k] = +r.value; s.textContent = (+r.value).toFixed(st < 0.01 ? 3 : st < 1 ? 2 : 0); frame(); };
-  }
+  for (const [k, label, mn, mx, st] of FIELDS)
+    numRow(p, label, l[k], mn, mx, st, v => { l[k] = v; frame(); });
   const fr = document.createElement('input'); fr.type = 'checkbox'; fr.checked = !!l.front; fr.onchange = () => { l.front = fr.checked; rebuild(); };
   addRow('立ち絵より手前', fr, '');
 }
