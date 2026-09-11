@@ -1,76 +1,22 @@
 {
   "version": 1,
   "layers": [
-    {
-      "name": "sky_mountains_cloudsea",
-      "x": 0,
-      "y": 0,
-      "scale": 1,
-      "motion": "none",
-      "ampX": 1,
-      "ampY": 0.5,
-      "period": 20,
-      "phase": 0,
-      "breathe": 0,
-      "rot": 0,
-      "alpha": 1,
-      "front": false,
-      "visible": true
-    },
-    {
-      "name": "castle_mountains_lake",
-      "x": -0.09,
-      "y": 0.01,
-      "scale": 0.86,
-      "motion": "sway",
-      "ampX": 0.1,
-      "ampY": 0.5,
-      "period": 20,
-      "phase": 0,
-      "breathe": 0,
-      "rot": 0,
-      "alpha": 1,
-      "front": false,
-      "visible": true
-    },
-    {
-      "name": "terrace_balcony",
-      "x": -0.025,
-      "y": 0.06,
-      "scale": 1.14,
-      "motion": "drift",
-      "ampX": 0.2,
-      "ampY": 0,
-      "period": 20,
-      "phase": 0,
-      "breathe": 0,
-      "rot": 0,
-      "alpha": 1,
-      "front": false,
-      "visible": true
-    }
+    { "name": "sky_mountains_cloudsea", "x": 0, "y": 0, "scale": 1, "motion": "none", "ampX": 1, "ampY": 0.5, "period": 20, "phase": 0, "breathe": 0, "rot": 0, "alpha": 1, "front": false, "visible": true },
+    { "name": "castle_mountains_lake", "x": -0.09, "y": 0.01, "scale": 0.86, "motion": "sway", "ampX": 0.1, "ampY": 0.5, "period": 20, "phase": 0, "breathe": 0, "rot": 0, "alpha": 1, "front": false, "visible": true },
+    { "name": "terrace_balcony", "x": -0.025, "y": 0.06, "scale": 1.14, "motion": "drift", "ampX": 0.2, "ampY": 0, "period": 20, "phase": 0, "breathe": 0, "rot": 0, "alpha": 1, "front": false, "visible": true }
   ],
   "petals": {
-    "count": 30,
-    "orbs": 37,
-    "sizeMin": 8,
-    "sizeMax": 48,
-    "alpha": 1,
-    "blur": 1,
-    "glow": 0.6,
-    "glowSize": 2.4,
-    "fallMin": 15,
-    "fallMax": 73,
-    "driftMin": 11,
-    "driftMax": 36,
-    "spin": 70,
-    "flutter": 60,
-    "behindChar": false,
-    "charMask": 0.8,
-    "charX": 0.15,
-    "charY": 0.24,
-    "charW": 0.14,
-    "charH": 0.27,
-    "orbAlpha": 0.65
-  }
+    "count": 30, "orbs": 37, "sizeMin": 8, "sizeMax": 48, "alpha": 1, "blur": 1, "glow": 0.6, "glowSize": 2.4,
+    "fallMin": 15, "fallMax": 73, "driftMin": 11, "driftMax": 36, "spin": 70, "flutter": 60,
+    "behindChar": false, "charMask": 0.8, "charX": 0.15, "charY": 0.24, "charW": 0.14, "charH": 0.27, "orbAlpha": 0.65
+  },
+  "ui": {
+    "logo":         { "x": -200, "y": 89,   "w": 490, "h": 284, "frame": "", "icon": "", "label": "", "font": 13, "iconSize": 18, "iconX": 26, "labelX": 0, "visible": true },
+    "tap":          { "x": -198, "y": -111, "w": 420, "h": 85,  "frame": "", "icon": "", "label": "", "font": 13, "iconSize": 18, "iconX": 26, "labelX": 0, "visible": true },
+    "pillNews":     { "x": -356, "y": -200, "w": 140, "h": 40, "frame": "pill_navy_sm", "icon": "bell",  "label": "お知らせ", "font": 13, "iconSize": 18, "iconX": 26, "labelX": 3, "visible": true },
+    "pillConfig":   { "x": -204, "y": -200, "w": 140, "h": 40, "frame": "pill_navy_sm", "icon": "gear",  "label": "設定",     "font": 13, "iconSize": 18, "iconX": 26, "labelX": 3, "visible": true },
+    "pillTransfer": { "x": -49,  "y": -200, "w": 140, "h": 40, "frame": "pill_navy_sm", "icon": "chain", "label": "引き継ぎ", "font": 13, "iconSize": 18, "iconX": 26, "labelX": 3, "visible": true },
+    "menu":         { "x": 506,  "y": 211,  "w": 44,  "h": 44, "frame": "", "icon": "", "label": "≡", "font": 22, "iconSize": 18, "iconX": 22, "labelX": 0, "visible": true }
+  },
+  "guide": { "show": false, "snap": true, "center": true, "edges": false, "marginX": 24, "marginY": 22, "padding": 12, "snapDist": 6, "gridStep": 0 }
 }
