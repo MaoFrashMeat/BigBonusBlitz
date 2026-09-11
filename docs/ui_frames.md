@@ -121,8 +121,11 @@ python tools/ui/cut_sheets.py --install      # 切り出して Resources/Art/UI/
 
 ## 3. 関連
 
-- **触って直すなら `docs/ui_editor.html`**（ダブルクリックで開く）。
-  枠を掴んで動かし、重なりをその場で見て、結果を C# の定数として書き出せる
+- **触って直すなら `tools/ui_viewer.html`**。`python tools/ui_server.py` を起動して
+  http://localhost:8765/ui_viewer.html を開くと、枠をドラッグで動かし、角で大きさを変え、枠の絵を選び、
+  「保存」で `Assets/Resources/Data/ui_layout.json` に書ける。Unity は次の Play でそれを読む（`UiLayout.cs`）。
+  ファイルを消せばコードの既定値に戻る。作り直しは `python tools/gen_ui_viewer.py`
+- `docs/ui_editor.html` は前の版（C# の定数を逆算する方式）。残してあるが、今は上を使う
 - 配置の検算: `docs/check_layout.py`（重なりとはみ出しを見る）
 - 枠の見え方の確認: `docs/preview_skin.py` / タイトルは `docs/preview_title.py`
 - UI の作法: `docs/ui_rules.md`

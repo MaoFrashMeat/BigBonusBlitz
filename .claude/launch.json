@@ -5,11 +5,8 @@
       "name": "tools-static",
       "runtimeExecutable": "python",
       "runtimeArgs": [
-        "-m",
-        "http.server",
-        "8765",
-        "--directory",
-        "tools"
+        "tools/ui_server.py",
+        "8765"
       ],
       "port": 8765
     }

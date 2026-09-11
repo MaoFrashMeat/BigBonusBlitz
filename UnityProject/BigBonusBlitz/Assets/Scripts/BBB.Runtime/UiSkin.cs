@@ -711,12 +711,16 @@ namespace BBB.Runtime
         /// 板（カード）。黒鉄の板に焼けた縁を付け、外へ灯りをにじませる。
         /// 角の丸みは小さく固定する（板なので、丸いと鉄に見えない）。
         /// </summary>
-        public static RectTransform Card(Transform parent, string name, Vector2 pos, Vector2 size, int radius = 12, Color? color = null, bool edge = true, bool shadow = true, bool sheen = true)
+        /// <summary>
+        /// frameOverride: null = 自動（画像があれば panel_navy）/ "none" = 手続き描画 / それ以外 = その枠の絵。
+        /// ui_layout.json の frame がここに来る。
+        /// </summary>
+        public static RectTransform Card(Transform parent, string name, Vector2 pos, Vector2 size, int radius = 12, Color? color = null, bool edge = true, bool shadow = true, bool sheen = true, string frameOverride = null)
         {
             var root = Rect(parent, name, pos, size);
             int r = Mathf.Clamp(radius, 2, 6);          // 鉄板なので角は立てる
             // 画像の枠（紺地に金縁）があればそれを使う。色は板の絵に含まれているので color は見ない
-            var frame = Frame("panel_navy");
+            var frame = frameOverride == "none" ? null : Frame(frameOverride ?? "panel_navy");
             if (frame != null)
             {
                 if (shadow) Img(root, "Shadow", new Vector2(0, -5), size + new Vector2(20, 20), Shadow(r, 12), new Color(0, 0, 0, 0.55f));
@@ -755,11 +759,12 @@ namespace BBB.Runtime
         }
 
         /// <summary>くぼんだ表示器（数値・リール窓の下地）。</summary>
+        /// <summary>frameName: 枠の絵の名前。"none" か null で手続き描画。</summary>
         public static RectTransform Inset(Transform parent, string name, Vector2 pos, Vector2 size, int radius = 8, Color? color = null, string frameName = "slot_navy")
         {
             var root = Rect(parent, name, pos, size);
             // 画像の枠があればそれを使う。色の指定があるときは、枠の内側だけをその色で塗る（リール窓の暗さなど）
-            var frame = Frame(frameName ?? "");
+            var frame = string.IsNullOrEmpty(frameName) || frameName == "none" ? null : Frame(frameName);
             if (frame != null)
             {
                 Img(root, "Body", Vector2.zero, size, frame, Color.white);
@@ -787,16 +792,17 @@ namespace BBB.Runtime
         }
 
         /// <summary>角丸ボタン（影・光沢・押下色つき）。上辺の LED は lamp に返す（null 可）。</summary>
-        public static Button Button(Transform parent, string name, Vector2 pos, Vector2 size, string text, System.Action onClick, Color color, int fontSize = 18, bool lamp = false, int radius = 10)
+        /// <summary>frameOverride: null = 自動（色と大きさから選ぶ）/ "none" = 手続き描画 / それ以外 = その枠の絵。</summary>
+        public static Button Button(Transform parent, string name, Vector2 pos, Vector2 size, string text, System.Action onClick, Color color, int fontSize = 18, bool lamp = false, int radius = 10, string frameOverride = null)
         {
             var root = Rect(parent, name, pos, size);
             Img(root, "Shadow", new Vector2(0, -4), size + new Vector2(16, 16), Shadow(radius, 10), new Color(0, 0, 0, 0.5f));
             Image body;
-            var frame = Frame(ButtonFrameFor(color, size));
+            var frame = frameOverride == "none" ? null : Frame(frameOverride ?? ButtonFrameFor(color, size));
             if (frame != null)
             {
                 // 画像の枠。色は絵に含まれているので、押したときだけ暗く掛ける
-                bool small = size.x < 110f || size.y < 40f;
+                bool small = frameOverride == null ? (size.x < 110f || size.y < 40f) : frameOverride == "pill_navy_sm";
                 var tint = small ? SmallFrameTint(color) : Color.white;
                 body = Img(root, "Body", Vector2.zero, size, frame, tint, true);
                 var label0 = UiFactory.Label(root, "Label", Vector2.zero, size, text, fontSize, TextAnchor.MiddleCenter, Text);
