@@ -36,6 +36,9 @@ namespace BBB.Runtime
         static readonly Color ColAccent = UiSkin.Accent;
         static readonly Color ColGold = UiSkin.Gold;
         static readonly Color ColBtn = UiSkin.Btn;
+        /// <summary>クリーム地の板に書く文字（白だと読めない）。</summary>
+        static readonly Color ColInk = UiSkin.Hex("#2b2f45");
+        static readonly Color ColInkSub = UiSkin.Hex("#6b7088");
 
         private Canvas _canvas;
         private SafeStage _safe;
@@ -49,6 +52,7 @@ namespace BBB.Runtime
         private CanvasGroup _fade;
         private Button _btnContinue, _btnNew;
         private GameObject _settingsBox;
+        private GameObject _newsBox;
         private bool _starting;
         private bool _hasSave;
         private float _confirmUntil;   // 「はじめから」2度押し確認の期限
@@ -213,7 +217,7 @@ namespace BBB.Runtime
 
             // 下の丸ボタン 3 つ
             float px = -StageW * 0.5f + 24 + PillW * 0.5f;
-            Pill(stage, "News", TitleUiLayout.Get("pillNews", px, PillY, PillW, PillH, "bell", "お知らせ", "pill_navy_sm"), () => Notice("お知らせは準備中です"));
+            Pill(stage, "News", TitleUiLayout.Get("pillNews", px, PillY, PillW, PillH, "bell", "お知らせ", "pill_navy_sm"), ToggleNews);
             px += PillW + 12f;
             Pill(stage, "Config", TitleUiLayout.Get("pillConfig", px, PillY, PillW, PillH, "gear", "設定", "pill_navy_sm"), ToggleSettings);
             px += PillW + 12f;
@@ -233,6 +237,8 @@ namespace BBB.Runtime
             Shade(cp1); Shade(cp2);
 
             BuildSettings(stage);
+
+            BuildNews(stage);
 
             // 暗転用（最前面）
             var fadeRt = UiFactory.Panel(root, "Fade", Vector2.zero, new Vector2(4000, 4000), Color.black);
@@ -299,32 +305,84 @@ namespace BBB.Runtime
             _confirmUntil = Time.time + 3f;
         }
 
-        // ------------------------------------------------------------ 設定
-        private void BuildSettings(Transform stage)
+        // ------------------------------------------------------------ 窓（設定・お知らせ）
+        /// <summary>
+        /// クリーム地に金縁の板（panel_cream_sm）。左上に紺のタブ（pill_navy_sm）を乗せて題を書く
+        /// （frames_V2 の panel_cream_tab と同じ組み。紺の板は隅の飾りが大きく、題が隠れていた）。
+        /// 中身は縁（左右 22px・上下 20px）とタブぶんを避けて置く。
+        /// </summary>
+        private RectTransform Modal(Transform stage, string name, string title, Vector2 size, System.Action onClose, out GameObject box)
         {
-            var overlay = UiFactory.Panel(stage, "SettingsOverlay", Vector2.zero, new Vector2(4000, 4000), new Color(0, 0, 0, 0.62f));
+            var overlay = UiFactory.Panel(stage, name + "Overlay", Vector2.zero, new Vector2(4000, 4000), new Color(0, 0, 0, 0.62f));
             var close = overlay.gameObject.AddComponent<Button>();
             close.transition = Selectable.Transition.None;
-            close.onClick.AddListener(ToggleSettings);
-            var card = UiSkin.Card(overlay, "Card", Vector2.zero, new Vector2(400, 210), 14);
+            close.onClick.AddListener(() => onClose());
+            var card = UiSkin.Card(overlay, "Card", Vector2.zero, size, 14, frameOverride: "panel_cream_sm");
             var eat = card.gameObject.AddComponent<Button>();      // 中を押しても閉じない
             eat.transition = Selectable.Transition.None;
-            var title = UiFactory.Label(card, "Title", new Vector2(-14, 76), new Vector2(320, 24), "設定", 15, TextAnchor.MiddleLeft, ColText);
-            title.fontStyle = FontStyle.Bold;
-            UiSkin.Img(card, "Line", new Vector2(0, 60), new Vector2(368, 1), null, new Color(1, 1, 1, 0.08f));
-            UiSkin.IconButton(card, "Close", new Vector2(178, 76), 28, "×", ToggleSettings, ColBtn, 16);
+            const float tabW = 150f, tabH = 40f;
+            var tab = UiSkin.Img(card, "Tab", new Vector2(-size.x * 0.5f + 22 + tabW * 0.5f, size.y * 0.5f - 4), new Vector2(tabW, tabH), UiSkin.Frame("pill_navy_sm"), Color.white);
+            var t = UiFactory.Label(tab.transform, "Title", new Vector2(0, 1), new Vector2(tabW, tabH), title, 15, TextAnchor.MiddleCenter, ColText);
+            t.fontStyle = FontStyle.Bold;
+            UiSkin.IconButton(card, "Close", new Vector2(size.x * 0.5f - 22, size.y * 0.5f - 4), 30, "×", () => onClose(), ColBtn, 16);
+            box = overlay.gameObject;
+            box.SetActive(false);
+            return card;
+        }
 
-            UiFactory.Label(card, "BgmLabel", new Vector2(-140, 26), new Vector2(60, 20), "BGM", 12, TextAnchor.MiddleLeft, ColTextSub);
-            var bgm = UiFactory.Slider(card, "BgmSlider", new Vector2(30, 26), new Vector2(230, 20), _audio.BgmVolume, v => { _audio.BgmVolume = v; });
+        private void BuildSettings(Transform stage)
+        {
+            var card = Modal(stage, "Settings", "設定", new Vector2(420, 230), ToggleSettings, out _settingsBox);
+
+            UiFactory.Label(card, "BgmLabel", new Vector2(-150, 30), new Vector2(60, 20), "BGM", 13, TextAnchor.MiddleLeft, ColInk).fontStyle = FontStyle.Bold;
+            var bgm = UiFactory.Slider(card, "BgmSlider", new Vector2(35, 30), new Vector2(250, 20), _audio.BgmVolume, v => { _audio.BgmVolume = v; });
             bgm.gameObject.AddComponent<SliderReleaseSound>().OnRelease = () => { _audio.UiPop(); SaveData.SaveAudio(_audio); };
-            UiFactory.Label(card, "SeLabel", new Vector2(-140, -6), new Vector2(60, 20), "SE", 12, TextAnchor.MiddleLeft, ColTextSub);
-            var se = UiFactory.Slider(card, "SeSlider", new Vector2(30, -6), new Vector2(230, 20), _audio.SeVolume, v => { _audio.SeVolume = v; });
+            UiFactory.Label(card, "SeLabel", new Vector2(-150, -4), new Vector2(60, 20), "SE", 13, TextAnchor.MiddleLeft, ColInk).fontStyle = FontStyle.Bold;
+            var se = UiFactory.Slider(card, "SeSlider", new Vector2(35, -4), new Vector2(250, 20), _audio.SeVolume, v => { _audio.SeVolume = v; });
             se.gameObject.AddComponent<SliderReleaseSound>().OnRelease = () => { _audio.UiPop(); SaveData.SaveAudio(_audio); };
-            UiSkin.Button(card, "BgmToggle", new Vector2(0, -52), new Vector2(200, 32), "BGM ON / OFF",
-                () => { _audio.ToggleBgm(); _audio.UiPop(); SaveData.SaveAudio(_audio); }, ColBtn, 12, false, 8);
+            UiSkin.Button(card, "BgmToggle", new Vector2(0, -58), new Vector2(200, 36), "BGM ON / OFF",
+                () => { _audio.ToggleBgm(); _audio.UiPop(); SaveData.SaveAudio(_audio); }, ColBtn, 13, false, 8);
+        }
 
-            _settingsBox = overlay.gameObject;
-            _settingsBox.SetActive(false);
+        /// <summary>お知らせ。Resources/Data/news.txt（直した内容の一覧）をそのまま出す。長ければ縦に送る。</summary>
+        private void BuildNews(Transform stage)
+        {
+            var size = new Vector2(560, 340);
+            var card = Modal(stage, "News", "お知らせ", size, ToggleNews, out _newsBox);
+            var body = Resources.Load<TextAsset>("Data/news");
+            string text = body != null ? body.text.Replace("\r", "") : "お知らせはまだありません";
+
+            // 縁とタブを避けた窓。はみ出しはマスクで切り、ScrollRect で送る
+            var view = UiSkin.Img(card, "View", new Vector2(0, -22), new Vector2(size.x - 60, size.y - 96), null, new Color(0, 0, 0, 0.001f), true);
+            var mask = view.gameObject.AddComponent<Mask>();
+            mask.showMaskGraphic = false;
+            var content = new GameObject("Content", typeof(RectTransform)).GetComponent<RectTransform>();
+            content.SetParent(view.transform, false);
+            content.anchorMin = new Vector2(0, 1); content.anchorMax = new Vector2(1, 1); content.pivot = new Vector2(0.5f, 1);
+            content.anchoredPosition = Vector2.zero;
+            var label = UiFactory.Label(content, "Text", Vector2.zero, Vector2.zero, text, 12, TextAnchor.UpperLeft, ColInk);
+            var lrt = label.rectTransform;
+            lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one; lrt.sizeDelta = Vector2.zero;
+            label.horizontalOverflow = HorizontalWrapMode.Wrap;
+            label.verticalOverflow = VerticalWrapMode.Overflow;
+            label.lineSpacing = 1.25f;
+            // 文の高さぶんだけ Content を伸ばす
+            var fit = content.gameObject.AddComponent<ContentSizeFitter>();
+            fit.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            var lf = content.gameObject.AddComponent<VerticalLayoutGroup>();
+            lf.childControlHeight = true; lf.childControlWidth = true; lf.childForceExpandHeight = false;
+            var scroll = view.gameObject.AddComponent<ScrollRect>();
+            scroll.content = content; scroll.viewport = view.rectTransform;
+            scroll.horizontal = false; scroll.vertical = true;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.scrollSensitivity = 24f;
+        }
+
+        private void ToggleNews()
+        {
+            if (_newsBox == null) return;
+            _newsBox.SetActive(!_newsBox.activeSelf);
+            _audio.UiPop();
         }
 
         private void ToggleSettings()
@@ -376,7 +434,7 @@ namespace BBB.Runtime
             }
             if (_confirm != null && _confirm.text.Length > 0 && Time.time > _confirmUntil) _confirm.text = "";
 
-            if (_starting || (_settingsBox != null && _settingsBox.activeSelf)) return;
+            if (_starting || (_settingsBox != null && _settingsBox.activeSelf) || (_newsBox != null && _newsBox.activeSelf)) return;
             var kb = Keyboard.current;
             if (kb == null) return;
             if (kb.spaceKey.wasPressedThisFrame || kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame)
