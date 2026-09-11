@@ -1295,6 +1295,12 @@
     "5": 25,
     "6": 15
   },
+  "bonusBell": {
+    "naviRate": 60,
+    "naviCorrectPayout": 11,
+    "naviWrongPayout": 3,
+    "commonBellPayout": 8
+  },
   "defeatStreakBonus": 15,
   "expPerDefeat": 50,
   "defaultHintConfig": {

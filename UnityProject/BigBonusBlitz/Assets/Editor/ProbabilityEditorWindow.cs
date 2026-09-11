@@ -694,6 +694,26 @@ public sealed class ProbabilityEditorWindow : EditorWindow
         int wp = at["naviWrongPayout"]?.Value<int>() ?? 3;
         int nwp = EditorGUILayout.IntField("ナビを外したときの払い出し（こぼし）", wp, GUILayout.Width(300));
         if (nwp != wp) { at["naviWrongPayout"] = Math.Max(0, nwp); _dirty = true; }
+
+        EditorGUILayout.Space(6);
+        EditorGUILayout.LabelField("ボーナス中のベル（押し順ナビ）", EditorStyles.boldLabel);
+        var bb = (JObject)_game["bonusBell"];
+        if (bb == null)
+        {
+            bb = new JObject { ["naviRate"] = 60, ["naviCorrectPayout"] = 11, ["naviWrongPayout"] = 3, ["commonBellPayout"] = 8 };
+            _game["bonusBell"] = bb; _dirty = true;
+        }
+        int bbr = bb["naviRate"]?.Value<int>() ?? 60;
+        int nbbr = EditorGUILayout.IntSlider("ナビが出る率 %", bbr, 0, 100);
+        if (nbbr != bbr) { bb["naviRate"] = nbbr; _dirty = true; }
+        foreach (var (key, label) in new[] {
+            ("naviCorrectPayout", "ナビ正解の払い出し"), ("naviWrongPayout", "ナビを外したときの払い出し"),
+            ("commonBellPayout", "共通ベル（ナビ無し）の払い出し") })
+        {
+            int v = bb[key]?.Value<int>() ?? 0;
+            int nv = EditorGUILayout.IntField(label, v, GUILayout.Width(300));
+            if (nv != v) { bb[key] = Math.Max(0, nv); _dirty = true; }
+        }
         bool bc = at["battleConsumesAtSpins"]?.Value<bool>() ?? false;
         bool nbc = EditorGUILayout.ToggleLeft("狩猟中も AT の残りGを消費する", bc);
         if (nbc != bc) { at["battleConsumesAtSpins"] = nbc; _dirty = true; }

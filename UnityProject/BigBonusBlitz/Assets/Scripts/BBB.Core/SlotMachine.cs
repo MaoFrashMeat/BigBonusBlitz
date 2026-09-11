@@ -408,6 +408,13 @@ namespace BBB.Core
                 AtBellHasNavi = _rng.NextDouble() * 100 < Math.Max(0, Math.Min(100, rate));
                 if (AtBellHasNavi) Navi2 = new AtNavi { Active = true, first = _rng.Next(3) };
             }
+            // ボーナス中のベルにも押し順ナビ。出なかったベルは共通ベルとして少なめに払う
+            if (BonusMode != BonusMode.NORMAL && CurrentFlag.IsBell())
+            {
+                var bb0 = Config.bonusBell ?? new BonusBellConfig();
+                if (_rng.NextDouble() * 100 < Math.Max(0, Math.Min(100, bb0.naviRate)))
+                    Navi2 = new AtNavi { Active = true, first = _rng.Next(3) };
+            }
 
             // ベル択ナビ: エンゲージ中のベル当選時だけ
             if (IsTier2 && EnemyActive && !InAt && BonusMode == BonusMode.NORMAL && CurrentFlag.IsBell())
@@ -714,6 +721,18 @@ namespace BBB.Core
                     result.naviCorrect = ok;
                 }
                 else win.payout = Math.Max(0, atNavi.commonBellPayout);   // 共通ベル
+            }
+            // ボーナス中のベル: ナビ通りなら多め、外せばこぼし、ナビ無しは共通ベル
+            if (BonusMode != BonusMode.NORMAL && win.winType == WinType.BELL)
+            {
+                var bb = Config.bonusBell ?? new BonusBellConfig();
+                if (Navi2.Active)
+                {
+                    bool ok = PressOrder.Count > 0 && PressOrder[0] == Navi2.first;
+                    win.payout = Math.Max(0, ok ? bb.naviCorrectPayout : bb.naviWrongPayout);
+                    result.naviCorrect = ok;
+                }
+                else win.payout = Math.Max(0, bb.commonBellPayout);
             }
             result.win = win;
 

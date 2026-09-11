@@ -1,7 +1,26 @@
+﻿using System;
 using System.Collections.Generic;
 
 namespace BBB.Core
 {
+    /// <summary>
+    /// ボーナス中のベルの払い出し。AT と同じく「押し順ナビ」で差を付ける。
+    /// ナビが出たベルは従えば naviCorrectPayout、外せば naviWrongPayout。
+    /// ナビが出ないベルは共通ベルとして commonBellPayout。
+    /// </summary>
+    [Serializable]
+    public sealed class BonusBellConfig
+    {
+        /// <summary>押し順ナビが出る率 %。</summary>
+        public int naviRate = 60;
+        /// <summary>ナビに従ったときの払い出し。</summary>
+        public int naviCorrectPayout = 11;
+        /// <summary>ナビを外したときの払い出し（こぼし）。</summary>
+        public int naviWrongPayout = 3;
+        /// <summary>ナビの出ないベル（共通ベル）の払い出し。</summary>
+        public int commonBellPayout = 8;
+    }
+
     /// <summary>game_config.json（settings.js の CONFIG から変換）。</summary>
     public sealed class GameConfig
     {
@@ -32,6 +51,8 @@ namespace BBB.Core
         public Dictionary<string, int> bonusPrecursorSpins = new Dictionary<string, int> { ["3"] = 30, ["4"] = 30, ["5"] = 25, ["6"] = 15 };
         /// <summary>天井到達時に成立させるボーナスの重み（フラグ名 → 重み）。</summary>
         public Dictionary<string, int> ceilingBonus = new Dictionary<string, int> { ["BB_A"] = 50, ["RB_A"] = 50 };
+        /// <summary>ボーナス中のベル。押し順ナビが出れば従って多め、出なければ共通ベルで少なめ。</summary>
+        public BonusBellConfig bonusBell = new BonusBellConfig();
         /// <summary>ENEMY 当選から敵が出現するまでの前兆G数（このG数目の終わりに出現）。</summary>
         public int enemyPrecursorSpins = 3;
         /// <summary>Tier2中に小役を連続で引くごとに討伐率へ加算する %（2連目 +1倍、3連目 +2倍）。ハズレでリセット。</summary>

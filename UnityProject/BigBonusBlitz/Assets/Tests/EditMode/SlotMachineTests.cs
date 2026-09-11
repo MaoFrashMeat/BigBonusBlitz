@@ -1,4 +1,4 @@
-using BBB.Core;
+﻿using BBB.Core;
 using BBB.Runtime;
 using NUnit.Framework;
 
@@ -158,6 +158,45 @@ namespace BBB.Tests
             var stopped = new Symbol[3][];
             var res = SlipController.Stop(m.Strips, 0, missIdx, Flag.CHERRY_A, Flag.HAZE, stopped);
             CollectionAssert.DoesNotContain(res.symbols, Symbol.CHERRY);
+        }
+
+        [Test]
+        public void ボーナス中のベル_ナビ通りなら多め_外せばこぼし_ナビ無しは共通ベル()
+        {
+            var m = NewMachine(27);
+            var push = new SystemRandom(5);
+            var bb = m.Config.bonusBell;
+            Assert.IsNotNull(bb, "bonusBell が読めていない");
+            Assert.Greater(bb.naviCorrectPayout, bb.commonBellPayout, "ナビ正解が共通ベルより少ない");
+            m.Credit = 1_000_000;
+            m.BonusMode = BonusMode.BB;
+            m.BonusPayoutTarget = 1_000_000;      // ボーナスを終わらせない
+
+            int naviOk = 0, naviMiss = 0, common = 0;
+            for (int g = 0; g < 300; g++)
+            {
+                if (m.BonusMode != BonusMode.BB) { m.BonusMode = BonusMode.BB; m.BonusEarned = 0; }
+                Assert.IsTrue(m.MaxBet());
+                m.DebugForceFlag = Flag.BELL_A;
+                m.Lever();
+                Assert.IsTrue(m.CurrentFlag.IsBell(), "ベルを強制できていない");
+                bool navi = m.Navi2.Active;
+                int first = m.Navi2.first;
+                // 偶数Gは従い、奇数Gはわざと外す
+                bool follow = (g % 2) == 0;
+                int lead = navi ? (follow ? first : (first + 1) % 3) : 0;
+                var order = new System.Collections.Generic.List<int> { lead };
+                for (int i = 0; i < 3; i++) if (i != lead) order.Add(i);
+                foreach (int i in order) m.Stop(i, push.Next(20));
+                var r = m.Evaluate();
+                Assert.AreEqual(WinType.BELL, r.win.winType, $"ベルが揃っていない (G{g})");
+                if (!navi) { Assert.AreEqual(bb.commonBellPayout, r.win.payout, "共通ベルの払い出しが違う"); common++; }
+                else if (follow) { Assert.AreEqual(bb.naviCorrectPayout, r.win.payout, "ナビ通りの払い出しが違う"); naviOk++; }
+                else { Assert.AreEqual(bb.naviWrongPayout, r.win.payout, "ナビを外した払い出しが違う"); naviMiss++; }
+            }
+            Assert.Greater(naviOk, 20, "ナビ通りのベルが出ていない");
+            Assert.Greater(naviMiss, 20, "ナビを外したベルが出ていない");
+            Assert.Greater(common, 20, "共通ベルが出ていない");
         }
 
         [Test]
