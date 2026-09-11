@@ -14,7 +14,7 @@ namespace BBB.Runtime
         private const float NodeD = 46f;
 
         /// <summary>size の枠に収めて描く。戻り値は再描画用に破棄できるルート。</summary>
-        public static RectTransform Build(Transform parent, AdventureConfig cfg, AdventureState st, Vector2 size)
+        public static RectTransform Build(Transform parent, AdventureConfig cfg, AdventureState st, Vector2 size, bool overview = false)
         {
             var root = UiSkin.Rect(parent, "StageMap", Vector2.zero, size);
             if (cfg?.nodes == null || cfg.nodes.Count == 0)
@@ -34,12 +34,12 @@ namespace BBB.Runtime
                 byCol[c].Add(n);
             }
             var pos = new Dictionary<string, Vector2>();
-            float padX = 54f, usableW = size.x - padX * 2;
+            float padX = overview ? 24f : 54f, usableW = size.x - padX * 2;
             // 一番多い列に合わせて丸の大きさを決める（枝が多いほど小さくなる）
             int maxRows = 1;
             foreach (var c in columns) maxRows = Mathf.Max(maxRows, byCol[c].Count);
-            float usableH = size.y - 46f;
-            float nodeD = Mathf.Clamp(usableH / maxRows - 10f, 16f, NodeD);
+            float usableH = size.y - (overview ? 30f : 46f);
+            float nodeD = Mathf.Clamp(usableH / maxRows - (overview ? 8f : 10f), overview ? 22f : 16f, NodeD);
             float gap = Mathf.Min(120f, usableH / Mathf.Max(1, maxRows));
             for (int ci = 0; ci < columns.Count; ci++)
             {
@@ -51,7 +51,7 @@ namespace BBB.Runtime
                     pos[list[i].id] = new Vector2(x, y);
                 }
                 // 列の見出し
-                UiFactory.Label(root, "Col" + columns[ci], new Vector2(x, size.y * 0.5f - 12), new Vector2(80, 18), columns[ci], 12, TextAnchor.MiddleCenter, UiSkin.TextDim);
+                UiFactory.Label(root, "Col" + columns[ci], new Vector2(x, size.y * 0.5f - (overview ? 3 : 12)), new Vector2(44, 18), columns[ci], overview ? 13 : 12, TextAnchor.MiddleCenter, overview ? UiSkin.Hex("#b7cce7") : UiSkin.TextDim);
             }
 
             bool hide = cfg.hideRoute;
@@ -96,20 +96,21 @@ namespace BBB.Runtime
                 bool been = visited.Contains(n.id);
                 var color = UiSkin.Hex(AdventureDirector.ColorFor(n));
                 var p = pos[n.id];
-                if (here) UiSkin.Img(root, "Glow" + n.id, p, new Vector2(nodeD * 2.4f, nodeD * 2.4f), UiSkin.Glow(96), new Color(color.r, color.g, color.b, 0.55f));
+                if (here) UiSkin.Img(root, "Glow" + n.id, p, new Vector2(nodeD * 1.8f, nodeD * 1.8f), UiSkin.Glow(96), new Color(1, .8f, .3f, .75f));
+                if (here && overview) UiSkin.Img(root, "CurrentHalo" + n.id, p, Vector2.one * (nodeD + 10), UiSkin.Circle(64), UiSkin.Gold);
                 UiSkin.Img(root, "Ring" + n.id, p, new Vector2(nodeD + 5, nodeD + 5), UiSkin.Circle(64), known ? color : new Color(1, 1, 1, 0.12f));
                 UiSkin.Img(root, "Node" + n.id, p, new Vector2(nodeD, nodeD), UiSkin.Circle(64), known ? (been ? color : UiSkin.Panel) : UiSkin.Hex("#141a29"));
                 // 丸が小さいときは段の文字を省いて枝番号だけにする（列見出しで段は分かる）
-                int idFont = nodeD >= 38 ? 12 : (nodeD >= 30 ? 11 : 10);
+                int idFont = overview ? 13 : nodeD >= 38 ? 12 : (nodeD >= 30 ? 11 : 10);
                 string idText = n.id;
-                if (nodeD < 30)
+                if (nodeD < 30 || overview)
                 {
                     int dash = idText.IndexOf('-');
                     if (dash >= 0 && dash + 1 < idText.Length) idText = idText.Substring(dash + 1);
                 }
                 var idLabel = UiFactory.Label(root, "Id" + n.id, p, new Vector2(nodeD + 10, nodeD), known ? idText : "?", idFont, TextAnchor.MiddleCenter, been ? UiSkin.Bg : UiSkin.Text);
                 idLabel.fontStyle = FontStyle.Bold;
-                bool roomy = gap >= 44f;   // 丸が詰まっているときは文字を出さない
+                bool roomy = !overview && gap >= 44f;
                 if (roomy)
                 {
                     string name = known ? n.name : "？？？";
@@ -117,7 +118,7 @@ namespace BBB.Runtime
                     if (known && n.kind != "normal")
                         UiSkin.Chip(root, "Kind" + n.id, p + new Vector2(0, nodeD * 0.5f + 10), new Vector2(38, 15), AdventureDirector.KindLabel(n.kind), color, UiSkin.Bg, 9);
                 }
-                if (here && st != null)
+                if (here && st != null && !overview)
                     UiFactory.Label(root, "Left" + n.id, p + new Vector2(0, -nodeD * 0.5f - (roomy ? 24f : 11f)), new Vector2(110, 14), $"残り {st.spinsLeft}G", 10, TextAnchor.MiddleCenter, UiSkin.Gold);
             }
             return root;

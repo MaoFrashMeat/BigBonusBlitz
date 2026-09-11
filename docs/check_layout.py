@@ -179,31 +179,34 @@ row('ショップの見出し行',
     left=-W / 2, right=W / 2)
 
 # ---------------------------------------------------------------- ミニマップ
-nodeW, nodeH = 250.0, 170.0
-accentH, labelH, descH, btnH, gap, btnBottom = 6.0, 34.0, 38.0, 42.0, 6.0, 16.0
+nodeW, nodeH = 264.0, 180.0
+labelH, descH, btnH, gap, btnBottom = 32.0, 42.0, 48.0, 8.0, 18.0
 top = nodeH / 2
-accentCy = top - accentH / 2
-labelCy = accentCy - accentH / 2 - gap - labelH / 2
-descCy = labelCy - labelH / 2 - 2 - descH / 2
+labelCy = top - 24 - labelH / 2
+descCy = labelCy - labelH / 2 - gap - descH / 2
 btnCy = -top + btnBottom + btnH / 2
 stack('ミニマップの行き先カード',
-      [('帯', accentCy, accentH), ('見出し', labelCy, labelH),
+      [('見出し', labelCy, labelH),
        ('説明', descCy, descH), ('ボタン', btnCy, btnH)],
       top=top, bottom=-top)
 
-purseW = 220.0
+purseW = 224.0
 row('ミニマップのソウル札',
-    [('魂アイコン', -92, 20), ('SOUL', -52 + 26, 52), ('数字', 55, 100)],
+    [('魂アイコン', -90, 36), ('数字', 17, 168)],
     left=-purseW / 2, right=purseW / 2)
+row('V2 map columns', [('actions', -324, 264), ('route', 142, 628)], left=-456, right=456)
+row('V2 footer', [('back', -376, 160), ('life', -180, 196), ('supply', 40, 196), ('ember', 260, 196)], left=-480, right=480)
+stack('V2 map headings', [('chapter',150,28), ('current',124,20), ('columns',104,18), ('nodes',-22,227), ('legend',-158,22)], top=187, bottom=-187)
 
 # ---------------------------------------------------------------- マップの丸
 print('\n■ ステージマップ（枝が最大 8 本のとき）')
-for name, w, h in [('ゲーム中', 700.0, 340.0), ('街', 610.0, 270.0)]:
+for name, w, h in [('ゲーム中', 700.0, 340.0), ('街', 564.0, 258.0)]:
     rows_, cols = 8, 8
-    usableH = h - 46
-    nodeD = max(16.0, min(46.0, usableH / rows_ - 10))
+    overview = name == '街'
+    usableH = h - (30 if overview else 46)
+    nodeD = max(22.0 if overview else 16.0, min(46.0, usableH / rows_ - (8 if overview else 10)))
     g = min(120.0, usableH / rows_)
-    colGap = (w - 108) / (cols - 1)
+    colGap = (w - (48 if overview else 108)) / (cols - 1)
     ok_v, ok_h = g > nodeD + 2, colGap > nodeD + 2
     if not (ok_v and ok_h):
         FAIL.append(f'ステージマップ({name}) の丸が詰まりすぎ')

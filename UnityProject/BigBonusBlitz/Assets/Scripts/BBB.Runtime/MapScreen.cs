@@ -21,6 +21,7 @@ namespace BBB.Runtime
         private SlotMachine _m;
         private CanvasGroup _fade;
         private Text _soulText, _infoText, _stageInfo;
+        private Text _chapterTitle, _hpValue, _torchValue, _emberValue;
         private RectTransform _mapView, _mapPanel;
         private bool _busy;
         private GameObject _shopBox;
@@ -93,26 +94,34 @@ namespace BBB.Runtime
             DrawMapDecor(stage);
 
             // 見出し
-            var title = UiFactory.Label(stage, "Title", new Vector2(0, StageH * 0.5f - 44), new Vector2(StageW, 34), "ミニマップ", 26, TextAnchor.MiddleCenter, UiSkin.Text);
+            MapUiV2.Icon(stage, "compass", new Vector2(-428, 222), 48);
+            var title = UiFactory.Label(stage, "Title", new Vector2(-228, 230), new Vector2(324, 34), "冒険の準備", 28, TextAnchor.MiddleLeft, UiSkin.Text);
             title.fontStyle = FontStyle.Bold;
-            UiFactory.Label(stage, "Sub", new Vector2(0, StageH * 0.5f - 74), new Vector2(StageW, 20), "行き先を選んでください", 13, TextAnchor.MiddleCenter, UiSkin.TextSub);
+            UiFactory.Label(stage, "Sub", new Vector2(-228, 202), new Vector2(324, 22), "街で整えて、次のステージへ", 15, TextAnchor.MiddleLeft, UiSkin.Hex("#c1cee2"));
 
             // ソウル残高
-            var purse = UiSkin.Card(stage, "Purse", new Vector2(StageW * 0.5f - 130, StageH * 0.5f - 52), new Vector2(220, 52), 12);
+            var purse = UiSkin.Rect(stage, "Purse", new Vector2(342, 223), new Vector2(224, 60));
             // 左から順に領域を取る: アイコン → SOUL → 数字（docs/ui_rules.md 1 番）
-            UiSkin.Img(purse, "Icon", new Vector2(-92, 0), new Vector2(20, 20), UiSkin.Icon("soul", 64), Color.white);
-            UiFactory.Label(purse, "L", new Vector2(-52, 0), new Vector2(52, 24), "SOUL", 12, TextAnchor.MiddleLeft, UiSkin.TextSub);
-            _soulText = UiSkin.Number(purse, "V", new Vector2(55, 0), new Vector2(100, 30), "0", 22, UiSkin.Hex("#8f6bff"));
+            MapUiV2.Icon(purse, "crystal", new Vector2(-90, 0), 36);
+            UiFactory.Label(purse, "L", new Vector2(-12, 16), new Vector2(110, 20), "所持ソウル", 14, TextAnchor.MiddleLeft, UiSkin.Hex("#b9cce5"));
+            _soulText = UiFactory.Label(purse, "V", new Vector2(17, -10), new Vector2(168, 30), "0", 26, TextAnchor.MiddleLeft, UiSkin.Hex("#f7d991"));
+            _soulText.fontStyle = FontStyle.Bold;
 
             // 左: 2 つの行き先（縦並び）。右: 冒険のステージマップ
             bool adv = _m.AdventureEnabled;
             if (adv)
             {
-                MapNode(stage, "Town", new Vector2(-330, 78), "街", "ソウルでスキルと装備を買う", UiSkin.Hex("#c8961e"), OpenShop, new Vector2(250, 170));
-                MapNode(stage, "Quest", new Vector2(-330, -104), "冒険", "", UiSkin.Accent, GoAdventure, new Vector2(250, 170));
-                _mapPanel = UiSkin.Card(stage, "MapPanel", new Vector2(140, -32), new Vector2(640, 330), 14);
-                _stageInfo = UiFactory.Label(_mapPanel, "StageInfo", new Vector2(0, 330 * 0.5f - 18), new Vector2(600, 20), "", 13, TextAnchor.MiddleCenter, UiSkin.Text);
+                const float contentTop = 174, cardW = 264, cardH = 180, gap = 14;
+                float leftX = -StageW * .5f + 24 + cardW * .5f;
+                MapNode(stage, "Town", new Vector2(leftX, contentTop - cardH * .5f), "街", "スキルと装備を購入\nソウルを使って強化", UiSkin.Gold, OpenShop, new Vector2(cardW, cardH));
+                MapNode(stage, "Quest", new Vector2(leftX, contentTop - cardH - gap - cardH * .5f), "冒険", "", UiSkin.Accent, GoAdventure, new Vector2(cardW, cardH));
+                float mapLeft = leftX + cardW * .5f + 20, mapW = StageW * .5f - 24 - mapLeft;
+                _mapPanel = MapUiV2.Frame(stage, "MapPanel", new Vector2(mapLeft + mapW * .5f, contentTop - (cardH * 2 + gap) * .5f), new Vector2(mapW, cardH * 2 + gap));
+                _chapterTitle = UiFactory.Label(_mapPanel, "Chapter", new Vector2(0, 150), new Vector2(mapW - 72, 28), "", 20, TextAnchor.MiddleLeft, UiSkin.Text);
+                _chapterTitle.fontStyle = FontStyle.Bold;
+                _stageInfo = UiFactory.Label(_mapPanel, "StageInfo", new Vector2(0, 124), new Vector2(mapW - 72, 20), "", 15, TextAnchor.MiddleLeft, UiSkin.Hex("#f7d991"));
                 _stageInfo.fontStyle = FontStyle.Bold;
+                UiFactory.Label(_mapPanel, "Legend", new Vector2(0, -158), new Vector2(mapW - 72, 22), "● 現在地    ━ 通過ルート    ○ 未到達    ? 未発見", 13, TextAnchor.MiddleCenter, UiSkin.Hex("#d1ddee"));
                 RedrawStageMap();
             }
             else
@@ -121,10 +130,13 @@ namespace BBB.Runtime
                 MapNode(stage, "Quest", new Vector2(190, -20), "冒険", "スロットを回して敵と戦う", UiSkin.Accent, GoAdventure, new Vector2(300, 190));
             }
 
-            _infoText = UiFactory.Label(stage, "Info", new Vector2(0, -StageH * 0.5f + 62), new Vector2(StageW - 80, 22), _arriveMessage, 13, TextAnchor.MiddleCenter, UiSkin.Gold);
+            _infoText = UiFactory.Label(stage, "Info", new Vector2(0, -212), new Vector2(StageW - 64, 22), _arriveMessage, 14, TextAnchor.MiddleCenter, UiSkin.Gold);
 
-            UiSkin.Button(stage, "BtnTitle", new Vector2(-StageW * 0.5f + 90, -StageH * 0.5f + 30), new Vector2(140, 34), "タイトルへ",
-                () => { _audio.UiPop(); StartCoroutine(BackToTitle()); }, UiSkin.Btn, 13, false, 8);
+            MapUiV2.Button(stage, "BtnTitle", new Vector2(-376, -244), new Vector2(160, 44), "タイトルへ", () => { _audio.UiPop(); StartCoroutine(BackToTitle()); }, secondary: true);
+            _hpValue = FooterStat(stage, "heart", -180, _m.Config.adventure?.resource?.hpName ?? "ライフ");
+            _torchValue = FooterStat(stage, "compass", 40, _m.Config.adventure?.resource?.name ?? "補給");
+            _emberValue = FooterStat(stage, "ember", 260, "エンバー");
+            RefreshQuestDesc();
 
             var fadeRt = UiFactory.Panel(root, "Fade", Vector2.zero, new Vector2(4000, 4000), Color.black);
             _fade = fadeRt.gameObject.AddComponent<CanvasGroup>();
@@ -150,22 +162,32 @@ namespace BBB.Runtime
         private void MapNode(Transform parent, string name, Vector2 pos, string label, string desc, Color color, System.Action onClick, Vector2 size)
         {
             float w = size.x, h = size.y;
-            var card = UiSkin.Card(parent, name, pos, size, 16);
+            var card = MapUiV2.Frame(parent, name, pos, size);
 
             // 上から順に領域を取る。隣の位置を前の要素から出すので、重なりが式の上で起きない
-            const float accentH = 6f, labelH = 34f, descH = 38f, btnH = 42f, gap = 6f, btnBottom = 16f;
+            const float labelH = 32f, descH = 42f, btnH = 48f, gap = 8f, btnBottom = 18f;
             float top = h * 0.5f;
-            float accentCy = top - accentH * 0.5f;
-            float labelCy = accentCy - accentH * 0.5f - gap - labelH * 0.5f;
-            float descCy = labelCy - labelH * 0.5f - 2f - descH * 0.5f;
+            float labelCy = top - 24 - labelH * .5f;
+            float descCy = labelCy - labelH * .5f - gap - descH * .5f;
             float btnCy = -top + btnBottom + btnH * 0.5f;
 
-            UiSkin.Img(card, "Accent", new Vector2(0, accentCy), new Vector2(w - 2, accentH), UiSkin.Rounded(3), color);
-            var t = UiFactory.Label(card, "Label", new Vector2(0, labelCy), new Vector2(w - 20, labelH), label, h >= 180 ? 32 : 28, TextAnchor.MiddleCenter, UiSkin.Text);
+            float iconX = -w * .5f +  38;
+            MapUiV2.Icon(card, name == "Town" ? "home" : "swords", new Vector2(iconX, labelCy), 34);
+            float labelLeft = iconX + 17 + 10, labelW = w * .5f - 24 - labelLeft;
+            var t = UiFactory.Label(card, "Label", new Vector2(labelLeft + labelW * .5f, labelCy), new Vector2(labelW, labelH), label, 25, TextAnchor.MiddleLeft, UiSkin.Text);
             t.fontStyle = FontStyle.Bold;
-            var d = UiFactory.Label(card, "Desc", new Vector2(0, descCy), new Vector2(w - 18, descH), desc, 12, TextAnchor.UpperCenter, UiSkin.TextSub);
+            var d = UiFactory.Label(card, "Desc", new Vector2(0, descCy), new Vector2(w - 48, descH), desc, 15, TextAnchor.UpperLeft, UiSkin.Hex("#d2dff1"));
             if (name == "Quest" && _m.AdventureEnabled) { _infoQuestDesc = d; RefreshQuestDesc(); }
-            UiSkin.Button(card, "Go", new Vector2(0, btnCy), new Vector2(w - 70, btnH), "ここへ行く", () => { _audio.UiPop(); onClick(); }, color, 16, true, 12);
+            MapUiV2.Button(card, "Go", new Vector2(0, btnCy), new Vector2(w -  48, btnH), name == "Town" ? "街で準備する" : "冒険へ進む", () => { _audio.UiPop(); onClick(); }, name == "Quest");
+        }
+
+        private Text FooterStat(Transform parent, string icon, float x, string label)
+        {
+            var row = UiSkin.Rect(parent, "Stat" + icon, new Vector2(x, -247), new Vector2(196, 44));
+            MapUiV2.Icon(row, icon, new Vector2(-80, 0), 30);
+            UiFactory.Label(row, "Caption", new Vector2(20, 11), new Vector2(150, 16), label, 12, TextAnchor.MiddleLeft, UiSkin.Hex("#b9cce5"));
+            var value = UiFactory.Label(row, "Value", new Vector2(20, -9), new Vector2(150, 24), "—", 18, TextAnchor.MiddleLeft, UiSkin.Text);
+            value.fontStyle = FontStyle.Bold; return value;
         }
 
         private Text _infoQuestDesc;
@@ -173,11 +195,15 @@ namespace BBB.Runtime
         /// <summary>冒険カードの説明: 現在地と残りG。</summary>
         private void RefreshQuestDesc()
         {
+            if (_m == null) return;
+            if (_hpValue != null) _hpValue.text = $"{_m.Hp:N0} / {_m.HpMax:N0}";
+            if (_torchValue != null) _torchValue.text = $"{Mathf.Max(0, _m.Adv.torches):N0} 個";
+            if (_emberValue != null) _emberValue.text = _m.Credit.ToString("N0");
             if (_infoQuestDesc == null || !_m.AdventureEnabled) return;
             var n = _m.CurrentStage;
             var res = _m.Config.adventure?.resource;
-            string line1 = n != null ? $"{n.id} {n.name} から再開" : "スロットを回して敵と戦う";
-            string line2 = res != null && res.enabled ? $"{res.hpName} {_m.Hp} / {_m.HpMax}   {res.name} {Mathf.Max(0, _m.Adv.torches)} 個   エンバー {_m.Credit:N0}" : $"残り {_m.Adv.spinsLeft} G";
+            string line1 = n != null ? $"{n.id} から再開" : "スロットを回して敵と戦う";
+            string line2 = $"このステージ：残り {_m.Adv.spinsLeft} G";
             _infoQuestDesc.text = line1 + "\n" + line2;
         }
 
@@ -187,12 +213,13 @@ namespace BBB.Runtime
             if (_mapPanel == null || !_m.AdventureEnabled) return;
             if (_mapView != null) Destroy(_mapView.gameObject);
             var cfg = _m.Config.adventure;
-            _mapView = StageMapView.Build(_mapPanel, cfg, _m.Adv, new Vector2(610, 270));
-            _mapView.anchoredPosition = new Vector2(0, -18);
+            _mapView = StageMapView.Build(_mapPanel, cfg, _m.Adv, new Vector2(_mapPanel.sizeDelta.x - 64, 258), true);
+            _mapView.anchoredPosition = new Vector2(0, -22);
             var n = _m.CurrentStage;
             string next = _m.Adv.nextId != null ? cfg.Find(_m.Adv.nextId)?.name : null;
             string lap = _m.Adv.chapter > 1 ? $"（{_m.Adv.chapter} 周目）" : "";
-            _stageInfo.text = $"{cfg.chapterName}{lap}   現在地 {n?.id} {n?.name}" + (next != null ? $"   次 → {next}" : "");
+            _chapterTitle.text = $"{cfg.chapterName}{lap}";
+            _stageInfo.text = $"現在地  {n?.id}  {n?.name}   ·   残り {_m.Adv.spinsLeft} G";
             RefreshQuestDesc();
         }
 
