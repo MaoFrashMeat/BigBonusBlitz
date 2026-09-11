@@ -51,37 +51,38 @@ namespace BBB.Runtime
         private static readonly HashSet<string> _missing = new HashSet<string>();
 
         /// <summary>
-        /// 9 分割で伸ばしてよい範囲の境目（left, bottom, right, top）。
-        /// tools/ui/cut_sheets.py の FRAMES と同じ値。片方を変えたらもう片方も直す。
+        /// 9 分割で伸ばしてよい範囲の境目（left, bottom, right, top）と、その値を決めたときの画像の幅。
+        /// tools/ui/cut_sheets.py の出力を写したもの。片方を変えたらもう片方も直す。
+        /// 画像をアップスケールして差し替えても、幅の比で縁を伸ばすので画面上の見え方は変わらない。
         /// 載っていない名前は伸ばさない（そのままの大きさで使う小物）。
         /// </summary>
-        private static readonly Dictionary<string, Vector4> FrameBorders = new Dictionary<string, Vector4>
+        private static readonly Dictionary<string, (Vector4 border, int baseWidth)> FrameBorders = new Dictionary<string, (Vector4, int)>
         {
-            { "panel_navy", new Vector4(28, 26, 28, 26) },
-            { "panel_cream_sm", new Vector4(22, 20, 22, 20) },
-            { "bar_cream_sm", new Vector4(16, 12, 16, 12) },
-            { "slot_navy", new Vector4(20, 18, 20, 18) },
-            { "btn_blue_lg", new Vector4(48, 22, 48, 22) },
-            { "btn_blue", new Vector4(40, 20, 40, 20) },
-            { "btn_gray", new Vector4(40, 20, 40, 20) },
-            { "btn_pink", new Vector4(40, 20, 40, 20) },
-            { "btn_cream", new Vector4(40, 20, 40, 20) },
-            { "btn_blue_light", new Vector4(40, 20, 40, 20) },
-            { "btn_pill_blue", new Vector4(36, 18, 36, 18) },
-            { "btn_pill_red", new Vector4(36, 18, 36, 18) },
-            { "btn_pill_purple", new Vector4(36, 18, 36, 18) },
-            { "plate_hex_sky", new Vector4(30, 18, 30, 18) },
-            { "plate_hex_cream", new Vector4(30, 18, 30, 18) },
-            { "pill_navy_sm", new Vector4(20, 14, 20, 14) },
-            { "pill_gem", new Vector4(60, 14, 24, 14) },
-            { "pill_coin", new Vector4(60, 14, 24, 14) },
-            { "pill_compass", new Vector4(112, 22, 30, 22) },
-            { "pill_ring", new Vector4(96, 20, 30, 20) },
-            { "toast_green", new Vector4(30, 12, 30, 12) },
-            { "toast_brown", new Vector4(30, 12, 30, 12) },
-            { "toast_red", new Vector4(30, 12, 30, 12) },
-            { "gauge_track", new Vector4(6, 4, 6, 4) },
-            { "gauge_fill", new Vector4(5, 3, 5, 3) },
+            { "panel_navy", (new Vector4(28, 26, 28, 26), 288) },
+            { "panel_cream_sm", (new Vector4(22, 20, 22, 20), 96) },
+            { "bar_cream_sm", (new Vector4(16, 12, 16, 12), 159) },
+            { "slot_navy", (new Vector4(20, 18, 20, 18), 95) },
+            { "btn_blue_lg", (new Vector4(48, 22, 48, 22), 288) },
+            { "btn_blue", (new Vector4(40, 20, 40, 20), 227) },
+            { "btn_gray", (new Vector4(40, 20, 40, 20), 236) },
+            { "btn_pink", (new Vector4(40, 20, 40, 20), 245) },
+            { "btn_cream", (new Vector4(40, 20, 40, 20), 206) },
+            { "btn_blue_light", (new Vector4(40, 20, 40, 20), 204) },
+            { "btn_pill_blue", (new Vector4(36, 18, 36, 18), 187) },
+            { "btn_pill_red", (new Vector4(36, 18, 36, 18), 187) },
+            { "btn_pill_purple", (new Vector4(36, 18, 36, 18), 187) },
+            { "plate_hex_sky", (new Vector4(30, 18, 30, 18), 245) },
+            { "plate_hex_cream", (new Vector4(30, 18, 30, 18), 246) },
+            { "pill_navy_sm", (new Vector4(20, 14, 20, 14), 92) },
+            { "pill_gem", (new Vector4(60, 14, 24, 14), 178) },
+            { "pill_coin", (new Vector4(60, 14, 24, 14), 180) },
+            { "pill_compass", (new Vector4(112, 22, 30, 22), 367) },
+            { "pill_ring", (new Vector4(96, 20, 30, 20), 266) },
+            { "toast_green", (new Vector4(30, 12, 30, 12), 282) },
+            { "toast_brown", (new Vector4(30, 12, 30, 12), 282) },
+            { "toast_red", (new Vector4(30, 12, 30, 12), 282) },
+            { "gauge_track", (new Vector4(6, 4, 6, 4), 48) },
+            { "gauge_fill", (new Vector4(5, 3, 5, 3), 48) },
         };
 
         /// <summary>枠の画像（Resources/Art/UI/Frames）。縁の幅つきなので Img に渡せば 9 分割で伸びる。無ければ null。</summary>
@@ -92,8 +93,10 @@ namespace BBB.Runtime
             if (_missing.Contains(path)) return null;
             var tex = Resources.Load<Texture2D>(path);
             if (tex == null) { _missing.Add(path); return null; }
-            var border = FrameBorders.TryGetValue(name, out var b) ? b : Vector4.zero;
-            s = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), 1f, 0, SpriteMeshType.FullRect, border);
+            // 切り出し時より大きい画像なら、縁も同じ比で広げ、PPU で画面上の大きさを元に戻す
+            float scale = FrameBorders.TryGetValue(name, out var b) && b.baseWidth > 0 ? (float)tex.width / b.baseWidth : 1f;
+            var border = FrameBorders.ContainsKey(name) ? b.border * scale : Vector4.zero;
+            s = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), scale, 0, SpriteMeshType.FullRect, border);
             _frames[name] = s;
             _frameSet.Add(s);
             return s;

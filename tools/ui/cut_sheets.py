@@ -166,9 +166,9 @@ FRAMES = {
 GAUGE_SRC = (1006, 543, 232, 28)
 
 
-def build_gauges(sheet):
+def build_gauges(sheet, k=1.0):
     # ゲームのゲージは高さ 5〜10px。元の 28px のまま 9 分割すると縁だけで潰れるので、先に 12px へ縮める
-    bar = trim(crop(sheet, GAUGE_SRC))
+    bar = trim(crop(sheet, tuple(round(v * k) for v in GAUGE_SRC)))
     h = 12
     bar = bar.resize((round(bar.width * h / bar.height), h), Image.LANCZOS)
     w = bar.width
@@ -235,6 +235,19 @@ ICONS = {
 }
 
 
+def install(fdir, idir):
+    """parts/ の画像を Unity の Resources へコピーする。名前が同じなら上書き。"""
+    for sub, src_dir in (('Frames', fdir), ('Icons', idir)):
+        dst = os.path.join(UNITY_UI, sub)
+        os.makedirs(dst, exist_ok=True)
+        n = 0
+        for fn in os.listdir(src_dir):
+            if fn.endswith('.png'):
+                shutil.copy2(os.path.join(src_dir, fn), os.path.join(dst, fn))
+                n += 1
+        print(f'  {n} 枚 → {dst}')
+
+
 def pick(sheet, box, how):
     im = crop(sheet, box)
     if how is None:
@@ -249,50 +262,53 @@ def pick(sheet, box, how):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--install', action='store_true', help='Unity の Resources へもコピーする')
+    ap.add_argument('--scale', type=float, default=1.0, help='シートを何倍にアップスケールしてあるか（箱と縁を同じ倍率で読む）')
+    ap.add_argument('--no-cut', action='store_true', help='切り出さず、parts/ にある画像をそのまま Unity へ入れる（1 枚ずつアップスケールしたあと用）')
+    ap.add_argument('--frames', default='ui_frames_sheet.png')
+    ap.add_argument('--icons', default='icon_parts_sheet.png')
     args = ap.parse_args()
+    k = args.scale
 
-    frames_sheet = Image.open(os.path.join(SRC, 'ui_frames_sheet.png')).convert('RGBA')
-    icons_sheet = Image.open(os.path.join(SRC, 'icon_parts_sheet.png')).convert('RGBA')
+    def sc_box(b): return tuple(round(v * k) for v in b)
+    def sc_border(b): return tuple(round(v * k) for v in b) if b else None
+
     fdir, idir = os.path.join(OUT, 'frames'), os.path.join(OUT, 'icons')
+    if args.no_cut:
+        install(fdir, idir)
+        return
+    frames_sheet = Image.open(os.path.join(SRC, args.frames)).convert('RGBA')
+    icons_sheet = Image.open(os.path.join(SRC, args.icons)).convert('RGBA')
     os.makedirs(fdir, exist_ok=True)
     os.makedirs(idir, exist_ok=True)
 
     manifest = {}
     for name, (box, how, border) in FRAMES.items():
-        im = pick(frames_sheet, box, how)
+        im = pick(frames_sheet, sc_box(box), how)
+        border = sc_border(border)
         im.save(os.path.join(fdir, name + '.png'))
         manifest[name] = {'w': im.width, 'h': im.height, 'border': list(border) if border else None}
-    for name, (im, border) in build_gauges(frames_sheet).items():
+    for name, (im, border) in build_gauges(frames_sheet, k).items():
         im.save(os.path.join(fdir, name + '.png'))
         manifest[name] = {'w': im.width, 'h': im.height, 'border': list(border)}
     with open(os.path.join(fdir, 'frames_manifest.json'), 'w', encoding='utf-8') as f:
         json.dump(manifest, f, ensure_ascii=False, indent=1)
 
     for name, (box, how) in ICONS.items():
-        im = square(pick(icons_sheet, box, how))
+        im = square(pick(icons_sheet, sc_box(box), how))
         im.save(os.path.join(idir, name + '.png'))
 
     print(f'枠 {len(manifest)} 枚 → {fdir}')
     print(f'アイコン {len(ICONS)} 枚 → {idir}')
 
     if args.install:
-        for sub, src_dir in (('Frames', fdir), ('Icons', idir)):
-            dst = os.path.join(UNITY_UI, sub)
-            os.makedirs(dst, exist_ok=True)
-            n = 0
-            for fn in os.listdir(src_dir):
-                if fn.endswith('.png'):
-                    shutil.copy2(os.path.join(src_dir, fn), os.path.join(dst, fn))
-                    n += 1
-            print(f'  {n} 枚 → {dst}')
+        install(fdir, idir)
 
-    # UiSkin.FrameBorders に写す用
-    print('\n// UiSkin.FrameBorders（left, bottom, right, top）')
+    # UiSkin.FrameBorders に写す用（縁と、その値を決めたときの画像の幅）
+    print(r'') ; print('// UiSkin.FrameBorders（left, bottom, right, top）, 画像の幅')
     for name, m in manifest.items():
         if m['border']:
             l, b, r, t = m['border']
-            print(f'            {{ "{name}", new Vector4({l}, {b}, {r}, {t}) }},')
-
+            print(f'            {{ "{name}", (new Vector4({l}, {b}, {r}, {t}), {m["w"]}) }},')
 
 if __name__ == '__main__':
     main()

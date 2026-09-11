@@ -107,6 +107,10 @@ python tools/ui/cut_sheets.py --install      # 切り出して Resources/Art/UI/
 ```
 
 - 縁の幅を変えるときは `cut_sheets.py` の `FRAMES` と `UiSkin.FrameBorders` の**両方**を直す
+- 1 枚ずつアップスケールするときは、`assets/title/parts/frames|icons/` の画像を**同じ名前で**置き替えて
+  `python tools/ui/cut_sheets.py --no-cut` で入れる（`--install` はシートから切り直すので上書きされる）。
+  縁は元の幅との比で自動的に広がるので、`FrameBorders` は触らなくてよい。倍率は枠ごとに違ってもよい
+- シートごとアップスケールしたときは `--scale 3 --frames <新しいシート>` のように倍率を渡す
 - 画像が無ければ各ビルダー（Card / Inset / Button / IconButton / Gauge / Icon）は
   手続き描画に戻る。差し替えの途中で壊れない
 - 幅 110 か高さ 40 を切る小さなボタンは飾りの多い枠が潰れるので、`pill_navy_sm` に落とす
