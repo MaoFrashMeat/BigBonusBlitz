@@ -61,6 +61,8 @@ class Handler(SimpleHTTPRequestHandler):
                 out['petals'] = data['petals']
             if isinstance(data.get('ui'), dict):
                 out['ui'] = data['ui']
+            if isinstance(data.get('guide'), dict):
+                out['guide'] = data['guide']          # ビューアの補助線の設定（Unity は読まない）
             with open(TITLE, 'w', encoding='utf-8') as f:
                 json.dump(out, f, ensure_ascii=False, indent=2)
             return self._json(200, {'ok': True, 'path': TITLE, 'count': len(layers)})

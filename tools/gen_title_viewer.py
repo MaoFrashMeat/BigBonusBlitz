@@ -118,6 +118,13 @@ HTML = r'''<!doctype html>
   .charBox { position:absolute; border:1px dashed rgba(255,207,63,.8); pointer-events:none; display:none; }
   .tabs { display:flex; gap:4px; } .tabs button { flex:1; }
   .stageBox { position:absolute; pointer-events:none; border:1px dashed rgba(77,163,255,.7); }
+  .guides { position:absolute; left:0; top:0; pointer-events:none; }
+  .gl { position:absolute; background:rgba(255,120,255,.55); }
+  .gl.v { width:1px; top:0; bottom:0; } .gl.h { height:1px; left:0; right:0; }
+  .gl.margin { background:rgba(255,200,60,.6); }
+  .gl.center { background:rgba(80,255,180,.55); }
+  .gl.hit { background:#ffcf3f; box-shadow:0 0 4px #ffcf3f; }
+  .gl.edge { background:rgba(120,200,255,.6); }
   .uiel { position:absolute; box-sizing:border-box; pointer-events:auto; cursor:move; transform-origin:50% 50%; }
   .uiel.sel { outline:2px solid #ffcf3f; outline-offset:2px; z-index:60; }
   .uiel .hd { position:absolute; right:-6px; bottom:-6px; width:12px; height:12px; background:#ffcf3f; border:1px solid #000; cursor:nwse-resize; display:none; z-index:61; }
@@ -142,7 +149,7 @@ HTML = r'''<!doctype html>
     <label>倍率 <input type="range" id="zoom" min="0.4" max="1.2" step="0.05" value="0.6"><span id="zoomV">0.60</span></label>
   </div>
   <div class="main">
-    <div class="board-wrap" id="bw"><div class="board" id="board"></div><div class="charBox" id="charBox"></div><div class="stageBox" id="stageBox"></div><div class="uiRoot" id="uiRoot" style="position:absolute;left:0;top:0;pointer-events:none"></div><div class="phoneMask" id="phoneMask"></div></div>
+    <div class="board-wrap" id="bw"><div class="board" id="board"></div><div class="charBox" id="charBox"></div><div class="stageBox" id="stageBox"></div><div class="guides" id="guides"></div><div class="uiRoot" id="uiRoot" style="position:absolute;left:0;top:0;pointer-events:none"></div><div class="phoneMask" id="phoneMask"></div></div>
     <div class="side">
       <div class="tabs"><button id="tabLayers" class="on">層</button><button id="tabPetals">花びら</button><button id="tabUi">UI</button></div>
       <div id="paneLayers">
@@ -154,6 +161,15 @@ HTML = r'''<!doctype html>
       <div class="note">板の上でドラッグして位置。矢印キーで 0.5%（Shift で 2%）。「立ち絵より手前」を付けた層は立ち絵の上に出る。</div>
       </div>
       <div id="paneUi" style="display:none">
+      <h3>補助線と吸着</h3>
+      <div class="row" style="justify-content:flex-start">
+        <label><input type="checkbox" id="gShow" checked> 線を出す</label>
+        <label><input type="checkbox" id="gSnap" checked> 吸着</label>
+        <label><input type="checkbox" id="gCenter" checked> 中心線</label>
+        <label><input type="checkbox" id="gEdges" checked> 他の部品の端</label>
+      </div>
+      <div class="prop" id="gProps"></div>
+      <div class="note">マージン = 舞台の端からの余白（黄）。パディング = 部品どうしの間隔で、他の部品の端から離れた線（桃）。吸着距離の内側に入ると線が光って引き寄せる。</div>
       <h3>UI 部品（舞台 960×540）</h3>
       <div class="list" id="uiList"></div>
       <h3 id="uiTitle">（部品を選ぶ）</h3>
@@ -314,6 +330,61 @@ let ui = JSON.parse(JSON.stringify(UI_BASE));
 function loadUi(obj) { for (const [id, e] of Object.entries(obj || {})) if (ui[id]) Object.assign(ui[id], e); }
 if (SAVED && SAVED.ui) loadUi(SAVED.ui);
 let uiSel = null, uiDrag = null;
+// 補助線。値は舞台 px。margin は舞台の端からの余白、padding は部品どうしの間隔、snap は吸着距離
+const guide = { show:true, snap:true, center:true, edges:true, marginX:24, marginY:24, padding:12, snapDist:6, gridStep:0 };
+if (SAVED && SAVED.guide) Object.assign(guide, SAVED.guide);
+let hitLines = { x:[], y:[] };
+function guideLines(excludeId) {
+  // 返り値: 舞台座標の縦線（x）と横線（y）。種類は色分け用
+  const xs = [], ys = [];
+  const add = (arr, v, kind) => arr.push({ v, kind });
+  add(xs, -SW/2 + guide.marginX, 'margin'); add(xs, SW/2 - guide.marginX, 'margin');
+  add(ys, -SH/2 + guide.marginY, 'margin'); add(ys, SH/2 - guide.marginY, 'margin');
+  if (guide.center) { add(xs, 0, 'center'); add(ys, 0, 'center'); }
+  if (guide.edges) for (const d of UI_DEFS) {
+    if (d.id === excludeId) continue; const e = ui[d.id]; if (!e.visible) continue;
+    const l = e.x - e.w/2, r = e.x + e.w/2, t = e.y + e.h/2, b = e.y - e.h/2;
+    add(xs, l, 'edge'); add(xs, r, 'edge'); add(xs, e.x, 'edge'); add(ys, t, 'edge'); add(ys, b, 'edge'); add(ys, e.y, 'edge');
+    if (guide.padding > 0) { add(xs, l - guide.padding, 'pad'); add(xs, r + guide.padding, 'pad'); add(ys, t + guide.padding, 'pad'); add(ys, b - guide.padding, 'pad'); }
+  }
+  if (guide.gridStep > 0) for (let v = 0; v <= SW/2; v += guide.gridStep) { add(xs, v, 'grid'); if (v) add(xs, -v, 'grid'); }
+  if (guide.gridStep > 0) for (let v = 0; v <= SH/2; v += guide.gridStep) { add(ys, v, 'grid'); if (v) add(ys, -v, 'grid'); }
+  return { xs, ys };
+}
+// 部品の左端・中心・右端（上端・中心・下端）のどれかが線に近ければ寄せる
+function snapRect(e, lines) {
+  hitLines = { x:[], y:[] };
+  if (!guide.snap) return;
+  const tryAxis = (cands, lineList, apply) => {
+    let best = null;
+    for (const c of cands) for (const L of lineList) { const d = Math.abs(c.v - L.v); if (d <= guide.snapDist && (!best || d < best.d)) best = { d, delta: L.v - c.v, L }; }
+    if (best) { apply(best.delta); return best.L; }
+    return null;
+  };
+  const hx = tryAxis([{ v:e.x - e.w/2 }, { v:e.x }, { v:e.x + e.w/2 }], lines.xs, dl => e.x += dl);
+  const hy = tryAxis([{ v:e.y - e.h/2 }, { v:e.y }, { v:e.y + e.h/2 }], lines.ys, dl => e.y += dl);
+  if (hx) hitLines.x.push(hx.v); if (hy) hitLines.y.push(hy.v);
+}
+function drawGuides() {
+  const g = document.getElementById('guides'); g.innerHTML = '';
+  const onUi = document.getElementById('paneUi').style.display !== 'none';
+  if (!guide.show || !onUi) return;
+  const k = stageScale(), ox = (BW * zoom) / 2, oy = (BH * zoom) / 2;
+  const sx0 = ox - SW/2*k, sy0 = oy - SH/2*k;
+  g.style.width = BW * zoom + 'px'; g.style.height = BH * zoom + 'px';
+  const lines = guideLines(uiDrag ? uiDrag.id : null);
+  for (const L of lines.xs) { if (L.kind === 'grid' && !uiDrag) continue; const d = document.createElement('div'); d.className = 'gl v ' + L.kind + (hitLines.x.includes(L.v) ? ' hit' : ''); d.style.left = (ox + L.v * k) + 'px'; d.style.top = sy0 + 'px'; d.style.height = SH * k + 'px'; g.appendChild(d); }
+  for (const L of lines.ys) { if (L.kind === 'grid' && !uiDrag) continue; const d = document.createElement('div'); d.className = 'gl h ' + L.kind + (hitLines.y.includes(L.v) ? ' hit' : ''); d.style.top = (oy - L.v * k) + 'px'; d.style.left = sx0 + 'px'; d.style.width = SW * k + 'px'; g.appendChild(d); }
+}
+function renderGuideProps() {
+  const p = document.getElementById('gProps'); p.innerHTML = '';
+  numRow(p, 'マージン x', guide.marginX, 0, 200, 1, v => { guide.marginX = v; drawGuides(); });
+  numRow(p, 'マージン y', guide.marginY, 0, 200, 1, v => { guide.marginY = v; drawGuides(); });
+  numRow(p, 'パディング', guide.padding, 0, 100, 1, v => { guide.padding = v; drawGuides(); });
+  numRow(p, '吸着距離', guide.snapDist, 0, 30, 1, v => { guide.snapDist = v; });
+  numRow(p, 'グリッド（0 で無し）', guide.gridStep, 0, 100, 2, v => { guide.gridStep = v; drawGuides(); });
+  for (const [id, k] of [['gShow','show'],['gSnap','snap'],['gCenter','center'],['gEdges','edges']]) { const el = document.getElementById(id); el.checked = guide[k]; el.onchange = () => { guide[k] = el.checked; drawGuides(); }; }
+}
 const uiNodes = {};
 const uiRoot = document.getElementById('uiRoot');
 function uiPlace(id) {
@@ -355,7 +426,7 @@ function uiBuild() {
   }
   const sb = document.getElementById('stageBox'), k = stageScale();
   sb.style.left = ((BW * zoom - SW * k) / 2) + 'px'; sb.style.top = ((BH * zoom - SH * k) / 2) + 'px'; sb.style.width = SW * k + 'px'; sb.style.height = SH * k + 'px';
-  uiRenderList();
+  uiRenderList(); drawGuides();
 }
 function uiSelect(id) { uiSel = id; for (const k in uiNodes) uiNodes[k].classList.toggle('sel', k === id); uiRenderList(); uiRenderProps(); }
 function uiRenderList() {
@@ -390,15 +461,25 @@ document.addEventListener('mousemove', ev => {
   if (!uiDrag) return;
   const e = ui[uiDrag.id], d = UI_DEFS.find(v => v.id === uiDrag.id), k = stageScale();
   const dx = (ev.clientX - uiDrag.sx) / k, dy = -(ev.clientY - uiDrag.sy) / k;
-  if (uiDrag.kind === 'move') { e.x = Math.round(uiDrag.ox + dx); e.y = Math.round(uiDrag.oy + dy); }
+  if (uiDrag.kind === 'move') { e.x = Math.round(uiDrag.ox + dx); e.y = Math.round(uiDrag.oy + dy); snapRect(e, guideLines(uiDrag.id)); }
   else {
     const nw = Math.max(20, Math.round(uiDrag.ow + dx));
     let nh = d.keepAspect ? nw * d.h / d.w : Math.max(12, Math.round(uiDrag.oh - dy));
     e.x = uiDrag.ox + (nw - uiDrag.ow) / 2; e.y = uiDrag.oy - (nh - uiDrag.oh) / 2; e.w = nw; e.h = nh;
+    // 大きさを変えるときは右端・下端だけ吸着（左上は固定）
+    if (guide.snap) {
+      const lines = guideLines(uiDrag.id); hitLines = { x:[], y:[] };
+      const r = e.x + e.w/2, b = e.y - e.h/2;
+      let bx = null, by = null;
+      for (const L of lines.xs) { const dd = Math.abs(r - L.v); if (dd <= guide.snapDist && (!bx || dd < bx.d)) bx = { d:dd, v:L.v }; }
+      for (const L of lines.ys) { const dd = Math.abs(b - L.v); if (dd <= guide.snapDist && (!by || dd < by.d)) by = { d:dd, v:L.v }; }
+      if (bx) { const l = e.x - e.w/2; e.w = bx.v - l; e.x = l + e.w/2; hitLines.x.push(bx.v); if (d.keepAspect) { e.h = e.w * d.h / d.w; e.y = uiDrag.oy + uiDrag.oh/2 - e.h/2; } }
+      if (by && !d.keepAspect) { const t = e.y + e.h/2; e.h = t - by.v; e.y = t - e.h/2; hitLines.y.push(by.v); }
+    }
   }
-  uiPlace(uiDrag.id); uiRenderProps();
+  uiPlace(uiDrag.id); uiRenderProps(); drawGuides();
 });
-document.addEventListener('mouseup', () => uiDrag = null);
+document.addEventListener('mouseup', () => { if (uiDrag) { uiDrag = null; hitLines = { x:[], y:[] }; drawGuides(); } });
 document.addEventListener('keydown', ev => {
   if (!uiSel || document.getElementById('paneUi').style.display === 'none' || ['INPUT','SELECT'].includes(document.activeElement.tagName)) return;
   const e = ui[uiSel], st = ev.shiftKey ? 10 : 1;
@@ -410,7 +491,8 @@ function showPane(which) {
   uiRoot.style.pointerEvents = which === 'tabUi' ? 'auto' : 'none';
   document.getElementById('stageBox').style.display = which === 'tabUi' ? 'block' : 'none';
   if (which === 'tabPetals') renderPetalProps();
-  if (which === 'tabUi') { uiRenderList(); uiRenderProps(); }
+  if (which === 'tabUi') { uiRenderList(); uiRenderProps(); renderGuideProps(); }
+  drawGuides();
 }
 document.getElementById('tabUi').onclick = () => showPane('tabUi');
 document.getElementById('tabLayers').onclick = () => showPane('tabLayers');
@@ -507,14 +589,14 @@ const addSel = document.getElementById('addSel');
 for (const n of Object.keys(IMG)) if (!n.startsWith('title_')) { const o = document.createElement('option'); o.value = n; o.textContent = n; addSel.appendChild(o); }
 document.getElementById('add').onclick = () => { layers.push({ name:addSel.value, x:0, y:0, scale:1, motion:'drift', ampX:1, ampY:0.5, period:20, phase:0, breathe:0, rot:0, alpha:1, front:false, visible:true }); sel = layers.length - 1; rebuild(); };
 document.getElementById('reset').onclick = () => { layers = JSON.parse(JSON.stringify(DEFAULT)); sel = 0; rebuild(); };
-const payload = () => ({ version: 1, layers: layers.map(l => ({ ...l })), petals: { ...petals }, ui: Object.fromEntries(Object.entries(ui).map(([k, e]) => [k, { ...e, x: Math.round(e.x), y: Math.round(e.y), w: Math.round(e.w), h: Math.round(e.h) }])) });
+const payload = () => ({ version: 1, layers: layers.map(l => ({ ...l })), petals: { ...petals }, ui: Object.fromEntries(Object.entries(ui).map(([k, e]) => [k, { ...e, x: Math.round(e.x), y: Math.round(e.y), w: Math.round(e.w), h: Math.round(e.h) }])), guide: { ...guide } });
 const msg = (s, ok = true) => { const m = document.getElementById('msg'); m.textContent = s; m.style.color = ok ? '#3ddc84' : '#ff4d6d'; };
 document.getElementById('copy').onclick = async () => { try { await navigator.clipboard.writeText(JSON.stringify(payload(), null, 2)); msg('JSON をコピーした'); } catch (e) { msg('コピーできない', false); } };
 document.getElementById('save').onclick = async () => {
   try { const r = await fetch('/save_title', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload()) }); const j = await r.json(); msg(j.ok ? `保存した（${j.count} 層）。Unity で Play し直すと反映` : '保存できない: ' + j.error, j.ok); }
   catch (e) { msg('サーバが無い。python tools/ui_server.py を起動するか、JSON をコピーして title_layers.json に貼る', false); }
 };
-fetch('/title_layout').then(r => r.json()).then(j => { if (j.petals) petals = Object.assign({}, PETAL_DEF, j.petals); if (j.ui) loadUi(j.ui); if (j.layers && j.layers.length) { layers = j.layers; sel = 0; } rebuild(); }).catch(() => {});
+fetch('/title_layout').then(r => r.json()).then(j => { if (j.petals) petals = Object.assign({}, PETAL_DEF, j.petals); if (j.ui) loadUi(j.ui); if (j.guide) Object.assign(guide, j.guide); if (j.layers && j.layers.length) { layers = j.layers; sel = 0; } rebuild(); }).catch(() => {});
 document.getElementById('showChar').onchange = rebuild;
 document.getElementById('phone').onchange = layout;
 document.getElementById('anim').onchange = e => anim = e.target.checked;
