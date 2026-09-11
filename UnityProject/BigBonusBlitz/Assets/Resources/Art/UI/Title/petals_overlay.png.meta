@@ -1,0 +1,2668 @@
+fileFormatVersion: 2
+guid: 389327f9a3fee364f87bb9e2ada3f5ca
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -8082604677758352348
+    second: petals_overlay_0
+  - first:
+      213: -4681413330370183141
+    second: petals_overlay_1
+  - first:
+      213: 161987735209518310
+    second: petals_overlay_2
+  - first:
+      213: -5184871998745945285
+    second: petals_overlay_3
+  - first:
+      213: 4104049381137169760
+    second: petals_overlay_4
+  - first:
+      213: 97194483166664457
+    second: petals_overlay_5
+  - first:
+      213: -8254601571592666142
+    second: petals_overlay_6
+  - first:
+      213: 3314843094984385465
+    second: petals_overlay_7
+  - first:
+      213: 7700822434905247723
+    second: petals_overlay_8
+  - first:
+      213: -8500433773852198039
+    second: petals_overlay_9
+  - first:
+      213: 1128616776301287819
+    second: petals_overlay_10
+  - first:
+      213: 1541108295792269994
+    second: petals_overlay_11
+  - first:
+      213: 3510844058968003941
+    second: petals_overlay_12
+  - first:
+      213: 4544392310495187574
+    second: petals_overlay_13
+  - first:
+      213: -4110732795463684923
+    second: petals_overlay_14
+  - first:
+      213: 397903001996641937
+    second: petals_overlay_15
+  - first:
+      213: -6284607433532384787
+    second: petals_overlay_16
+  - first:
+      213: 4484963141697935840
+    second: petals_overlay_17
+  - first:
+      213: -1669024830013378257
+    second: petals_overlay_18
+  - first:
+      213: -9143682733327863967
+    second: petals_overlay_19
+  - first:
+      213: -3240051969514399496
+    second: petals_overlay_20
+  - first:
+      213: 1954304319241215522
+    second: petals_overlay_21
+  - first:
+      213: -5222562510443871617
+    second: petals_overlay_22
+  - first:
+      213: 7003725849970423813
+    second: petals_overlay_23
+  - first:
+      213: 165249062264429819
+    second: petals_overlay_24
+  - first:
+      213: 5028990345384188202
+    second: petals_overlay_25
+  - first:
+      213: 4105596360887178547
+    second: petals_overlay_26
+  - first:
+      213: -1280450508990631791
+    second: petals_overlay_27
+  - first:
+      213: 5182730261992635086
+    second: petals_overlay_28
+  - first:
+      213: 4415972556823901217
+    second: petals_overlay_29
+  - first:
+      213: -4714111748570293809
+    second: petals_overlay_30
+  - first:
+      213: -5068626453412296912
+    second: petals_overlay_31
+  - first:
+      213: -8647693336674450513
+    second: petals_overlay_32
+  - first:
+      213: -2246984518096645750
+    second: petals_overlay_33
+  - first:
+      213: 3681988409555895859
+    second: petals_overlay_34
+  - first:
+      213: 4935631676548102641
+    second: petals_overlay_35
+  - first:
+      213: -6565411950826859783
+    second: petals_overlay_36
+  - first:
+      213: -5763369498479564888
+    second: petals_overlay_37
+  - first:
+      213: 2537061053497084041
+    second: petals_overlay_38
+  - first:
+      213: 4781095888095461637
+    second: petals_overlay_39
+  - first:
+      213: -9183266655486193701
+    second: petals_overlay_40
+  - first:
+      213: 6157453089012707975
+    second: petals_overlay_41
+  - first:
+      213: 1475576780989294225
+    second: petals_overlay_42
+  - first:
+      213: -7875125269583226486
+    second: petals_overlay_43
+  - first:
+      213: -1522426703510233656
+    second: petals_overlay_44
+  - first:
+      213: 5636820185659860334
+    second: petals_overlay_45
+  - first:
+      213: -2026066945471011320
+    second: petals_overlay_46
+  - first:
+      213: 8499857461405302095
+    second: petals_overlay_47
+  - first:
+      213: 2516211856088398529
+    second: petals_overlay_48
+  - first:
+      213: -3900474258584041611
+    second: petals_overlay_49
+  - first:
+      213: -1575435790472820071
+    second: petals_overlay_50
+  - first:
+      213: -5124000899724995497
+    second: petals_overlay_51
+  - first:
+      213: -6586680566656059642
+    second: petals_overlay_52
+  - first:
+      213: -8248905994628568754
+    second: petals_overlay_53
+  - first:
+      213: -1816173688199433476
+    second: petals_overlay_54
+  - first:
+      213: -427683489944668626
+    second: petals_overlay_55
+  - first:
+      213: 6000089210421002450
+    second: petals_overlay_56
+  - first:
+      213: 3077262709696771224
+    second: petals_overlay_57
+  - first:
+      213: -4228705556737361591
+    second: petals_overlay_58
+  - first:
+      213: -56056755984495782
+    second: petals_overlay_59
+  - first:
+      213: -6373936819562553243
+    second: petals_overlay_60
+  - first:
+      213: 1364920879529760695
+    second: petals_overlay_61
+  - first:
+      213: -8456079471871256129
+    second: petals_overlay_62
+  - first:
+      213: 2375955514109883491
+    second: petals_overlay_63
+  - first:
+      213: -3387940861074327012
+    second: petals_overlay_64
+  - first:
+      213: -1136791367054491723
+    second: petals_overlay_65
+  - first:
+      213: -7471180139268876617
+    second: petals_overlay_66
+  - first:
+      213: 7956239367375930078
+    second: petals_overlay_67
+  - first:
+      213: 628415510680214329
+    second: petals_overlay_68
+  - first:
+      213: 5629372524405022053
+    second: petals_overlay_69
+  - first:
+      213: -697782450540181962
+    second: petals_overlay_70
+  - first:
+      213: 9079862284447663789
+    second: petals_overlay_71
+  - first:
+      213: -5650727634306578579
+    second: petals_overlay_72
+  - first:
+      213: -7979506616412974058
+    second: petals_overlay_73
+  - first:
+      213: -5183586573187771111
+    second: petals_overlay_74
+  - first:
+      213: 4832545067168515089
+    second: petals_overlay_75
+  - first:
+      213: 5627305991813058055
+    second: petals_overlay_76
+  - first:
+      213: -6700995409409809416
+    second: petals_overlay_77
+  - first:
+      213: -3260543384845224659
+    second: petals_overlay_78
+  - first:
+      213: 5229718633685911954
+    second: petals_overlay_79
+  - first:
+      213: 1419902111076998149
+    second: petals_overlay_80
+  - first:
+      213: -6442464115603739434
+    second: petals_overlay_81
+  - first:
+      213: 6923409016511727729
+    second: petals_overlay_82
+  - first:
+      213: -1099438026812009192
+    second: petals_overlay_83
+  - first:
+      213: -628866616990691336
+    second: petals_overlay_84
+  - first:
+      213: 690858024728688088
+    second: petals_overlay_85
+  - first:
+      213: -5462141683917910018
+    second: petals_overlay_86
+  - first:
+      213: -5126151622368734631
+    second: petals_overlay_87
+  - first:
+      213: 9120858590810292858
+    second: petals_overlay_88
+  - first:
+      213: -28192652693761589
+    second: petals_overlay_89
+  - first:
+      213: -5627688990779816647
+    second: petals_overlay_90
+  - first:
+      213: -8960989349525542671
+    second: petals_overlay_91
+  - first:
+      213: 6105339276146607130
+    second: petals_overlay_92
+  - first:
+      213: 462683356320247782
+    second: petals_overlay_93
+  - first:
+      213: 7848139591324547514
+    second: petals_overlay_94
+  - first:
+      213: -2335850614137611169
+    second: petals_overlay_95
+  - first:
+      213: 3847807016299167475
+    second: petals_overlay_96
+  - first:
+      213: 3758573076392263651
+    second: petals_overlay_97
+  - first:
+      213: 2569984135420807656
+    second: petals_overlay_98
+  - first:
+      213: 256092533081723707
+    second: petals_overlay_99
+  - first:
+      213: 2362588281358436018
+    second: petals_overlay_100
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 8192
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: petals_overlay_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 834
+        width: 164
+        height: 107
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4248d4a7ed1d4df80800000000000000
+      internalID: -8082604677758352348
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_1
+      rect:
+        serializedVersion: 2
+        x: 157
+        y: 889
+        width: 11
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b10c1841167480fb0800000000000000
+      internalID: -4681413330370183141
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_2
+      rect:
+        serializedVersion: 2
+        x: 167
+        y: 885
+        width: 15
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6e42227acfe7f3200800000000000000
+      internalID: 161987735209518310
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_3
+      rect:
+        serializedVersion: 2
+        x: 181
+        y: 745
+        width: 126
+        height: 187
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b3bd0e44362ab08b0800000000000000
+      internalID: -5184871998745945285
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_4
+      rect:
+        serializedVersion: 2
+        x: 265
+        y: 893
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 06db75ffa2384f830800000000000000
+      internalID: 4104049381137169760
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_5
+      rect:
+        serializedVersion: 2
+        x: 309
+        y: 865
+        width: 18
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 907d6431edd495100800000000000000
+      internalID: 97194483166664457
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_6
+      rect:
+        serializedVersion: 2
+        x: 313
+        y: 721
+        width: 148
+        height: 198
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2e386dafa93c17d80800000000000000
+      internalID: -8254601571592666142
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_7
+      rect:
+        serializedVersion: 2
+        x: 462
+        y: 413
+        width: 441
+        height: 528
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b363ba6b30b00e20800000000000000
+      internalID: 3314843094984385465
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_8
+      rect:
+        serializedVersion: 2
+        x: 876
+        y: 865
+        width: 60
+        height: 46
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: befc2ee2431deda60800000000000000
+      internalID: 7700822434905247723
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_9
+      rect:
+        serializedVersion: 2
+        x: 1011
+        y: 634
+        width: 250
+        height: 307
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 96b7ec81584680a80800000000000000
+      internalID: -8500433773852198039
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_10
+      rect:
+        serializedVersion: 2
+        x: 1085
+        y: 0
+        width: 587
+        height: 941
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b891cf67af6a9af00800000000000000
+      internalID: 1128616776301287819
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_11
+      rect:
+        serializedVersion: 2
+        x: 293
+        y: 878
+        width: 10
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aaa1b1374dd136510800000000000000
+      internalID: 1541108295792269994
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_12
+      rect:
+        serializedVersion: 2
+        x: 522
+        y: 875
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5651494021609b030800000000000000
+      internalID: 3510844058968003941
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_13
+      rect:
+        serializedVersion: 2
+        x: 934
+        y: 861
+        width: 36
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 672151baabce01f30800000000000000
+      internalID: 4544392310495187574
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_14
+      rect:
+        serializedVersion: 2
+        x: 295
+        y: 826
+        width: 12
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5cca6d75d4eb3f6c0800000000000000
+      internalID: -4110732795463684923
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_15
+      rect:
+        serializedVersion: 2
+        x: 876
+        y: 682
+        width: 210
+        height: 182
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 19642111ca2a58500800000000000000
+      internalID: 397903001996641937
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_16
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 800
+        width: 7
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: de9d58326d698c8a0800000000000000
+      internalID: -6284607433532384787
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_17
+      rect:
+        serializedVersion: 2
+        x: 402
+        y: 810
+        width: 7
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0e910ab073acd3e30800000000000000
+      internalID: 4484963141697935840
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_18
+      rect:
+        serializedVersion: 2
+        x: 428
+        y: 806
+        width: 9
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f21febd82ce66d8e0800000000000000
+      internalID: -1669024830013378257
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_19
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 656
+        width: 106
+        height: 96
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 16fae15dffc1b1180800000000000000
+      internalID: -9143682733327863967
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_20
+      rect:
+        serializedVersion: 2
+        x: 70
+        y: 697
+        width: 126
+        height: 94
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8f81a4776e50903d0800000000000000
+      internalID: -3240051969514399496
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_21
+      rect:
+        serializedVersion: 2
+        x: 84
+        y: 751
+        width: 12
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 22e526b8c651f1b10800000000000000
+      internalID: 1954304319241215522
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_22
+      rect:
+        serializedVersion: 2
+        x: 277
+        y: 715
+        width: 94
+        height: 82
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f7288bb211bb587b0800000000000000
+      internalID: -5222562510443871617
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_23
+      rect:
+        serializedVersion: 2
+        x: 585
+        y: 737
+        width: 9
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 50835bf9d8b323160800000000000000
+      internalID: 7003725849970423813
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_24
+      rect:
+        serializedVersion: 2
+        x: 528
+        y: 744
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bfcdcb785251b4200800000000000000
+      internalID: 165249062264429819
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_25
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 658
+        height: 720
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a295e7b03109ac540800000000000000
+      internalID: 5028990345384188202
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_26
+      rect:
+        serializedVersion: 2
+        x: 199
+        y: 701
+        width: 19
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 33511d943220af830800000000000000
+      internalID: 4105596360887178547
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_27
+      rect:
+        serializedVersion: 2
+        x: 338
+        y: 711
+        width: 19
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1903523db0dea3ee0800000000000000
+      internalID: -1280450508990631791
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_28
+      rect:
+        serializedVersion: 2
+        x: 720
+        y: 707
+        width: 21
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ecafcb8c6b1cce740800000000000000
+      internalID: 5182730261992635086
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_29
+      rect:
+        serializedVersion: 2
+        x: 834
+        y: 697
+        width: 9
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 124bc53c4afa84d30800000000000000
+      internalID: 4415972556823901217
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_30
+      rect:
+        serializedVersion: 2
+        x: 842
+        y: 697
+        width: 11
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fc9d8f2575c149eb0800000000000000
+      internalID: -4714111748570293809
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_31
+      rect:
+        serializedVersion: 2
+        x: 102
+        y: 680
+        width: 18
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0374639681f98a9b0800000000000000
+      internalID: -5068626453412296912
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_32
+      rect:
+        serializedVersion: 2
+        x: 185
+        y: 699
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fa3c10d4ab83df780800000000000000
+      internalID: -8647693336674450513
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_33
+      rect:
+        serializedVersion: 2
+        x: 758
+        y: 680
+        width: 13
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a811c0f5c7b11d0e0800000000000000
+      internalID: -2246984518096645750
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_34
+      rect:
+        serializedVersion: 2
+        x: 766
+        y: 666
+        width: 25
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3364fa253fc091330800000000000000
+      internalID: 3681988409555895859
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_35
+      rect:
+        serializedVersion: 2
+        x: 683
+        y: 680
+        width: 9
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1f9b0d61cd2ee7440800000000000000
+      internalID: 4935631676548102641
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_36
+      rect:
+        serializedVersion: 2
+        x: 786
+        y: 646
+        width: 29
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9f25cd2ad98f2e4a0800000000000000
+      internalID: -6565411950826859783
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_37
+      rect:
+        serializedVersion: 2
+        x: 938
+        y: 648
+        width: 30
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8a7edcd0af56400b0800000000000000
+      internalID: -5763369498479564888
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_38
+      rect:
+        serializedVersion: 2
+        x: 810
+        y: 634
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9880c231693753320800000000000000
+      internalID: 2537061053497084041
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_39
+      rect:
+        serializedVersion: 2
+        x: 816
+        y: 445
+        width: 256
+        height: 198
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 501c20ff06dd95240800000000000000
+      internalID: 4781095888095461637
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_40
+      rect:
+        serializedVersion: 2
+        x: 613
+        y: 569
+        width: 6
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bdf4e02c1ab7e8080800000000000000
+      internalID: -9183266655486193701
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_41
+      rect:
+        serializedVersion: 2
+        x: 617
+        y: 553
+        width: 11
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 782fbbbf5faa37550800000000000000
+      internalID: 6157453089012707975
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_42
+      rect:
+        serializedVersion: 2
+        x: 649
+        y: 566
+        width: 15
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1966eada34d4a7410800000000000000
+      internalID: 1475576780989294225
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_43
+      rect:
+        serializedVersion: 2
+        x: 822
+        y: 583
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a891ac0aa4fe5b290800000000000000
+      internalID: -7875125269583226486
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_44
+      rect:
+        serializedVersion: 2
+        x: 832
+        y: 571
+        width: 7
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8cd14b4baf04fdae0800000000000000
+      internalID: -1522426703510233656
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_45
+      rect:
+        serializedVersion: 2
+        x: 687
+        y: 542
+        width: 21
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e65e10df7120a3e40800000000000000
+      internalID: 5636820185659860334
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_46
+      rect:
+        serializedVersion: 2
+        x: 699
+        y: 534
+        width: 11
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8062a0009d6f1e3e0800000000000000
+      internalID: -2026066945471011320
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_47
+      rect:
+        serializedVersion: 2
+        x: 830
+        y: 540
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f4d3484b35f85f570800000000000000
+      internalID: 8499857461405302095
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_48
+      rect:
+        serializedVersion: 2
+        x: 1067
+        y: 548
+        width: 43
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1ca76c50a516be220800000000000000
+      internalID: 2516211856088398529
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_49
+      rect:
+        serializedVersion: 2
+        x: 713
+        y: 536
+        width: 14
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5770b81d35bbed9c0800000000000000
+      internalID: -3900474258584041611
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_50
+      rect:
+        serializedVersion: 2
+        x: 729
+        y: 536
+        width: 14
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 99a4e6ede7de22ae0800000000000000
+      internalID: -1575435790472820071
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_51
+      rect:
+        serializedVersion: 2
+        x: 747
+        y: 524
+        width: 24
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7541c1f6454e3e8b0800000000000000
+      internalID: -5124000899724995497
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_52
+      rect:
+        serializedVersion: 2
+        x: 882
+        y: 530
+        width: 9
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6073f7f1ce86794a0800000000000000
+      internalID: -6586680566656059642
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_53
+      rect:
+        serializedVersion: 2
+        x: 1101
+        y: 534
+        width: 10
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e49e294d3bff58d80800000000000000
+      internalID: -8248905994628568754
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_54
+      rect:
+        serializedVersion: 2
+        x: 1125
+        y: 536
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cf2367037a7abc6e0800000000000000
+      internalID: -1816173688199433476
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_55
+      rect:
+        serializedVersion: 2
+        x: 1134
+        y: 536
+        width: 8
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e267c81c120901af0800000000000000
+      internalID: -427683489944668626
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_56
+      rect:
+        serializedVersion: 2
+        x: 904
+        y: 498
+        width: 44
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d04cc7d859944350800000000000000
+      internalID: 6000089210421002450
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_57
+      rect:
+        serializedVersion: 2
+        x: 989
+        y: 522
+        width: 7
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 89438046122a4ba20800000000000000
+      internalID: 3077262709696771224
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_58
+      rect:
+        serializedVersion: 2
+        x: 683
+        y: 455
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 949f2f663be9055c0800000000000000
+      internalID: -4228705556737361591
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_59
+      rect:
+        serializedVersion: 2
+        x: 826
+        y: 445
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a5b884c6da8d83ff0800000000000000
+      internalID: -56056755984495782
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_60
+      rect:
+        serializedVersion: 2
+        x: 942
+        y: 453
+        width: 34
+        height: 66
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 560e031bb3a3b87a0800000000000000
+      internalID: -6373936819562553243
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_61
+      rect:
+        serializedVersion: 2
+        x: 721
+        y: 444
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7b792eaee4c21f210800000000000000
+      internalID: 1364920879529760695
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_62
+      rect:
+        serializedVersion: 2
+        x: 804
+        y: 437
+        width: 9
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fb914a6c588f5aa80800000000000000
+      internalID: -8456079471871256129
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_63
+      rect:
+        serializedVersion: 2
+        x: 593
+        y: 325
+        width: 93
+        height: 115
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 36476a4a3f619f020800000000000000
+      internalID: 2375955514109883491
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_64
+      rect:
+        serializedVersion: 2
+        x: 723
+        y: 437
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c1a32a7acbd9bf0d0800000000000000
+      internalID: -3387940861074327012
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_65
+      rect:
+        serializedVersion: 2
+        x: 928
+        y: 240
+        width: 229
+        height: 202
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5bf7cfe464e4930f0800000000000000
+      internalID: -1136791367054491723
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_66
+      rect:
+        serializedVersion: 2
+        x: 683
+        y: 123
+        width: 232
+        height: 306
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7b6dce15f39015890800000000000000
+      internalID: -7471180139268876617
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_67
+      rect:
+        serializedVersion: 2
+        x: 894
+        y: 382
+        width: 19
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ed2cb68fc8d3a6e60800000000000000
+      internalID: 7956239367375930078
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_68
+      rect:
+        serializedVersion: 2
+        x: 914
+        y: 405
+        width: 16
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 93b9075d39498b800800000000000000
+      internalID: 628415510680214329
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_69
+      rect:
+        serializedVersion: 2
+        x: 928
+        y: 388
+        width: 20
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 56d51893c7c8f1e40800000000000000
+      internalID: 5629372524405022053
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_70
+      rect:
+        serializedVersion: 2
+        x: 908
+        y: 326
+        width: 42
+        height: 65
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6360d09ee8af056f0800000000000000
+      internalID: -697782450540181962
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_71
+      rect:
+        serializedVersion: 2
+        x: 866
+        y: 306
+        width: 11
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da648f9f3a6220e70800000000000000
+      internalID: 9079862284447663789
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_72
+      rect:
+        serializedVersion: 2
+        x: 965
+        y: 299
+        width: 7
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d674caac7259491b0800000000000000
+      internalID: -5650727634306578579
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_73
+      rect:
+        serializedVersion: 2
+        x: 973
+        y: 311
+        width: 7
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 61453d57209134190800000000000000
+      internalID: -7979506616412974058
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_74
+      rect:
+        serializedVersion: 2
+        x: 665
+        y: 222
+        width: 86
+        height: 80
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 91598aab9733018b0800000000000000
+      internalID: -5183586573187771111
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_75
+      rect:
+        serializedVersion: 2
+        x: 850
+        y: 283
+        width: 23
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 11445a97226a01340800000000000000
+      internalID: 4832545067168515089
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_76
+      rect:
+        serializedVersion: 2
+        x: 667
+        y: 234
+        width: 9
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 70ec17c1cf4381e40800000000000000
+      internalID: 5627305991813058055
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_77
+      rect:
+        serializedVersion: 2
+        x: 756
+        y: 234
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8f3ea94bd284103a0800000000000000
+      internalID: -6700995409409809416
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_78
+      rect:
+        serializedVersion: 2
+        x: 766
+        y: 237
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d25fc8b011930c2d0800000000000000
+      internalID: -3260543384845224659
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_79
+      rect:
+        serializedVersion: 2
+        x: 946
+        y: 181
+        width: 102
+        height: 67
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 299071c9361b39840800000000000000
+      internalID: 5229718633685911954
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_80
+      rect:
+        serializedVersion: 2
+        x: 609
+        y: 216
+        width: 9
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 50c5292727184b310800000000000000
+      internalID: 1419902111076998149
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_81
+      rect:
+        serializedVersion: 2
+        x: 655
+        y: 208
+        width: 23
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6dcec3f3505c796a0800000000000000
+      internalID: -6442464115603739434
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_82
+      rect:
+        serializedVersion: 2
+        x: 924
+        y: 210
+        width: 10
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1780be791d3e41060800000000000000
+      internalID: 6923409016511727729
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_83
+      rect:
+        serializedVersion: 2
+        x: 617
+        y: 198
+        width: 11
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 815505f80f20eb0f0800000000000000
+      internalID: -1099438026812009192
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_84
+      rect:
+        serializedVersion: 2
+        x: 1051
+        y: 177
+        width: 11
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8ff0b2bc421d547f0800000000000000
+      internalID: -628866616990691336
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_85
+      rect:
+        serializedVersion: 2
+        x: 1073
+        y: 168
+        width: 23
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8d57e2296bb669900800000000000000
+      internalID: 690858024728688088
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_86
+      rect:
+        serializedVersion: 2
+        x: 649
+        y: 175
+        width: 13
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eff083104139234b0800000000000000
+      internalID: -5462141683917910018
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_87
+      rect:
+        serializedVersion: 2
+        x: 952
+        y: 173
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9525beb42404cd8b0800000000000000
+      internalID: -5126151622368734631
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_88
+      rect:
+        serializedVersion: 2
+        x: 1043
+        y: 177
+        width: 9
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a7241df509cc39e70800000000000000
+      internalID: 9120858590810292858
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_89
+      rect:
+        serializedVersion: 2
+        x: 1099
+        y: 177
+        width: 9
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bc199e68ee6db9ff0800000000000000
+      internalID: -28192652693761589
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_90
+      rect:
+        serializedVersion: 2
+        x: 1137
+        y: 173
+        width: 14
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 935413efdae66e1b0800000000000000
+      internalID: -5627688990779816647
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_91
+      rect:
+        serializedVersion: 2
+        x: 526
+        y: 21
+        width: 217
+        height: 143
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1f8a879f9ab24a380800000000000000
+      internalID: -8960989349525542671
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_92
+      rect:
+        serializedVersion: 2
+        x: 920
+        y: 129
+        width: 30
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a1485f369b58ab450800000000000000
+      internalID: 6105339276146607130
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_93
+      rect:
+        serializedVersion: 2
+        x: 922
+        y: 137
+        width: 16
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6ef24f8af08cb6600800000000000000
+      internalID: 462683356320247782
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_94
+      rect:
+        serializedVersion: 2
+        x: 938
+        y: 129
+        width: 54
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ab9349880613aec60800000000000000
+      internalID: 7848139591324547514
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_95
+      rect:
+        serializedVersion: 2
+        x: 1001
+        y: 19
+        width: 136
+        height: 151
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f5c13f70e34659fd0800000000000000
+      internalID: -2335850614137611169
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_96
+      rect:
+        serializedVersion: 2
+        x: 772
+        y: 9
+        width: 200
+        height: 115
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3fe74c24818266530800000000000000
+      internalID: 3847807016299167475
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_97
+      rect:
+        serializedVersion: 2
+        x: 1133
+        y: 113
+        width: 8
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3ef35b89c42292430800000000000000
+      internalID: 3758573076392263651
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_98
+      rect:
+        serializedVersion: 2
+        x: 1069
+        y: 39
+        width: 9
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8e9852e64fa6aa320800000000000000
+      internalID: 2569984135420807656
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_99
+      rect:
+        serializedVersion: 2
+        x: 1131
+        y: 31
+        width: 7
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b3357ff4dc2dd8300800000000000000
+      internalID: 256092533081723707
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: petals_overlay_100
+      rect:
+        serializedVersion: 2
+        x: 1091
+        y: 20
+        width: 13
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2b6cedc368999c020800000000000000
+      internalID: 2362588281358436018
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable: {}
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

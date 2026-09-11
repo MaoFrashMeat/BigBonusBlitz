@@ -295,12 +295,16 @@ def install_petals():
         return
     dst = os.path.join(UNITY_UI, 'Title')
     os.makedirs(dst, exist_ok=True)
+    from PIL import ImageFilter
     files = sorted(f for f in os.listdir(PETAL_SRC) if f.lower().endswith('.png'))
     for i, f in enumerate(files, 1):
-        im = square(trim(Image.open(os.path.join(PETAL_SRC, f)).convert('RGBA'), pad=8))
+        im = square(trim(Image.open(os.path.join(PETAL_SRC, f)).convert('RGBA'), pad=24))
         im = im.resize((PETAL_SIZE, PETAL_SIZE), Image.LANCZOS)
         im.save(os.path.join(dst, f'petal_{i}.png'))
-    print(f'  花びら {len(files)} 枚 → {dst}')
+        # ぼかし 3 段階（TitleAmbience の blur 1..3）。縁ににじみが要るので余白を広めに取ってある
+        for k, radius in ((1, 2.5), (2, 5), (3, 9)):
+            im.filter(ImageFilter.GaussianBlur(radius)).save(os.path.join(dst, f'petal_{i}_b{k}.png'))
+    print(f'  花びら {len(files)} 枚 ×（素 + ぼかし 3 段）→ {dst}')
 
 
 def install(fdir, idir):

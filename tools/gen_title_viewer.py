@@ -39,6 +39,14 @@ for n in ('title_char', 'title_hair'):
     p = os.path.join(UI, n + '.png')
     if os.path.exists(p):
         imgs[n], aspects[n] = uri_small(p)
+PETALS = []
+for i in range(1, 17):
+    p = os.path.join(UI, 'Title', f'petal_{i}.png')
+    if not os.path.exists(p):
+        break
+    im = Image.open(p).convert('RGBA').resize((96, 96), Image.LANCZOS)
+    buf = io.BytesIO(); im.save(buf, 'PNG', optimize=True)
+    PETALS.append('data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode('ascii'))
 saved = json.load(open(TITLE_JSON, encoding='utf-8')) if os.path.exists(TITLE_JSON) else None
 
 HTML = r'''<!doctype html>
@@ -69,6 +77,11 @@ HTML = r'''<!doctype html>
   .prop .v { color:#ffcf3f; text-align:right; font-variant-numeric:tabular-nums; }
   .note { color:#98a3b8; font-size:12px; }
   #msg { color:#3ddc84; font-size:12px; min-width:12em; }
+  .petals { position:absolute; inset:0; pointer-events:none; overflow:hidden; }
+  .petal, .pglow { position:absolute; left:0; top:0; transform-origin:50% 50%; pointer-events:none; }
+  .pglow { border-radius:50%; background:radial-gradient(circle, rgba(255,179,217,1) 0%, rgba(255,179,217,.5) 35%, transparent 70%); }
+  .charBox { position:absolute; border:1px dashed rgba(255,207,63,.8); pointer-events:none; display:none; }
+  .tabs { display:flex; gap:4px; } .tabs button { flex:1; }
 </style>
 <div class="wrap">
   <div class="row">
@@ -83,14 +96,22 @@ HTML = r'''<!doctype html>
     <label>倍率 <input type="range" id="zoom" min="0.4" max="1.2" step="0.05" value="0.6"><span id="zoomV">0.60</span></label>
   </div>
   <div class="main">
-    <div class="board-wrap" id="bw"><div class="board" id="board"></div><div class="phoneMask" id="phoneMask"></div></div>
+    <div class="board-wrap" id="bw"><div class="board" id="board"></div><div class="charBox" id="charBox"></div><div class="phoneMask" id="phoneMask"></div></div>
     <div class="side">
+      <div class="tabs"><button id="tabLayers" class="on">層</button><button id="tabPetals">花びら</button></div>
+      <div id="paneLayers">
       <h3>層（上が手前）</h3>
       <div class="list" id="list"></div>
       <div class="row" style="justify-content:flex-start"><select id="addSel"></select><button id="add">層を足す</button></div>
       <h3 id="pTitle">（層を選ぶ）</h3>
       <div class="prop" id="props"></div>
       <div class="note">板の上でドラッグして位置。矢印キーで 0.5%（Shift で 2%）。「立ち絵より手前」を付けた層は立ち絵の上に出る。</div>
+      </div>
+      <div id="panePetals" style="display:none">
+      <h3>花びら（TitleAmbience）</h3>
+      <div class="prop" id="pprops"></div>
+      <div class="note">「立ち絵の枠」は板の中心原点の比。枠の中では「立ち絵で薄く」のぶん透ける。「立ち絵の後ろ」を付けると花びらは立ち絵に隠れる（光の玉は手前のまま）。</div>
+      </div>
     </div>
   </div>
   <div class="note">座標は板（元絵と同じ比）の中心が原点。x は幅、y は高さに対する比。揺れ幅は %。式は TitleParallax.LateUpdate と同じ。埋め込みの絵は縮めてあるので粗いが、Unity は元の解像度を使う。</div>
@@ -111,6 +132,95 @@ const FIELDS = [
   ['breathe','脈 %',0,6,0.1], ['rot','傾き °',0,10,0.1], ['alpha','不透明',0,1,0.01],
 ];
 let layers = (SAVED && SAVED.layers && SAVED.layers.length) ? SAVED.layers : JSON.parse(JSON.stringify(DEFAULT));
+const PETAL_IMG = __PETALS__;
+const PETAL_DEF = { count:22, orbs:26, sizeMin:14, sizeMax:32, alpha:0.9, blur:0, glow:0.6, glowSize:2.4, fallMin:14, fallMax:30, driftMin:4, driftMax:16, spin:70, flutter:22, behindChar:false, charMask:0, charX:0.28, charY:-0.05, charW:0.42, charH:0.95, orbAlpha:0.55 };
+let petals = Object.assign({}, PETAL_DEF, (SAVED && SAVED.petals) || {});
+const PFIELDS = [
+  ['count','数',0,80,1], ['sizeMin','大きさ 小',4,60,1], ['sizeMax','大きさ 大',4,80,1], ['alpha','不透明',0,1,0.05], ['blur','ぼかし 0〜3',0,3,1],
+  ['glow','光の強さ',0,1.5,0.05], ['glowSize','光の大きさ',1,5,0.1], ['fallMin','落ちる速さ 小',0,80,1], ['fallMax','落ちる速さ 大',0,120,1],
+  ['driftMin','横流れ 小',0,40,1], ['driftMax','横流れ 大',0,60,1], ['spin','回転 °/秒',0,200,5], ['flutter','風の煽り °',0,60,1],
+  ['charMask','立ち絵で薄く',0,1,0.05], ['charX','枠 x',-0.5,0.5,0.01], ['charY','枠 y',-0.5,0.5,0.01], ['charW','枠 幅',0.05,1,0.01], ['charH','枠 高さ',0.05,1.2,0.01],
+  ['orbs','光の玉の数',0,60,1], ['orbAlpha','光の玉の不透明',0,1,0.05],
+];
+// ---- 花びらの動き（TitleAmbience と同じ式。単位は板の px で、揺れの見え方を合わせるため 0.6 倍で描く）----
+let bits = [], petalRng = 1;
+function prand() { petalRng = (petalRng * 1103515245 + 12345) & 0x7fffffff; return petalRng / 0x7fffffff; }
+const PR = (a, b) => a + prand() * (b - a);
+function petalLayer() {
+  let pl = board.querySelector('.petals.' + (petals.behindChar ? 'behind' : 'front'));
+  return pl;
+}
+function buildPetals() {
+  board.querySelectorAll('.petals').forEach(n => n.remove());
+  bits = []; petalRng = 20260911;
+  // 立ち絵の前と後ろの 2 枚の置き場を作り、設定に応じてどちらかに入れる
+  const behind = document.createElement('div'); behind.className = 'petals behind';
+  const front = document.createElement('div'); front.className = 'petals front';
+  const chars = board.querySelectorAll('.charImg');
+  if (chars.length) board.insertBefore(behind, chars[0]); else board.appendChild(behind);
+  board.appendChild(front);
+  const host = petals.behindChar ? behind : front;
+  const W = BW * zoom, H = BH * zoom;
+  const total = petals.orbs + petals.count;
+  for (let i = 0; i < total; i++) {
+    const isPetal = i >= petals.orbs;
+    const b = { petal: isPetal, x:0, y:0, vx:0, vy:0, spin:0, angle:0, size:10, phase:0, wob:0, life:0, maxLife:1 };
+    if (isPetal && petals.glow > 0) { b.glow = document.createElement('div'); b.glow.className = 'pglow'; host.appendChild(b.glow); }
+    b.el = document.createElement(isPetal ? 'img' : 'div'); b.el.className = isPetal ? 'petal' : 'pglow';
+    if (isPetal) { b.el.src = PETAL_IMG[i % PETAL_IMG.length]; b.el.style.filter = petals.blur > 0 ? `blur(${[0,0.8,1.6,2.8][petals.blur] * zoom * 1.6}px)` : ''; }
+    else b.el.style.background = 'radial-gradient(circle, rgba(255,243,200,1) 0%, rgba(191,228,255,.5) 40%, transparent 70%)';
+    (isPetal ? host : front).appendChild(b.el);
+    resetBit(b, true, W, H); bits.push(b);
+  }
+  document.getElementById('charBox').style.display = petals.charMask > 0 ? 'block' : 'none';
+}
+function resetBit(b, anywhere, W, H) {
+  b.phase = PR(0, 100); b.wob = PR(18, 46); b.maxLife = PR(6, 13); b.life = anywhere ? PR(0, b.maxLife) : 0;
+  if (b.petal) {
+    b.size = PR(petals.sizeMin, petals.sizeMax); b.x = PR(-W/2, W/2); b.y = anywhere ? PR(-H/2, H/2) : H/2 + b.size;
+    b.vx = -PR(petals.driftMin, petals.driftMax); b.vy = -PR(petals.fallMin, petals.fallMax); b.spin = PR(-petals.spin, petals.spin); b.angle = PR(0, 360);
+  } else {
+    b.size = PR(5, 16); b.x = PR(-W/2, W/2); b.y = anywhere ? PR(-H/2, H/2) : -H/2 - b.size; b.vx = PR(-6, 6); b.vy = PR(7, 20); b.spin = 0; b.angle = 0;
+  }
+}
+function inCharBox(x, y) {
+  if (petals.charMask <= 0) return 0;
+  const px = x / (BW * zoom), py = y / (BH * zoom);
+  const dx = Math.abs(px - petals.charX) / (petals.charW / 2), dy = Math.abs(py - petals.charY) / (petals.charH / 2);
+  const d = Math.max(dx, dy); return 1 - Math.min(1, Math.max(0, (d - 0.85) / 0.15));
+}
+function framePetals(dt) {
+  const W = BW * zoom, H = BH * zoom, s = zoom;   // Unity の px を板の倍率で縮める
+  for (const b of bits) {
+    b.life += dt;
+    b.x += (b.vx + Math.sin((t + b.phase) * 0.7) * b.wob * 0.35) * dt * s; b.y += b.vy * dt * s; b.angle += b.spin * dt;
+    const k = Math.min(1, b.life / b.maxLife); let a = Math.sin(k * Math.PI);
+    if (b.petal) { a *= petals.alpha; a *= 1 - petals.charMask * inCharBox(b.x, b.y); } else a *= petals.orbAlpha;
+    const size = b.size * s, cx = W/2 + b.x, cy = H/2 - b.y;
+    const flutter = b.petal ? petals.flutter * Math.sin((t + b.phase) * 1.6) : 0;
+    b.el.style.width = b.el.style.height = size + 'px';
+    b.el.style.transform = `translate(${cx - size/2}px, ${cy - size/2}px) rotate(${-(b.angle + flutter)}deg)`; b.el.style.opacity = a;
+    if (b.glow) { const pulse = 0.55 + 0.45 * Math.sin((t + b.phase) * 2.2); const gs = size * petals.glowSize * (0.9 + 0.25 * pulse); b.glow.style.width = b.glow.style.height = gs + 'px'; b.glow.style.transform = `translate(${cx - gs/2}px, ${cy - gs/2}px)`; b.glow.style.opacity = a * petals.glow * pulse; }
+    if (b.life >= b.maxLife || b.y > H/2 + 40 || b.y < -H/2 - 40 || b.x < -W/2 - 60 || b.x > W/2 + 60) resetBit(b, false, W, H);
+  }
+  const cb = document.getElementById('charBox');
+  cb.style.left = (W/2 + (petals.charX - petals.charW/2) * W) + 'px'; cb.style.top = (H/2 - (petals.charY + petals.charH/2) * H) + 'px';
+  cb.style.width = petals.charW * W + 'px'; cb.style.height = petals.charH * H + 'px';
+}
+function renderPetalProps() {
+  const p = document.getElementById('pprops'); p.innerHTML = '';
+  const addRow = (label, el, v) => { const a = document.createElement('div'); a.textContent = label; p.appendChild(a); p.appendChild(el); const s = document.createElement('div'); s.className = 'v'; s.textContent = v; p.appendChild(s); return s; };
+  const bc = document.createElement('input'); bc.type = 'checkbox'; bc.checked = !!petals.behindChar; bc.onchange = () => { petals.behindChar = bc.checked; buildPetals(); };
+  addRow('立ち絵の後ろ', bc, '');
+  for (const [k, label, mn, mx, st] of PFIELDS) {
+    const r = document.createElement('input'); r.type = 'range'; r.min = mn; r.max = mx; r.step = st; r.value = petals[k];
+    const fmt = v => (+v).toFixed(st < 0.1 ? 2 : st < 1 ? 2 : 0);
+    const sv = addRow(label, r, fmt(petals[k]));
+    r.oninput = () => { petals[k] = +r.value; sv.textContent = fmt(r.value); if (['count','orbs','blur','glow','glowSize'].includes(k)) buildPetals(); };
+  }
+}
+document.getElementById('tabLayers').onclick = () => { document.getElementById('paneLayers').style.display = ''; document.getElementById('panePetals').style.display = 'none'; document.getElementById('tabLayers').classList.add('on'); document.getElementById('tabPetals').classList.remove('on'); };
+document.getElementById('tabPetals').onclick = () => { document.getElementById('paneLayers').style.display = 'none'; document.getElementById('panePetals').style.display = ''; document.getElementById('tabPetals').classList.add('on'); document.getElementById('tabLayers').classList.remove('on'); renderPetalProps(); };
 let sel = 0, zoom = 0.6, t = 0, speed = 1, anim = true, dragging = null;
 
 const bw = document.getElementById('bw'), board = document.getElementById('board');
@@ -139,6 +249,7 @@ function rebuild() {
     board.appendChild(im);
   });
   document.querySelectorAll('.charImg').forEach(c => c.style.display = document.getElementById('showChar').checked ? '' : 'none');
+  buildPetals();
   renderList(); renderProps(); frame(true);
 }
 function frame(force) {
@@ -164,7 +275,7 @@ function frame(force) {
   }
 }
 let last = performance.now();
-function tick(now) { const dt = Math.min(0.05, (now - last) / 1000); last = now; if (anim) { t += dt * speed; frame(); } requestAnimationFrame(tick); }
+function tick(now) { const dt = Math.min(0.05, (now - last) / 1000); last = now; if (anim) { t += dt * speed; frame(); framePetals(dt * speed); } requestAnimationFrame(tick); }
 requestAnimationFrame(tick);
 
 function select(i) { sel = i; renderList(); renderProps(); frame(); }
@@ -216,14 +327,14 @@ const addSel = document.getElementById('addSel');
 for (const n of Object.keys(IMG)) if (!n.startsWith('title_')) { const o = document.createElement('option'); o.value = n; o.textContent = n; addSel.appendChild(o); }
 document.getElementById('add').onclick = () => { layers.push({ name:addSel.value, x:0, y:0, scale:1, motion:'drift', ampX:1, ampY:0.5, period:20, phase:0, breathe:0, rot:0, alpha:1, front:false, visible:true }); sel = layers.length - 1; rebuild(); };
 document.getElementById('reset').onclick = () => { layers = JSON.parse(JSON.stringify(DEFAULT)); sel = 0; rebuild(); };
-const payload = () => ({ version: 1, layers: layers.map(l => ({ ...l })) });
+const payload = () => ({ version: 1, layers: layers.map(l => ({ ...l })), petals: { ...petals } });
 const msg = (s, ok = true) => { const m = document.getElementById('msg'); m.textContent = s; m.style.color = ok ? '#3ddc84' : '#ff4d6d'; };
 document.getElementById('copy').onclick = async () => { try { await navigator.clipboard.writeText(JSON.stringify(payload(), null, 2)); msg('JSON をコピーした'); } catch (e) { msg('コピーできない', false); } };
 document.getElementById('save').onclick = async () => {
   try { const r = await fetch('/save_title', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload()) }); const j = await r.json(); msg(j.ok ? `保存した（${j.count} 層）。Unity で Play し直すと反映` : '保存できない: ' + j.error, j.ok); }
   catch (e) { msg('サーバが無い。python tools/ui_server.py を起動するか、JSON をコピーして title_layers.json に貼る', false); }
 };
-fetch('/title_layout').then(r => r.json()).then(j => { if (j.layers && j.layers.length) { layers = j.layers; sel = 0; rebuild(); } }).catch(() => {});
+fetch('/title_layout').then(r => r.json()).then(j => { if (j.petals) petals = Object.assign({}, PETAL_DEF, j.petals); if (j.layers && j.layers.length) { layers = j.layers; sel = 0; } rebuild(); }).catch(() => {});
 document.getElementById('showChar').onchange = rebuild;
 document.getElementById('phone').onchange = layout;
 document.getElementById('anim').onchange = e => anim = e.target.checked;
@@ -235,5 +346,5 @@ layout(); rebuild();
 '''
 
 with open(OUT, 'w', encoding='utf-8') as f:
-    f.write(HTML.replace('__IMG__', json.dumps(imgs)).replace('__ASPECT__', json.dumps(aspects)).replace('__SAVED__', json.dumps(saved, ensure_ascii=False)))
+    f.write(HTML.replace('__IMG__', json.dumps(imgs)).replace('__ASPECT__', json.dumps(aspects)).replace('__SAVED__', json.dumps(saved, ensure_ascii=False)).replace('__PETALS__', json.dumps(PETALS)))
 print(OUT, os.path.getsize(OUT) // 1024, 'KB')

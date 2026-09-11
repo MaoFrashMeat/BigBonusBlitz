@@ -56,8 +56,11 @@ class Handler(SimpleHTTPRequestHandler):
             except Exception as e:
                 return self._json(400, {'ok': False, 'error': str(e)})
             os.makedirs(os.path.dirname(TITLE), exist_ok=True)
+            out = {'version': 1, 'layers': layers}
+            if isinstance(data.get('petals'), dict):
+                out['petals'] = data['petals']
             with open(TITLE, 'w', encoding='utf-8') as f:
-                json.dump({'version': 1, 'layers': layers}, f, ensure_ascii=False, indent=2)
+                json.dump(out, f, ensure_ascii=False, indent=2)
             return self._json(200, {'ok': True, 'path': TITLE, 'count': len(layers)})
         if self.path.split('?')[0] != '/save':
             return self._json(404, {'ok': False, 'error': 'unknown'})
