@@ -104,9 +104,13 @@ namespace BBB.Runtime
                 var r = titleSprite.rect;
                 AspectCover.Attach(artRt, r.height > 0 ? r.width / r.height : TitleArtAspect);
 
-                var bgImg = UiSkin.Img(artRt, "Bg", Vector2.zero, Vector2.zero, titleSprite, Color.white);
-                UiSkin.Stretch(bgImg.rectTransform);
-                bgImg.raycastTarget = false;
+                // 背景は奥行きのある層（空と雲海 / 城と湖 / 手前のバルコニー）。素材が無ければ 1 枚絵
+                if (TitleParallax.Create(artRt) == null)
+                {
+                    var bgImg = UiSkin.Img(artRt, "Bg", Vector2.zero, Vector2.zero, titleSprite, Color.white);
+                    UiSkin.Stretch(bgImg.rectTransform);
+                    bgImg.raycastTarget = false;
+                }
 
                 // 体と髪を別々に重ねる。体は呼吸だけ、髪はそれより大きく揺れる。
                 // 3 枚とも元絵と同じ画布なので、板いっぱいに広げれば位置は合う

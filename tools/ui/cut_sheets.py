@@ -266,9 +266,29 @@ def install_navi():
     print(f'  ナビ {n} 枚 → {dst}')
 
 
+TITLE_BG_SRC = os.path.join(ROOT, 'assets', 'title', 'BG')
+TITLE_BG_FILES = ['sky_mountains_cloudsea', 'castle_lake', 'terrace_balcony']   # TitleParallax が使う 3 枚
+
+
+def install_title_bg():
+    """タイトル背景の層を Resources へ。縮めずにそのまま（1672px。iPhone では 1.5 倍に伸びる）。"""
+    if not os.path.isdir(TITLE_BG_SRC):
+        return
+    dst = os.path.join(UNITY_UI, 'Title')
+    os.makedirs(dst, exist_ok=True)
+    n = 0
+    for name in TITLE_BG_FILES:
+        src = os.path.join(TITLE_BG_SRC, name + '.png')
+        if os.path.exists(src):
+            shutil.copy2(src, os.path.join(dst, name + '.png'))
+            n += 1
+    print(f'  タイトル背景 {n} 枚 → {dst}')
+
+
 def install(fdir, idir):
     """parts/ の画像を Unity の Resources へコピーする。名前が同じなら上書き。"""
     install_navi()
+    install_title_bg()
     for sub, src_dir in (('Frames', fdir), ('Icons', idir)):
         dst = os.path.join(UNITY_UI, sub)
         os.makedirs(dst, exist_ok=True)
