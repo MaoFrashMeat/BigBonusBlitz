@@ -70,6 +70,10 @@ namespace BBB.Runtime
         private readonly bool[] _naviPopped = new bool[3];
         private Image[] _naviBg = new Image[3];
         private Image[] _naviGlow = new Image[3];
+        /// <summary>手続き描画のバッジ（丸＋文字）。紋章を出すときは丸ごと隠す。</summary>
+        private readonly GameObject[] _naviProc = new GameObject[3];
+        /// <summary>押し順の紋章（Art/UI/Navi/navi_01..03）。数字のときだけ出す。</summary>
+        private readonly Image[] _naviEmblem = new Image[3];
         // 会話 UI（旅人 ⇄ 主人公）
         private GameObject _dialogBox;
         private Text _dialogName, _dialogText;
@@ -650,12 +654,19 @@ namespace BBB.Runtime
                 _naviCells[i] = cell;
                 _naviGlow[i] = UiSkin.Img(cell, "Glow", Vector2.zero, new Vector2(badge * 2.4f, badge * 2.4f), UiSkin.Glow(96), new Color(1, 0.85f, 0.3f, 0f));
                 UiSkin.Img(cell, "Shadow", new Vector2(0, -3), new Vector2(badge + 18, badge + 18), UiSkin.Shadow(33, 9), new Color(0, 0, 0, 0.6f));
-                _naviBg[i] = UiSkin.Img(cell, "Ring", Vector2.zero, new Vector2(badge, badge), UiSkin.Rounded(33), ColBtn);
-                UiSkin.Img(cell, "Inner", Vector2.zero, new Vector2(badge - 8, badge - 8), UiSkin.Rounded(29), new Color(0.04f, 0.05f, 0.09f, 0.92f));
-                UiSkin.Img(cell, "Sheen", new Vector2(0, badge * 0.22f), new Vector2(badge - 16, badge * 0.36f), UiSkin.GradientV(true), new Color(1, 1, 1, 0.14f)).type = Image.Type.Simple;
-                _naviLabels[i] = UiFactory.Label(cell, "L", new Vector2(0, 2), new Vector2(badge, badge), "", 40, TextAnchor.MiddleCenter, ColText);
+                // 丸＋文字（? / ○ / × / - 用）。数字のときは下の紋章に切り替える
+                var proc = UiSkin.Rect(cell, "Proc", Vector2.zero, new Vector2(badge, badge));
+                _naviProc[i] = proc.gameObject;
+                _naviBg[i] = UiSkin.Img(proc, "Ring", Vector2.zero, new Vector2(badge, badge), UiSkin.Rounded(33), ColBtn);
+                UiSkin.Img(proc, "Inner", Vector2.zero, new Vector2(badge - 8, badge - 8), UiSkin.Rounded(29), new Color(0.04f, 0.05f, 0.09f, 0.92f));
+                UiSkin.Img(proc, "Sheen", new Vector2(0, badge * 0.22f), new Vector2(badge - 16, badge * 0.36f), UiSkin.GradientV(true), new Color(1, 1, 1, 0.14f)).type = Image.Type.Simple;
+                _naviLabels[i] = UiFactory.Label(proc, "L", new Vector2(0, 2), new Vector2(badge, badge), "", 40, TextAnchor.MiddleCenter, ColText);
                 _naviLabels[i].fontStyle = FontStyle.Bold;
                 TextShadow(_naviLabels[i]);
+                // 押し順の紋章（1・2・3 が絵に入っている）。丸より少し大きく出して「リールの上に乗る」見せ方
+                _naviEmblem[i] = UiSkin.Img(cell, "Emblem", new Vector2(0, 2), new Vector2(badge + 20, badge + 20), null, Color.white);
+                _naviEmblem[i].preserveAspect = true;
+                _naviEmblem[i].gameObject.SetActive(false);
             }
             _naviBox = navi.gameObject;
             _naviBox.SetActive(false);
@@ -1315,10 +1326,8 @@ namespace BBB.Runtime
                     if (_naviPopped[i]) continue;   // 押して消したバッジは戻さない
                     bool isFirst = i == _m.Navi2.first;
                     bool done = pressed2 > 0;
-                    _naviLabels[i].text = isFirst ? "1" : "-";
-                    _naviLabels[i].color = isFirst ? ColGold : ColTextSub;
-                    _naviBg[i].color = isFirst ? ColGold : ColBtnDisabled;
-                    _naviGlow[i].color = isFirst && !done ? new Color(1f, 0.85f, 0.3f, 0.55f) : new Color(0, 0, 0, 0);
+                    ApplyNaviBadge(i, isFirst ? "1" : "-", isFirst ? ColGold : ColBtnDisabled, isFirst ? ColGold : ColTextSub,
+                                   isFirst && !done ? new Color(1f, 0.85f, 0.3f, 0.55f) : new Color(0, 0, 0, 0));
                 }
                 return;
             }
@@ -1345,8 +1354,25 @@ namespace BBB.Runtime
                 {
                     if (i != n.first) { txt = "-"; ring = ColBtnDisabled; fg = ColTextSub; glow = new Color(0, 0, 0, 0); }
                 }
-                _naviLabels[i].text = txt; _naviLabels[i].color = fg; _naviBg[i].color = ring; _naviGlow[i].color = glow;
+                ApplyNaviBadge(i, txt, ring, fg, glow);
             }
+        }
+
+        /// <summary>
+        /// バッジ 1 つを更新する。数字（1〜3）なら押し順の紋章の絵に切り替え、
+        /// それ以外（? / ○ / × / -）は丸＋文字で出す。紋章が無ければ数字も丸＋文字。
+        /// </summary>
+        private void ApplyNaviBadge(int i, string txt, Color ring, Color fg, Color glow)
+        {
+            var emblem = txt == "1" || txt == "2" || txt == "3" ? ArtLoader.Sprite("Art/UI/Navi/navi_0" + txt) : null;
+            bool useEmblem = emblem != null && _naviEmblem[i] != null;
+            if (_naviProc[i] != null) _naviProc[i].SetActive(!useEmblem);
+            if (_naviEmblem[i] != null)
+            {
+                _naviEmblem[i].gameObject.SetActive(useEmblem);
+                if (useEmblem) _naviEmblem[i].sprite = emblem;
+            }
+            _naviLabels[i].text = txt; _naviLabels[i].color = fg; _naviBg[i].color = ring; _naviGlow[i].color = glow;
         }
 
         /// <summary>択の最中: BGM がこもり（水中）、画面が少し沈む＝集中。</summary>

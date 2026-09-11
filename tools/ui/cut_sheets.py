@@ -235,8 +235,32 @@ ICONS = {
 }
 
 
+NAVI_SRC = os.path.join(ROOT, 'assets', 'navi')     # navi_normal_01..03.png（押し順の紋章。1254px）
+NAVI_SIZE = 256                                     # 画面では 66〜84px。2 倍端末でも 256 あれば足りる
+
+
+def install_navi():
+    """押し順バッジの紋章を縮めて Resources へ。元は 1254px で 3 枚 18MB になるので 256px にする。"""
+    if not os.path.isdir(NAVI_SRC):
+        return
+    dst = os.path.join(UNITY_UI, 'Navi')
+    os.makedirs(dst, exist_ok=True)
+    n = 0
+    for i in (1, 2, 3):
+        src = os.path.join(NAVI_SRC, f'navi_normal_0{i}.png')
+        if not os.path.exists(src):
+            continue
+        im = trim(Image.open(src).convert('RGBA'))
+        im = square(im)
+        im = im.resize((NAVI_SIZE, NAVI_SIZE), Image.LANCZOS)
+        im.save(os.path.join(dst, f'navi_0{i}.png'))
+        n += 1
+    print(f'  ナビ {n} 枚 → {dst}')
+
+
 def install(fdir, idir):
     """parts/ の画像を Unity の Resources へコピーする。名前が同じなら上書き。"""
+    install_navi()
     for sub, src_dir in (('Frames', fdir), ('Icons', idir)):
         dst = os.path.join(UNITY_UI, sub)
         os.makedirs(dst, exist_ok=True)
