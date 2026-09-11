@@ -59,6 +59,8 @@ class Handler(SimpleHTTPRequestHandler):
             out = {'version': 1, 'layers': layers}
             if isinstance(data.get('petals'), dict):
                 out['petals'] = data['petals']
+            if isinstance(data.get('ui'), dict):
+                out['ui'] = data['ui']
             with open(TITLE, 'w', encoding='utf-8') as f:
                 json.dump(out, f, ensure_ascii=False, indent=2)
             return self._json(200, {'ok': True, 'path': TITLE, 'count': len(layers)})

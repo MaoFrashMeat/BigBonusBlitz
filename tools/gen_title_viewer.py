@@ -49,6 +49,40 @@ for i in range(1, 17):
     PETALS.append('data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode('ascii'))
 saved = json.load(open(TITLE_JSON, encoding='utf-8')) if os.path.exists(TITLE_JSON) else None
 
+# UI 部品（舞台に置くもの）。ロゴと TAP TO START、枠（9 分割）、アイコン
+MANIFEST = os.path.join(ROOT, 'assets', 'title', 'parts', 'frames', 'frames_manifest.json')
+man = json.load(open(MANIFEST, encoding='utf-8')) if os.path.exists(MANIFEST) else {}
+UI_IMG, UI_ASPECT, FRAME_SLICE, FRAME_WIDTH = {}, {}, {}, {}
+
+
+def embed(path, max_w):
+    im = Image.open(path).convert('RGBA'); k = 1.0
+    if im.width > max_w:
+        k = max_w / im.width; im = im.resize((max_w, max(1, round(im.height * k))), Image.LANCZOS)
+    buf = io.BytesIO(); im.save(buf, 'PNG', optimize=True)
+    return 'data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode('ascii'), k, im.width / im.height
+
+
+for n in ('bbb_logo_main',):
+    p = os.path.join(UI, n + '.png')
+    if os.path.exists(p): UI_IMG[n], _, UI_ASPECT[n] = embed(p, 600)
+p = os.path.join(UI, 'Title', 'tap_to_start.png')
+if os.path.exists(p): UI_IMG['tap_to_start'], _, UI_ASPECT['tap_to_start'] = embed(p, 600)
+for n in ('pill_navy_sm', 'btn_blue', 'btn_pill_blue', 'plate_hex_sky', 'plate_hex_cream', 'bar_cream_sm', 'toast_brown', 'btn_cream'):
+    p = os.path.join(UI, 'Frames', n + '.png')
+    if os.path.exists(p) and man.get(n, {}).get('border'):
+        UI_IMG['frame_' + n], k, _ = embed(p, 512)
+        FRAME_SLICE[n] = [round(v * k) for v in man[n]['border']]
+        FRAME_WIDTH[n] = [v / man[n].get('scale', 1.0) for v in man[n]['border']]
+ICON_NAMES = []
+icon_dirs = [os.path.join(UI, 'Icons'), os.path.join(ROOT, 'assets', 'title', 'parts', 'icon_v2')]
+seen = set()
+for d in icon_dirs:
+    if not os.path.isdir(d): continue
+    for fn in sorted(os.listdir(d)):
+        if fn.endswith('.png') and fn[:-4] not in seen:
+            seen.add(fn[:-4]); UI_IMG['icon_' + fn[:-4]], _, _ = embed(os.path.join(d, fn), 96); ICON_NAMES.append(fn[:-4])
+
 HTML = r'''<!doctype html>
 <meta charset="utf-8">
 <title>BBB タイトル背景ビューア</title>
@@ -82,6 +116,17 @@ HTML = r'''<!doctype html>
   .pglow { border-radius:50%; background:radial-gradient(circle, rgba(255,179,217,1) 0%, rgba(255,179,217,.5) 35%, transparent 70%); }
   .charBox { position:absolute; border:1px dashed rgba(255,207,63,.8); pointer-events:none; display:none; }
   .tabs { display:flex; gap:4px; } .tabs button { flex:1; }
+  .stageBox { position:absolute; pointer-events:none; border:1px dashed rgba(77,163,255,.7); }
+  .uiel { position:absolute; box-sizing:border-box; pointer-events:auto; cursor:move; transform-origin:50% 50%; }
+  .uiel.sel { outline:2px solid #ffcf3f; outline-offset:2px; z-index:60; }
+  .uiel .hd { position:absolute; right:-6px; bottom:-6px; width:12px; height:12px; background:#ffcf3f; border:1px solid #000; cursor:nwse-resize; display:none; z-index:61; }
+  .uiel.sel .hd { display:block; }
+  .uiel .skin { position:absolute; inset:0; pointer-events:none; box-sizing:border-box; border-style:solid; border-color:transparent; }
+  .uiel .skin.proc { background:#27304a; border-radius:20px; }
+  .uiel .lab { position:absolute; left:0; top:0; right:0; bottom:0; display:flex; align-items:center; justify-content:center; color:#f4f6fa; font-weight:700; text-shadow:1.5px -1.5px 0 rgba(0,0,0,.85); pointer-events:none; white-space:nowrap; }
+  .uiel .ico { position:absolute; top:50%; pointer-events:none; }
+  .uiel img.pic { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; pointer-events:none; }
+  input[type=text] { background:#1b2030; color:#fff; border:1px solid #3a4562; border-radius:6px; padding:3px 6px; width:100%; }
 </style>
 <div class="wrap">
   <div class="row">
@@ -96,9 +141,9 @@ HTML = r'''<!doctype html>
     <label>倍率 <input type="range" id="zoom" min="0.4" max="1.2" step="0.05" value="0.6"><span id="zoomV">0.60</span></label>
   </div>
   <div class="main">
-    <div class="board-wrap" id="bw"><div class="board" id="board"></div><div class="charBox" id="charBox"></div><div class="phoneMask" id="phoneMask"></div></div>
+    <div class="board-wrap" id="bw"><div class="board" id="board"></div><div class="charBox" id="charBox"></div><div class="stageBox" id="stageBox"></div><div class="uiRoot" id="uiRoot" style="position:absolute;left:0;top:0;pointer-events:none"></div><div class="phoneMask" id="phoneMask"></div></div>
     <div class="side">
-      <div class="tabs"><button id="tabLayers" class="on">層</button><button id="tabPetals">花びら</button></div>
+      <div class="tabs"><button id="tabLayers" class="on">層</button><button id="tabPetals">花びら</button><button id="tabUi">UI</button></div>
       <div id="paneLayers">
       <h3>層（上が手前）</h3>
       <div class="list" id="list"></div>
@@ -106,6 +151,13 @@ HTML = r'''<!doctype html>
       <h3 id="pTitle">（層を選ぶ）</h3>
       <div class="prop" id="props"></div>
       <div class="note">板の上でドラッグして位置。矢印キーで 0.5%（Shift で 2%）。「立ち絵より手前」を付けた層は立ち絵の上に出る。</div>
+      </div>
+      <div id="paneUi" style="display:none">
+      <h3>UI 部品（舞台 960×540）</h3>
+      <div class="list" id="uiList"></div>
+      <h3 id="uiTitle">（部品を選ぶ）</h3>
+      <div class="prop" id="uiProps"></div>
+      <div class="note">舞台の上でドラッグして位置、右下の角で大きさ。矢印キーで 1px（Shift で 10px）。座標は舞台の中心が原点。ロゴと TAP は縦横比を保つ。</div>
       </div>
       <div id="panePetals" style="display:none">
       <h3>花びら（TitleAmbience）</h3>
@@ -222,8 +274,6 @@ function renderPetalProps() {
     r.oninput = () => { petals[k] = +r.value; sv.textContent = fmt(r.value); if (['count','orbs','blur','glow','glowSize'].includes(k)) buildPetals(); };
   }
 }
-document.getElementById('tabLayers').onclick = () => { document.getElementById('paneLayers').style.display = ''; document.getElementById('panePetals').style.display = 'none'; document.getElementById('tabLayers').classList.add('on'); document.getElementById('tabPetals').classList.remove('on'); };
-document.getElementById('tabPetals').onclick = () => { document.getElementById('paneLayers').style.display = 'none'; document.getElementById('panePetals').style.display = ''; document.getElementById('tabPetals').classList.add('on'); document.getElementById('tabLayers').classList.remove('on'); renderPetalProps(); };
 let sel = 0, zoom = 0.6, t = 0, speed = 1, anim = true, dragging = null;
 
 const bw = document.getElementById('bw'), board = document.getElementById('board');
@@ -236,6 +286,127 @@ function layout() {
   pm.style.display = showPhone ? 'block' : 'none';
   pm.style.left = ((BW * zoom - pw) / 2) + 'px'; pm.style.width = pw + 'px'; pm.style.top = '0'; pm.style.height = BH * zoom + 'px'; pm.style.inset = 'auto';
 }
+// ==== UI 部品（TitleScreen の配置。TitleUiLayout が読む）====
+const UI_IMG = __UIIMG__, UI_ASPECT = __UIASPECT__, SLICE = __SLICE__, WIDTH = __WIDTH__, ICONS = __ICONS__;
+const SW = 960, SH = 540;
+const stageScale = () => (BH * zoom) / SH;      // 舞台 px → 画面 px（板を高さ合わせで覆う）
+const UI_FRAMES = ['', 'none', 'pill_navy_sm', 'btn_blue', 'btn_pill_blue', 'plate_hex_sky', 'plate_hex_cream', 'bar_cream_sm', 'toast_brown', 'btn_cream'];
+const logoH = 470 * (UI_ASPECT.bbb_logo_main ? 1 / UI_ASPECT.bbb_logo_main : 0.58);
+const tapH = 420 * (UI_ASPECT.tap_to_start ? 1 / UI_ASPECT.tap_to_start : 0.2);
+const UI_DEFS = [
+  { id:'logo', name:'ロゴ', kind:'img', img:'bbb_logo_main', x:-166, y:112, w:470, h:logoH, keepAspect:true },
+  { id:'tap', name:'TAP TO START', kind:'img', img:'tap_to_start', x:-166, y:-52, w:420, h:tapH, keepAspect:true },
+  { id:'pillNews', name:'お知らせ', kind:'pill', x:-380, y:-186, w:152, h:40, frame:'pill_navy_sm', icon:'bell', label:'お知らせ', font:13, iconSize:18, iconX:26, labelX:11 },
+  { id:'pillConfig', name:'設定', kind:'pill', x:-216, y:-186, w:152, h:40, frame:'pill_navy_sm', icon:'gear', label:'設定', font:13, iconSize:18, iconX:26, labelX:11 },
+  { id:'pillTransfer', name:'引き継ぎ', kind:'pill', x:-52, y:-186, w:152, h:40, frame:'pill_navy_sm', icon:'chain', label:'引き継ぎ', font:13, iconSize:18, iconX:26, labelX:11 },
+  { id:'menu', name:'右上メニュー', kind:'pill', x:446, y:236, w:44, h:44, frame:'', icon:'', label:'≡', font:22, iconSize:18, iconX:22, labelX:0 },
+];
+const UI_BASE = Object.fromEntries(UI_DEFS.map(d => [d.id, { x:d.x, y:d.y, w:d.w, h:d.h, frame:d.frame||'', icon:d.icon||'', label:d.label||'', font:d.font||13, iconSize:d.iconSize||18, iconX:d.iconX||26, labelX:d.labelX||0, visible:true }]));
+let ui = JSON.parse(JSON.stringify(UI_BASE));
+function loadUi(obj) { for (const [id, e] of Object.entries(obj || {})) if (ui[id]) Object.assign(ui[id], e); }
+if (SAVED && SAVED.ui) loadUi(SAVED.ui);
+let uiSel = null, uiDrag = null;
+const uiNodes = {};
+const uiRoot = document.getElementById('uiRoot');
+function uiPlace(id) {
+  const d = UI_DEFS.find(v => v.id === id), e = ui[id], n = uiNodes[id], k = stageScale();
+  const ox = (BW * zoom) / 2, oy = (BH * zoom) / 2;
+  n.style.left = (ox + (e.x - e.w/2) * k) + 'px'; n.style.top = (oy - (e.y + e.h/2) * k) + 'px';
+  n.style.width = (e.w * k) + 'px'; n.style.height = (e.h * k) + 'px';
+  n.style.display = e.visible ? '' : 'none';
+  n.querySelectorAll(':scope > .skin, :scope > .lab, :scope > .ico, :scope > img.pic').forEach(x => x.remove());
+  if (d.kind === 'img') {
+    const im = document.createElement('img'); im.className = 'pic'; im.src = UI_IMG[d.img] || ''; n.appendChild(im);
+  } else {
+    const sk = document.createElement('div'); sk.className = 'skin';
+    const fr = e.frame === '' ? (d.frame || '') : e.frame;
+    if (fr && fr !== 'none' && UI_IMG['frame_' + fr] && SLICE[fr]) {
+      const [l, b, r, t] = SLICE[fr], [wl, wb, wr, wt] = WIDTH[fr].map(v => v * k);
+      sk.style.borderImage = `url(${UI_IMG['frame_' + fr]}) ${t} ${r} ${b} ${l} fill / ${wt}px ${wr}px ${wb}px ${wl}px`;
+      sk.style.borderWidth = `${wt}px ${wr}px ${wb}px ${wl}px`;
+    } else sk.classList.add('proc');
+    n.appendChild(sk);
+    if (e.icon && UI_IMG['icon_' + e.icon]) {
+      const ic = document.createElement('img'); ic.className = 'ico'; ic.src = UI_IMG['icon_' + e.icon];
+      const s = e.iconSize * k; ic.style.width = ic.style.height = s + 'px'; ic.style.left = (e.iconX * k - s/2) + 'px'; ic.style.marginTop = (-s/2) + 'px';
+      n.appendChild(ic);
+    }
+    const lab = document.createElement('div'); lab.className = 'lab'; lab.textContent = e.label || '';
+    lab.style.fontSize = (e.font * k) + 'px'; lab.style.paddingLeft = (e.labelX * 2 * k) + 'px'; n.appendChild(lab);
+  }
+  const hd = document.createElement('div'); hd.className = 'hd'; n.appendChild(hd);
+  hd.onmousedown = ev => { ev.stopPropagation(); uiSelect(id); uiDrag = { id, sx:ev.clientX, sy:ev.clientY, ow:e.w, oh:e.h, ox:e.x, oy:e.y, kind:'size' }; };
+  n.classList.toggle('sel', uiSel === id);
+}
+function uiBuild() {
+  uiRoot.innerHTML = '';
+  for (const d of UI_DEFS) {
+    const n = document.createElement('div'); n.className = 'uiel'; n.dataset.id = d.id; uiRoot.appendChild(n); uiNodes[d.id] = n;
+    n.onmousedown = ev => { if (ev.target.classList.contains('hd')) return; ev.stopPropagation(); ev.preventDefault(); uiSelect(d.id); const e = ui[d.id]; uiDrag = { id:d.id, sx:ev.clientX, sy:ev.clientY, ox:e.x, oy:e.y, kind:'move' }; };
+    uiPlace(d.id);
+  }
+  const sb = document.getElementById('stageBox'), k = stageScale();
+  sb.style.left = ((BW * zoom - SW * k) / 2) + 'px'; sb.style.top = ((BH * zoom - SH * k) / 2) + 'px'; sb.style.width = SW * k + 'px'; sb.style.height = SH * k + 'px';
+  uiRenderList();
+}
+function uiSelect(id) { uiSel = id; for (const k in uiNodes) uiNodes[k].classList.toggle('sel', k === id); uiRenderList(); uiRenderProps(); }
+function uiRenderList() {
+  const list = document.getElementById('uiList'); list.innerHTML = '';
+  for (const d of UI_DEFS) {
+    const e = ui[d.id], it = document.createElement('div'); it.className = 'item' + (d.id === uiSel ? ' sel' : '');
+    it.innerHTML = `<input type="checkbox" ${e.visible ? 'checked' : ''} title="表示"><span class="nm">${d.name}</span>`;
+    it.querySelector('input').onchange = ev => { e.visible = ev.target.checked; uiPlace(d.id); };
+    it.onclick = ev => { if (ev.target.tagName === 'INPUT') return; uiSelect(d.id); };
+    list.appendChild(it);
+  }
+}
+function uiRenderProps() {
+  const p = document.getElementById('uiProps'); p.innerHTML = '';
+  const d = UI_DEFS.find(v => v.id === uiSel); document.getElementById('uiTitle').textContent = d ? `${d.name}（${d.id}）` : '（部品を選ぶ）';
+  if (!d) return;
+  const e = ui[d.id];
+  const row = (label, el, v) => { const a = document.createElement('div'); a.textContent = label; p.appendChild(a); p.appendChild(el); const s = document.createElement('div'); s.className = 'v'; s.textContent = v ?? ''; p.appendChild(s); return s; };
+  const num = (k, label, mn, mx, st) => { const r = document.createElement('input'); r.type = 'range'; r.min = mn; r.max = mx; r.step = st; r.value = e[k]; const sv = row(label, r, Math.round(e[k])); r.oninput = () => { e[k] = +r.value; if (k === 'w' && d.keepAspect) e.h = e.w * d.h / d.w; sv.textContent = Math.round(e[k]); uiPlace(d.id); }; };
+  num('x', 'x', -480, 480, 1); num('y', 'y', -270, 270, 1); num('w', '幅', 20, 960, 1);
+  if (!d.keepAspect) num('h', '高さ', 12, 540, 1);
+  if (d.kind === 'pill') {
+    const fs = document.createElement('select'); for (const f of UI_FRAMES) { const o = document.createElement('option'); o.value = f; o.textContent = f === '' ? `自動（${d.frame || '手続き'}）` : f === 'none' ? '手続き（前の見た目）' : f; fs.appendChild(o); } fs.value = e.frame; fs.onchange = () => { e.frame = fs.value; uiPlace(d.id); }; row('枠', fs);
+    const is = document.createElement('select'); { const o = document.createElement('option'); o.value = ''; o.textContent = '（無し）'; is.appendChild(o); } for (const n of ICONS) { const o = document.createElement('option'); o.value = n; o.textContent = n; is.appendChild(o); } is.value = e.icon; is.onchange = () => { e.icon = is.value; uiPlace(d.id); }; row('アイコン', is);
+    num('iconSize', 'アイコン大きさ', 8, 64, 1); num('iconX', 'アイコン位置', 0, 200, 1);
+    const tx = document.createElement('input'); tx.type = 'text'; tx.value = e.label; tx.oninput = () => { e.label = tx.value; uiPlace(d.id); }; row('文字', tx);
+    num('font', '文字の大きさ', 8, 40, 1); num('labelX', '文字のずらし', -60, 60, 1);
+  }
+  const rs = document.createElement('button'); rs.textContent = 'これだけ既定に戻す'; rs.onclick = () => { Object.assign(e, JSON.parse(JSON.stringify(UI_BASE[d.id]))); uiPlace(d.id); uiRenderProps(); }; row('', rs);
+}
+document.addEventListener('mousemove', ev => {
+  if (!uiDrag) return;
+  const e = ui[uiDrag.id], d = UI_DEFS.find(v => v.id === uiDrag.id), k = stageScale();
+  const dx = (ev.clientX - uiDrag.sx) / k, dy = -(ev.clientY - uiDrag.sy) / k;
+  if (uiDrag.kind === 'move') { e.x = Math.round(uiDrag.ox + dx); e.y = Math.round(uiDrag.oy + dy); }
+  else {
+    const nw = Math.max(20, Math.round(uiDrag.ow + dx));
+    let nh = d.keepAspect ? nw * d.h / d.w : Math.max(12, Math.round(uiDrag.oh - dy));
+    e.x = uiDrag.ox + (nw - uiDrag.ow) / 2; e.y = uiDrag.oy - (nh - uiDrag.oh) / 2; e.w = nw; e.h = nh;
+  }
+  uiPlace(uiDrag.id); uiRenderProps();
+});
+document.addEventListener('mouseup', () => uiDrag = null);
+document.addEventListener('keydown', ev => {
+  if (!uiSel || document.getElementById('paneUi').style.display === 'none' || ['INPUT','SELECT'].includes(document.activeElement.tagName)) return;
+  const e = ui[uiSel], st = ev.shiftKey ? 10 : 1;
+  if (ev.key === 'ArrowLeft') e.x -= st; else if (ev.key === 'ArrowRight') e.x += st; else if (ev.key === 'ArrowUp') e.y += st; else if (ev.key === 'ArrowDown') e.y -= st; else return;
+  ev.preventDefault(); uiPlace(uiSel); uiRenderProps();
+});
+function showPane(which) {
+  for (const [id, pane] of [['tabLayers','paneLayers'],['tabPetals','panePetals'],['tabUi','paneUi']]) { document.getElementById(pane).style.display = id === which ? '' : 'none'; document.getElementById(id).classList.toggle('on', id === which); }
+  uiRoot.style.pointerEvents = which === 'tabUi' ? 'auto' : 'none';
+  document.getElementById('stageBox').style.display = which === 'tabUi' ? 'block' : 'none';
+  if (which === 'tabPetals') renderPetalProps();
+  if (which === 'tabUi') { uiRenderList(); uiRenderProps(); }
+}
+document.getElementById('tabUi').onclick = () => showPane('tabUi');
+document.getElementById('tabLayers').onclick = () => showPane('tabLayers');
+document.getElementById('tabPetals').onclick = () => showPane('tabPetals');
 function rebuild() {
   board.innerHTML = '';
   const backing = document.createElement('div'); Object.assign(backing.style, { position:'absolute', inset:'0', background:'#cce0f7' }); board.appendChild(backing);
@@ -254,6 +425,7 @@ function rebuild() {
   document.querySelectorAll('.charImg').forEach(c => c.style.display = document.getElementById('showChar').checked ? '' : 'none');
   buildPetals();
   renderList(); renderProps(); frame(true);
+  uiBuild();
 }
 function frame(force) {
   for (const im of board.querySelectorAll('.layer.edit')) {
@@ -330,14 +502,14 @@ const addSel = document.getElementById('addSel');
 for (const n of Object.keys(IMG)) if (!n.startsWith('title_')) { const o = document.createElement('option'); o.value = n; o.textContent = n; addSel.appendChild(o); }
 document.getElementById('add').onclick = () => { layers.push({ name:addSel.value, x:0, y:0, scale:1, motion:'drift', ampX:1, ampY:0.5, period:20, phase:0, breathe:0, rot:0, alpha:1, front:false, visible:true }); sel = layers.length - 1; rebuild(); };
 document.getElementById('reset').onclick = () => { layers = JSON.parse(JSON.stringify(DEFAULT)); sel = 0; rebuild(); };
-const payload = () => ({ version: 1, layers: layers.map(l => ({ ...l })), petals: { ...petals } });
+const payload = () => ({ version: 1, layers: layers.map(l => ({ ...l })), petals: { ...petals }, ui: Object.fromEntries(Object.entries(ui).map(([k, e]) => [k, { ...e, x: Math.round(e.x), y: Math.round(e.y), w: Math.round(e.w), h: Math.round(e.h) }])) });
 const msg = (s, ok = true) => { const m = document.getElementById('msg'); m.textContent = s; m.style.color = ok ? '#3ddc84' : '#ff4d6d'; };
 document.getElementById('copy').onclick = async () => { try { await navigator.clipboard.writeText(JSON.stringify(payload(), null, 2)); msg('JSON をコピーした'); } catch (e) { msg('コピーできない', false); } };
 document.getElementById('save').onclick = async () => {
   try { const r = await fetch('/save_title', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload()) }); const j = await r.json(); msg(j.ok ? `保存した（${j.count} 層）。Unity で Play し直すと反映` : '保存できない: ' + j.error, j.ok); }
   catch (e) { msg('サーバが無い。python tools/ui_server.py を起動するか、JSON をコピーして title_layers.json に貼る', false); }
 };
-fetch('/title_layout').then(r => r.json()).then(j => { if (j.petals) petals = Object.assign({}, PETAL_DEF, j.petals); if (j.layers && j.layers.length) { layers = j.layers; sel = 0; } rebuild(); }).catch(() => {});
+fetch('/title_layout').then(r => r.json()).then(j => { if (j.petals) petals = Object.assign({}, PETAL_DEF, j.petals); if (j.ui) loadUi(j.ui); if (j.layers && j.layers.length) { layers = j.layers; sel = 0; } rebuild(); }).catch(() => {});
 document.getElementById('showChar').onchange = rebuild;
 document.getElementById('phone').onchange = layout;
 document.getElementById('anim').onchange = e => anim = e.target.checked;
@@ -349,5 +521,6 @@ layout(); rebuild();
 '''
 
 with open(OUT, 'w', encoding='utf-8') as f:
-    f.write(HTML.replace('__IMG__', json.dumps(imgs)).replace('__ASPECT__', json.dumps(aspects)).replace('__SAVED__', json.dumps(saved, ensure_ascii=False)).replace('__PETALS__', json.dumps(PETALS)))
+    f.write(HTML.replace('__IMG__', json.dumps(imgs)).replace('__ASPECT__', json.dumps(aspects)).replace('__SAVED__', json.dumps(saved, ensure_ascii=False)).replace('__PETALS__', json.dumps(PETALS))
+            .replace('__UIIMG__', json.dumps(UI_IMG)).replace('__UIASPECT__', json.dumps(UI_ASPECT)).replace('__SLICE__', json.dumps(FRAME_SLICE)).replace('__WIDTH__', json.dumps(FRAME_WIDTH)).replace('__ICONS__', json.dumps(ICON_NAMES)))
 print(OUT, os.path.getsize(OUT) // 1024, 'KB')

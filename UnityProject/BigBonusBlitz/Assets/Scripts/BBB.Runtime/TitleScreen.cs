@@ -161,8 +161,11 @@ namespace BBB.Runtime
                 var lr = logoSprite.rect;
                 if (lr.width > 0) logoH = LogoW * lr.height / lr.width;
             }
-            _logo.sizeDelta = new Vector2(LogoW, logoH);
-            _logo.anchoredPosition = new Vector2(TitleX, LogoY);
+            // 配置は title_layers.json の ui（tools/title_viewer.html の「UI」タブ）。無ければコードの既定値
+            var Llogo = TitleUiLayout.Get("logo", TitleX, LogoY, LogoW, logoH);
+            _logo.sizeDelta = Llogo.Size;
+            _logo.anchoredPosition = Llogo.Pos;
+            _logo.gameObject.SetActive(Llogo.visible);
             var logoImg = logoGo.GetComponent<Image>();
             logoImg.sprite = logoSprite;
             logoImg.preserveAspect = true;
@@ -180,10 +183,11 @@ namespace BBB.Runtime
             if (tapArt != null)
             {
                 float tapW = 420f, tapH = tapW * tapArt.rect.height / tapArt.rect.width;
-                _pressArt = UiSkin.Img(stage, "PressArt", new Vector2(TitleX, TapY), new Vector2(tapW, tapH), tapArt, Color.white);
+                var Ltap = TitleUiLayout.Get("tap", TitleX, TapY, tapW, tapH);
+                _pressArt = UiSkin.Img(stage, "PressArt", Ltap.Pos, Ltap.Size, tapArt, Color.white);
                 _pressArt.preserveAspect = true;
                 // 文字は絵に入っているので、Text は空のまま持っておく（START! の切り替えに使う）
-                _press = UiFactory.Label(stage, "Press", new Vector2(TitleX, TapY), new Vector2(420, 32), "", 22, TextAnchor.MiddleCenter, ColText);
+                _press = UiFactory.Label(stage, "Press", Ltap.Pos, new Vector2(420, 32), "", 22, TextAnchor.MiddleCenter, ColText);
                 _press.fontStyle = FontStyle.Bold;
                 Shade(_press);
             }
@@ -209,16 +213,17 @@ namespace BBB.Runtime
 
             // 下の丸ボタン 3 つ
             float px = -StageW * 0.5f + 24 + PillW * 0.5f;
-            Pill(stage, "News", new Vector2(px, PillY), "bell", "お知らせ", () => Notice("お知らせは準備中です"));
+            Pill(stage, "News", TitleUiLayout.Get("pillNews", px, PillY, PillW, PillH, "bell", "お知らせ", "pill_navy_sm"), () => Notice("お知らせは準備中です"));
             px += PillW + 12f;
-            Pill(stage, "Config", new Vector2(px, PillY), "gear", "設定", ToggleSettings);
+            Pill(stage, "Config", TitleUiLayout.Get("pillConfig", px, PillY, PillW, PillH, "gear", "設定", "pill_navy_sm"), ToggleSettings);
             px += PillW + 12f;
-            Pill(stage, "Transfer", new Vector2(px, PillY), "link", "引き継ぎ", () => Notice("引き継ぎは準備中です"));
+            Pill(stage, "Transfer", TitleUiLayout.Get("pillTransfer", px, PillY, PillW, PillH, "chain", "引き継ぎ", "pill_navy_sm"), () => Notice("引き継ぎは準備中です"));
 
             // 右上のメニュー
-            var menu = UiSkin.Button(stage, "Menu", new Vector2(StageW * 0.5f - 34, StageH * 0.5f - 34), new Vector2(44, 44),
-                "≡", ToggleSettings, ColBtn, 22, false, 10);
+            var Lmenu = TitleUiLayout.Get("menu", StageW * 0.5f - 34, StageH * 0.5f - 34, 44, 44, null, "≡", null);
+            var menu = UiSkin.Button(stage, "Menu", Lmenu.Pos, Lmenu.Size, Lmenu.label, ToggleSettings, ColBtn, Lmenu.font > 0 ? Lmenu.font : 22, false, 10, Lmenu.frame);
             UiSkin.SetButtonColor(menu, ColBtn, ColGold);
+            menu.gameObject.SetActive(Lmenu.visible);
 
             // フッター
             var ver = UiFactory.Label(stage, "Version", new Vector2(-StageW * 0.5f + 90, -StageH * 0.5f + 18), new Vector2(160, 18),
@@ -265,20 +270,23 @@ namespace BBB.Runtime
         }
 
         /// <summary>下に並べる丸ボタン（アイコン＋文字）。</summary>
-        private Button Pill(Transform parent, string name, Vector2 pos, string icon, string label, System.Action onClick)
+        private Button Pill(Transform parent, string name, TitleUiLayout.El L, System.Action onClick)
         {
-            // 枠は pill_navy_sm（紺の小さなピル）。無ければ手続きの丸角
-            var b = UiSkin.Button(parent, name, pos, new Vector2(PillW, PillH), "",
-                () => { _audio.UiPop(); onClick(); }, ColBtn, 13, false, 20, "pill_navy_sm");
+            // 枠・アイコン・文字・位置は title_layers.json の ui から（無ければ既定の pill_navy_sm）
+            var b = UiSkin.Button(parent, name, L.Pos, L.Size, "",
+                () => { _audio.UiPop(); onClick(); }, ColBtn, L.font > 0 ? L.font : 13, false, 20, string.IsNullOrEmpty(L.frame) ? "pill_navy_sm" : L.frame);
             var t = b.GetComponentInChildren<Text>();
             if (t != null)
             {
-                t.text = label;
+                t.text = L.label ?? "";
+                t.fontSize = L.font > 0 ? L.font : 13;
                 t.alignment = TextAnchor.MiddleCenter;
-                t.rectTransform.anchoredPosition = new Vector2(11, 0);
+                t.rectTransform.anchoredPosition = new Vector2(L.labelX, 0);
                 Shade(t);
             }
-            UiSkin.Img(b.transform, "Icon", new Vector2(-PillW * 0.5f + 26, 0), new Vector2(18, 18), UiSkin.Icon(icon, 64), ColGold);
+            if (!string.IsNullOrEmpty(L.icon))
+                UiSkin.Img(b.transform, "Icon", new Vector2(-L.w * 0.5f + L.iconX, 0), new Vector2(L.iconSize, L.iconSize), UiSkin.Icon(L.icon, 64), ColGold);
+            b.gameObject.SetActive(L.visible);
             return b;
         }
 
