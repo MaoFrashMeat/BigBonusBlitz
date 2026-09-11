@@ -1,0 +1,337 @@
+{
+ "panel_navy": {
+  "w": 288,
+  "h": 113,
+  "border": [
+   28,
+   26,
+   28,
+   26
+  ]
+ },
+ "panel_cream_sm": {
+  "w": 96,
+  "h": 83,
+  "border": [
+   22,
+   20,
+   22,
+   20
+  ]
+ },
+ "panel_cream_tab": {
+  "w": 557,
+  "h": 163,
+  "border": null
+ },
+ "panel_cream_tab_sm": {
+  "w": 437,
+  "h": 126,
+  "border": null
+ },
+ "panel_cream_tabs": {
+  "w": 510,
+  "h": 227,
+  "border": null
+ },
+ "card_castle": {
+  "w": 221,
+  "h": 224,
+  "border": null
+ },
+ "bar_cream_sm": {
+  "w": 159,
+  "h": 43,
+  "border": [
+   16,
+   12,
+   16,
+   12
+  ]
+ },
+ "slot_navy": {
+  "w": 95,
+  "h": 88,
+  "border": [
+   20,
+   18,
+   20,
+   18
+  ]
+ },
+ "btn_blue_lg": {
+  "w": 288,
+  "h": 100,
+  "border": [
+   48,
+   22,
+   48,
+   22
+  ]
+ },
+ "btn_blue": {
+  "w": 227,
+  "h": 92,
+  "border": [
+   40,
+   20,
+   40,
+   20
+  ]
+ },
+ "btn_gray": {
+  "w": 236,
+  "h": 97,
+  "border": [
+   40,
+   20,
+   40,
+   20
+  ]
+ },
+ "btn_pink": {
+  "w": 245,
+  "h": 88,
+  "border": [
+   40,
+   20,
+   40,
+   20
+  ]
+ },
+ "btn_cream": {
+  "w": 206,
+  "h": 83,
+  "border": [
+   40,
+   20,
+   40,
+   20
+  ]
+ },
+ "btn_blue_light": {
+  "w": 204,
+  "h": 84,
+  "border": [
+   40,
+   20,
+   40,
+   20
+  ]
+ },
+ "btn_pill_blue": {
+  "w": 187,
+  "h": 63,
+  "border": [
+   36,
+   18,
+   36,
+   18
+  ]
+ },
+ "btn_pill_red": {
+  "w": 187,
+  "h": 61,
+  "border": [
+   36,
+   18,
+   36,
+   18
+  ]
+ },
+ "btn_pill_purple": {
+  "w": 187,
+  "h": 59,
+  "border": [
+   36,
+   18,
+   36,
+   18
+  ]
+ },
+ "plate_hex_sky": {
+  "w": 245,
+  "h": 73,
+  "border": [
+   30,
+   18,
+   30,
+   18
+  ]
+ },
+ "plate_hex_cream": {
+  "w": 246,
+  "h": 76,
+  "border": [
+   30,
+   18,
+   30,
+   18
+  ]
+ },
+ "pill_navy_sm": {
+  "w": 92,
+  "h": 43,
+  "border": [
+   20,
+   14,
+   20,
+   14
+  ]
+ },
+ "pill_gem": {
+  "w": 178,
+  "h": 54,
+  "border": [
+   60,
+   14,
+   24,
+   14
+  ]
+ },
+ "pill_coin": {
+  "w": 180,
+  "h": 54,
+  "border": [
+   60,
+   14,
+   24,
+   14
+  ]
+ },
+ "pill_compass": {
+  "w": 367,
+  "h": 99,
+  "border": [
+   112,
+   22,
+   30,
+   22
+  ]
+ },
+ "pill_ring": {
+  "w": 266,
+  "h": 63,
+  "border": [
+   96,
+   20,
+   30,
+   20
+  ]
+ },
+ "circle_navy": {
+  "w": 79,
+  "h": 83,
+  "border": null
+ },
+ "ring_gray": {
+  "w": 138,
+  "h": 130,
+  "border": null
+ },
+ "medal_compass": {
+  "w": 96,
+  "h": 98,
+  "border": null
+ },
+ "toggle_on": {
+  "w": 97,
+  "h": 44,
+  "border": null
+ },
+ "toggle_off": {
+  "w": 95,
+  "h": 44,
+  "border": null
+ },
+ "check_navy_sm": {
+  "w": 43,
+  "h": 42,
+  "border": null
+ },
+ "diamond_navy": {
+  "w": 59,
+  "h": 58,
+  "border": null
+ },
+ "diamond_down": {
+  "w": 52,
+  "h": 44,
+  "border": null
+ },
+ "ribbon_blue": {
+  "w": 213,
+  "h": 61,
+  "border": null
+ },
+ "ribbon_red": {
+  "w": 214,
+  "h": 65,
+  "border": null
+ },
+ "ribbon_gold": {
+  "w": 214,
+  "h": 69,
+  "border": null
+ },
+ "toast_green": {
+  "w": 282,
+  "h": 58,
+  "border": [
+   30,
+   12,
+   30,
+   12
+  ]
+ },
+ "toast_brown": {
+  "w": 282,
+  "h": 57,
+  "border": [
+   30,
+   12,
+   30,
+   12
+  ]
+ },
+ "toast_red": {
+  "w": 282,
+  "h": 61,
+  "border": [
+   30,
+   12,
+   30,
+   12
+  ]
+ },
+ "banner_castle_wide": {
+  "w": 395,
+  "h": 154,
+  "border": null
+ },
+ "banner_castle_sm": {
+  "w": 208,
+  "h": 136,
+  "border": null
+ },
+ "gauge_track": {
+  "w": 48,
+  "h": 12,
+  "border": [
+   6,
+   4,
+   6,
+   4
+  ]
+ },
+ "gauge_fill": {
+  "w": 48,
+  "h": 8,
+  "border": [
+   5,
+   3,
+   5,
+   3
+  ]
+ }
+}

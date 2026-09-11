@@ -404,8 +404,13 @@ namespace BBB.Runtime
             float tagTop = AreaY + AreaH * 0.5f - 6 - tagH * 0.5f;   // 表示域の上端に沿わせる
             var tagRt = UiSkin.Rect(stageCard, "StageTag", new Vector2(-AreaW * 0.5f + 10 + tagW * 0.5f, tagTop), new Vector2(tagW, tagH));
             UiSkin.Img(tagRt, "Shadow", new Vector2(0, -3), new Vector2(tagW + 18, tagH + 16), UiSkin.Shadow(15, 10), new Color(0, 0, 0, 0.7f));
-            UiSkin.Img(tagRt, "Edge2", Vector2.zero, new Vector2(tagW + 2, tagH + 2), UiSkin.Rounded(16), new Color(1, 1, 1, 0.14f));
-            _stageTagBg = UiSkin.Img(tagRt, "Bg", Vector2.zero, new Vector2(tagW, tagH), UiSkin.Rounded(15), Hex("#0b1120"), true);
+            var stagePill = UiSkin.Frame("pill_navy_sm");
+            if (stagePill != null) _stageTagBg = UiSkin.Img(tagRt, "Bg", Vector2.zero, new Vector2(tagW, tagH), stagePill, Color.white, true);
+            else
+            {
+                UiSkin.Img(tagRt, "Edge2", Vector2.zero, new Vector2(tagW + 2, tagH + 2), UiSkin.Rounded(16), new Color(1, 1, 1, 0.14f));
+                _stageTagBg = UiSkin.Img(tagRt, "Bg", Vector2.zero, new Vector2(tagW, tagH), UiSkin.Rounded(15), Hex("#0b1120"), true);
+            }
             _stageTagEdge = UiSkin.Img(tagRt, "Edge", new Vector2(-tagW * 0.5f + 7, 0), new Vector2(5, 20), UiSkin.Rounded(2), ColGold);
             _stageTag = UiFactory.Label(tagRt, "Text", new Vector2(9, 0), new Vector2(tagW - 28, tagH), "", 14, TextAnchor.MiddleLeft, ColText);
             _stageTag.fontStyle = FontStyle.Bold;
@@ -441,8 +446,13 @@ namespace BBB.Runtime
             const float torchW = 232f, torchH = 34f;
             _torchTagRt = UiSkin.Rect(stageCard, "TorchTag", new Vector2(AreaW * 0.5f - 10 - torchW * 0.5f, AreaY + AreaH * 0.5f - 6 - torchH * 0.5f), new Vector2(torchW, torchH));
             UiSkin.Img(_torchTagRt, "Shadow", new Vector2(0, -3), new Vector2(torchW + 18, torchH + 16), UiSkin.Shadow(17, 10), new Color(0, 0, 0, 0.7f));
-            UiSkin.Img(_torchTagRt, "Edge2", Vector2.zero, new Vector2(torchW + 2, torchH + 2), UiSkin.Rounded(18), new Color(1, 1, 1, 0.14f));
-            UiSkin.Img(_torchTagRt, "Bg", Vector2.zero, new Vector2(torchW, torchH), UiSkin.Rounded(17), Hex("#0b1120"));
+            var lifePill = UiSkin.Frame("pill_navy_sm");
+            if (lifePill != null) UiSkin.Img(_torchTagRt, "Bg", Vector2.zero, new Vector2(torchW, torchH), lifePill, Color.white);
+            else
+            {
+                UiSkin.Img(_torchTagRt, "Edge2", Vector2.zero, new Vector2(torchW + 2, torchH + 2), UiSkin.Rounded(18), new Color(1, 1, 1, 0.14f));
+                UiSkin.Img(_torchTagRt, "Bg", Vector2.zero, new Vector2(torchW, torchH), UiSkin.Rounded(17), Hex("#0b1120"));
+            }
             UiSkin.Img(_torchTagRt, "Edge", new Vector2(-torchW * 0.5f + 7, 0), new Vector2(5, 22), UiSkin.Rounded(2), Hex("#7ee0a0"));
             _torchTag = UiFactory.Label(_torchTagRt, "Text", new Vector2(9, 5), new Vector2(torchW - 28, 18), "", 13, TextAnchor.MiddleLeft, ColText);
             _torchTag.fontStyle = FontStyle.Bold;
@@ -530,7 +540,7 @@ namespace BBB.Runtime
             UiSkin.Img(disp, "PayoutIcon", new Vector2(-innerW * 0.5f + HeadIco * 0.5f, 14), new Vector2(HeadIco, HeadIco), UiSkin.Circle(32), ColGold);
             UiSkin.Img(disp, "PayoutIconIn", new Vector2(-innerW * 0.5f + HeadIco * 0.5f, 14), new Vector2(HeadIco * 0.5f, HeadIco * 0.5f), UiSkin.Circle(32), UiSkin.GoldDeep);
             UiSkin.Heading(disp, "PayoutLabel", new Vector2(0, 14), innerW, "PAYOUT", HeadIndent);
-            var payInset = UiSkin.Inset(disp, "PayoutInset", new Vector2(0, -20), new Vector2(innerW, 40), 8);
+            var payInset = UiSkin.Inset(disp, "PayoutInset", new Vector2(0, -20), new Vector2(innerW, 40), 8, null, "pill_coin");   // 左にコインが乗った窓
             _payoutNum = UiSkin.Number(payInset, "PayoutNum", new Vector2(-6, 0), new Vector2(innerW - 20, 40), "0", 28, ColGold);
             // 下の行は 左=設定 / 右=ソウル。アイコンぶんを差し引いて領域を分ける
             const float SoulIco = 14f;
@@ -542,9 +552,17 @@ namespace BBB.Runtime
             // 中央: リール筐体（金の縁 + くぼんだ窓 + ガラスの光沢 + 中段ラインのマーカー）
             var cabinet = UiSkin.Rect(_stage, "ReelCabinet", new Vector2(0, MidY), new Vector2(cabW, MidH));
             UiSkin.Img(cabinet, "Shadow", new Vector2(0, -6), new Vector2(cabW + 24, MidH + 24), UiSkin.Shadow(12, 14), new Color(0, 0, 0, 0.6f));
-            UiSkin.Img(cabinet, "GoldEdge", Vector2.zero, new Vector2(cabW, MidH), UiSkin.Rounded(12), UiSkin.GoldDeep);
-            UiSkin.Img(cabinet, "GoldSheen", new Vector2(0, MidH * 0.25f), new Vector2(cabW - 2, MidH * 0.5f), UiSkin.GradientV(true), new Color(1, 1, 0.8f, 0.35f)).type = Image.Type.Simple;
-            UiSkin.Img(cabinet, "Body", Vector2.zero, new Vector2(cabW - 6, MidH - 6), UiSkin.Rounded(10), UiSkin.PanelHi, true);
+            var cabFrame = UiSkin.Frame("panel_navy");
+            if (cabFrame != null)
+            {
+                UiSkin.Img(cabinet, "Body", Vector2.zero, new Vector2(cabW, MidH), cabFrame, Color.white, true);
+            }
+            else
+            {
+                UiSkin.Img(cabinet, "GoldEdge", Vector2.zero, new Vector2(cabW, MidH), UiSkin.Rounded(12), UiSkin.GoldDeep);
+                UiSkin.Img(cabinet, "GoldSheen", new Vector2(0, MidH * 0.25f), new Vector2(cabW - 2, MidH * 0.5f), UiSkin.GradientV(true), new Color(1, 1, 0.8f, 0.35f)).type = Image.Type.Simple;
+                UiSkin.Img(cabinet, "Body", Vector2.zero, new Vector2(cabW - 6, MidH - 6), UiSkin.Rounded(10), UiSkin.PanelHi, true);
+            }
             var strips = _m.Strips;
             _reels = new ReelView[3];
             float reelH = ReelView.SymbolHeight * 3;

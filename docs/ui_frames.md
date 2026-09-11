@@ -95,14 +95,23 @@ iPhone 横持ち（2556 x 1179）では約 **2.18 倍**になる。
 | ステージマップの板 | 640 x 330 | 14 | MapScreen MapPanel |
 ---
 
-## 2. 画像に置き換えるときの手順
+## 2. 画像に置き換えるときの手順（2026-09-11 に実施）
 
-1. 上の 4 枚を 9 分割で作る（余白は上表のとおり）
-2. `Assets/Resources/Art/UI/frame_*.png` に置き、`.meta` の
-   `spriteBorder` に四隅の余白を入れる（Unity の Sprite Editor でも可）
-3. `UiSkin.Card` / `Inset` / `Button` の `Rounded(r)` を、その画像に差し替える
-4. `py -3 docs/preview_skin.py out.png` は手続き描画のままなので、
-   画像に替えたあとは実機で確かめる
+枠は `assets/title/ui_frames_sheet.png`、アイコンは `assets/title/icon_parts_sheet.png` から
+`tools/ui/cut_sheets.py` が切り出す。`.meta` の `spriteBorder` は使わず、
+`UiSkin.FrameBorders`（コード）に縁の幅を持ち、実行時に `Sprite.Create` で 9 分割にしている。
+Unity 側の取り込み設定に依存しないので、別 PC で pull しただけで同じ見え方になる。
+
+```bash
+python tools/ui/cut_sheets.py --install      # 切り出して Resources/Art/UI/Frames, Icons へ
+```
+
+- 縁の幅を変えるときは `cut_sheets.py` の `FRAMES` と `UiSkin.FrameBorders` の**両方**を直す
+- 画像が無ければ各ビルダー（Card / Inset / Button / IconButton / Gauge / Icon）は
+  手続き描画に戻る。差し替えの途中で壊れない
+- 幅 110 か高さ 40 を切る小さなボタンは飾りの多い枠が潰れるので、`pill_navy_sm` に落とす
+- ボタンの色は「役割 → 枠の絵」に読み替える（青=既定 / 桃=決定・危険 / 緑=進行中 / 茶金=金 / 灰=無効）
+- `py -3 docs/preview_skin.py out.png` は手続き描画のままなので、画像の見え方は実機で確かめる
 
 ---
 

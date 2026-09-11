@@ -1,0 +1,6 @@
+Tool: built-in image_gen (not CLI/API fallback)
+Input: assets/title/Character/salia_title_reach.png
+
+Use case: precise-object-edit. Edit target is the supplied transparent anime knight artwork. Create an EXACT registered alternate frame for blinking: change ONLY both eyes from open to softly fully closed, graceful dark curved upper lash lines with small eyelashes, matching the existing face tilt and anime style. Keep face shape, pink hair, mouth, pose, every armor detail, sword, hand, cropping and composition and transparent alpha background unchanged. The canvas should remain 1672 by 941 if possible. Do not reposition or scale character. Do not redesign or beautify. Eyes are centered near (726,231) and (814,193) in the original 1672x941 coordinate system. Output one full image, NOT a sheet. Actual transparent background.
+
+Observed output: 1672x941 RGB with a baked checkerboard, not true transparency. Only the two interior eye patches are used, with explicitly constructed local alpha masks; the rest is not used in the model. The original artwork remains the source of all 15 visible parts.

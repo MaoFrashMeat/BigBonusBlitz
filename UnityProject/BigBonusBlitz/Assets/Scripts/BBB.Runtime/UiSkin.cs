@@ -41,7 +41,109 @@ namespace BBB.Runtime
 
         /// <summary>Play に入るたびにキャッシュを捨てる（前回の破棄済み Sprite を掴まないように）。</summary>
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetCache() { _cache.Clear(); }
+        private static void ResetCache() { _cache.Clear(); _frames.Clear(); _frameSet.Clear(); _missing.Clear(); }
+
+        // ------------------------------------------------- 画像の枠とアイコン
+        // assets/title の 2 枚のシートから tools/ui/cut_sheets.py が切り出したもの。
+        // 画像が無ければ null を返し、各ビルダーは従来の手続き描画に戻る（画像を消しても壊れない）。
+        private static readonly Dictionary<string, Sprite> _frames = new Dictionary<string, Sprite>();
+        private static readonly HashSet<Sprite> _frameSet = new HashSet<Sprite>();
+        private static readonly HashSet<string> _missing = new HashSet<string>();
+
+        /// <summary>
+        /// 9 分割で伸ばしてよい範囲の境目（left, bottom, right, top）。
+        /// tools/ui/cut_sheets.py の FRAMES と同じ値。片方を変えたらもう片方も直す。
+        /// 載っていない名前は伸ばさない（そのままの大きさで使う小物）。
+        /// </summary>
+        private static readonly Dictionary<string, Vector4> FrameBorders = new Dictionary<string, Vector4>
+        {
+            { "panel_navy", new Vector4(28, 26, 28, 26) },
+            { "panel_cream_sm", new Vector4(22, 20, 22, 20) },
+            { "bar_cream_sm", new Vector4(16, 12, 16, 12) },
+            { "slot_navy", new Vector4(20, 18, 20, 18) },
+            { "btn_blue_lg", new Vector4(48, 22, 48, 22) },
+            { "btn_blue", new Vector4(40, 20, 40, 20) },
+            { "btn_gray", new Vector4(40, 20, 40, 20) },
+            { "btn_pink", new Vector4(40, 20, 40, 20) },
+            { "btn_cream", new Vector4(40, 20, 40, 20) },
+            { "btn_blue_light", new Vector4(40, 20, 40, 20) },
+            { "btn_pill_blue", new Vector4(36, 18, 36, 18) },
+            { "btn_pill_red", new Vector4(36, 18, 36, 18) },
+            { "btn_pill_purple", new Vector4(36, 18, 36, 18) },
+            { "plate_hex_sky", new Vector4(30, 18, 30, 18) },
+            { "plate_hex_cream", new Vector4(30, 18, 30, 18) },
+            { "pill_navy_sm", new Vector4(20, 14, 20, 14) },
+            { "pill_gem", new Vector4(60, 14, 24, 14) },
+            { "pill_coin", new Vector4(60, 14, 24, 14) },
+            { "pill_compass", new Vector4(112, 22, 30, 22) },
+            { "pill_ring", new Vector4(96, 20, 30, 20) },
+            { "toast_green", new Vector4(30, 12, 30, 12) },
+            { "toast_brown", new Vector4(30, 12, 30, 12) },
+            { "toast_red", new Vector4(30, 12, 30, 12) },
+            { "gauge_track", new Vector4(6, 4, 6, 4) },
+            { "gauge_fill", new Vector4(5, 3, 5, 3) },
+        };
+
+        /// <summary>枠の画像（Resources/Art/UI/Frames）。縁の幅つきなので Img に渡せば 9 分割で伸びる。無ければ null。</summary>
+        public static Sprite Frame(string name)
+        {
+            if (_frames.TryGetValue(name, out var s) && s != null) return s;
+            string path = "Art/UI/Frames/" + name;
+            if (_missing.Contains(path)) return null;
+            var tex = Resources.Load<Texture2D>(path);
+            if (tex == null) { _missing.Add(path); return null; }
+            var border = FrameBorders.TryGetValue(name, out var b) ? b : Vector4.zero;
+            s = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), 1f, 0, SpriteMeshType.FullRect, border);
+            _frames[name] = s;
+            _frameSet.Add(s);
+            return s;
+        }
+
+        /// <summary>アイコンの画像（Resources/Art/UI/Icons）。無ければ null。</summary>
+        public static Sprite IconSprite(string name)
+        {
+            string path = "Art/UI/Icons/" + name;
+            if (_frames.TryGetValue(path, out var s) && s != null) return s;
+            if (_missing.Contains(path)) return null;
+            var tex = Resources.Load<Texture2D>(path);
+            if (tex == null) { _missing.Add(path); return null; }
+            s = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100f);
+            _frames[path] = s;
+            return s;
+        }
+
+        /// <summary>手続き描画のアイコン名を、シートのアイコン名に読み替える。</summary>
+        private static readonly Dictionary<string, string> IconAlias = new Dictionary<string, string>
+        {
+            { "sword", "swords" }, { "soul", "crystal" }, { "amulet", "star_navy" }, { "shield", "diamond_star" },
+            { "book", "tome" }, { "potion", "orb" }, { "bell", "star_gold" },
+        };
+
+        private static bool IsFrame(Sprite s) => s != null && _frameSet.Contains(s);
+
+        /// <summary>
+        /// ボタンの色から枠の絵を選ぶ。色の役割（§13）を絵に置き換える:
+        /// 既定=青 / 危険・決定=桃 / 進行中=緑 / 金=茶金 / 紫=紫 / 無効=灰。
+        /// </summary>
+        private static string ButtonFrameFor(Color c, Vector2 size)
+        {
+            bool small = size.x < 110f || size.y < 40f;     // 飾りの多い枠は小さいと潰れる
+            if (small) return "pill_navy_sm";
+            Color.RGBToHSV(c, out float h, out float sat, out float v);
+            if (sat < 0.25f) return v < 0.4f ? "btn_gray" : "btn_blue";
+            if (h >= 0.92f || h <= 0.06f) return "btn_pink";
+            if (h >= 0.07f && h <= 0.17f) return "toast_brown";
+            if (h >= 0.25f && h <= 0.48f) return "toast_green";
+            if (h >= 0.68f && h <= 0.86f) return "btn_pill_purple";
+            return "btn_blue";
+        }
+
+        /// <summary>小さい枠（pill_navy_sm）は 1 色なので、役割の色を薄く掛けて区別する。</summary>
+        private static Color SmallFrameTint(Color c)
+        {
+            Color.RGBToHSV(c, out _, out float sat, out _);
+            return sat < 0.25f ? Color.white : Color.Lerp(Color.white, c, 0.45f);
+        }
 
         /// <summary>角丸矩形（9スライス）。radius は px。</summary>
         public static Sprite Rounded(int radius)
@@ -218,6 +320,10 @@ namespace BBB.Runtime
         /// </summary>
         public static Sprite Icon(string kind, int size = 64)
         {
+            // シートのアイコンがあればそれを使う（名前そのまま → 読み替え表の順）
+            var art = IconSprite(kind) ?? (IconAlias.TryGetValue(kind, out var alias) ? IconSprite(alias) : null);
+            if (art != null) return art;
+
             string key = "icon_" + kind + "_" + size;
             if (_cache.TryGetValue(key, out var cached) && cached != null) return cached;
 
@@ -606,6 +712,14 @@ namespace BBB.Runtime
         {
             var root = Rect(parent, name, pos, size);
             int r = Mathf.Clamp(radius, 2, 6);          // 鉄板なので角は立てる
+            // 画像の枠（紺地に金縁）があればそれを使う。色は板の絵に含まれているので color は見ない
+            var frame = Frame("panel_navy");
+            if (frame != null)
+            {
+                if (shadow) Img(root, "Shadow", new Vector2(0, -5), size + new Vector2(20, 20), Shadow(r, 12), new Color(0, 0, 0, 0.55f));
+                Img(root, "Body", Vector2.zero, size, frame, Color.white, true);
+                return root;
+            }
             if (shadow)
             {
                 Img(root, "Shadow", new Vector2(0, -5), size + new Vector2(20, 20), Shadow(r, 12), new Color(0, 0, 0, 0.62f));
@@ -638,9 +752,17 @@ namespace BBB.Runtime
         }
 
         /// <summary>くぼんだ表示器（数値・リール窓の下地）。</summary>
-        public static RectTransform Inset(Transform parent, string name, Vector2 pos, Vector2 size, int radius = 8, Color? color = null)
+        public static RectTransform Inset(Transform parent, string name, Vector2 pos, Vector2 size, int radius = 8, Color? color = null, string frameName = "slot_navy")
         {
             var root = Rect(parent, name, pos, size);
+            // 画像の枠があればそれを使う。色の指定があるときは、枠の内側だけをその色で塗る（リール窓の暗さなど）
+            var frame = Frame(frameName ?? "");
+            if (frame != null)
+            {
+                Img(root, "Body", Vector2.zero, size, frame, Color.white);
+                if (color.HasValue) Img(root, "Fill", Vector2.zero, size - new Vector2(16, 14), Rounded(Mathf.Max(2, radius - 2)), color.Value);
+                return root;
+            }
             Img(root, "Body", Vector2.zero, size, Rounded(radius), color ?? InsetColor);
             // 上辺に落ちる内影
             var top = Img(root, "InnerShade", new Vector2(0, size.y * 0.5f - size.y * 0.2f), new Vector2(size.x - 4, size.y * 0.4f), GradientV(true), new Color(0, 0, 0, 0.45f));
@@ -666,7 +788,35 @@ namespace BBB.Runtime
         {
             var root = Rect(parent, name, pos, size);
             Img(root, "Shadow", new Vector2(0, -4), size + new Vector2(16, 16), Shadow(radius, 10), new Color(0, 0, 0, 0.5f));
-            var body = Img(root, "Body", Vector2.zero, size, Rounded(radius), color, true);
+            Image body;
+            var frame = Frame(ButtonFrameFor(color, size));
+            if (frame != null)
+            {
+                // 画像の枠。色は絵に含まれているので、押したときだけ暗く掛ける
+                bool small = size.x < 110f || size.y < 40f;
+                var tint = small ? SmallFrameTint(color) : Color.white;
+                body = Img(root, "Body", Vector2.zero, size, frame, tint, true);
+                var label0 = UiFactory.Label(root, "Label", Vector2.zero, size, text, fontSize, TextAnchor.MiddleCenter, Text);
+                label0.fontStyle = FontStyle.Bold;
+                var sh = label0.gameObject.AddComponent<UnityEngine.UI.Shadow>();   // UiSkin.Shadow（影の絵）と名前が被るので完全修飾
+                sh.effectColor = new Color(0, 0, 0, 0.7f);
+                sh.effectDistance = new Vector2(1f, -1f);
+                var btn0 = root.gameObject.AddComponent<Button>();
+                btn0.targetGraphic = body;
+                var cb0 = btn0.colors;
+                cb0.normalColor = tint;
+                cb0.highlightedColor = tint;
+                cb0.pressedColor = tint * new Color(0.72f, 0.74f, 0.82f, 1f);
+                cb0.selectedColor = tint;
+                cb0.disabledColor = new Color(0.45f, 0.47f, 0.55f, 1f);
+                cb0.colorMultiplier = 1f;
+                cb0.fadeDuration = 0.06f;
+                btn0.colors = cb0;
+                btn0.onClick.AddListener(() => onClick?.Invoke());
+                if (lamp) Img(root, "Lamp", new Vector2(0, size.y * 0.5f - 7), new Vector2(size.x * 0.4f, 3), Rounded(2), new Color(1, 1, 1, 0.15f)).name = "Lamp";
+                return btn0;
+            }
+            body = Img(root, "Body", Vector2.zero, size, Rounded(radius), color, true);
             var sheen = Img(root, "Sheen", new Vector2(0, size.y * 0.25f), new Vector2(size.x - 4, size.y * 0.5f), GradientV(true), new Color(1, 1, 1, 0.10f));
             sheen.type = Image.Type.Simple;
             Img(root, "Bottom", new Vector2(0, -size.y * 0.5f + 1.5f), new Vector2(size.x - radius * 2, 3), Rounded(2), new Color(0, 0, 0, 0.35f));
@@ -694,6 +844,25 @@ namespace BBB.Runtime
 
         public static void SetButtonColor(Button b, Color color, Color? textColor = null)
         {
+            var body = b.targetGraphic as Image;
+            if (body != null && IsFrame(body.sprite))
+            {
+                // 画像の枠: 色を掛けるのではなく、役割に合う枠へ差し替える
+                var size = ((RectTransform)b.transform).sizeDelta;
+                bool small = size.x < 110f || size.y < 40f;
+                var frame = Frame(ButtonFrameFor(color, size));
+                if (frame != null) body.sprite = frame;
+                var tint = small ? SmallFrameTint(color) : Color.white;
+                var cb0 = b.colors;
+                cb0.normalColor = tint; cb0.highlightedColor = tint; cb0.selectedColor = tint;
+                cb0.pressedColor = tint * new Color(0.72f, 0.74f, 0.82f, 1f);
+                b.colors = cb0;
+                body.color = tint;
+                var t0 = b.GetComponentInChildren<Text>();
+                // 枠はどれも暗い地なので、文字は白のまま（呼び側が暗い文字を指定しても読めなくなる）
+                if (t0 != null) t0.color = Text;
+                return;
+            }
             var cb = b.colors;
             cb.normalColor = color;
             cb.highlightedColor = color * 1.18f;
@@ -724,13 +893,17 @@ namespace BBB.Runtime
         {
             var root = Rect(parent, name, pos, new Vector2(diameter, diameter));
             Img(root, "Shadow", new Vector2(0, -3), new Vector2(diameter + 14, diameter + 14), Shadow(Mathf.RoundToInt(diameter * 0.5f), 8), new Color(0, 0, 0, 0.45f));
-            var body = Img(root, "Body", Vector2.zero, new Vector2(diameter, diameter), Rounded(Mathf.RoundToInt(diameter * 0.5f)), color, true);
+            var ring = Frame("circle_navy");            // 紺の丸に金の縁。無ければ手続きの丸
+            var body = ring != null
+                ? Img(root, "Body", Vector2.zero, new Vector2(diameter, diameter), ring, Color.white, true)
+                : Img(root, "Body", Vector2.zero, new Vector2(diameter, diameter), Rounded(Mathf.RoundToInt(diameter * 0.5f)), color, true);
+            if (ring != null) { body.type = Image.Type.Simple; body.preserveAspect = true; color = Color.white; }
             var label = UiFactory.Label(root, "Label", new Vector2(0, 1), new Vector2(diameter, diameter), glyph, fontSize, TextAnchor.MiddleCenter, Text);
             label.fontStyle = FontStyle.Bold;
             var btn = root.gameObject.AddComponent<Button>();
             btn.targetGraphic = body;
             var cb = btn.colors;
-            cb.normalColor = color; cb.highlightedColor = color * 1.2f; cb.pressedColor = color * 0.7f; cb.selectedColor = color; cb.disabledColor = BtnDisabled; cb.colorMultiplier = 1f; cb.fadeDuration = 0.06f;
+            cb.normalColor = color; cb.highlightedColor = color; cb.pressedColor = color * 0.7f; cb.selectedColor = color; cb.disabledColor = BtnDisabled; cb.colorMultiplier = 1f; cb.fadeDuration = 0.06f;
             btn.colors = cb;
             btn.onClick.AddListener(() => onClick?.Invoke());
             return btn;
@@ -741,6 +914,16 @@ namespace BBB.Runtime
         {
             track = Rect(parent, name, pos, size);
             int r = Mathf.RoundToInt(size.y * 0.5f);
+            var trackArt = Frame("gauge_track");
+            var fillArt = Frame("gauge_fill");           // 白いフィル。fillColor を掛けて使う
+            if (trackArt != null && fillArt != null)
+            {
+                Img(track, "Track", Vector2.zero, size, trackArt, Color.white);
+                var fill0 = Img(track, "Fill", Vector2.zero, new Vector2(0, size.y - 2), fillArt, fillColor);
+                var frt0 = fill0.rectTransform;
+                frt0.anchorMin = new Vector2(0, 0.5f); frt0.anchorMax = new Vector2(0, 0.5f); frt0.pivot = new Vector2(0, 0.5f); frt0.anchoredPosition = new Vector2(1, 0);
+                return fill0;
+            }
             Img(track, "Track", Vector2.zero, size, Rounded(r), new Color(0, 0, 0, 0.5f));
             var fill = Img(track, "Fill", Vector2.zero, new Vector2(0, size.y), Rounded(r), fillColor);
             var frt = fill.rectTransform;
