@@ -6,7 +6,8 @@ namespace BBB.Runtime
 {
     /// <summary>
     /// タイトルに漂わせる粒。光の玉（埃のように上へゆらゆら）と、桜の花びら（散る）。
-    /// 画像は使わず UiSkin の手続き描画で作る。粒は使い回すので生成し直さない。
+    /// 花びらは assets/title/BG/flower の絵（Resources/Art/UI/Title/petal_N）。後ろに桃色の光を敷いて脈打たせる。
+    /// 絵が無ければ UiSkin の手続き描画に戻る。粒は使い回すので生成し直さない。
     /// </summary>
     public sealed class TitleAmbience : MonoBehaviour
     {
@@ -16,6 +17,8 @@ namespace BBB.Runtime
             public Image img;
             public float x, y, vx, vy, spin, angle, size, phase, wob, life, maxLife;
             public bool petal;
+            /// <summary>花びらの後ろの光（絵の花びらのときだけ）。</summary>
+            public Image glow;
         }
 
         private readonly List<Bit> _bits = new List<Bit>();
@@ -38,17 +41,34 @@ namespace BBB.Runtime
 
         private float R(float a, float b) => a + (float)_rng.NextDouble() * (b - a);
 
+        private readonly List<Sprite> _petalArts = new List<Sprite>();
+
         private void Build(int orbs, int petals)
         {
             var orb = UiSkin.Glow(64);
             var petal = UiSkin.Petal(64);
+            // 花びらの絵。petal_1 から続く番号を全部拾う（無ければ手続き描画）
+            for (int i = 1; i <= 16; i++)
+            {
+                if (Resources.Load<Texture2D>("Art/UI/Title/petal_" + i) == null) break;
+                var sp = ArtLoader.Sprite("Art/UI/Title/petal_" + i);
+                if (sp != null) _petalArts.Add(sp);
+            }
             for (int i = 0; i < orbs + petals; i++)
             {
                 bool isPetal = i >= orbs;
-                var img = UiSkin.Img(_root, isPetal ? "Petal" : "Orb", Vector2.zero,
-                                     Vector2.one * 10f, isPetal ? petal : orb, Color.white);
+                Image glow = null;
+                if (isPetal && _petalArts.Count > 0)
+                {
+                    // 光は花びらの後ろ（先に作る）。桃色で、花びらより二回り大きい
+                    glow = UiSkin.Img(_root, "PetalGlow", Vector2.zero, Vector2.one * 24f, orb, UiSkin.Hex("#ffb3d9"));
+                    glow.raycastTarget = false;
+                }
+                var art = isPetal && _petalArts.Count > 0 ? _petalArts[i % _petalArts.Count] : (isPetal ? petal : orb);
+                var img = UiSkin.Img(_root, isPetal ? "Petal" : "Orb", Vector2.zero, Vector2.one * 10f, art, Color.white);
                 img.raycastTarget = false;
-                var b = new Bit { rt = img.rectTransform, img = img, petal = isPetal };
+                if (glow != null) img.preserveAspect = true;
+                var b = new Bit { rt = img.rectTransform, img = img, petal = isPetal, glow = glow };
                 _bits.Add(b);
                 Reset(b, true);
             }
@@ -64,15 +84,16 @@ namespace BBB.Runtime
             b.life = anywhere ? R(0f, b.maxLife) : 0f;
             if (b.petal)
             {
-                b.size = R(9f, 20f);
+                b.size = b.glow != null ? R(14f, 32f) : R(9f, 20f);   // 絵の花びらは描き込みがあるので大きめ
                 b.x = R(-w * 0.5f, w * 0.5f);
                 b.y = anywhere ? R(-h * 0.5f, h * 0.5f) : h * 0.5f + b.size;
                 b.vx = R(-16f, -4f);          // 少し左へ流れる
                 b.vy = R(-30f, -14f);
                 b.spin = R(-70f, 70f);
                 b.angle = R(0f, 360f);
-                // 桜。白に近い桃色から、少し濃い桃色まで
-                b.img.color = Color.Lerp(UiSkin.Hex("#ffd9e6"), UiSkin.Hex("#ff9dc0"), R(0f, 1f));
+                // 桜。白に近い桃色から、少し濃い桃色まで（絵の花びらは元の色のまま）
+                b.img.color = b.glow != null ? Color.white : Color.Lerp(UiSkin.Hex("#ffd9e6"), UiSkin.Hex("#ff9dc0"), R(0f, 1f));
+                if (b.glow != null) b.glow.rectTransform.sizeDelta = Vector2.one * (b.size * 2.4f);
             }
             else
             {
@@ -108,7 +129,20 @@ namespace BBB.Runtime
                 var c = b.img.color; c.a = a; b.img.color = c;
 
                 b.rt.anchoredPosition = new Vector2(b.x, b.y);
-                if (b.petal) b.rt.localRotation = Quaternion.Euler(0, 0, b.angle);
+                if (b.petal)
+                {
+                    // 舞う: 回りながら、風に煽られるように傾きが揺れる
+                    float flutter = b.glow != null ? 22f * Mathf.Sin((t + b.phase) * 1.6f) : 0f;
+                    b.rt.localRotation = Quaternion.Euler(0, 0, b.angle + flutter);
+                }
+                if (b.glow != null)
+                {
+                    // 後ろの光: 花びらと同じ所で、ゆっくり脈打つ。裏返る（傾きが大きい）ときほど強く光る
+                    float pulse = 0.55f + 0.45f * Mathf.Sin((t + b.phase) * 2.2f);
+                    var g = b.glow.color; g.a = a * 0.6f * pulse; b.glow.color = g;
+                    b.glow.rectTransform.anchoredPosition = new Vector2(b.x, b.y);
+                    b.glow.rectTransform.localScale = Vector3.one * (0.9f + 0.25f * pulse);
+                }
 
                 bool gone = b.life >= b.maxLife
                          || b.y > _h * 0.5f + 40f || b.y < -_h * 0.5f - 40f

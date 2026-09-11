@@ -285,10 +285,29 @@ def install_title_bg():
     print(f'  タイトル背景 {n} 枚 → {dst}')
 
 
+PETAL_SRC = os.path.join(ROOT, 'assets', 'title', 'BG', 'flower')   # 花びら（1 枚 1 ファイル。名前は問わない）
+PETAL_SIZE = 192
+
+
+def install_petals():
+    """花びらを縮めて Resources/Art/UI/Title/petal_1.. へ。画面では 10〜30px なので 192px で足りる。"""
+    if not os.path.isdir(PETAL_SRC):
+        return
+    dst = os.path.join(UNITY_UI, 'Title')
+    os.makedirs(dst, exist_ok=True)
+    files = sorted(f for f in os.listdir(PETAL_SRC) if f.lower().endswith('.png'))
+    for i, f in enumerate(files, 1):
+        im = square(trim(Image.open(os.path.join(PETAL_SRC, f)).convert('RGBA'), pad=8))
+        im = im.resize((PETAL_SIZE, PETAL_SIZE), Image.LANCZOS)
+        im.save(os.path.join(dst, f'petal_{i}.png'))
+    print(f'  花びら {len(files)} 枚 → {dst}')
+
+
 def install(fdir, idir):
     """parts/ の画像を Unity の Resources へコピーする。名前が同じなら上書き。"""
     install_navi()
     install_title_bg()
+    install_petals()
     for sub, src_dir in (('Frames', fdir), ('Icons', idir)):
         dst = os.path.join(UNITY_UI, sub)
         os.makedirs(dst, exist_ok=True)
