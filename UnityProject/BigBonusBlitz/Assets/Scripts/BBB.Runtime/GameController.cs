@@ -38,7 +38,6 @@ namespace BBB.Runtime
         private Image _expFill;
         private Button _btnBet, _btnAuto;
         private Slider _bgmSlider, _seSlider;
-        private Button[] _btnStops;
 
         private RectTransform _charRt;
         private SpriteAnimator _charAnim;
@@ -675,15 +674,7 @@ namespace BBB.Runtime
             var Lbt = UiLayout.Get("bet", -ContentW * 0.5f + SideW * 0.5f, CtrlY, SideW, CtrlH);
             _btnBet = UiSkin.Button(_stage, "BtnBet", Lbt.Pos, Lbt.Size, "MAX BET", OnBetClicked, ColAccent, 20, true, 12, UiLayout.Frame("bet"));
             AddSubHint(_btnBet, _isTouch ? "画面タップでも OK" : "Ctrl / Space");
-            _btnStops = new Button[3];
-            string[] stopKeys = { "Z / ←", "X / ↓", "C / →" };
-            for (int i = 0; i < 3; i++)
-            {
-                int idx = i;
-                var Lsp = UiLayout.Get("stop" + i, Lcb.x + (i - 1) * reelPitch, CtrlY, ReelView.ReelWidth, CtrlH);
-                _btnStops[i] = UiSkin.Button(_stage, "BtnStop" + i, Lsp.Pos, Lsp.Size, "STOP", () => StopReel(idx), ColBtn, 18, true, 12, UiLayout.Frame("stop" + i));
-                AddSubHint(_btnStops[i], _isTouch ? "リールをタップ" : stopKeys[i]);
-            }
+            // STOP ボタンは廃止（2026-09-11）。リールそのものがタップで止まり、キーは Z / X / C
             var Lau = UiLayout.Get("auto", ContentW * 0.5f - SideW * 0.5f, CtrlY, SideW, CtrlH);
             _btnAuto = UiSkin.Button(_stage, "BtnAuto", Lau.Pos, Lau.Size, "AUTO", CycleAuto, ColBtn, 18, true, 12, UiLayout.Frame("auto"));
             AddSubHint(_btnAuto, _isTouch ? "押すたび x1〜x6" : "A / Space長押し");
@@ -1151,12 +1142,6 @@ namespace BBB.Runtime
             _btnBet.interactable = betOk;
             UiSkin.SetButtonText(_btnBet, _m.IsReplay ? "REPLAY" : "MAX BET");
             UiSkin.SetLamp(_btnBet, betOk, ColGold);
-            for (int i = 0; i < 3; i++)
-            {
-                bool ok = spinning && !StopsLocked && !_m.PseudoPlay && _reels[i].IsSpinning && _m.Stopped[i] == null;
-                _btnStops[i].interactable = ok;
-                UiSkin.SetLamp(_btnStops[i], ok, ColAccent);
-            }
             UiSkin.SetButtonText(_btnAuto, _autoMode ? (_holdAuto ? "AUTO  x1" : $"AUTO  x{_autoSpeed}") : "AUTO");
             UiSkin.SetButtonColor(_btnAuto, _autoMode ? ColGreen : ColBtn, _autoMode ? ColBg : ColText);
             UiSkin.SetLamp(_btnAuto, _autoMode, ColGreen);
@@ -2075,7 +2060,6 @@ namespace BBB.Runtime
             if (_bellShowActive && _bellShowStop < 3) StartCoroutine(BellShowDefeat(_bellShowStop++));
             var res = _m.Stop(i, _reels[i].TopIndex);
             _reels[i].StopAt(res.stopIndex, res.slip);
-            _btnStops[i].interactable = false;
             if (_reels[i].LastWasPullIn)
             {
                 // 引き込み開始: そのリールの窓が金色に光り、吸い込みの音が鳴る

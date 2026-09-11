@@ -20,7 +20,6 @@ ROWS = [
  ('リール筐体', cabW, MidH, 12, 'Card 相当 / cabinet'),
  ('操作パネル（右・PLAYER）', SideW, MidH, 12, 'Card / Side'),
  ('MAX BET ボタン', SideW, CtrlH, 10, 'UiSkin.Button'),
- ('STOP ボタン（3 つ）', ReelW, CtrlH, 10, 'UiSkin.Button'),
  ('AUTO ボタン', SideW, CtrlH, 10, 'UiSkin.Button'),
  ('', None, None, None, None),
  ('■ くぼみ（Inset。枠ではなく彫り込み）', None, None, None, None),

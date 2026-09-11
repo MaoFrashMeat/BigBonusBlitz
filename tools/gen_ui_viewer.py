@@ -139,9 +139,6 @@ const DEFS = [
   { id:'side',      name:'操作パネル（右）', group:'panel', x:ContentW/2-SideW/2, y:MidY, w:SideW, h:MidH },
   { id:'mini',      name:'常駐スランプ', group:'inset', parent:'side', x:ContentW/2-SideW/2, y:MidY-83, w:innerW, h:22, proc:'inset', noFrame:true },
   { id:'bet',       name:'MAX BET', group:'btn', x:-ContentW/2+SideW/2, y:CtrlY, w:SideW, h:CtrlH, proc:'btn', auto:'btn_pink' },
-  { id:'stop0',     name:'STOP 1', group:'btn', x:-pitch, y:CtrlY, w:ReelW, h:CtrlH, proc:'btn' },
-  { id:'stop1',     name:'STOP 2', group:'btn', x:0, y:CtrlY, w:ReelW, h:CtrlH, proc:'btn' },
-  { id:'stop2',     name:'STOP 3', group:'btn', x:pitch, y:CtrlY, w:ReelW, h:CtrlH, proc:'btn' },
   { id:'auto',      name:'AUTO', group:'btn', x:ContentW/2-SideW/2, y:CtrlY, w:SideW, h:CtrlH, proc:'btn' },
 ];
 const BASE = Object.fromEntries(DEFS.map(d => [d.id, { x:d.x, y:d.y, w:d.w, h:d.h, frame:'' }]));
@@ -225,7 +222,6 @@ function decorate(id, d) {
   }
   if (id === 'mini') text(d, '+120', W/2-2, 0, 11, '#98a3b8', 'r');
   if (id === 'bet') { text(d, 'MAX BET', 0, 4, 20, '#fff', 'c'); text(d, 'Ctrl / Space', 0, -16, 10, 'rgba(255,255,255,.7)', 'c'); }
-  if (id.startsWith('stop')) { text(d, 'STOP', 0, 4, 18, '#fff', 'c'); text(d, ['Z / ←','X / ↓','C / →'][+id[4]], 0, -16, 10, 'rgba(255,255,255,.7)', 'c'); }
   if (id === 'auto') { text(d, 'AUTO', 0, 4, 18, '#fff', 'c'); text(d, 'A / Space長押し', 0, -16, 10, 'rgba(255,255,255,.7)', 'c'); }
 }
 
