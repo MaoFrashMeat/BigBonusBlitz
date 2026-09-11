@@ -41,6 +41,16 @@ HTML = r'''<!doctype html>
   input[type=range] { width:120px; }
   .val { min-width:2.6em; text-align:right; color:#ffcf3f; font-variant-numeric:tabular-nums; }
   .note { color:#98a3b8; font-size:12px; }
+  .spark { position:absolute; left:0; top:0; width:12px; height:12px; margin:-6px 0 0 -6px; pointer-events:none;
+           background:radial-gradient(circle, #fff 0 18%, rgba(255,240,180,.95) 30%, transparent 32%),
+             conic-gradient(from 0deg, transparent 0 10%, rgba(255,235,160,.9) 12% 13%, transparent 15% 35%, rgba(255,235,160,.9) 37% 38%, transparent 40% 60%, rgba(255,235,160,.9) 62% 63%, transparent 65% 85%, rgba(255,235,160,.9) 87% 88%, transparent 90%);
+           border-radius:50%; transform-origin:50% 50%; }
+  .sheen { position:absolute; left:50%; top:50%; width:92px; height:92px; margin:-46px 0 0 -46px; pointer-events:none;
+           -webkit-mask-size:100% 100%; mask-size:100% 100%; -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+           background:linear-gradient(var(--ang,115deg), transparent 0%, transparent calc(var(--p) - var(--w)), rgba(255,255,255,0) calc(var(--p) - var(--w)*.6), rgba(255,255,255,var(--a,.75)) var(--p), rgba(255,255,255,0) calc(var(--p) + var(--w)*.6), transparent calc(var(--p) + var(--w)), transparent 100%);
+           mix-blend-mode:screen; transform-origin:50% 50%; }
+  select { background:#151a2a; color:#fff; border:1px solid #4a5a88; border-radius:6px; padding:4px 6px; }
+  .combo { font-family:ui-monospace, monospace; color:#ffcf3f; background:#151a2a; padding:6px 12px; border-radius:8px; }
 </style>
 <div class="wrap">
   <div class="stage" id="stage">
@@ -55,6 +65,21 @@ HTML = r'''<!doctype html>
     <label>奥の大きさ <input type="range" id="back" min="0.4" max="1" step="0.02" value="0.66"><span class="val" id="backV">0.66</span></label>
     <button id="pop">文字をぽんと出す</button>
   </div>
+  <div class="row">
+    <label>背景の揺れ方 <select id="bgMotion"></select></label>
+    <label>文字の揺れ方 <select id="fgMotion"></select></label>
+    <label>同じ位相で <input type="checkbox" id="sync"></label>
+  </div>
+  <div class="row">
+    <label>きらきら <input type="range" id="sparkRate" min="0" max="12" step="1" value="4"><span class="val" id="sparkRateV">4</span>/秒</label>
+    <label>粒の大きさ <input type="range" id="sparkSize" min="0.5" max="2.5" step="0.1" value="1"><span class="val" id="sparkSizeV">1.0</span></label>
+    <label>コーティング 間隔 <input type="range" id="sheenEvery" min="0" max="8" step="0.5" value="2.5"><span class="val" id="sheenEveryV">2.5</span>秒</label>
+    <label>幅 <input type="range" id="sheenW" min="5" max="60" step="1" value="22"><span class="val" id="sheenWV">22</span>%</label>
+    <label>角度 <input type="range" id="sheenAng" min="0" max="180" step="5" value="115"><span class="val" id="sheenAngV">115</span>°</label>
+    <label>強さ <input type="range" id="sheenA" min="0" max="1" step="0.05" value="0.75"><span class="val" id="sheenAV">0.75</span></label>
+    <label>当てる <select id="sheenOn"><option value="fg">文字</option><option value="bg">背景</option><option value="both">両方</option></select></label>
+  </div>
+  <div class="combo" id="combo"></div>
   <div class="note">式は GameController.AnimateNavi と同じ。倍率 1.0・奥 0.66 が今の Unity の値。「ナビ開始」→「第一停止後」で ? が手前に出てくる。気に入った値を言ってもらえれば C# に写す。</div>
 </div>
 <script>
@@ -77,15 +102,50 @@ const stage = document.getElementById('stage');
 const cells = [];
 for (let i = 0; i < 3; i++) {
   const c = document.createElement('div'); c.className = 'cell'; c.style.left = (274 + 140*i + 66/2 + 0) + 'px';
-  c.innerHTML = '<div class="glow"></div><img class="bg"><img class="fg">';
+  c.innerHTML = '<div class="glow"></div><img class="bg"><div class="sheen sheenBg"></div><img class="fg"><div class="sheen sheenFg"></div>';
   stage.appendChild(c);
-  cells.push({ el:c, glow:c.querySelector('.glow'), bg:c.querySelector('.bg'), fg:c.querySelector('.fg'), glyph:null, popT:9, depth:1, depthTarget:1 });
+  cells.push({ el:c, glow:c.querySelector('.glow'), bg:c.querySelector('.bg'), fg:c.querySelector('.fg'),
+               sheenBg:c.querySelector('.sheenBg'), sheenFg:c.querySelector('.sheenFg'),
+               glyph:null, popT:9, depth:1, depthTarget:1, sparks:[], sparkAcc:0, sheenT:-1, sheenNext:0.6 + i*0.8 });
 }
-const P = { bgAmp:1, fgAmp:1, speed:1, zoom:2, back:0.66 };
-for (const k of ['bgAmp','fgAmp','speed','zoom','back']) {
+const P = { bgAmp:1, fgAmp:1, speed:1, zoom:2, back:0.66, sparkRate:4, sparkSize:1, sheenEvery:2.5, sheenW:22, sheenAng:115, sheenA:0.75,
+            bgMotion:'hover', fgMotion:'bob', sync:false, sheenOn:'fg' };
+const DEC = { back:2, sparkRate:0, sheenW:0, sheenAng:0, sheenA:2 };
+for (const k of ['bgAmp','fgAmp','speed','zoom','back','sparkRate','sparkSize','sheenEvery','sheenW','sheenAng','sheenA']) {
   const el = document.getElementById(k), v = document.getElementById(k+'V');
-  el.oninput = () => { P[k] = parseFloat(el.value); v.textContent = P[k].toFixed(k==='back'?2:1); if (k==='zoom') applyZoom(); };
+  el.oninput = () => { P[k] = parseFloat(el.value); v.textContent = P[k].toFixed(DEC[k] ?? 1); if (k==='zoom') applyZoom(); showCombo(); };
 }
+
+// ---- 揺れ方。どれも (t, 位相, 倍率) → {x, y, rot, s}。単位は px / 度 / 倍 ----
+const MOTIONS = {
+  none:     { name:'なし',                 f:(t,ph,a)=>({x:0,y:0,rot:0,s:1}) },
+  float:    { name:'ゆっくり上下',         f:(t,ph,a)=>({x:0, y:2.5*a*Math.sin(t*1.5+ph), rot:0, s:1}) },
+  bob:      { name:'上下（速め）',         f:(t,ph,a)=>({x:1.5*a*Math.sin(t*1.1+ph), y:3.5*a*Math.sin(t*2.3+ph+2.4), rot:0, s:1+0.05*a*Math.sin(t*2.3+ph)}) },
+  hover:    { name:'浮遊（上下+傾き+脈）', f:(t,ph,a)=>({x:0, y:2.5*a*Math.sin(t*1.5+ph), rot:2.5*a*Math.sin(t*0.9+ph), s:1+0.03*a*Math.sin(t*1.5+ph+1.2)}) },
+  sway:     { name:'振り子（左右）',       f:(t,ph,a)=>({x:4*a*Math.sin(t*1.3+ph), y:0, rot:-5*a*Math.sin(t*1.3+ph), s:1}) },
+  breathe:  { name:'呼吸（大きさだけ）',   f:(t,ph,a)=>({x:0, y:0, rot:0, s:1+0.07*a*Math.sin(t*1.8+ph)}) },
+  orbit:    { name:'小さな円',             f:(t,ph,a)=>({x:3*a*Math.cos(t*1.4+ph), y:3*a*Math.sin(t*1.4+ph), rot:0, s:1}) },
+  figure8:  { name:'8 の字',               f:(t,ph,a)=>({x:4*a*Math.sin(t*1.2+ph), y:2*a*Math.sin(t*2.4+2*ph), rot:0, s:1}) },
+  tilt:     { name:'傾きだけ（ゆらゆら）', f:(t,ph,a)=>({x:0, y:0, rot:6*a*Math.sin(t*1.1+ph), s:1}) },
+  heartbeat:{ name:'鼓動（二拍）',         f:(t,ph,a)=>{ const u=((t*1.1+ph)%(2*Math.PI))/(2*Math.PI); const b=Math.exp(-((u-0.05)**2)/0.004)+0.6*Math.exp(-((u-0.22)**2)/0.004); return {x:0,y:0,rot:0,s:1+0.12*a*b}; } },
+  drift:    { name:'漂う（低周波の合成）', f:(t,ph,a)=>({x:2.5*a*(Math.sin(t*0.7+ph)+0.5*Math.sin(t*1.9+ph*2)), y:2*a*(Math.sin(t*0.9+ph+1)+0.5*Math.sin(t*2.3+ph)), rot:2*a*Math.sin(t*0.5+ph), s:1}) },
+  shiver:   { name:'小刻みに震える',       f:(t,ph,a)=>({x:0.8*a*Math.sin(t*23+ph), y:0.6*a*Math.sin(t*31+ph), rot:1.2*a*Math.sin(t*19+ph), s:1}) },
+  bounce:   { name:'跳ねる（着地で潰れ）', f:(t,ph,a)=>{ const u=Math.abs(Math.sin(t*2.2+ph)); const sq=1-0.08*a*Math.max(0,0.15-u)/0.15; return {x:0, y:6*a*u, rot:0, s:sq, sx:1+(1-sq)}; } },
+  spin:     { name:'ゆっくり一回転',       f:(t,ph,a)=>({x:0, y:0, rot:(t*20*a+ph*57)%360, s:1}) },
+};
+for (const id of ['bgMotion','fgMotion']) {
+  const sel = document.getElementById(id);
+  for (const [k, m] of Object.entries(MOTIONS)) { const o = document.createElement('option'); o.value = k; o.textContent = m.name; sel.appendChild(o); }
+  sel.value = P[id]; sel.onchange = () => { P[id] = sel.value; showCombo(); };
+}
+document.getElementById('sync').onchange = e => { P.sync = e.target.checked; showCombo(); };
+document.getElementById('sheenOn').onchange = e => { P.sheenOn = e.target.value; showCombo(); };
+function showCombo(){
+  document.getElementById('combo').textContent =
+    `背景=${P.bgMotion} x${P.bgAmp}  文字=${P.fgMotion} x${P.fgAmp}  速さ${P.speed}  奥${P.back}  ` +
+    `きらきら${P.sparkRate}/秒 大きさ${P.sparkSize}  コーティング ${P.sheenEvery}秒ごと 幅${P.sheenW}% 角度${P.sheenAng}° 強さ${P.sheenA} 当てる=${P.sheenOn}` + (P.sync ? '  同位相' : '');
+}
+showCombo();
 function applyZoom(){ stage.style.transform = 'scale(' + P.zoom + ')'; stage.style.transformOrigin = '50% 0'; stage.style.marginBottom = (300*(P.zoom-1)) + 'px'; }
 applyZoom();
 
@@ -109,27 +169,53 @@ Object.entries(PRESETS).forEach(([name, p], n) => {
 });
 document.getElementById('pop').onclick = () => cells.forEach(c => c.popT = 0);
 
-// ---- GameController.AnimateNavi と同じ式 ----
+// ---- 揺れ・きらきら・コーティング。C# に写すときはここを見る ----
 let last = performance.now(), t = 0;
+function spawnSpark(c) {
+  const el = document.createElement('div'); el.className = 'spark';
+  const r = 30 + Math.random() * 16, a = Math.random() * Math.PI * 2;      // 紋章の縁のあたりに出す
+  const sp = { el, x: 33 + Math.cos(a) * r, y: 33 + Math.sin(a) * r, life: 0, dur: 0.5 + Math.random() * 0.5, size: (0.6 + Math.random() * 0.8) * P.sparkSize, rot: Math.random() * 90 };
+  el.style.left = sp.x + 'px'; el.style.top = sp.y + 'px';
+  c.el.appendChild(el); c.sparks.push(sp);
+}
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now; t += dt * P.speed;
   cells.forEach((c, i) => {
-    const ph = i * 0.9;
+    const ph = P.sync ? 0 : i * 0.9;
     // 奥行き: 手前 1.0 / 次 は手前と奥の中間 / 奥 = スライダー。押す番が変わると手前へ出てくる
     const target = c.rank === 0 ? 1 : c.rank === 1 ? (1 + P.back) / 2 : P.back;
     c.depth += (target - c.depth) * (1 - Math.exp(-dt * 9));
     const depth = c.depth;
-    const by = 2.5 * Math.sin(t*1.5 + ph) * P.bgAmp;
-    const br = 2.5 * Math.sin(t*0.9 + ph) * P.bgAmp;
-    const bs = depth * (1 + 0.03 * Math.sin(t*1.5 + ph + 1.2) * P.bgAmp);
-    c.bg.style.transform = `translate(0px, ${-by}px) rotate(${-br}deg) scale(${bs})`;   // Unity は y 上向きなので符号を反転
+    const B = MOTIONS[P.bgMotion].f(t, ph, P.bgAmp);
+    const bT = `translate(${B.x}px, ${-B.y}px) rotate(${-B.rot}deg) scale(${depth*(B.sx||1)*B.s}, ${depth*B.s})`;   // Unity は y 上向き
+    c.bg.style.transform = bT;
     c.popT += dt;
     let pop = 1;
     if (c.popT < 0.28) { const u = c.popT / 0.28; pop = 1.4 - 0.4 * (1 - (1-u)*(1-u)); }
-    const fx = 1.5 * Math.sin(t*1.1 + ph) * P.fgAmp;
-    const fy = 2 + 3.5 * Math.sin(t*2.3 + ph + 2.4) * P.fgAmp;
-    const fs = depth * pop * (1 + 0.05 * Math.sin(t*2.3 + ph) * P.fgAmp);
-    c.fg.style.transform = `translate(${fx}px, ${-fy}px) scale(${fs})`;
+    const F = MOTIONS[P.fgMotion].f(t, ph + 2.4, P.fgAmp);
+    const fT = `translate(${F.x}px, ${-(2 + F.y)}px) rotate(${-F.rot}deg) scale(${depth*pop*(F.sx||1)*F.s}, ${depth*pop*F.s})`;
+    c.fg.style.transform = fT;
+    // コーティング: 一定間隔で光の帯が斜めに走る。文字か背景の形に合わせてマスクする
+    c.sheenT += dt;
+    if (c.sheenT > c.sheenNext && P.sheenEvery > 0) { c.sheenT = 0; c.sheenNext = P.sheenEvery + Math.random() * 0.6; }
+    const prog = P.sheenEvery > 0 ? Math.min(1.2, c.sheenT / 0.6) : 2;   // 0.6 秒で通り抜ける
+    for (const [layer, el, tr, src] of [['bg', c.sheenBg, bT, c.bg.src], ['fg', c.sheenFg, fT, c.fg.src]]) {
+      const on = P.sheenOn === 'both' || P.sheenOn === layer;
+      el.style.display = on && prog <= 1.2 ? 'block' : 'none';
+      if (!on) continue;
+      el.style.webkitMaskImage = `url(${src})`; el.style.maskImage = `url(${src})`;
+      el.style.transform = tr;
+      el.style.setProperty('--p', (-20 + prog * 140) + '%'); el.style.setProperty('--w', P.sheenW + '%');
+      el.style.setProperty('--ang', P.sheenAng + 'deg'); el.style.setProperty('--a', P.sheenA);
+    }
+    // きらきら: 紋章の縁に星が生まれて、膨らんで消える（押す番のバッジに多く出す）
+    c.sparkAcc += dt * P.sparkRate * (c.rank === 0 ? 1 : 0.35);
+    while (c.sparkAcc >= 1) { c.sparkAcc -= 1; spawnSpark(c); }
+    for (const sp of c.sparks) {
+      sp.life += dt; const u = sp.life / sp.dur; const k = Math.sin(Math.PI * Math.min(1, u));
+      sp.el.style.transform = `scale(${sp.size * k}) rotate(${sp.rot + u * 60}deg)`; sp.el.style.opacity = k;
+    }
+    c.sparks = c.sparks.filter(sp => { if (sp.life >= sp.dur) { sp.el.remove(); return false; } return true; });
   });
   requestAnimationFrame(frame);
 }
