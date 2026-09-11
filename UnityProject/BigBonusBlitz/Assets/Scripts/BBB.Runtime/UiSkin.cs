@@ -51,38 +51,38 @@ namespace BBB.Runtime
         private static readonly HashSet<string> _missing = new HashSet<string>();
 
         /// <summary>
-        /// 9 分割で伸ばしてよい範囲の境目（left, bottom, right, top）と、その値を決めたときの画像の幅。
-        /// tools/ui/cut_sheets.py の出力を写したもの。片方を変えたらもう片方も直す。
-        /// 画像をアップスケールして差し替えても、幅の比で縁を伸ばすので画面上の見え方は変わらない。
+        /// 9 分割で伸ばしてよい範囲の境目（left, bottom, right, top）と、その値を決めたときの画像の幅と高さ。
+        /// tools/ui/cut_sheets.py / adopt_frames.py の frames_manifest.json（baseBorder / baseW / baseH）を写したもの。
+        /// 画像をアップスケールや描き直しで差し替えても、幅は幅の比・高さは高さの比で縁を伸ばすので画面上の見え方は変わらない。
         /// 載っていない名前は伸ばさない（そのままの大きさで使う小物）。
         /// </summary>
-        private static readonly Dictionary<string, (Vector4 border, int baseWidth)> FrameBorders = new Dictionary<string, (Vector4, int)>
+        private static readonly Dictionary<string, (Vector4 border, int baseW, int baseH)> FrameBorders = new Dictionary<string, (Vector4, int, int)>
         {
-            { "panel_navy", (new Vector4(28, 26, 28, 26), 288) },
-            { "panel_cream_sm", (new Vector4(22, 20, 22, 20), 96) },
-            { "bar_cream_sm", (new Vector4(16, 12, 16, 12), 159) },
-            { "slot_navy", (new Vector4(20, 18, 20, 18), 95) },
-            { "btn_blue_lg", (new Vector4(48, 22, 48, 22), 288) },
-            { "btn_blue", (new Vector4(40, 20, 40, 20), 227) },
-            { "btn_gray", (new Vector4(40, 20, 40, 20), 236) },
-            { "btn_pink", (new Vector4(40, 20, 40, 20), 245) },
-            { "btn_cream", (new Vector4(40, 20, 40, 20), 206) },
-            { "btn_blue_light", (new Vector4(40, 20, 40, 20), 204) },
-            { "btn_pill_blue", (new Vector4(36, 18, 36, 18), 187) },
-            { "btn_pill_red", (new Vector4(36, 18, 36, 18), 187) },
-            { "btn_pill_purple", (new Vector4(36, 18, 36, 18), 187) },
-            { "plate_hex_sky", (new Vector4(30, 18, 30, 18), 245) },
-            { "plate_hex_cream", (new Vector4(30, 18, 30, 18), 246) },
-            { "pill_navy_sm", (new Vector4(20, 14, 20, 14), 92) },
-            { "pill_gem", (new Vector4(60, 14, 24, 14), 178) },
-            { "pill_coin", (new Vector4(60, 14, 24, 14), 180) },
-            { "pill_compass", (new Vector4(112, 22, 30, 22), 367) },
-            { "pill_ring", (new Vector4(96, 20, 30, 20), 266) },
-            { "toast_green", (new Vector4(30, 12, 30, 12), 282) },
-            { "toast_brown", (new Vector4(30, 12, 30, 12), 282) },
-            { "toast_red", (new Vector4(30, 12, 30, 12), 282) },
-            { "gauge_track", (new Vector4(6, 4, 6, 4), 48) },
-            { "gauge_fill", (new Vector4(5, 3, 5, 3), 48) },
+            { "panel_navy", (new Vector4(28, 26, 28, 26), 288, 113) },
+            { "panel_cream_sm", (new Vector4(22, 20, 22, 20), 96, 83) },
+            { "bar_cream_sm", (new Vector4(16, 12, 16, 12), 159, 43) },
+            { "slot_navy", (new Vector4(20, 18, 20, 18), 95, 88) },
+            { "btn_blue_lg", (new Vector4(48, 22, 48, 22), 288, 100) },
+            { "btn_blue", (new Vector4(40, 20, 40, 20), 227, 92) },
+            { "btn_gray", (new Vector4(40, 20, 40, 20), 236, 97) },
+            { "btn_pink", (new Vector4(40, 20, 40, 20), 245, 88) },
+            { "btn_cream", (new Vector4(40, 20, 40, 20), 206, 83) },
+            { "btn_blue_light", (new Vector4(40, 20, 40, 20), 204, 84) },
+            { "btn_pill_blue", (new Vector4(36, 18, 36, 18), 187, 63) },
+            { "btn_pill_red", (new Vector4(36, 18, 36, 18), 187, 61) },
+            { "btn_pill_purple", (new Vector4(36, 18, 36, 18), 187, 59) },
+            { "plate_hex_sky", (new Vector4(30, 18, 30, 18), 245, 73) },
+            { "plate_hex_cream", (new Vector4(30, 18, 30, 18), 246, 76) },
+            { "pill_navy_sm", (new Vector4(20, 14, 20, 14), 92, 43) },
+            { "pill_gem", (new Vector4(60, 14, 24, 14), 178, 54) },
+            { "pill_coin", (new Vector4(60, 14, 24, 14), 180, 54) },
+            { "pill_compass", (new Vector4(112, 22, 30, 22), 367, 99) },
+            { "pill_ring", (new Vector4(96, 20, 30, 20), 266, 63) },
+            { "toast_green", (new Vector4(30, 12, 30, 12), 282, 58) },
+            { "toast_brown", (new Vector4(30, 12, 30, 12), 282, 57) },
+            { "toast_red", (new Vector4(30, 12, 30, 12), 282, 61) },
+            { "gauge_track", (new Vector4(6, 4, 6, 4), 48, 12) },
+            { "gauge_fill", (new Vector4(5, 3, 5, 3), 48, 8) },
         };
 
         /// <summary>枠の画像（Resources/Art/UI/Frames）。縁の幅つきなので Img に渡せば 9 分割で伸びる。無ければ null。</summary>
@@ -93,9 +93,15 @@ namespace BBB.Runtime
             if (_missing.Contains(path)) return null;
             var tex = Resources.Load<Texture2D>(path);
             if (tex == null) { _missing.Add(path); return null; }
-            // 切り出し時より大きい画像なら、縁も同じ比で広げ、PPU で画面上の大きさを元に戻す
-            float scale = FrameBorders.TryGetValue(name, out var b) && b.baseWidth > 0 ? (float)tex.width / b.baseWidth : 1f;
-            var border = FrameBorders.ContainsKey(name) ? b.border * scale : Vector4.zero;
+            // 切り出し時より大きい画像なら、縁も同じ比で広げ（幅と高さは別々に）、PPU で画面上の大きさを元に戻す
+            var border = Vector4.zero;
+            float scale = 1f;
+            if (FrameBorders.TryGetValue(name, out var b) && b.baseW > 0 && b.baseH > 0)
+            {
+                float sx = (float)tex.width / b.baseW, sy = (float)tex.height / b.baseH;
+                border = new Vector4(b.border.x * sx, b.border.y * sy, b.border.z * sx, b.border.w * sy);
+                scale = sx;
+            }
             s = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), scale, 0, SpriteMeshType.FullRect, border);
             _frames[name] = s;
             _frameSet.Add(s);

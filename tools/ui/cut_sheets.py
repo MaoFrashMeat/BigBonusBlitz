@@ -366,6 +366,11 @@ def main():
     os.makedirs(fdir, exist_ok=True)
     os.makedirs(idir, exist_ok=True)
 
+    # 既にある manifest の baseW / baseH / baseBorder は残す（adopt_frames.py の基準）
+    old_man = {}
+    mp = os.path.join(fdir, 'frames_manifest.json')
+    if os.path.exists(mp):
+        old_man = json.load(open(mp, encoding='utf-8'))
     manifest = {}
     for name, (box, how, border) in FRAMES.items():
         im = pick(frames_sheet, sc_box(box), how)
@@ -375,7 +380,10 @@ def main():
     for name, (im, border) in build_gauges(frames_sheet, k).items():
         im.save(os.path.join(fdir, name + '.png'))
         manifest[name] = {'w': im.width, 'h': im.height, 'border': list(border)}
-    with open(os.path.join(fdir, 'frames_manifest.json'), 'w', encoding='utf-8') as f:
+    for name, m in manifest.items():
+        o = old_man.get(name) or {}
+        m['baseW'] = o.get('baseW', m['w']); m['baseH'] = o.get('baseH', m['h']); m['baseBorder'] = o.get('baseBorder', m['border']); m['scale'] = 1.0
+    with open(mp, 'w', encoding='utf-8') as f:
         json.dump(manifest, f, ensure_ascii=False, indent=1)
 
     for name, (box, how) in ICONS.items():
@@ -389,11 +397,11 @@ def main():
         install(fdir, idir)
 
     # UiSkin.FrameBorders に写す用（縁と、その値を決めたときの画像の幅）
-    print(r'') ; print('// UiSkin.FrameBorders（left, bottom, right, top）, 画像の幅')
+    print(r'') ; print('// UiSkin.FrameBorders（left, bottom, right, top）, 縁を決めたときの幅, 高さ')
     for name, m in manifest.items():
-        if m['border']:
-            l, b, r, t = m['border']
-            print(f'            {{ "{name}", (new Vector4({l}, {b}, {r}, {t}), {m["w"]}) }},')
+        if m['baseBorder']:
+            l, b, r, t = m['baseBorder']
+            print(f'            {{ "{name}", (new Vector4({l}, {b}, {r}, {t}), {m["baseW"]}, {m["baseH"]}) }},')
 
 if __name__ == '__main__':
     main()

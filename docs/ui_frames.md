@@ -107,9 +107,11 @@ python tools/ui/cut_sheets.py --install      # 切り出して Resources/Art/UI/
 ```
 
 - 縁の幅を変えるときは `cut_sheets.py` の `FRAMES` と `UiSkin.FrameBorders` の**両方**を直す
-- 1 枚ずつアップスケールするときは、`assets/title/parts/frames|icons/` の画像を**同じ名前で**置き替えて
-  `python tools/ui/cut_sheets.py --no-cut` で入れる（`--install` はシートから切り直すので上書きされる）。
-  縁は元の幅との比で自動的に広がるので、`FrameBorders` は触らなくてよい。倍率は枠ごとに違ってもよい
+- 枠をアップスケール・描き直ししたら、v1 と同じ名前で 1 つのフォルダに置いて
+  `python tools/ui/adopt_frames.py <そのフォルダ>` → `python tools/ui/cut_sheets.py --no-cut`。
+  透明の余白を落として `parts/frames/` を置き替え、縁を「幅は幅の比・高さは高さの比」で伸ばす。
+  縦横比が変わっていても崩れない（2026-09-11 の frames_V2 で実施。panel_navy は横長→ほぼ正方形になったが問題なし）。
+  `UiSkin.FrameBorders` は縁を決めたときの幅と高さ（baseW / baseH）を持つので触らなくてよい
 - シートごとアップスケールしたときは `--scale 3 --frames <新しいシート>` のように倍率を渡す
 - 画像が無ければ各ビルダー（Card / Inset / Button / IconButton / Gauge / Icon）は
   手続き描画に戻る。差し替えの途中で壊れない

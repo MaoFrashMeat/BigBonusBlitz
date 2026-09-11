@@ -29,17 +29,35 @@ def uri(path):
         return 'data:image/png;base64,' + base64.b64encode(f.read()).decode('ascii')
 
 
+EMBED_MAX_W = 640   # 枠の埋め込みはこの幅まで縮める（v2 は 2000px 超で、そのままだと 30MB になる）
+
+
+def uri_frame(path):
+    """縮めて埋め込む。返り値: (data URI, 縮めた倍率)"""
+    from PIL import Image
+    import io as _io
+    im = Image.open(path).convert('RGBA')
+    k = 1.0
+    if im.width > EMBED_MAX_W:
+        k = EMBED_MAX_W / im.width
+        im = im.resize((EMBED_MAX_W, max(1, round(im.height * k))), Image.LANCZOS)
+    buf = _io.BytesIO(); im.save(buf, 'PNG', optimize=True)
+    return 'data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode('ascii'), k
+
+
 man = json.load(open(MANIFEST, encoding='utf-8'))
-imgs = {}
+imgs, embed_k = {}, {}
 for n in FRAMES:
     p = os.path.join(UI, 'Frames', n + '.png')
     if os.path.exists(p):
-        imgs[n] = uri(p)
+        imgs[n], embed_k[n] = uri_frame(p)
 for n in ICONS:
     imgs['icon_' + n] = uri(os.path.join(UI, 'Icons', n + '.png'))
 for n in NAVI:
     imgs[n] = uri(os.path.join(UI, 'Navi', n + '.png'))
-borders = {n: man[n]['border'] for n in FRAMES if man.get(n, {}).get('border')}   # [left, bottom, right, top]
+# border-image の slice は「埋め込んだ画像の px」、width は「舞台の px」。それぞれ別に出す
+borders = {n: [round(v * embed_k[n]) for v in man[n]['border']] for n in FRAMES if man.get(n, {}).get('border') and n in embed_k}
+widths = {n: [v / man[n].get('scale', 1.0) for v in man[n]['border']] for n in FRAMES if man.get(n, {}).get('border')}
 saved = json.load(open(LAYOUT, encoding='utf-8')) if os.path.exists(LAYOUT) else {'version': 1, 'elements': {}}
 
 HTML = r'''<!doctype html>
@@ -108,7 +126,8 @@ HTML = r'''<!doctype html>
 </div>
 <script>
 const IMG = __IMG__;
-const BORDERS = __BORDERS__;     // [left, bottom, right, top]
+const BORDERS = __BORDERS__;     // [left, bottom, right, top]（埋め込んだ画像の px。slice 用）
+const WIDTHS = __WIDTHS__;       // [left, bottom, right, top]（舞台の px。width 用）
 const SAVED = __SAVED__;         // Resources/Data/ui_layout.json の中身（生成時点）
 const SW = 960, SH = 540, Margin = 8, ContentW = 944, StageCardH = 252, MidH = 196, CtrlH = 56, SideW = 242, ReelW = 132, SymH = 60;
 const AreaW = 940, AreaH = 220, AreaY = -15;
@@ -187,7 +206,7 @@ function skin(d, def, r) {
   sl.className = 'skinLayer';
   if (name !== 'none' && IMG[name]) {
     const br = BORDERS[name];
-    if (br) { const [l, bt, rr, t] = br; sl.style.borderStyle = 'solid'; sl.style.borderColor = 'transparent'; sl.style.borderImage = `url(${IMG[name]}) ${t} ${rr} ${bt} ${l} fill / ${t}px ${rr}px ${bt}px ${l}px`; sl.style.borderWidth = `${t}px ${rr}px ${bt}px ${l}px`; }
+    if (br) { const [l, bt, rr, t] = br, [wl, wb, wr, wt] = WIDTHS[name]; sl.style.borderStyle = 'solid'; sl.style.borderColor = 'transparent'; sl.style.borderImage = `url(${IMG[name]}) ${t} ${rr} ${bt} ${l} fill / ${wt}px ${wr}px ${wb}px ${wl}px`; sl.style.borderWidth = `${wt}px ${wr}px ${wb}px ${wl}px`; }
     else sl.style.background = `url(${IMG[name]}) center / contain no-repeat`;
     sl.style.boxShadow = '0 5px 12px rgba(0,0,0,.55)';
   } else { sl.classList.add('proc'); if (def.proc) sl.classList.add(def.proc); }
@@ -346,5 +365,5 @@ build();
 '''
 
 with open(OUT, 'w', encoding='utf-8') as f:
-    f.write(HTML.replace('__IMG__', json.dumps(imgs)).replace('__BORDERS__', json.dumps(borders)).replace('__SAVED__', json.dumps(saved, ensure_ascii=False)))
+    f.write(HTML.replace('__IMG__', json.dumps(imgs)).replace('__BORDERS__', json.dumps(borders)).replace('__WIDTHS__', json.dumps(widths)).replace('__SAVED__', json.dumps(saved, ensure_ascii=False)))
 print(OUT, os.path.getsize(OUT) // 1024, 'KB')
