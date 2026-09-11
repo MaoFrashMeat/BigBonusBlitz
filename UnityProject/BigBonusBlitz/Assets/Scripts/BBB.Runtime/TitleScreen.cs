@@ -105,7 +105,8 @@ namespace BBB.Runtime
                 AspectCover.Attach(artRt, r.height > 0 ? r.width / r.height : TitleArtAspect);
 
                 // 背景は奥行きのある層（空と雲海 / 城と湖 / 手前のバルコニー）。素材が無ければ 1 枚絵
-                if (TitleParallax.Create(artRt) == null)
+                var parallax = TitleParallax.Create(artRt);
+                if (parallax == null)
                 {
                     var bgImg = UiSkin.Img(artRt, "Bg", Vector2.zero, Vector2.zero, titleSprite, Color.white);
                     UiSkin.Stretch(bgImg.rectTransform);
@@ -117,6 +118,8 @@ namespace BBB.Runtime
                 AddLayer(artRt, "Char", charSprite, TitleCharacterWarp.Mode.Body);
                 AddLayer(artRt, "Hair", ArtLoader.Sprite("Art/UI/title_hair"),
                          TitleCharacterWarp.Mode.Hair);
+                // 「立ち絵より手前」の層を立ち絵の上へ
+                parallax?.RaiseFront();
             }
             else
             {

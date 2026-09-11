@@ -267,7 +267,7 @@ def install_navi():
 
 
 TITLE_BG_SRC = os.path.join(ROOT, 'assets', 'title', 'BG')
-TITLE_BG_FILES = ['sky_mountains_cloudsea', 'castle_lake', 'terrace_balcony']   # TitleParallax が使う 3 枚
+TITLE_BG_FILES = ['sky_mountains_cloudsea', 'sky_mountains', 'castle_mountains_lake', 'castle_mountains', 'castle_lake', 'town_lake', 'terrace_balcony', 'petals_overlay']   # TitleParallax が選べる層
 
 
 def install_title_bg():

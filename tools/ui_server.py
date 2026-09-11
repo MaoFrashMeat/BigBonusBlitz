@@ -11,6 +11,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, '..'))
 LAYOUT = os.path.join(ROOT, 'UnityProject', 'BigBonusBlitz', 'Assets', 'Resources', 'Data', 'ui_layout.json')
+TITLE = os.path.join(ROOT, 'UnityProject', 'BigBonusBlitz', 'Assets', 'Resources', 'Data', 'title_layers.json')
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8765
 
 
@@ -32,6 +33,11 @@ class Handler(SimpleHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_GET(self):
+        if self.path.split('?')[0] == '/title_layout':
+            if os.path.exists(TITLE):
+                with open(TITLE, encoding='utf-8') as f:
+                    return self._json(200, json.load(f))
+            return self._json(200, {'version': 1, 'layers': []})
         if self.path.split('?')[0] == '/layout':
             if os.path.exists(LAYOUT):
                 with open(LAYOUT, encoding='utf-8') as f:
@@ -40,6 +46,19 @@ class Handler(SimpleHTTPRequestHandler):
         return super().do_GET()
 
     def do_POST(self):
+        if self.path.split('?')[0] == '/save_title':
+            n = int(self.headers.get('Content-Length', 0))
+            try:
+                data = json.loads(self.rfile.read(n).decode('utf-8'))
+                layers = data.get('layers')
+                if not isinstance(layers, list):
+                    raise ValueError('layers が無い')
+            except Exception as e:
+                return self._json(400, {'ok': False, 'error': str(e)})
+            os.makedirs(os.path.dirname(TITLE), exist_ok=True)
+            with open(TITLE, 'w', encoding='utf-8') as f:
+                json.dump({'version': 1, 'layers': layers}, f, ensure_ascii=False, indent=2)
+            return self._json(200, {'ok': True, 'path': TITLE, 'count': len(layers)})
         if self.path.split('?')[0] != '/save':
             return self._json(404, {'ok': False, 'error': 'unknown'})
         n = int(self.headers.get('Content-Length', 0))
@@ -60,5 +79,5 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 if __name__ == '__main__':
-    print(f'http://localhost:{PORT}/ui_viewer.html   保存先: {LAYOUT}')
+    print(f'http://localhost:{PORT}/ui_viewer.html  /title_viewer.html   保存先: {LAYOUT} / {TITLE}')
     ThreadingHTTPServer(('127.0.0.1', PORT), Handler).serve_forever()
