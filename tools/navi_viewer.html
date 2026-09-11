@@ -35,26 +35,26 @@
   </div>
   <div class="row" id="presets"></div>
   <div class="row">
-    <label>背景の揺れ <input type="range" id="bgAmp" min="0" max="3" step="0.1" value="1"><span class="val" id="bgAmpV">1.0</span></label>
-    <label>文字の揺れ <input type="range" id="fgAmp" min="0" max="3" step="0.1" value="1"><span class="val" id="fgAmpV">1.0</span></label>
-    <label>速さ <input type="range" id="speed" min="0.2" max="3" step="0.1" value="1"><span class="val" id="speedV">1.0</span></label>
+    <label>背景の揺れ <input type="range" id="bgAmp" min="0" max="3" step="0.1" value="0.8"><span class="val" id="bgAmpV">0.8</span></label>
+    <label>文字の揺れ <input type="range" id="fgAmp" min="0" max="3" step="0.1" value="0.4"><span class="val" id="fgAmpV">0.4</span></label>
+    <label>速さ <input type="range" id="speed" min="0.2" max="3" step="0.1" value="0.7"><span class="val" id="speedV">0.7</span></label>
     <label>表示倍率 <input type="range" id="zoom" min="1" max="3" step="0.5" value="2"><span class="val" id="zoomV">2.0</span></label>
-    <label>奥の大きさ <input type="range" id="back" min="0.4" max="1" step="0.02" value="0.66"><span class="val" id="backV">0.66</span></label>
+    <label>奥の大きさ <input type="range" id="back" min="0.4" max="1" step="0.02" value="0.7"><span class="val" id="backV">0.70</span></label>
     <button id="pop">文字をぽんと出す</button>
   </div>
   <div class="row">
     <label>背景の揺れ方 <select id="bgMotion"></select></label>
     <label>文字の揺れ方 <select id="fgMotion"></select></label>
-    <label>同じ位相で <input type="checkbox" id="sync"></label>
+    <label>同じ位相で <input type="checkbox" id="sync" checked></label>
   </div>
   <div class="row">
-    <label>きらきら <input type="range" id="sparkRate" min="0" max="12" step="1" value="4"><span class="val" id="sparkRateV">4</span>/秒</label>
-    <label>粒の大きさ <input type="range" id="sparkSize" min="0.5" max="2.5" step="0.1" value="1"><span class="val" id="sparkSizeV">1.0</span></label>
-    <label>コーティング 間隔 <input type="range" id="sheenEvery" min="0" max="8" step="0.5" value="2.5"><span class="val" id="sheenEveryV">2.5</span>秒</label>
+    <label>きらきら <input type="range" id="sparkRate" min="0" max="12" step="1" value="2"><span class="val" id="sparkRateV">2</span>/秒</label>
+    <label>粒の大きさ <input type="range" id="sparkSize" min="0.5" max="2.5" step="0.1" value="0.5"><span class="val" id="sparkSizeV">0.5</span></label>
+    <label>コーティング 間隔 <input type="range" id="sheenEvery" min="0" max="8" step="0.5" value="1.5"><span class="val" id="sheenEveryV">1.5</span>秒</label>
     <label>幅 <input type="range" id="sheenW" min="5" max="60" step="1" value="22"><span class="val" id="sheenWV">22</span>%</label>
     <label>角度 <input type="range" id="sheenAng" min="0" max="180" step="5" value="115"><span class="val" id="sheenAngV">115</span>°</label>
     <label>強さ <input type="range" id="sheenA" min="0" max="1" step="0.05" value="0.75"><span class="val" id="sheenAV">0.75</span></label>
-    <label>当てる <select id="sheenOn"><option value="fg">文字</option><option value="bg">背景</option><option value="both">両方</option></select></label>
+    <label>当てる <select id="sheenOn"><option value="fg">文字</option><option value="bg">背景</option><option value="both" selected>両方</option></select></label>
   </div>
   <div class="combo" id="combo"></div>
   <div class="note">式は GameController.AnimateNavi と同じ。倍率 1.0・奥 0.66 が今の Unity の値。「ナビ開始」→「第一停止後」で ? が手前に出てくる。気に入った値を言ってもらえれば C# に写す。</div>
@@ -92,8 +92,9 @@ for (let i = 0; i < 3; i++) {
                sheenBg:c.querySelector('.sheenBg'), sheenFg:c.querySelector('.sheenFg'),
                glyph:null, popT:9, depth:1, depthTarget:1, sparks:[], sparkAcc:0, sheenT:-1, sheenNext:0.6 + i*0.8 });
 }
-const P = { bgAmp:1, fgAmp:1, speed:1, zoom:2, back:0.66, sparkRate:4, sparkSize:1, sheenEvery:2.5, sheenW:22, sheenAng:115, sheenA:0.75,
-            bgMotion:'hover', fgMotion:'bob', sync:false, sheenOn:'fg' };
+// 既定は本人が選んだ組み合わせ（Unity の AnimateNavi と同じ）
+const P = { bgAmp:0.8, fgAmp:0.4, speed:0.7, zoom:2, back:0.7, sparkRate:2, sparkSize:0.5, sheenEvery:1.5, sheenW:22, sheenAng:115, sheenA:0.75,
+            bgMotion:'float', fgMotion:'bob', sync:true, sheenOn:'both' };
 const DEC = { back:2, sparkRate:0, sheenW:0, sheenAng:0, sheenA:2 };
 for (const k of ['bgAmp','fgAmp','speed','zoom','back','sparkRate','sparkSize','sheenEvery','sheenW','sheenAng','sheenA']) {
   const el = document.getElementById(k), v = document.getElementById(k+'V');

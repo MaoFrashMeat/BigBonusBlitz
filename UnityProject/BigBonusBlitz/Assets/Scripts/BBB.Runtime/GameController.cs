@@ -85,7 +85,19 @@ namespace BBB.Runtime
         /// </summary>
         private readonly float[] _naviDepth = { 1f, 1f, 1f };
         private readonly float[] _naviDepthTarget = { 1f, 1f, 1f };
-        private static readonly float[] NaviDepthScale = { 1f, 0.83f, 0.66f };  // 手前 / 次（手前と奥の中間） / 奥
+        private static readonly float[] NaviDepthScale = { 1f, 0.85f, 0.7f };   // 手前 / 次（手前と奥の中間） / 奥
+        // きらきら（紋章の縁に生まれて消える星）と、コーティング（形に沿って走る光の帯）。
+        // 数値は tools/navi_viewer.html で本人が選んだ組み合わせ:
+        //   背景=ゆっくり上下 x0.8 / 文字=上下（速め）x0.4 / 速さ 0.7 / 奥 0.7 / 同位相
+        //   きらきら 2 個/秒・大きさ 0.5 / コーティング 1.5 秒ごと・幅 22%・角度 115°・強さ 0.75・背景と文字の両方
+        private sealed class NaviSpark { public Image img; public float life, dur, size, rot; }
+        private readonly System.Collections.Generic.List<NaviSpark>[] _naviSparks = { new System.Collections.Generic.List<NaviSpark>(), new System.Collections.Generic.List<NaviSpark>(), new System.Collections.Generic.List<NaviSpark>() };
+        private readonly float[] _naviSparkAcc = new float[3];
+        private readonly float[] _naviSheenT = { -0.6f, -1.4f, -2.2f };
+        private readonly float[] _naviSheenNext = { 0f, 0f, 0f };
+        private readonly RectTransform[] _naviSheenBg = new RectTransform[3];
+        private readonly RectTransform[] _naviSheenFg = new RectTransform[3];
+        private readonly System.Random _naviRng = new System.Random(7);
         // 会話 UI（旅人 ⇄ 主人公）
         private GameObject _dialogBox;
         private Text _dialogName, _dialogText;
@@ -703,6 +715,9 @@ namespace BBB.Runtime
                 _naviEmblemFg[i] = UiSkin.Img(cell, "EmblemFg", Vector2.zero, new Vector2(badge + 26, badge + 26), null, Color.white);
                 _naviEmblemFg[i].preserveAspect = true;
                 _naviEmblemFg[i].gameObject.SetActive(false);
+                // コーティング: 絵の形に切り抜いた光の帯（Mask は親の絵の不透明な所だけ子を見せる）
+                _naviSheenBg[i] = MakeNaviSheen(_naviEmblemBg[i]);
+                _naviSheenFg[i] = MakeNaviSheen(_naviEmblemFg[i]);
             }
             _naviBox = navi.gameObject;
             _naviBox.SetActive(false);
@@ -1448,39 +1463,120 @@ namespace BBB.Runtime
         }
 
         /// <summary>
-        /// ナビの絵をふわふわ揺らす。背景の紋章はゆっくり大きく、手前の文字は速く小さく、
-        /// リールごとに位相をずらして同期させない（揃うと機械的に見える）。
+        /// ナビの絵を揺らし、きらきらとコーティングを回す。
+        /// 揺れ方はビューア（tools/navi_viewer.html）で選んだ組み合わせをそのまま写している。
+        /// 3 つとも同じ位相。奥行きは押す番=1.0 / 次=0.85 / 奥=0.7。
         /// 文字が変わった直後は 1.4 倍から弾んで収まる（§7: 押す番が来たことを手触りで返す）。
         /// </summary>
         private void AnimateNavi()
         {
             if (_naviBox == null || !_naviBox.activeSelf) return;
-            float t = Time.time;
+            float dt = Time.deltaTime;
+            float t = Time.time * 0.7f;                                  // 速さ 0.7
             for (int i = 0; i < 3; i++)
             {
                 // 奥行きは絵でも丸＋文字でも同じに効かせる。手前へ出るときは少し勢いよく
-                _naviDepth[i] = Mathf.Lerp(_naviDepth[i], _naviDepthTarget[i], 1f - Mathf.Exp(-Time.deltaTime * 9f));
+                _naviDepth[i] = Mathf.Lerp(_naviDepth[i], _naviDepthTarget[i], 1f - Mathf.Exp(-dt * 9f));
                 float depth = _naviDepth[i];
                 if (_naviProc[i] != null && _naviProc[i].activeSelf) _naviProc[i].transform.localScale = Vector3.one * depth;
 
                 var bg = _naviEmblemBg[i]; var fg = _naviEmblemFg[i];
-                if (bg == null || fg == null || !bg.gameObject.activeSelf) continue;
-                float ph = i * 0.9f;
-                // 背景: 上下 2.5px・回転 ±2.5°・大きさ ±3%
-                bg.rectTransform.anchoredPosition = new Vector2(0, 2.5f * Mathf.Sin(t * 1.5f + ph));
-                bg.rectTransform.localRotation = Quaternion.Euler(0, 0, 2.5f * Mathf.Sin(t * 0.9f + ph));
-                bg.rectTransform.localScale = Vector3.one * (depth * (1f + 0.03f * Mathf.Sin(t * 1.5f + ph + 1.2f)));
-                // 文字: 上下 3.5px・左右 1.5px・大きさ ±5%。背景と逆位相ぎみにして浮いて見せる
-                _naviPopT[i] += Time.deltaTime;
+                if (bg == null || fg == null || !bg.gameObject.activeSelf) { ClearNaviSparks(i); continue; }
+
+                // 背景: ゆっくり上下 x0.8（2px）。回転と脈は無し
+                bg.rectTransform.anchoredPosition = new Vector2(0, 2.0f * Mathf.Sin(t * 1.5f));
+                bg.rectTransform.localRotation = Quaternion.identity;
+                bg.rectTransform.localScale = Vector3.one * depth;
+
+                // 文字: 上下（速め）x0.4。左右 0.6px・上下 1.4px・大きさ ±2%
+                _naviPopT[i] += dt;
                 float pop = 1f;
                 if (_naviPopT[i] < 0.28f)
                 {
                     float u = _naviPopT[i] / 0.28f;
                     pop = 1.4f - 0.4f * (1f - (1f - u) * (1f - u));   // 大きく出て、すっと収まる
                 }
-                fg.rectTransform.anchoredPosition = new Vector2(1.5f * Mathf.Sin(t * 1.1f + ph), 2f + 3.5f * Mathf.Sin(t * 2.3f + ph + 2.4f));
-                fg.rectTransform.localScale = Vector3.one * (depth * pop * (1f + 0.05f * Mathf.Sin(t * 2.3f + ph)));
+                fg.rectTransform.anchoredPosition = new Vector2(0.6f * Mathf.Sin(t * 1.1f + 2.4f), 2f + 1.4f * Mathf.Sin(t * 2.3f + 4.8f));
+                fg.rectTransform.localScale = Vector3.one * (depth * pop * (1f + 0.02f * Mathf.Sin(t * 2.3f + 2.4f)));
+
+                // コーティング: 1.5 秒（+0〜0.6）ごとに光の帯が 0.6 秒かけて斜めに通り抜ける
+                _naviSheenT[i] += dt;
+                if (_naviSheenT[i] > _naviSheenNext[i]) { _naviSheenT[i] = 0f; _naviSheenNext[i] = 1.5f + (float)_naviRng.NextDouble() * 0.6f; }
+                float prog = _naviSheenT[i] / 0.6f;
+                bool on = prog >= 0f && prog <= 1.2f;
+                PlaceNaviSheen(_naviSheenBg[i], bg, prog, on);
+                PlaceNaviSheen(_naviSheenFg[i], fg, prog, on);
+
+                // きらきら: 押す番のバッジは 2 個/秒、それ以外は 0.7 個/秒
+                _naviSparkAcc[i] += dt * 2f * (_naviDepthTarget[i] >= 0.99f ? 1f : 0.35f);
+                while (_naviSparkAcc[i] >= 1f) { _naviSparkAcc[i] -= 1f; SpawnNaviSpark(i); }
+                foreach (var sp in _naviSparks[i])
+                {
+                    if (!sp.img.gameObject.activeSelf) continue;
+                    sp.life += dt;
+                    float u = sp.life / sp.dur;
+                    if (u >= 1f) { sp.img.gameObject.SetActive(false); continue; }
+                    float k = Mathf.Sin(Mathf.PI * u);                  // 膨らんで消える
+                    sp.img.rectTransform.localScale = Vector3.one * (sp.size * k);
+                    sp.img.rectTransform.localRotation = Quaternion.Euler(0, 0, sp.rot + u * 60f);
+                    var c = sp.img.color; c.a = k; sp.img.color = c;
+                }
             }
+        }
+
+        /// <summary>絵の形に切り抜かれる光の帯を 1 本作る（最初は消しておく）。</summary>
+        private RectTransform MakeNaviSheen(Image host)
+        {
+            var mask = host.gameObject.AddComponent<Mask>();
+            mask.showMaskGraphic = true;
+            var band = UiSkin.Img(host.transform, "Sheen", Vector2.zero, new Vector2(20, 160), UiSkin.Band(), new Color(1, 1, 1, 0.75f));   // 強さ 0.75
+            band.type = Image.Type.Simple;
+            band.rectTransform.localRotation = Quaternion.Euler(0, 0, -25f);   // CSS の 115° と同じ向き（左上 → 右下）
+            band.gameObject.SetActive(false);
+            return band.rectTransform;
+        }
+
+        /// <summary>光の帯を prog（0 = 左上の外 / 1 = 右下の外）の位置へ置く。</summary>
+        private static void PlaceNaviSheen(RectTransform band, Image host, float prog, bool on)
+        {
+            if (band == null) return;
+            if (band.gameObject.activeSelf != on) band.gameObject.SetActive(on);
+            if (!on) return;
+            float w = host.rectTransform.sizeDelta.x;
+            band.sizeDelta = new Vector2(w * 0.22f, w * 1.8f);                    // 幅 22%
+            var dir = new Vector2(Mathf.Cos(-25f * Mathf.Deg2Rad), Mathf.Sin(-25f * Mathf.Deg2Rad));
+            band.anchoredPosition = dir * ((prog - 0.5f) * 1.4f * w);
+        }
+
+        /// <summary>紋章の縁に星を 1 つ生む。使い終わった Image は使い回す（最大 8）。</summary>
+        private void SpawnNaviSpark(int i)
+        {
+            var cell = _naviCells[i];
+            if (cell == null) return;
+            NaviSpark sp = null;
+            foreach (var s in _naviSparks[i]) if (!s.img.gameObject.activeSelf) { sp = s; break; }
+            if (sp == null)
+            {
+                if (_naviSparks[i].Count >= 8) return;
+                var img = UiSkin.Img(cell, "Spark", Vector2.zero, new Vector2(12, 12), UiSkin.Icon("star_gold", 64), Color.white);
+                img.preserveAspect = true;
+                sp = new NaviSpark { img = img };
+                _naviSparks[i].Add(sp);
+            }
+            float r = 30f + (float)_naviRng.NextDouble() * 16f, a = (float)_naviRng.NextDouble() * Mathf.PI * 2f;
+            sp.life = 0f;
+            sp.dur = 0.5f + (float)_naviRng.NextDouble() * 0.5f;
+            sp.size = (0.6f + (float)_naviRng.NextDouble() * 0.8f) * 0.5f;    // 粒の大きさ 0.5
+            sp.rot = (float)_naviRng.NextDouble() * 90f;
+            sp.img.rectTransform.anchoredPosition = new Vector2(Mathf.Cos(a) * r, Mathf.Sin(a) * r);
+            sp.img.rectTransform.localScale = Vector3.zero;
+            sp.img.gameObject.SetActive(true);
+            sp.img.transform.SetAsLastSibling();
+        }
+
+        private void ClearNaviSparks(int i)
+        {
+            foreach (var sp in _naviSparks[i]) if (sp.img != null && sp.img.gameObject.activeSelf) sp.img.gameObject.SetActive(false);
         }
 
         /// <summary>択の最中: BGM がこもり（水中）、画面が少し沈む＝集中。</summary>

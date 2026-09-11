@@ -279,6 +279,26 @@ namespace BBB.Runtime
             return s;
         }
 
+        /// <summary>光の帯（横方向にやわらかい山、白）。回転させてコーティングの反射に使う。</summary>
+        public static Sprite Band(int width = 64)
+        {
+            string key = "band" + width;
+            if (_cache.TryGetValue(key, out var s) && s != null) return s;
+            const int h = 4;
+            var tex = new Texture2D(width, h, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
+            var px = new Color32[width * h];
+            for (int x = 0; x < width; x++)
+            {
+                float u = (x + 0.5f) / width;
+                float a = Mathf.Pow(Mathf.Sin(u * Mathf.PI), 1.6f);
+                for (int y = 0; y < h; y++) px[y * width + x] = new Color32(255, 255, 255, (byte)(255 * a));
+            }
+            tex.SetPixels32(px); tex.Apply();
+            s = Sprite.Create(tex, new Rect(0, 0, width, h), new Vector2(0.5f, 0.5f), 1f);
+            _cache[key] = s;
+            return s;
+        }
+
         public static Sprite Glow(int diameter)
         {
             string key = "g" + diameter;
