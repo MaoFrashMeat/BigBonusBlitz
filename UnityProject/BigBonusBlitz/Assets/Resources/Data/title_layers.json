@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "layers": [
+    { "name": "sky_mountains_cloudsea", "x": 0, "y": 0, "scale": 1, "motion": "none", "ampX": 1, "ampY": 0.5, "period": 20, "phase": 0, "breathe": 0, "rot": 0, "alpha": 1, "front": false, "visible": true },
+    { "name": "castle_mountains_lake", "x": -0.09, "y": 0.01, "scale": 0.86, "motion": "sway", "ampX": 0.1, "ampY": 0.5, "period": 20, "phase": 0, "breathe": 0, "rot": 0, "alpha": 1, "front": false, "visible": true },
+    { "name": "terrace_balcony", "x": -0.025, "y": 0.06, "scale": 1.14, "motion": "drift", "ampX": 0.2, "ampY": 0, "period": 20, "phase": 0, "breathe": 0, "rot": 0, "alpha": 1, "front": false, "visible": true }
+  ]
+}
