@@ -203,12 +203,7 @@ namespace BBB.Runtime
             tapBtn.onClick.AddListener(() => { if (!_starting) { _audio.UiPop(); Begin(false); } });
             tapAll.SetAsFirstSibling();     // ボタン類より後ろに置いて、そちらの操作を邪魔しない
 
-            // はじめから（セーブがあるときだけ出す。無いときは TAP がそのまま新規）
-            if (_hasSave)
-            {
-                _btnNew = UiSkin.Button(stage, "NewGame", new Vector2(TitleX, TapY - 56), new Vector2(200, 30),
-                    "はじめから", () => { _audio.UiPop(); OnNewGame(); }, ColBtn, 13, false, 15);
-            }
+            // 「はじめから」は 2026-09-11 に外した（本人の判断）。セーブの削除は設定の「セーブ削除」から
             _confirm = UiFactory.Label(stage, "Confirm", new Vector2(TitleX, TapY - 86), new Vector2(460, 22), "", 12, TextAnchor.MiddleCenter, ColGold);
             Shade(_confirm);
 
@@ -272,8 +267,9 @@ namespace BBB.Runtime
         /// <summary>下に並べる丸ボタン（アイコン＋文字）。</summary>
         private Button Pill(Transform parent, string name, Vector2 pos, string icon, string label, System.Action onClick)
         {
+            // 枠は pill_navy_sm（紺の小さなピル）。無ければ手続きの丸角
             var b = UiSkin.Button(parent, name, pos, new Vector2(PillW, PillH), "",
-                () => { _audio.UiPop(); onClick(); }, ColBtn, 13, false, 20);
+                () => { _audio.UiPop(); onClick(); }, ColBtn, 13, false, 20, "pill_navy_sm");
             var t = b.GetComponentInChildren<Text>();
             if (t != null)
             {
