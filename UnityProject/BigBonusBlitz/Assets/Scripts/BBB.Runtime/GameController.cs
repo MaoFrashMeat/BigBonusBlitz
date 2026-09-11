@@ -23,9 +23,10 @@ namespace BBB.Runtime
         }
 
         // Web版 #game-container 1280x720 → 0.75倍で 960x540 に収める
-        private const float StageW = 960f, StageH = 540f;
-        private const float AreaW = 940f;          // キャラクター表示域（StageCard 内）
-        private const float AreaH = 220f;
+        /// <summary>冒険画面の舞台。iPhone 横持ち（19.5:9）を使い切る 1170x540。他の画面は SafeStage.StageW（960）。</summary>
+        private const float StageW = 1170f, StageH = 540f;
+        private const float AreaW = ContentW - 4f;          // キャラクター表示域（StageCard 内）
+        private const float AreaH = StageCardH - BandH - 4f;
 
         private SlotMachine _m;
         private AudioManager _audio;
@@ -157,6 +158,7 @@ namespace BBB.Runtime
         private SlumpGraph _mini;
         private RectTransform _miniBox;
         private Text _miniLabel;
+        private Text _atRankLabel;
         private Button _graphAlwaysBtn;
         /// <summary>グラフに重ねている履歴の番号（-1 なら重ねていない）。</summary>
         private int _histPicked = -1;
@@ -247,17 +249,17 @@ namespace BBB.Runtime
         // 舞台の寸法（960×540 の仮想 16:9 枠。8px グリッド。スマホ横持ちでは枠ごと縮小し、外側は背景だけ）
         private const float Margin = 8f;
         private const float ContentW = StageW - Margin * 2;                                  // 944
-        private const float StageCardH = 252f;                                                // 上段: 帯 28 + 表示域 220
+        private const float StageCardH = 332f;                                                // 上段: 帯 28 + 表示域 300
         private const float BandH = 28f;
-        private const float MidH = 196f;                                                      // 中段: 表示器 / リール / ステータス
+        private const float MidH = 120f;                                                      // 中段: 表示器 / ステータス（筐体は下段まで伸びる）
         private const float CtrlH = 56f;                                                      // 下段: ボタン（タッチ最小 44pt 相当）
         /// <summary>左右のパネルの幅。リールを細くしたぶん、ここへ回している
         /// （SideW*2 + 筐体 = 928 で、ContentW 944 に対して左右 8px。以前と同じ詰まり具合）。</summary>
-        private const float SideW = 242f;
+        private const float SideW = 360f;
         private const float StageCardY = StageH * 0.5f - Margin - StageCardH * 0.5f;         // 136
         private const float MidY = StageCardY - StageCardH * 0.5f - Margin - MidH * 0.5f;    // -100
         private const float CtrlY = MidY - MidH * 0.5f - Margin - CtrlH * 0.5f;              // -234
-        private const float AreaY = -15f;                                                     // 表示域の StageCard 内位置
+        private const float AreaY = -(BandH * 0.5f);                                                     // 表示域の StageCard 内位置
         private const float EnemyX = AreaW * 0.5f - 0.2f * AreaW - 75f;
         private const float EnemyY = -AreaH * 0.5f + 12f + 75f;
         private const float GroundY = -AreaH * 0.5f + 12f + 55f;                              // 旅人の足元
@@ -340,7 +342,7 @@ namespace BBB.Runtime
             UiSkin.Stretch(outerVig.rectTransform);
 
             // ===== セーフエリア → 舞台（960×540、収まらなければ縮小）=====
-            _safe = SafeStage.Create(canvas);
+            _safe = SafeStage.Create(canvas, StageW, StageH);
             _stage = _safe.Stage;
 
             // ===== 上段: ステージカード（状態の帯 + キャラクター表示域）=====
@@ -472,25 +474,7 @@ namespace BBB.Runtime
             _holdBox = holdRt.gameObject;
             _holdBox.SetActive(false);
 
-            // ライフの札（右上）。1G で 1 減るバー
-            var Llt = UiLayout.Get("lifeTag", Lsc.x + AreaW * 0.5f - 10 - 116f, Lsc.y + AreaY + AreaH * 0.5f - 6 - 17f, 232f, 34f);
-            float torchW = Llt.w, torchH = Llt.h;
-            _torchTagRt = UiSkin.Rect(stageCard, "TorchTag", Llt.Pos - Lsc.Pos, Llt.Size);
-            UiSkin.Img(_torchTagRt, "Shadow", new Vector2(0, -3), new Vector2(torchW + 18, torchH + 16), UiSkin.Shadow(17, 10), new Color(0, 0, 0, 0.7f));
-            var ltFrame = UiLayout.Frame("lifeTag");
-            var lifePill = ltFrame == "none" ? null : UiSkin.Frame(ltFrame ?? "pill_navy_sm");
-            if (lifePill != null) UiSkin.Img(_torchTagRt, "Bg", Vector2.zero, new Vector2(torchW, torchH), lifePill, Color.white);
-            else
-            {
-                UiSkin.Img(_torchTagRt, "Edge2", Vector2.zero, new Vector2(torchW + 2, torchH + 2), UiSkin.Rounded(18), new Color(1, 1, 1, 0.14f));
-                UiSkin.Img(_torchTagRt, "Bg", Vector2.zero, new Vector2(torchW, torchH), UiSkin.Rounded(17), Hex("#0b1120"));
-            }
-            UiSkin.Img(_torchTagRt, "Edge", new Vector2(-torchW * 0.5f + 7, 0), new Vector2(5, 22), UiSkin.Rounded(2), Hex("#7ee0a0"));
-            _torchTag = UiFactory.Label(_torchTagRt, "Text", new Vector2(9, 5), new Vector2(torchW - 28, 18), "", 13, TextAnchor.MiddleLeft, ColText);
-            _torchTag.fontStyle = FontStyle.Bold;
-            TextShadow(_torchTag, 1f);
-            _torchFill = UiSkin.Gauge(_torchTagRt, "Gauge", new Vector2(2, -9), new Vector2(torchW - 30, 5), Hex("#7ee0a0"), out _torchTrack);
-            _torchTagRt.gameObject.SetActive(false);
+            // ライフは左パネル（表示器）の 3 行目に出す。ここには置かない
 
             // 次のルートの条件（左側。キャラに掛からない幅に収める）
             const float rtRow = 24f;
@@ -564,32 +548,55 @@ namespace BBB.Runtime
             float cabW = reelPitch * 3 + 24;
             float innerW = SideW - 24;
 
-            // 左: EMBER（灯火）/ PAYOUT（くぼんだ表示器、桁固定の右寄せ §8）
+            // 左: EMBER / PAYOUT / LIFE を 3 行で（パネルが横に広く縦に低いので、見出しと窓を横に並べる）
             var Ldp = UiLayout.Get("disp", -ContentW * 0.5f + SideW * 0.5f, MidY, SideW, MidH);
             innerW = Ldp.w - 24;
             var disp = UiSkin.Card(_stage, "Display", Ldp.Pos, Ldp.Size, 12, null, true, true, true, UiLayout.Frame("disp"));
-            // 見出しのアイコンは左端に領域を取り、文字はその分だけ字下げする（docs/ui_rules.md 1 番）
             const float HeadIco = 15f, HeadGap = 5f, HeadIndent = HeadIco + HeadGap;
-            UiSkin.Img(disp, "EmberIcon", new Vector2(-innerW * 0.5f + HeadIco * 0.5f, 83), new Vector2(HeadIco, HeadIco), UiSkin.Icon("ember", 64), Color.white);
-            UiSkin.Heading(disp, "CreditLabel", new Vector2(0, 83), innerW, "EMBER", HeadIndent);
-            var Lcr = UiLayout.Get("credit", Ldp.x, Ldp.y + 49, innerW, 40);
-            var creditInset = UiSkin.Inset(disp, "CreditInset", Lcr.Pos - Ldp.Pos, Lcr.Size, 8, null, UiLayout.Frame("credit") ?? "slot_navy");
-            _creditNum = UiSkin.Number(creditInset, "CreditNum", new Vector2(-6, 0), new Vector2(Lcr.w - 20, Lcr.h), "50", 28, ColText);
-            UiSkin.Img(disp, "PayoutIcon", new Vector2(-innerW * 0.5f + HeadIco * 0.5f, 14), new Vector2(HeadIco, HeadIco), UiSkin.Circle(32), ColGold);
-            UiSkin.Img(disp, "PayoutIconIn", new Vector2(-innerW * 0.5f + HeadIco * 0.5f, 14), new Vector2(HeadIco * 0.5f, HeadIco * 0.5f), UiSkin.Circle(32), UiSkin.GoldDeep);
-            UiSkin.Heading(disp, "PayoutLabel", new Vector2(0, 14), innerW, "PAYOUT", HeadIndent);
-            var Lpo = UiLayout.Get("payout", Ldp.x, Ldp.y - 20, innerW, 40);
-            var payInset = UiSkin.Inset(disp, "PayoutInset", Lpo.Pos - Ldp.Pos, Lpo.Size, 8, null, UiLayout.Frame("payout") ?? "pill_coin");   // 左にコインが乗った窓
-            _payoutNum = UiSkin.Number(payInset, "PayoutNum", new Vector2(-6, 0), new Vector2(Lpo.w - 20, Lpo.h), "0", 28, ColGold);
-            // 下の行は 左=設定 / 右=ソウル。アイコンぶんを差し引いて領域を分ける
+            // 行の縦位置。上から EMBER / PAYOUT / LIFE、いちばん下に設定とソウルの小さな行
+            const float RowH = 26f, RowPitch = 31f;
+            float rowY0 = Ldp.h * 0.5f - 12f - RowH * 0.5f;          // 1 行目の中心
+            float labelW = 78f;                                        // 見出しの幅（アイコン込み）
+            float winX = -innerW * 0.5f + labelW + (innerW - labelW) * 0.5f;   // 窓の中心
+            float winW = innerW - labelW;
+            void HeadRow(string icoName, string labelName, string text, float y, Sprite ico, Color icoCol)
+            {
+                UiSkin.Img(disp, icoName, new Vector2(-innerW * 0.5f + HeadIco * 0.5f, y), new Vector2(HeadIco, HeadIco), ico, icoCol);
+                var h = UiFactory.Label(disp, labelName, new Vector2(-innerW * 0.5f + HeadIndent + (labelW - HeadIndent) * 0.5f, y),
+                                        new Vector2(labelW - HeadIndent, 16), text, 11, TextAnchor.MiddleLeft, ColTextSub);
+                h.fontStyle = FontStyle.Bold;
+            }
+            // 1 行目: EMBER
+            HeadRow("EmberIcon", "CreditLabel", "EMBER", rowY0, UiSkin.Icon("ember", 64), Color.white);
+            var Lcr = UiLayout.Get("credit", Ldp.x + winX, Ldp.y + rowY0, winW, RowH);
+            var creditInset = UiSkin.Inset(disp, "CreditInset", Lcr.Pos - Ldp.Pos, Lcr.Size, 6, null, UiLayout.Frame("credit") ?? "slot_navy");
+            _creditNum = UiSkin.Number(creditInset, "CreditNum", new Vector2(-6, 0), new Vector2(Lcr.w - 20, Lcr.h), "50", 20, ColText);
+            // 2 行目: PAYOUT
+            HeadRow("PayoutIcon", "PayoutLabel", "PAYOUT", rowY0 - RowPitch, UiSkin.Circle(32), ColGold);
+            UiSkin.Img(disp, "PayoutIconIn", new Vector2(-innerW * 0.5f + HeadIco * 0.5f, rowY0 - RowPitch), new Vector2(HeadIco * 0.5f, HeadIco * 0.5f), UiSkin.Circle(32), UiSkin.GoldDeep);
+            var Lpo = UiLayout.Get("payout", Ldp.x + winX, Ldp.y + rowY0 - RowPitch, winW, RowH);
+            var payInset = UiSkin.Inset(disp, "PayoutInset", Lpo.Pos - Ldp.Pos, Lpo.Size, 6, null, UiLayout.Frame("payout") ?? "pill_coin");
+            _payoutNum = UiSkin.Number(payInset, "PayoutNum", new Vector2(-6, 0), new Vector2(Lpo.w - 20, Lpo.h), "0", 20, ColGold);
+            // 3 行目: LIFE（1G で 1 減るバー。数字とバーを同じ窓に入れる）
+            HeadRow("LifeIcon", "LifeLabel", "LIFE", rowY0 - RowPitch * 2, UiSkin.Icon("potion", 64), Color.white);
+            var Llt = UiLayout.Get("lifeTag", Ldp.x + winX, Ldp.y + rowY0 - RowPitch * 2, winW, RowH);
+            _torchTagRt = UiSkin.Inset(disp, "TorchTag", Llt.Pos - Ldp.Pos, Llt.Size, 6, null, UiLayout.Frame("lifeTag") ?? "slot_navy");
+            _torchTag = UiFactory.Label(_torchTagRt, "Text", new Vector2(-6, 2), new Vector2(Llt.w - 20, 16), "", 12, TextAnchor.MiddleRight, ColText);
+            _torchTag.fontStyle = FontStyle.Bold;
+            _torchFill = UiSkin.Gauge(_torchTagRt, "Gauge", new Vector2(0, -RowH * 0.5f + 5), new Vector2(Llt.w - 16, 4), Hex("#7ee0a0"), out _torchTrack);
+            // 4 行目: 左=設定 / 右=ソウル。アイコンぶんを差し引いて領域を分ける
             const float SoulIco = 14f;
             float halfW = innerW * 0.5f;
-            _mode = UiFactory.Label(disp, "Mode", new Vector2(-innerW * 0.25f - 2, -76), new Vector2(halfW - 4, 14), "", 11, TextAnchor.MiddleLeft, ColTextSub);
-            _soulText = UiFactory.Label(disp, "Soul", new Vector2(innerW * 0.25f - SoulIco * 0.5f - 2, -76), new Vector2(halfW - SoulIco - 8, 14), "", 11, TextAnchor.MiddleRight, Hex("#a98bff"));
-            UiSkin.Img(disp, "SoulIcon", new Vector2(halfW - SoulIco * 0.5f, -76), new Vector2(SoulIco, SoulIco), UiSkin.Icon("soul", 64), Color.white);
+            float infoY = -Ldp.h * 0.5f + 12f;
+            _mode = UiFactory.Label(disp, "Mode", new Vector2(-innerW * 0.25f - 2, infoY), new Vector2(halfW - 4, 14), "", 11, TextAnchor.MiddleLeft, ColTextSub);
+            _soulText = UiFactory.Label(disp, "Soul", new Vector2(innerW * 0.25f - SoulIco * 0.5f - 2, infoY), new Vector2(halfW - SoulIco - 8, 14), "", 11, TextAnchor.MiddleRight, Hex("#a98bff"));
+            UiSkin.Img(disp, "SoulIcon", new Vector2(halfW - SoulIco * 0.5f, infoY), new Vector2(SoulIco, SoulIco), UiSkin.Icon("soul", 64), Color.white);
 
             // 中央: リール筐体（金の縁 + くぼんだ窓 + ガラスの光沢 + 中段ラインのマーカー）
-            var Lcb = UiLayout.Get("cabinet", 0, MidY, cabW, MidH);
+            // 筐体は中段と下段にまたがる。STOP ボタンが無くなった帯までリールを下ろし、
+            // そのぶん上段の表示域を高くしている
+            const float CabH = MidH + Margin + CtrlH;
+            var Lcb = UiLayout.Get("cabinet", 0, MidY - (Margin + CtrlH) * 0.5f, cabW, CabH);
             var cabinet = UiSkin.Rect(_stage, "ReelCabinet", Lcb.Pos, Lcb.Size);
             UiSkin.Img(cabinet, "Shadow", new Vector2(0, -6), Lcb.Size + new Vector2(24, 24), UiSkin.Shadow(12, 14), new Color(0, 0, 0, 0.6f));
             var cbName = UiLayout.Frame("cabinet");
@@ -629,7 +636,7 @@ namespace BBB.Runtime
                 mk.rectTransform.localRotation = Quaternion.Euler(0, 0, 45);
             }
             // 役演出: 揃ったコマだけを役の色で光らせる（斜めライン・チェリーの段もそのまま出せる）
-            var pl = UiSkin.Rect(cabinet, "PaylineFlash", Vector2.zero, new Vector2(cabW, MidH));
+            var pl = UiSkin.Rect(cabinet, "PaylineFlash", Vector2.zero, new Vector2(cabW, Lcb.h));
             _paylineFlash = pl.gameObject.AddComponent<CanvasGroup>();
             _paylineFlash.alpha = 0f;
             _paylineFlash.blocksRaycasts = false;
@@ -644,30 +651,33 @@ namespace BBB.Runtime
                     cellGlow.gameObject.SetActive(false);
                 }
 
-            // 右: PLAYER / BONUS / 状態 / 設定
+            // 右: PLAYER / BONUS を左の列に、状態と常駐スランプを右の列に（パネルが横に広く縦に低い）
             var Lsd = UiLayout.Get("side", ContentW * 0.5f - SideW * 0.5f, MidY, SideW, MidH);
             innerW = Lsd.w - 24;
             var side = UiSkin.Card(_stage, "Side", Lsd.Pos, Lsd.Size, 12, null, true, true, true, UiLayout.Frame("side"));
-            UiSkin.Img(side, "PlayerIcon", new Vector2(-innerW * 0.5f + HeadIco * 0.5f, 83), new Vector2(HeadIco, HeadIco), UiSkin.Icon("sword", 64), Color.white);
-            UiSkin.Heading(side, "PlayerLabel", new Vector2(0, 83), innerW, "PLAYER", HeadIndent);
-            _player = UiFactory.Label(side, "Lv", new Vector2(0, 60), new Vector2(innerW, 20), "Lv 1", 16, TextAnchor.MiddleLeft, ColGold);
+            float sColW = (innerW - 12f) * 0.5f;                // 2 列。間に 12
+            float sColL = -innerW * 0.5f + sColW * 0.5f;        // 左の列の中心
+            float sColR = innerW * 0.5f - sColW * 0.5f;         // 右の列の中心
+            float top = Lsd.h * 0.5f;
+            // 左の列
+            UiSkin.Img(side, "PlayerIcon", new Vector2(sColL - sColW * 0.5f + HeadIco * 0.5f, top - 20), new Vector2(HeadIco, HeadIco), UiSkin.Icon("sword", 64), Color.white);
+            UiSkin.Heading(side, "PlayerLabel", new Vector2(sColL, top - 20), sColW, "PLAYER", HeadIndent);
+            _player = UiFactory.Label(side, "Lv", new Vector2(sColL, top - 38), new Vector2(sColW, 18), "Lv 1", 15, TextAnchor.MiddleLeft, ColGold);
             _player.fontStyle = FontStyle.Bold;
-            UiFactory.Label(side, "ExpLabel", new Vector2(0, 60), new Vector2(innerW, 20), "EXP", 10, TextAnchor.MiddleRight, UiSkin.TextDim);
-            _expFill = UiSkin.Gauge(side, "Exp", new Vector2(0, 44), new Vector2(innerW, 8), ColGreen, out _expTrack);
-            UiSkin.Img(side, "BonusIcon", new Vector2(-innerW * 0.5f + HeadIco * 0.5f, 24), new Vector2(HeadIco, HeadIco), UiSkin.Icon("amulet", 64), Color.white);
-            UiSkin.Heading(side, "BonusHead", new Vector2(0, 24), innerW, "BONUS", HeadIndent);
-            _bonusLabel = UiFactory.Label(side, "BonusLabel", new Vector2(0, 3), new Vector2(innerW, 16), "―", 12, TextAnchor.MiddleLeft, ColGold);
-            _bonusFill = UiSkin.Gauge(side, "BonusGauge", new Vector2(0, -12), new Vector2(innerW, 8), ColGold, out _bonusTrack);
-            _status = UiFactory.Label(side, "Status", new Vector2(0, -33), new Vector2(innerW, 18), "", 12, TextAnchor.UpperLeft, ColText);
-            var btnSettings = UiSkin.Button(side, "BtnSettings", new Vector2(-innerW * 0.5f + 30, -58), new Vector2(56, 24), "音量", ToggleSettings, ColBtn, 12, false, 8);
-            var btnGraph = UiSkin.Button(side, "BtnGraph", new Vector2(0, -58), new Vector2(56, 24), "グラフ", ToggleGraph, ColBtn, 12, false, 8);
-            var btnDebug = UiSkin.Button(side, "BtnDebug", new Vector2(innerW * 0.5f - 30, -58), new Vector2(56, 24), "DEBUG", ToggleDebug, ColBtn, 11, false, 8);
-
+            UiFactory.Label(side, "ExpLabel", new Vector2(sColL, top - 38), new Vector2(sColW, 18), "EXP", 10, TextAnchor.MiddleRight, UiSkin.TextDim);
+            _expFill = UiSkin.Gauge(side, "Exp", new Vector2(sColL, top - 51), new Vector2(sColW, 6), ColGreen, out _expTrack);
+            UiSkin.Img(side, "BonusIcon", new Vector2(sColL - sColW * 0.5f + HeadIco * 0.5f, top - 70), new Vector2(HeadIco, HeadIco), UiSkin.Icon("amulet", 64), Color.white);
+            UiSkin.Heading(side, "BonusHead", new Vector2(sColL, top - 70), sColW, "BONUS", HeadIndent);
+            _bonusLabel = UiFactory.Label(side, "BonusLabel", new Vector2(sColL, top - 88), new Vector2(sColW, 16), "―", 12, TextAnchor.MiddleLeft, ColGold);
+            _atRankLabel = UiFactory.Label(side, "AtRank", new Vector2(sColL, top - 88), new Vector2(sColW, 16), "", 10, TextAnchor.MiddleRight, UiSkin.TextDim);
+            _bonusFill = UiSkin.Gauge(side, "BonusGauge", new Vector2(sColL, top - 102), new Vector2(sColW, 6), ColGold, out _bonusTrack);
+            // 右の列
+            _status = UiFactory.Label(side, "Status", new Vector2(sColR, top - 30), new Vector2(sColW, 40), "", 12, TextAnchor.UpperLeft, ColText);
             // 常駐のスランプ（設定で出し入れする）。数字は右に小さく添える
-            var Lmn = UiLayout.Get("mini", Lsd.x, Lsd.y - 83, innerW, 22);
+            var Lmn = UiLayout.Get("mini", Lsd.x + sColR, Lsd.y + top - 82, sColW, 40);
             _miniBox = UiSkin.Rect(side, "MiniSlump", Lmn.Pos - Lsd.Pos, Lmn.Size);
-            _mini = SlumpGraph.Create(_miniBox, new Vector2(-30, 0), new Vector2(Lmn.w - 62, Lmn.h), _m.Credit, true);
-            _miniLabel = UiFactory.Label(_miniBox, "MiniDiff", new Vector2(Lmn.w * 0.5f - 29, 0), new Vector2(56, 16), "0", 11, TextAnchor.MiddleRight, ColTextSub);
+            _mini = SlumpGraph.Create(_miniBox, new Vector2(-24, 0), new Vector2(Lmn.w - 48, Lmn.h), _m.Credit, true);
+            _miniLabel = UiFactory.Label(_miniBox, "MiniDiff", new Vector2(Lmn.w * 0.5f - 22, 0), new Vector2(44, 16), "0", 11, TextAnchor.MiddleLeft, ColTextSub);
             _miniBox.gameObject.SetActive(SaveData.LoadGraphAlwaysOn());
 
             // ===== 下段: 操作バー（左 BET / 中央 STOP×3 = リールと同じ物理配置 §16.3 / 右 AUTO）=====
@@ -675,9 +685,21 @@ namespace BBB.Runtime
             _btnBet = UiSkin.Button(_stage, "BtnBet", Lbt.Pos, Lbt.Size, "MAX BET", OnBetClicked, ColAccent, 20, true, 12, UiLayout.Frame("bet"));
             AddSubHint(_btnBet, _isTouch ? "画面タップでも OK" : "Ctrl / Space");
             // STOP ボタンは廃止（2026-09-11）。リールそのものがタップで止まり、キーは Z / X / C
-            var Lau = UiLayout.Get("auto", ContentW * 0.5f - SideW * 0.5f, CtrlY, SideW, CtrlH);
+            // AUTO は右下の隅にアイコン 2 つ（歯車＝設定・音量 / グラフ）を置くぶん細くする
+            const float ToolIco = 44f, ToolGap = 8f;
+            float autoW = SideW - ToolIco * 2 - ToolGap * 2;
+            var Lau = UiLayout.Get("auto", ContentW * 0.5f - SideW + autoW * 0.5f, CtrlY, autoW, CtrlH);
             _btnAuto = UiSkin.Button(_stage, "BtnAuto", Lau.Pos, Lau.Size, "AUTO", CycleAuto, ColBtn, 18, true, 12, UiLayout.Frame("auto"));
             AddSubHint(_btnAuto, _isTouch ? "押すたび x1〜x6" : "A / Space長押し");
+            var LtS = UiLayout.Get("toolSettings", ContentW * 0.5f - ToolIco * 1.5f - ToolGap, CtrlY, ToolIco, ToolIco);
+            var btnSettings = UiSkin.Button(_stage, "BtnSettings", LtS.Pos, LtS.Size, "", ToggleSettings, ColBtn, 12, false, 10);
+            UiSkin.Img(btnSettings.transform, "Icon", Vector2.zero, new Vector2(24, 24), UiSkin.Icon("gear", 64), ColGold);
+            var Lgr = UiLayout.Get("toolGraph", ContentW * 0.5f - ToolIco * 0.5f, CtrlY, ToolIco, ToolIco);
+            var btnGraph = UiSkin.Button(_stage, "BtnGraph", Lgr.Pos, Lgr.Size, "", ToggleGraph, ColBtn, 12, false, 10);
+            UiSkin.Img(btnGraph.transform, "Icon", Vector2.zero, new Vector2(24, 24), UiSkin.Icon("chart", 64), ColGold);
+            // DEBUG は画面に出さない（D キーで開く）
+            var btnDebug = UiSkin.Button(_stage, "BtnDebug", new Vector2(0, -4000), new Vector2(56, 24), "DEBUG", ToggleDebug, ColBtn, 11, false, 8);
+            btnDebug.gameObject.SetActive(false);
 
             // ベル択ナビ: リールの真上に大きな数字の丸バッジ（最前面・物理配置と一致 §16.3）
             var Lnv = UiLayout.Get("navi", Lcb.x, Lsc.y - Lsc.h * 0.5f - 2f, cabW, 66f);   // 上段カードと筐体の隙間。リール上段に少し食い込ませて「リールの上」に見せる
@@ -1022,11 +1044,12 @@ namespace BBB.Runtime
             bool held = _m.HeldBonusFlag != Flag.HAZE && _m.BonusAnnounceRemaining <= 0;   // 前兆中はまだ明かさない
             string atRank = inBonus ? AtDirector.RankFor(_m.Config.atExpect, _m.AtExpectPercent)?.name : null;
             _bonusLabel.text = inBonus
-                ? $"{(_m.BonusMode == BonusMode.BB ? "BIG" : "REG")}   {_m.BonusEarned} / {_m.BonusPayoutTarget}" + (atRank != null ? $"\nAT期待度  {atRank}" : "")
-                : held ? "ボーナス成立中  揃えよう" : "―";
+                ? $"{(_m.BonusMode == BonusMode.BB ? "BIG" : "REG")}  {_m.BonusEarned} / {_m.BonusPayoutTarget}"
+                : held ? "成立中  揃えよう" : "―";
+            if (_atRankLabel != null) _atRankLabel.text = atRank != null ? $"AT期待度 {atRank}" : "";
             _bonusFill.rectTransform.sizeDelta = new Vector2(inBonus && _m.BonusPayoutTarget > 0 ? _bonusTrack.sizeDelta.x * Mathf.Clamp01((float)_m.BonusEarned / _m.BonusPayoutTarget) : 0f, _bonusTrack.sizeDelta.y);
-            _mode.text = $"設定 {_m.Setting}\n総 {_m.TotalSpinCount:N0} G";
-            _soulText.text = $"魂 {_m.Wallet.Souls:N0}\n火 {_m.Wallet.Embers:N0}";
+            _mode.text = $"設定 {_m.Setting}   総 {_m.TotalSpinCount:N0} G";
+            _soulText.text = $"魂 {_m.Wallet.Souls:N0}   火 {_m.Wallet.Embers:N0}";
             _gCount.text = $"{_m.SpinCount} G";
             if (_stageTag != null && _m.AdventureEnabled)
             {
@@ -1231,23 +1254,79 @@ namespace BBB.Runtime
         // ---------------------------------------------------------------- NAVI
         /// <summary>ナビ表示: 第一停止は「1」、残り2つは「? ATTACK」「? GUARD」。第一停止後に選択肢だけ残す。</summary>
         /// <summary>押したナビのバッジを膨らませながら消す。</summary>
+        /// <summary>
+        /// ナビのバッジを押したときの動き。
+        /// 押された → 暗くなる → 回りながら縮む → 星になる → チョンと消える。
+        /// 「押した手応え」を目で返すためのもので、0.5 秒ほどで終わる。
+        /// </summary>
         private IEnumerator PopNaviBadge(int i)
         {
             var cell = _naviCells[i];
             if (cell == null) yield break;
             var cg = cell.GetComponent<CanvasGroup>() ?? cell.gameObject.AddComponent<CanvasGroup>();
-            float t = 0f, d = 0.22f;
-            while (t < d)
+            // 暗くする板と星は、初回だけ作って使い回す
+            var dim = cell.Find("Dim") as RectTransform;
+            if (dim == null)
+            {
+                float d0 = cell.sizeDelta.x;
+                var img = UiSkin.Img(cell, "Dim", Vector2.zero, new Vector2(d0 + 26, d0 + 26), UiSkin.Rounded(Mathf.RoundToInt(d0 * 0.5f) + 13), new Color(0, 0, 0, 0f));
+                img.raycastTarget = false;
+                dim = img.rectTransform;
+            }
+            var star = cell.Find("Star") as RectTransform;
+            if (star == null)
+            {
+                var img = UiSkin.Img(cell, "Star", Vector2.zero, new Vector2(48, 48), UiSkin.Star(96), ColGold);
+                img.raycastTarget = false;
+                star = img.rectTransform;
+            }
+            var dimImg = dim.GetComponent<Image>();
+            var starImg = star.GetComponent<Image>();
+            dim.SetAsLastSibling(); star.SetAsLastSibling();
+            star.gameObject.SetActive(false);
+
+            // 1. 押された: 少し沈んで暗くなる
+            float t = 0f, d1 = 0.08f;
+            while (t < d1)
             {
                 t += Time.deltaTime;
-                float u = Mathf.Clamp01(t / d);
-                float e = 1f - (1f - u) * (1f - u);      // 勢いよく出て、すっと消える
-                cell.localScale = Vector3.one * (1f + 0.55f * e);
-                cg.alpha = 1f - e;
+                float u = Mathf.Clamp01(t / d1);
+                cell.localScale = Vector3.one * (1f - 0.08f * u);
+                dimImg.color = new Color(0, 0, 0, 0.55f * u);
                 yield return null;
             }
-            cell.localScale = Vector3.one * 1.55f;
+            // 2. 回りながら縮む
+            t = 0f; float d2 = 0.22f;
+            while (t < d2)
+            {
+                t += Time.deltaTime;
+                float u = Mathf.Clamp01(t / d2);
+                float e = u * u;                                  // だんだん速く
+                cell.localRotation = Quaternion.Euler(0, 0, -360f * e);
+                cell.localScale = Vector3.one * Mathf.Lerp(0.92f, 0.15f, e);
+                yield return null;
+            }
+            // 3. 星になる: バッジの中身は消して、星だけを出す
             cg.alpha = 0f;
+            cell.localRotation = Quaternion.identity;
+            cell.localScale = Vector3.one;
+            star.gameObject.SetActive(true);
+            var sg = star.GetComponent<CanvasGroup>() ?? star.gameObject.AddComponent<CanvasGroup>();
+            sg.ignoreParentGroups = true;                         // 親を透明にしても星は見える
+            // 4. チョンと弾けて消える: ぱっと大きくなって、すぐ縮んで消える
+            t = 0f; float d3 = 0.18f;
+            while (t < d3)
+            {
+                t += Time.deltaTime;
+                float u = Mathf.Clamp01(t / d3);
+                float pop = u < 0.35f ? Mathf.Lerp(0.4f, 1.3f, u / 0.35f) : Mathf.Lerp(1.3f, 0f, (u - 0.35f) / 0.65f);
+                star.localScale = Vector3.one * pop;
+                star.localRotation = Quaternion.Euler(0, 0, 45f * u);
+                sg.alpha = u < 0.35f ? 1f : 1f - (u - 0.35f) / 0.65f;
+                yield return null;
+            }
+            star.gameObject.SetActive(false);
+            dimImg.color = new Color(0, 0, 0, 0f);
         }
 
         /// <summary>ナビのバッジを全部もとに戻す（1G の始め）。</summary>
@@ -1258,8 +1337,13 @@ namespace BBB.Runtime
                 _naviPopped[i] = false;
                 if (_naviCells[i] == null) continue;
                 _naviCells[i].localScale = Vector3.one;
+                _naviCells[i].localRotation = Quaternion.identity;
                 var cg = _naviCells[i].GetComponent<CanvasGroup>();
                 if (cg != null) cg.alpha = 1f;
+                var dim = _naviCells[i].Find("Dim")?.GetComponent<Image>();
+                if (dim != null) dim.color = new Color(0, 0, 0, 0f);
+                var star = _naviCells[i].Find("Star");
+                if (star != null) star.gameObject.SetActive(false);
             }
         }
 

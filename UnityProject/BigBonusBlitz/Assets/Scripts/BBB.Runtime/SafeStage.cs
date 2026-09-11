@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace BBB.Runtime
 {
@@ -28,7 +28,10 @@ namespace BBB.Runtime
         private float _lastScaleFactor;
         private Vector2 _lastCanvasSize;
 
-        public static SafeStage Create(Canvas canvas)
+        public static SafeStage Create(Canvas canvas) => Create(canvas, StageW, StageH);
+
+        /// <summary>舞台の大きさを指定して作る。冒険画面は iPhone 横持ち（19.5:9）を使い切るため 1170x540。</summary>
+        public static SafeStage Create(Canvas canvas, float stageW, float stageH)
         {
             var root = new GameObject("SafeRoot", typeof(RectTransform));
             var safeRt = root.GetComponent<RectTransform>();
@@ -41,7 +44,7 @@ namespace BBB.Runtime
             stageRt.SetParent(safeRt, false);
             stageRt.anchorMin = stageRt.anchorMax = new Vector2(0.5f, 0.5f);
             stageRt.pivot = new Vector2(0.5f, 0.5f);
-            stageRt.sizeDelta = new Vector2(StageW, StageH);
+            stageRt.sizeDelta = new Vector2(stageW, stageH);
 
             var s = root.AddComponent<SafeStage>();
             s._canvas = canvas;
@@ -74,12 +77,14 @@ namespace BBB.Runtime
             SafeRoot.offsetMax = Vector2.zero;
 
             SafeSize = new Vector2(canvasSize.x * (max.x - min.x), canvasSize.y * (max.y - min.y));
-            Scale = Mathf.Min(1f, Mathf.Min(SafeSize.x / StageW, SafeSize.y / StageH));
+            // 舞台の大きさは画面ごとに違う（冒険は 1170x540）。sizeDelta から取る
+            var st = Stage.sizeDelta;
+            Scale = Mathf.Min(1f, Mathf.Min(SafeSize.x / st.x, SafeSize.y / st.y));
             if (Scale <= 0 || float.IsNaN(Scale)) Scale = 1f;
             Stage.localScale = Vector3.one * Scale;
         }
 
         /// <summary>Stage の外側（左右の余白）が何 Canvas 単位あるか。</summary>
-        public float SideBleed => Mathf.Max(0f, (SafeSize.x - StageW * Scale) * 0.5f);
+        public float SideBleed => Mathf.Max(0f, (SafeSize.x - Stage.sizeDelta.x * Scale) * 0.5f);
     }
 }

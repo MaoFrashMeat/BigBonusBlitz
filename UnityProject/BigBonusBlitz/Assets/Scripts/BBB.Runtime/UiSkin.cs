@@ -260,6 +260,32 @@ namespace BBB.Runtime
         }
 
         /// <summary>放射グロー（中心不透明→外側透明、二乗フェード）。</summary>
+        /// <summary>4 つ角の星（きらめき）。色は Image.color で付ける。</summary>
+        public static Sprite Star(int size = 64)
+        {
+            string key = "star" + size;
+            if (_cache.TryGetValue(key, out var s) && s != null) return s;
+            var tex = new Texture2D(size, size, TextureFormat.RGBA32, false)
+                { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
+            var px = new Color32[size * size];
+            for (int y = 0; y < size; y++)
+                for (int x = 0; x < size; x++)
+                {
+                    float u = (x + 0.5f) / size * 2f - 1f;
+                    float v = (y + 0.5f) / size * 2f - 1f;
+                    // 縦横に細長い菱形を 2 つ重ねると、中心が太く先が細い星になる
+                    float a1 = Mathf.Abs(u) * 4.5f + Mathf.Abs(v) * 0.9f;
+                    float a2 = Mathf.Abs(v) * 4.5f + Mathf.Abs(u) * 0.9f;
+                    float d = Mathf.Min(a1, a2);
+                    float a = Mathf.Clamp01((1f - d) * size * 0.12f);
+                    px[y * size + x] = new Color32(255, 255, 255, (byte)(255 * a));
+                }
+            tex.SetPixels32(px); tex.Apply();
+            s = UnityEngine.Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f));
+            _cache[key] = s;
+            return s;
+        }
+
         /// <summary>桜の花びら 1 枚。先が割れた楕円。色は Image.color で付ける。</summary>
         public static Sprite Petal(int size = 64)
         {
@@ -381,6 +407,7 @@ namespace BBB.Runtime
                 case "bell": DrawBell(px, size); break;
                 case "gear": DrawGear(px, size); break;
                 case "link": DrawLink(px, size); break;
+                case "chart": DrawChart(px, size); break;
                 default: DrawAmulet(px, size); break;
             }
 
@@ -606,6 +633,25 @@ namespace BBB.Runtime
         }
 
         /// <summary>南京錠。掛け金は鋼、本体は真鍮。</summary>
+        /// <summary>棒グラフ（収支グラフのボタン）。</summary>
+        private static void DrawChart(Color32[] px, int n)
+        {
+            var bar = new Color(0.92f, 0.80f, 0.40f);
+            var barHi = new Color(1.0f, 0.92f, 0.62f);
+            var axis = new Color(0.75f, 0.78f, 0.86f);
+            // 軸
+            Paint(px, n, (x, y) => SdBox(x, y, 0f, -0.62f, 0.86f, 0.05f, 0.02f), axis);
+            Paint(px, n, (x, y) => SdBox(x, y, -0.80f, 0.0f, 0.05f, 0.66f, 0.02f), axis);
+            // 棒 3 本。右へ行くほど高い
+            float[] hs = { 0.32f, 0.62f, 0.95f };
+            for (int k = 0; k < 3; k++)
+            {
+                float cx = -0.46f + k * 0.42f, h = hs[k];
+                Paint(px, n, (x, y) => SdBox(x, y, cx, -0.60f + h * 0.5f, 0.14f, h * 0.5f, 0.03f), bar);
+                Paint(px, n, (x, y) => SdBox(x, y, cx - 0.05f, -0.60f + h * 0.5f, 0.05f, h * 0.5f - 0.03f, 0.02f), barHi);
+            }
+        }
+
         /// <summary>鐘（お知らせ）。</summary>
         private static void DrawBell(Color32[] px, int n)
         {

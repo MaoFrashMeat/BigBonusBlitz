@@ -53,21 +53,69 @@ def stack(title, items, top=None, bottom=None):
 
 
 # ---------------------------------------------------------------- 定数
-StageW, StageH = 960.0, 540.0
+# 冒険画面の舞台は iPhone 横持ちを使い切る 1170x540（他の画面は 960）
+StageW, StageH = 1170.0, 540.0
 Margin = 8.0
-ContentW = StageW - Margin * 2      # 944
-SideW = 242.0
-innerW = SideW - 24                 # 194
-AreaW, AreaH, AreaY = 940.0, 220.0, -15.0
+ContentW = StageW - Margin * 2      # 1154
+SideW = 360.0
+innerW = SideW - 24                 # 336
+StageCardH, MidH, CtrlH = 332.0, 120.0, 56.0
 BandH = 28.0
+AreaW, AreaH, AreaY = ContentW - 4, StageCardH - BandH - 4, -BandH / 2
+StageCardY = StageH / 2 - Margin - StageCardH / 2
+MidY = StageCardY - StageCardH / 2 - Margin - MidH / 2
+CtrlY = MidY - MidH / 2 - Margin - CtrlH / 2
+ReelW, SymH = 123.0, 56.0
+pitch = ReelW + 8; cabW = pitch * 3 + 24
+CabH = MidH + Margin + CtrlH
+CardEdge = 3.0
 
 # ---------------------------------------------------------------- ゲーム画面
 HeadIco, HeadGap = 15.0, 5.0
 HeadIndent = HeadIco + HeadGap
-row('左パネルの見出し行（EMBER / PAYOUT）',
-    [('アイコン', -innerW / 2 + HeadIco / 2, HeadIco),
-     ('見出し文字', 0 + HeadIndent / 2, innerW - HeadIndent)],
-    left=-innerW / 2, right=innerW / 2)
+
+# 全体の縦（上段の札 → 中段 → 下段）。筐体は中段と下段にまたがる
+stack('冒険画面の縦', [
+    ('ステージ札', StageCardY, StageCardH),
+    ('中段（左右パネル）', MidY, MidH),
+    ('下段（ボタン）', CtrlY, CtrlH),
+], top=StageH / 2 - Margin, bottom=-StageH / 2 + Margin)
+stack('筐体の縦', [('筐体', MidY - (Margin + CtrlH) / 2, CabH)],
+      top=MidY + MidH / 2, bottom=CtrlY - CtrlH / 2)
+stack('筐体の中（リール窓）', [('リール窓', 0, SymH * 3 + 8)], top=CabH / 2 - 3, bottom=-CabH / 2 + 3)
+
+# 横並び（中段）
+row('中段の横（表示器 / 筐体 / 操作パネル）', [
+    ('表示器', -ContentW / 2 + SideW / 2, SideW),
+    ('筐体', 0, cabW),
+    ('操作パネル', ContentW / 2 - SideW / 2, SideW),
+], left=-ContentW / 2, right=ContentW / 2)
+
+# 下段の横（MAX BET / AUTO / 歯車 / グラフ）
+ToolIco, ToolGap = 44.0, 8.0
+autoW = SideW - ToolIco * 2 - ToolGap * 2
+row('下段の横', [
+    ('MAX BET', -ContentW / 2 + SideW / 2, SideW),
+    ('AUTO', ContentW / 2 - SideW + autoW / 2, autoW),
+    ('歯車', ContentW / 2 - ToolIco * 1.5 - ToolGap, ToolIco),
+    ('グラフ', ContentW / 2 - ToolIco / 2, ToolIco),
+], left=-ContentW / 2, right=ContentW / 2)
+
+# 左パネル（3 行 + 下の行）
+RowH, RowPitch = 26.0, 31.0
+rowY0 = MidH / 2 - 12 - RowH / 2
+labelW = 78.0
+stack('左パネルの縦（EMBER / PAYOUT / LIFE / 設定とソウル）', [
+    ('EMBER', rowY0, RowH),
+    ('PAYOUT', rowY0 - RowPitch, RowH),
+    ('LIFE', rowY0 - RowPitch * 2, RowH),
+    ('設定とソウル', -MidH / 2 + 12, 14),
+], top=MidH / 2 - CardEdge, bottom=-MidH / 2 + CardEdge)
+row('左パネルの行の横（見出し / 窓）', [
+    ('アイコン', -innerW / 2 + HeadIco / 2, HeadIco),
+    ('見出し文字', -innerW / 2 + HeadIndent + (labelW - HeadIndent) / 2, labelW - HeadIndent),
+    ('窓', -innerW / 2 + labelW + (innerW - labelW) / 2, innerW - labelW),
+], left=-innerW / 2, right=innerW / 2)
 
 SoulIco = 14.0
 half = innerW / 2
@@ -76,6 +124,20 @@ row('左パネルの下の行（設定 / ソウル）',
      ('ソウル', innerW * 0.25 - SoulIco / 2 - 2, half - SoulIco - 8),
      ('魂アイコン', half - SoulIco / 2, SoulIco)],
     left=-half, right=half)
+
+# 右パネル（2 列）
+sColW = (innerW - 12) / 2
+sColL = -innerW / 2 + sColW / 2
+sColR = innerW / 2 - sColW / 2
+top = MidH / 2
+row('右パネルの横（2 列）', [('左の列', sColL, sColW), ('右の列', sColR, sColW)], left=-innerW / 2, right=innerW / 2)
+stack('右パネルの左の列の縦', [
+    ('PLAYER見出し', top - 20, 16), ('Lv', top - 38, 18), ('EXPゲージ', top - 51, 6),
+    ('BONUS見出し', top - 70, 16), ('BONUS文字', top - 88, 16), ('BONUSゲージ', top - 102, 6),
+], top=MidH / 2 - CardEdge, bottom=-MidH / 2 + CardEdge)
+stack('右パネルの右の列の縦', [
+    ('状態', top - 30, 40), ('常駐スランプ', top - 82, 40),
+], top=MidH / 2 - CardEdge, bottom=-MidH / 2 + CardEdge)
 
 row('上部の帯',
     [('モードチップ', -ContentW / 2 + 8 + 46, 88),
@@ -89,10 +151,7 @@ row('上部の帯',
     skip_pairs={('エンゲージ', 'ATチップ')})
 
 tagW, tagH = 330.0, 30.0
-torchW, torchH = 232.0, 34.0
-row('表示域の上（ステージ札 / 松明札）',
-    [('ステージ札', -AreaW / 2 + 10 + tagW / 2, tagW),
-     ('松明札', AreaW / 2 - 10 - torchW / 2, torchW)],
+row('表示域の上（ステージ札）', [('ステージ札', -AreaW / 2 + 10 + tagW / 2, tagW)],
     left=-AreaW / 2, right=AreaW / 2)
 
 rtW, rtH = 134.0, 118.0
@@ -136,22 +195,6 @@ row('タイトルの丸ボタン', [
     (n, -StageW / 2 + 24 + _pw * 0.5 + i * (_pw + 12), _pw)
     for i, n in enumerate(('お知らせ', '設定', '引き継ぎ'))
 ], left=-StageW / 2, right=StageW / 2)
-
-# ---------------------------------------------------------------- 右パネルの縦
-# GameController: Side カード（高さ MidH=196）。板の縁が 3px あるので、
-# 中身が置けるのは上 95 / 下 -95 まで（UiSkin.Card の edge ぶん）
-MidH = 196.0
-CardEdge = 3.0
-stack('右パネルの縦（PLAYER 〜 常駐スランプ）', [
-    ('PLAYER見出し', 83, 16),
-    ('Lv', 60, 20),
-    ('EXPゲージ', 44, 8),
-    ('BONUS見出し', 24, 16),
-    ('BONUS文字', 0, 32),
-    ('BONUSゲージ', -24, 8),
-    ('状態', -51, 32),
-    ('常駐スランプ', -83, 22),
-], top=MidH / 2 - CardEdge, bottom=-MidH / 2 + CardEdge)
 
 # ---------------------------------------------------------------- グラフの窓
 # GameController: Graph モーダル（720 x 500）。見出し線は上端から 38

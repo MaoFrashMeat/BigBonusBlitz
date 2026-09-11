@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 namespace BBB.Runtime
@@ -9,7 +9,8 @@ namespace BBB.Runtime
         private static readonly Color Ink = UiSkin.Hex("#101f32"), Muted = UiSkin.Hex("#b9cde2"), Gold = UiSkin.Hex("#f4cd7c");
         public static void Apply(RectTransform stage)
         {
-            var basePlate = UiSkin.Img(stage, "ConsoleSurface", new Vector2(0,-134), new Vector2(960,272), null, UiSkin.Hex("#0a1423"));
+            // 中段と下段の下地。舞台は 1170x540、上段の札は 262〜-70 なので、その下を覆う
+            var basePlate = UiSkin.Img(stage, "ConsoleSurface", new Vector2(0,-172), new Vector2(1170,196), null, UiSkin.Hex("#0a1423"));
             basePlate.transform.SetAsFirstSibling();
             var outerDim = stage.GetComponentInParent<Canvas>().transform.Find("BgOuterDim")?.GetComponent<Image>();
             if (outerDim != null) outerDim.color = UiSkin.Hex("#0a1423");
@@ -17,32 +18,31 @@ namespace BBB.Runtime
             foreach (string name in new[] { "CreditInset", "PayoutInset" }) Panel(stage.Find("Display/"+name), UiSkin.Hex("#0b1727"));
             for(int i=0;i<3;i++) Panel(stage.Find("ReelCabinet/Window"+i), UiSkin.Hex("#08111c"));
 
+            // 表示器は GameController が 3 行（EMBER / PAYOUT / LIFE）で組む。ここでは色と絵だけ替える
             var display = stage.Find("Display");
-            Label(display,"CreditLabel","所持エンバー",14,new Vector2(8,76),new Vector2(180,20));
-            Label(display,"PayoutLabel","今回の獲得",14,new Vector2(8,-5),new Vector2(180,20));
-            Move(display,"EmberIcon",new Vector2(-99,76),new Vector2(20,20));
-            Move(display,"PayoutIcon",new Vector2(-99,-5),new Vector2(16,16));
-            Move(display,"PayoutIconIn",new Vector2(-99,-5),new Vector2(8,8));
-            Move(display,"CreditInset",new Vector2(0,39),new Vector2(210,44));
-            Move(display,"PayoutInset",new Vector2(0,-37),new Vector2(210,36));
-            Label(display,"CreditInset/CreditNum",null,34,new Vector2(-5,0),new Vector2(188,44));
-            Label(display,"PayoutInset/PayoutNum",null,28,new Vector2(-5,0),new Vector2(188,36));
-            Label(display,"Mode",null,12,null,new Vector2(105,32)); Label(display,"Soul",null,12,null,new Vector2(90,32));
+            foreach (string name in new[] { "CreditLabel", "PayoutLabel", "LifeLabel" }) Label(display, name, null, 11);
+            Label(display,"CreditInset/CreditNum",null,20); Label(display,"PayoutInset/PayoutNum",null,20);
+            Panel(display.Find("TorchTag"), UiSkin.Hex("#0b1727"));
             V2Icon(display,"EmberIcon","ember"); V2Icon(display,"SoulIcon","crystal");
 
+            // 右パネルは GameController が 2 列で組む。ここでは色と絵だけ替える
             var side = stage.Find("Side");
-            Label(side,"PlayerLabel","プレイヤー",13); Label(side,"BonusHead","ボーナス",13);
-            Label(side,"Lv",null,20);
-            Label(side,"BonusLabel",null,13,new Vector2(0,0),new Vector2(218,32));
-            Move(side,"BonusGauge",new Vector2(0,-24),new Vector2(218,8));
-            Label(side,"Status",null,12,new Vector2(0,-51),new Vector2(218,32));
+            Label(side,"PlayerLabel","プレイヤー",11); Label(side,"BonusHead","ボーナス",11);
+            Label(side,"Lv",null,15); Label(side,"BonusLabel",null,12); Label(side,"AtRank",null,10); Label(side,"Status",null,12);
             Gauge(side,"Exp"); Gauge(side,"BonusGauge");
             V2Icon(side,"PlayerIcon","swords"); V2Icon(side,"BonusIcon","crystal");
-            var settings = side.Find("BtnSettings"); var graph = side.Find("BtnGraph");
-            Tool(settings,stage,-78,"設定・音量"); Tool(graph,stage,78,"収支グラフ");
-            var debug = side.Find("BtnDebug"); if(debug!=null)debug.gameObject.SetActive(false); // D shortcut remains for development.
+            // 設定・グラフは右下の隅のアイコンボタン（GameController が置く）。ここでは板の色だけ合わせる
+            foreach (string name in new[] { "BtnSettings", "BtnGraph" })
+            {
+                var b = stage.Find(name); if (b == null) continue;
+                Panel(b); Flat(b, "Body", UiSkin.Hex("#21354b"));
+                var button = b.GetComponent<Button>(); if (button == null) continue;
+                var colors = button.colors; colors.normalColor = Color.white; colors.selectedColor = Color.white;
+                colors.highlightedColor = new Color(1.2f,1.2f,1.2f); colors.pressedColor = new Color(.7f,.8f,.9f); button.colors = colors;
+            }
             MainButton(stage.Find("BtnBet"),"btn_pink"); MainButton(stage.Find("BtnAuto"),"btn_blue");
-            var hint=UiFactory.Label(stage,"ReelHint",new Vector2(0,-207),new Vector2(400,14),"リールをタップして停止  ·  Z / X / C",11,TextAnchor.MiddleCenter,Muted);
+            // 停止の案内（「リールをタップして停止」）は置く場所が無くなったので出さない。
+            // リールは触れば止まり、キーは AUTO の小さな案内と同じ並びで覚えられる
 
             var scene=stage.Find("StageCard");
             Flat(scene,"StageTag/Bg"); Flat(scene,"TorchTag/Bg");

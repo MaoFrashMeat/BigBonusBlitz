@@ -133,9 +133,9 @@
 // 元の値は GameController / ReelView / UiSkin の定数から写したもの。
 // ---------------------------------------------------------------------------
 const NLC = String.fromCharCode(10);   // 書き出しの改行
-const SW = 960, SH = 540;
-const K = { Margin: 8, ContentW: 944, StageCardH: 252, MidH: 196, CtrlH: 56,
-            SideW: 242, ReelW: 132, SymH: 60 };
+const SW = 1170, SH = 540;      // 冒険画面は iPhone 幅を使い切る
+const K = { Margin: 8, ContentW: 1154, StageCardH: 332, MidH: 120, CtrlH: 56,
+            SideW: 360, ReelW: 123, SymH: 56 };
 const derived = () => {
   const pitch = K.ReelW + 8, cab = pitch * 3 + 24;
   const stageCardY = SH / 2 - K.Margin - K.StageCardH / 2;

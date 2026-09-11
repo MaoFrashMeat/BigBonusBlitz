@@ -3,35 +3,36 @@
 import io
 import sys
 
-StageW, StageH, Margin = 960.0, 540.0, 8.0
+StageW, StageH, Margin = 1170.0, 540.0, 8.0   # 冒険画面は iPhone 幅
 ContentW = StageW - Margin * 2
-StageCardH, BandH, MidH, CtrlH, SideW = 252.0, 28.0, 196.0, 56.0, 242.0
-ReelW, SymH = 132.0, 60.0
+StageCardH, BandH, MidH, CtrlH, SideW = 332.0, 28.0, 120.0, 56.0, 360.0
+ReelW, SymH = 123.0, 56.0
 reelPitch = ReelW + 8.0
 cabW = reelPitch * 3 + 24
 reelH = SymH * 3
 innerW = SideW - 24
-AreaW, AreaH = 940.0, 220.0
+AreaW, AreaH = ContentW - 4, StageCardH - BandH - 4
 
 ROWS = [
  ('■ ゲーム画面（舞台 960×540）', None, None, None, None),
  ('ステージ札（上段の大枠）', ContentW, StageCardH, 14, 'UiSkin.Card / GameController StageCard'),
  ('表示器（左・EMBER/PAYOUT）', SideW, MidH, 12, 'Card / Display'),
- ('リール筐体', cabW, MidH, 12, 'Card 相当 / cabinet'),
+ ('リール筐体', cabW, MidH + 8 + CtrlH, 12, 'Card 相当 / cabinet（中段と下段にまたがる）'),
  ('操作パネル（右・PLAYER）', SideW, MidH, 12, 'Card / Side'),
  ('MAX BET ボタン', SideW, CtrlH, 10, 'UiSkin.Button'),
- ('AUTO ボタン', SideW, CtrlH, 10, 'UiSkin.Button'),
+ ('AUTO ボタン', SideW - 44*2 - 16, CtrlH, 10, 'UiSkin.Button'),
+ ('歯車・グラフ（右下の隅）', 44, 44, 10, 'UiSkin.Button + Icon'),
  ('', None, None, None, None),
  ('■ くぼみ（Inset。枠ではなく彫り込み）', None, None, None, None),
  ('リール窓（3 つ）', ReelW + 8, reelH + 8, 8, 'Inset / Window'),
- ('EMBER の窓', innerW, 40, 8, 'Inset / CreditInset'),
- ('PAYOUT の窓', innerW, 40, 8, 'Inset / PayoutInset'),
- ('常駐スランプ', innerW, 22, 5, 'Inset / MiniSlump'),
+ ('EMBER の窓', innerW - 78, 26, 6, 'Inset / CreditInset'),
+ ('PAYOUT の窓', innerW - 78, 26, 6, 'Inset / PayoutInset'),
+ ('LIFE の窓', innerW - 78, 26, 6, 'Inset / TorchTag'),
+ ('常駐スランプ', (innerW - 12) / 2, 40, 5, 'Inset / MiniSlump（右パネルの右の列）'),
  ('DEBUG の情報欄', 280, 268, 8, 'Inset / Info'),
  ('', None, None, None, None),
  ('■ 札（小さな見出し）', None, None, None, None),
  ('ステージ札', 330, 30, 15, '角丸は Shadow(15,10) に合わせている'),
- ('ライフ札', 232, 34, 17, ''),
  ('ルート札', 134, 118, 15, ''),
  ('ナビのバッジ（3 つ）', 66, 66, 33, '円形'),
  ('', None, None, None, None),

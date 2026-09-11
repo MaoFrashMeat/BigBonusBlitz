@@ -51,6 +51,8 @@ public static class AdventureUiValidation
             typeof(GameController).GetMethod("UpdateAtFrame", flags).Invoke(host, null);
             ((Text)typeof(GameController).GetField("_message", flags).GetValue(host)).text = "BETで冒険を進めよう";
             ((RectTransform)canvas.transform).sizeDelta = new Vector2(540f * size.x / size.y, 540);
+            // 舞台より狭い画面では実機と同じく舞台ごと縮める（SafeStage と同じ式）
+            safe.Stage.localScale = Vector3.one * Mathf.Min(1f, (540f * size.x / size.y) / safe.Stage.sizeDelta.x);
             Canvas.ForceUpdateCanvases();
             foreach (var g in canvas.GetComponentsInChildren<Graphic>()) { g.SetAllDirty(); g.Rebuild(CanvasUpdate.PreRender); g.canvasRenderer.cull = false; }
             Canvas.ForceUpdateCanvases();
