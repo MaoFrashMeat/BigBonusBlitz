@@ -217,11 +217,12 @@ document.addEventListener('mousemove', ev => {
   const s = snapV(), dx = (ev.clientX - dragging.sx) / zoom, dy = -(ev.clientY - dragging.sy) / zoom;
   const r = cur[dragging.id];
   if (dragging.kind === 'move') {
-    const nx = Math.round((dragging.ox + dx) / s) * s, ny = Math.round((dragging.oy + dy) / s) * s;
+    // 吸着は「動かした量」に掛ける。絶対座標に掛けると、触っただけで 1px ずれる
+    const nx = dragging.ox + Math.round(dx / s) * s, ny = dragging.oy + Math.round(dy / s) * s;
     moveTree(dragging.id, nx - r.x, ny - r.y);
   } else {
     // 右下の角を引く: 左上を固定して幅と高さを変える
-    const nw = Math.max(20, Math.round((dragging.ow + dx) / s) * s), nh = Math.max(12, Math.round((dragging.oh - dy) / s) * s);
+    const nw = Math.max(20, dragging.ow + Math.round(dx / s) * s), nh = Math.max(12, dragging.oh - Math.round(dy / s) * s);
     r.x = dragging.ox + (nw - dragging.ow) / 2; r.y = dragging.oy - (nh - dragging.oh) / 2; r.w = nw; r.h = nh;
   }
   refresh();
