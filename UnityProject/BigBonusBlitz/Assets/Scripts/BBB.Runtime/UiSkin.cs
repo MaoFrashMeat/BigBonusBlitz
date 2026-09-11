@@ -102,7 +102,10 @@ namespace BBB.Runtime
                 border = new Vector4(b.border.x * sx, b.border.y * sy, b.border.z * sx, b.border.w * sy);
                 scale = sx;
             }
-            s = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), scale, 0, SpriteMeshType.FullRect, border);
+            // uGUI の 9 分割は「縁 px ÷ (sprite の PPU ÷ Canvas の 100)」で画面の縁を出す。
+            // PPU を 100 × 倍率 にして、縁が舞台の px（v1 で決めた値）になるようにする。
+            // PPU=倍率 のままだと縁が 100 倍になり、四隅だけで板が埋まって中央が伸びない（2026-09-11 に実測して発覚）
+            s = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), scale * 100f, 0, SpriteMeshType.FullRect, border);
             _frames[name] = s;
             _frameSet.Add(s);
             return s;
@@ -166,7 +169,8 @@ namespace BBB.Runtime
                 for (int x = 0; x < size; x++)
                     px[y * size + x] = new Color32(255, 255, 255, (byte)(255 * RoundedAlpha(x, y, size, size, radius, 1f)));
             tex.SetPixels32(px); tex.Apply();
-            s = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 1f, 0, SpriteMeshType.FullRect, new Vector4(radius + 1, radius + 1, radius + 1, radius + 1));
+            // PPU は Canvas の基準（100）に合わせる。1 だと縁が 100 倍に計算され、角丸が楕円になる
+            s = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect, new Vector4(radius + 1, radius + 1, radius + 1, radius + 1));
             _cache[key] = s;
             return s;
         }
@@ -191,7 +195,7 @@ namespace BBB.Runtime
                     px[y * size + x] = new Color32(255, 255, 255, (byte)(255 * a));
                 }
             tex.SetPixels32(px); tex.Apply();
-            s = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 1f, 0, SpriteMeshType.FullRect, new Vector4(pad + 1, pad + 1, pad + 1, pad + 1));
+            s = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect, new Vector4(pad + 1, pad + 1, pad + 1, pad + 1));
             _cache[key] = s;
             return s;
         }
