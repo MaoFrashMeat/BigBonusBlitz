@@ -44,7 +44,7 @@ for i in range(1, 17):
     p = os.path.join(UI, 'Title', f'petal_{i}.png')
     if not os.path.exists(p):
         break
-    im = Image.open(p).convert('RGBA').resize((96, 96), Image.LANCZOS)
+    im = Image.open(p).convert('RGBA').resize((128, 128), Image.LANCZOS)
     buf = io.BytesIO(); im.save(buf, 'PNG', optimize=True)
     PETALS.append('data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode('ascii'))
 saved = json.load(open(TITLE_JSON, encoding='utf-8')) if os.path.exists(TITLE_JSON) else None
@@ -167,7 +167,7 @@ function buildPetals() {
     const b = { petal: isPetal, x:0, y:0, vx:0, vy:0, spin:0, angle:0, size:10, phase:0, wob:0, life:0, maxLife:1 };
     if (isPetal && petals.glow > 0) { b.glow = document.createElement('div'); b.glow.className = 'pglow'; host.appendChild(b.glow); }
     b.el = document.createElement(isPetal ? 'img' : 'div'); b.el.className = isPetal ? 'petal' : 'pglow';
-    if (isPetal) { b.el.src = PETAL_IMG[i % PETAL_IMG.length]; b.el.style.filter = petals.blur > 0 ? `blur(${[0,0.8,1.6,2.8][petals.blur] * zoom * 1.6}px)` : ''; }
+    if (isPetal) { b.el.src = PETAL_IMG[i % PETAL_IMG.length]; }
     else b.el.style.background = 'radial-gradient(circle, rgba(255,243,200,1) 0%, rgba(191,228,255,.5) 40%, transparent 70%)';
     (isPetal ? host : front).appendChild(b.el);
     resetBit(b, true, W, H); bits.push(b);
@@ -198,8 +198,11 @@ function framePetals(dt) {
     if (b.petal) { a *= petals.alpha; a *= 1 - petals.charMask * inCharBox(b.x, b.y); } else a *= petals.orbAlpha;
     const size = b.size * s, cx = W/2 + b.x, cy = H/2 - b.y;
     const flutter = b.petal ? petals.flutter * Math.sin((t + b.phase) * 1.6) : 0;
-    b.el.style.width = b.el.style.height = size + 'px';
-    b.el.style.transform = `translate(${cx - size/2}px, ${cy - size/2}px) rotate(${-(b.angle + flutter)}deg)`; b.el.style.opacity = a;
+    // 花びらの絵は画布の半分に描いてある（cut_sheets.py の PETAL_FILL）。見える大きさを size にするため 2 倍で置く
+    const box = b.petal ? size * 2 : size;
+    b.el.style.width = b.el.style.height = box + 'px';
+    if (b.petal) b.el.style.filter = petals.blur > 0 ? `blur(${[0, 0.04, 0.09, 0.16][petals.blur] * size}px)` : '';
+    b.el.style.transform = `translate(${cx - box/2}px, ${cy - box/2}px) rotate(${-(b.angle + flutter)}deg)`; b.el.style.opacity = a;
     if (b.glow) { const pulse = 0.55 + 0.45 * Math.sin((t + b.phase) * 2.2); const gs = size * petals.glowSize * (0.9 + 0.25 * pulse); b.glow.style.width = b.glow.style.height = gs + 'px'; b.glow.style.transform = `translate(${cx - gs/2}px, ${cy - gs/2}px)`; b.glow.style.opacity = a * petals.glow * pulse; }
     if (b.life >= b.maxLife || b.y > H/2 + 40 || b.y < -H/2 - 40 || b.x < -W/2 - 60 || b.x > W/2 + 60) resetBit(b, false, W, H);
   }

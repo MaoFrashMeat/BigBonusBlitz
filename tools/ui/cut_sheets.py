@@ -286,25 +286,35 @@ def install_title_bg():
 
 
 PETAL_SRC = os.path.join(ROOT, 'assets', 'title', 'BG', 'flower')   # 花びら（1 枚 1 ファイル。名前は問わない）
-PETAL_SIZE = 192
+PETAL_CANVAS = 256      # 画布。花びらはこの半分（128px）に収め、周りをぼかしの余白にする
+PETAL_FILL = 0.5        # 画布に対する花びらの大きさ。TitleAmbience / title_viewer はこの逆数を掛けて「見える大きさ」に合わせる
+# ぼかしの強さ（花びらの大きさに対する比）。ゲーム側の blur 1..3
+PETAL_BLUR = {1: 0.04, 2: 0.09, 3: 0.16}
 
 
 def install_petals():
-    """花びらを縮めて Resources/Art/UI/Title/petal_1.. へ。画面では 10〜30px なので 192px で足りる。"""
+    """
+    花びらを Resources/Art/UI/Title/petal_N（素）と petal_N_b1..3（ぼかし）へ。
+    画面では 8〜48px（iPhone で 2 倍）なので画布 256px で足りる。
+    ぼかしは表示の大きさに対する比で決めている。元の 1254px に 2〜9px 掛けても、縮めたら消えてしまうため。
+    """
     if not os.path.isdir(PETAL_SRC):
         return
+    from PIL import ImageFilter
     dst = os.path.join(UNITY_UI, 'Title')
     os.makedirs(dst, exist_ok=True)
-    from PIL import ImageFilter
     files = sorted(f for f in os.listdir(PETAL_SRC) if f.lower().endswith('.png'))
+    petal_px = round(PETAL_CANVAS * PETAL_FILL)
     for i, f in enumerate(files, 1):
-        im = square(trim(Image.open(os.path.join(PETAL_SRC, f)).convert('RGBA'), pad=24))
-        im = im.resize((PETAL_SIZE, PETAL_SIZE), Image.LANCZOS)
-        im.save(os.path.join(dst, f'petal_{i}.png'))
-        # ぼかし 3 段階（TitleAmbience の blur 1..3）。縁ににじみが要るので余白を広めに取ってある
-        for k, radius in ((1, 2.5), (2, 5), (3, 9)):
-            im.filter(ImageFilter.GaussianBlur(radius)).save(os.path.join(dst, f'petal_{i}_b{k}.png'))
-    print(f'  花びら {len(files)} 枚 ×（素 + ぼかし 3 段）→ {dst}')
+        im = trim(Image.open(os.path.join(PETAL_SRC, f)).convert('RGBA'))
+        k = petal_px / max(im.width, im.height)
+        im = im.resize((max(1, round(im.width * k)), max(1, round(im.height * k))), Image.LANCZOS)
+        canvas = Image.new('RGBA', (PETAL_CANVAS, PETAL_CANVAS), (0, 0, 0, 0))
+        canvas.alpha_composite(im, ((PETAL_CANVAS - im.width) // 2, (PETAL_CANVAS - im.height) // 2))
+        canvas.save(os.path.join(dst, f'petal_{i}.png'))
+        for level, frac in PETAL_BLUR.items():
+            canvas.filter(ImageFilter.GaussianBlur(frac * petal_px)).save(os.path.join(dst, f'petal_{i}_b{level}.png'))
+    print(f'  花びら {len(files)} 枚 ×（素 + ぼかし 3 段）→ {dst}（画布 {PETAL_CANVAS}px、花びら {petal_px}px）')
 
 
 def install(fdir, idir):

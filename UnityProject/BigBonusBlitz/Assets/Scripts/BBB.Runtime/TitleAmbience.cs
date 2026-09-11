@@ -52,6 +52,9 @@ namespace BBB.Runtime
             public Image glow;
         }
 
+        /// <summary>花びらの絵は画布の半分に描いてある（周りはぼかしの余白）。見える大きさを size にするための倍率。</summary>
+        private const float PetalCanvasScale = 2f;   // = 1 / cut_sheets.py の PETAL_FILL
+
         private readonly List<Bit> _bits = new List<Bit>();
         private readonly List<Sprite> _petalArts = new List<Sprite>();
         private RectTransform _root, _board;
@@ -156,7 +159,7 @@ namespace BBB.Runtime
                 b.angle = 0f;
                 b.img.color = Color.Lerp(UiSkin.Hex("#fff3c8"), UiSkin.Hex("#bfe4ff"), R(0f, 1f));
             }
-            b.rt.sizeDelta = Vector2.one * b.size;
+            b.rt.sizeDelta = Vector2.one * (b.petal && _petalArts.Count > 0 ? b.size * PetalCanvasScale : b.size);
         }
 
         /// <summary>立ち絵の枠の中にいるか（枠の縁で少しなだらかに）。0 = 外、1 = 中。</summary>
