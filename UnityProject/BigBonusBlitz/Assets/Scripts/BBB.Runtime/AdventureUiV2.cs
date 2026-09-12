@@ -39,7 +39,8 @@ namespace BBB.Runtime
                 var b = stage.Find(name); if (b == null) continue;
                 Panel(b); Flat(b, "Body", UiSkin.Hex("#21354b"));
                 Move(b, "Icon", new Vector2(0,7), new Vector2(20,20));
-                Label(b, "Label", name == "BtnSettings" ? "設定" : "グラフ", 10, new Vector2(0,-12), new Vector2(40,14));
+                string caption = name == "BtnEquip" ? "装備" : name == "BtnTrophy" ? "実績" : name == "BtnSettings" ? "設定" : "グラフ";
+                Label(b, "Label", caption, 10, new Vector2(0,-12), new Vector2(40,14));
                 var button = b.GetComponent<Button>(); if (button == null) continue;
                 var colors = button.colors; colors.normalColor = Color.white; colors.selectedColor = Color.white;
                 colors.highlightedColor = new Color(1.2f,1.2f,1.2f); colors.pressedColor = new Color(.7f,.8f,.9f); button.colors = colors;
