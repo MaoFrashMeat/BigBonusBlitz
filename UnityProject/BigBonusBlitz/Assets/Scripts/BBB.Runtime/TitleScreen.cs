@@ -348,14 +348,15 @@ namespace BBB.Runtime
         }
 
         // ------------------------------------------------------------ お知らせ（開発中の遊び。V1 になったら窓ごと消す）
-        [System.Serializable] private sealed class NewsEntry { public string date = ""; public string title = ""; public string body = ""; }
+        [System.Serializable] private sealed class NewsEntry { public string date = ""; public string version = ""; public string title = ""; public string body = ""; }
         [System.Serializable] private sealed class NewsFile { public System.Collections.Generic.List<NewsEntry> entries = new System.Collections.Generic.List<NewsEntry>(); }
 
         private GameObject _newsList, _newsDetail;
 
         /// <summary>
-        /// お知らせ。Resources/Data/notices.json（直した内容。日付・題・中身）を日付と題の一覧で出し、
-        /// 押すとその中身に切り替える。直したことはこの JSON に足していく。
+        /// お知らせ。Resources/Data/notices.json（直した内容。日付・版・題・中身）を日付と題の一覧で出し、
+        /// 押すとその中身に切り替える。版は「dev コミット数 · ハッシュ」（タイトル右下の表示と同じ形。ハッシュは無くてもよい）。
+        /// 直したことはこの JSON に足していく。
         /// </summary>
         private void BuildNews(Transform stage)
         {
@@ -373,9 +374,11 @@ namespace BBB.Runtime
             float headY = size.y * 0.5f - 66;
             const float backW = 76f;
             UiSkin.Button(detail, "Back", new Vector2(-inner.x * 0.5f + backW * 0.5f, headY), new Vector2(backW, 26), "＜ 一覧", ShowNewsList, ColBtn, 12, false, 6);
-            float headW = inner.x - backW - 10;
-            var head = UiFactory.Label(detail, "Head", new Vector2(inner.x * 0.5f - headW * 0.5f, headY), new Vector2(headW, 26), "", 14, TextAnchor.MiddleLeft, ColInk);
+            const float verW = 130f;                                  // 「dev 118 · 2133f99」ぶん
+            float headW = inner.x - backW - 10 - verW - 8;
+            var head = UiFactory.Label(detail, "Head", new Vector2(-inner.x * 0.5f + backW + 10 + headW * 0.5f, headY), new Vector2(headW, 26), "", 14, TextAnchor.MiddleLeft, ColInk);
             head.fontStyle = FontStyle.Bold;
+            var headVer = UiFactory.Label(detail, "Version", new Vector2(inner.x * 0.5f - verW * 0.5f, headY), new Vector2(verW, 26), "", 11, TextAnchor.MiddleRight, ColInkSub);
             var bodyView = ScrollBox(detail, "Body", new Vector2(0, -44), new Vector2(inner.x, inner.y - 48), out var bodyContent);
             var body = WrapLabel(bodyContent, "Text", 12);
 
@@ -391,6 +394,7 @@ namespace BBB.Runtime
                 btn.onClick.AddListener(() =>
                 {
                     head.text = $"{entry.date}   {entry.title}";
+                    headVer.text = entry.version ?? "";
                     body.text = entry.body ?? "";
                     bodyView.verticalNormalizedPosition = 1f;
                     _newsList.SetActive(false);
@@ -398,7 +402,10 @@ namespace BBB.Runtime
                     _audio.UiPop();
                 });
                 Side(UiFactory.Label(row.transform, "Date", Vector2.zero, Vector2.zero, entry.date, 11, TextAnchor.MiddleLeft, ColInkSub), 8, 96);
-                Side(UiFactory.Label(row.transform, "Title", Vector2.zero, Vector2.zero, entry.title, 13, TextAnchor.MiddleLeft, ColInk), 104, inner.x - 30);
+                Side(UiFactory.Label(row.transform, "Title", Vector2.zero, Vector2.zero, entry.title, 13, TextAnchor.MiddleLeft, ColInk), 104, inner.x - 104);
+                // 一覧では版の番号だけ（「dev 118」）。ハッシュは中身の方に出す
+                string shortVer = (entry.version ?? "").Split('·')[0].Trim();
+                Side(UiFactory.Label(row.transform, "Version", Vector2.zero, Vector2.zero, shortVer, 11, TextAnchor.MiddleRight, ColInkSub), inner.x - 100, inner.x - 30);
                 Side(UiFactory.Label(row.transform, "Arrow", Vector2.zero, Vector2.zero, "＞", 12, TextAnchor.MiddleRight, ColInkSub), inner.x - 30, inner.x - 6);
                 var line = UiSkin.Img(row.transform, "Line", Vector2.zero, Vector2.zero, null, new Color(0.17f, 0.18f, 0.27f, 0.12f));
                 line.rectTransform.anchorMin = new Vector2(0, 0); line.rectTransform.anchorMax = new Vector2(1, 0);
