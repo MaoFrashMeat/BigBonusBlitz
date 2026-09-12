@@ -88,6 +88,20 @@ def main():
           (st["life"]["freeBetRate"], st["life"]["rescueBonus"], st["life"]["torchSpins"],
            st["technique"]["engageSpins"], st["technique"]["defeatBonus"], st["technique"]["battleDamage"],
            st["luck"]["rareRate"], st["luck"]["replayRate"], st["luck"]["treasureBonus"], st["maxPerStat"]))
+    # ---- 落とし物
+    drops = c.get("drops")
+    if drops:
+        w("")
+        w("## 落とし物（`drops`）")
+        w("")
+        w("装備は 1 回の討伐で 1 つまで（率 %）。「深さ +n」はボスなどで上位のレア度を出やすくする補正。装備以外は 1 つずつ独立に率で落ちる。")
+        w("")
+        w("| 出どころ | 装備の率 | 深さ +n | 装備以外（名前 量 率） |")
+        w("|---|---|---|---|")
+        for key, label in (("mob", "敵（エンゲージ討伐）"), ("boss", "ボス"), ("hunt", "狩猟（AT）"), ("treasure", "宝箱")):
+            d = drops.get(key) or {}
+            items = ", ".join("%s +%d %d%%" % (e.get("name") or e.get("kind"), e.get("amount", 0), e.get("rate", 0)) for e in d.get("items", []))
+            w("| %s | %d%% | +%d | %s |" % (label, d.get("equipRate", 0), d.get("equipDepthBonus", 0), items or "—"))
     # ---- ベース
     w("")
     w("## ベース（種類ごと）")

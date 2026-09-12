@@ -193,6 +193,33 @@ namespace BBB.Tests
         }
 
         [Test]
+        public void 落とし物は表の率で落ち_ソウルと回復薬が増える()
+        {
+            var m = NewMachine(8);
+            var src = new DropSource
+            {
+                equipRate = 0,
+                items = new List<DropEntry>
+                {
+                    new DropEntry { kind = "souls", name = "ソウルの欠片", amount = 10, rate = 100 },
+                    new DropEntry { kind = "torch", name = "回復薬", amount = 1, rate = 100 },
+                    new DropEntry { kind = "embers", name = "落ちない", amount = 5, rate = 0 },
+                },
+            };
+            long souls = m.Wallet.Souls; int torches = m.Adv.torches;
+            var r = new GameResult();
+            m.RollDrops(r, src);
+            Assert.AreEqual(2, r.itemDrops.Count, "率 100% の 2 つが落ち、0% は落ちない");
+            Assert.AreEqual(r.soulsGained, m.Wallet.Souls - souls, "ソウルの加算が結果と合わない");
+            Assert.GreaterOrEqual(m.Wallet.Souls, souls + 10);
+            Assert.AreEqual(torches + 1, m.Adv.torches, "回復薬が増えていない");
+            // 設定の表: 4 つの出どころが読めている
+            foreach (var key in new[] { "mob", "boss", "hunt", "treasure" })
+                Assert.IsNotNull(m.DropsOf(key), key + " の落とし物の表が無い");
+            Assert.Greater(m.DropsOf("boss").items.Count, 0, "ボスの落とし物が無い");
+        }
+
+        [Test]
         public void 装備の枠は8つ_アクセは3つ着けられて4つ目は一番弱いものと入れ替わる()
         {
             var m = NewMachine(5);

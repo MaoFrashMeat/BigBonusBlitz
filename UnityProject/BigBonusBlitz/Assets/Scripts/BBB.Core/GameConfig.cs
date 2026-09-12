@@ -94,6 +94,8 @@ namespace BBB.Core
         public StoryConfig story;
         /// <summary>装備のドロップ（潜行ごとに拾い直す）。</summary>
         public EquipConfig equipment;
+        /// <summary>敵・ボス・狩猟・宝箱から何が落ちるか（装備の率と、装備以外の落とし物）。</summary>
+        public DropConfig drops;
         /// <summary>呪いと祝福。</summary>
         public CurseConfig curse;
 

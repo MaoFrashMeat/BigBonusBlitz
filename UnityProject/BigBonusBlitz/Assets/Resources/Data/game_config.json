@@ -5259,5 +5259,121 @@
     "chapterClear": 120,
     "firstVisit": 10,
     "perBonus": 12
+  },
+  "drops": {
+    "mob": {
+      "equipRate": 22,
+      "equipDepthBonus": 0,
+      "items": [
+        {
+          "kind": "souls",
+          "name": "ソウルの欠片",
+          "amount": 15,
+          "rate": 30
+        },
+        {
+          "kind": "embers",
+          "name": "燠火のかけら",
+          "amount": 20,
+          "rate": 20
+        },
+        {
+          "kind": "torch",
+          "name": "回復薬",
+          "amount": 1,
+          "rate": 8
+        },
+        {
+          "kind": "atSpins",
+          "name": "地図の切れ端",
+          "amount": 5,
+          "rate": 4
+        }
+      ]
+    },
+    "boss": {
+      "equipRate": 100,
+      "equipDepthBonus": 3,
+      "items": [
+        {
+          "kind": "souls",
+          "name": "ソウルの塊",
+          "amount": 150,
+          "rate": 100
+        },
+        {
+          "kind": "embers",
+          "name": "燠火の塊",
+          "amount": 120,
+          "rate": 100
+        },
+        {
+          "kind": "torch",
+          "name": "回復薬",
+          "amount": 2,
+          "rate": 100
+        },
+        {
+          "kind": "atSpins",
+          "name": "洞窟の地図",
+          "amount": 15,
+          "rate": 60
+        },
+        {
+          "kind": "atExpect",
+          "name": "幸運のお守り",
+          "amount": 15,
+          "rate": 40
+        },
+        {
+          "kind": "exp",
+          "name": "竜の鱗",
+          "amount": 120,
+          "rate": 50
+        }
+      ]
+    },
+    "hunt": {
+      "equipRate": 35,
+      "equipDepthBonus": 1,
+      "items": [
+        {
+          "kind": "souls",
+          "name": "ソウルの欠片",
+          "amount": 20,
+          "rate": 30
+        },
+        {
+          "kind": "embers",
+          "name": "燠火のかけら",
+          "amount": 30,
+          "rate": 25
+        },
+        {
+          "kind": "atSpins",
+          "name": "地図の切れ端",
+          "amount": 5,
+          "rate": 10
+        }
+      ]
+    },
+    "treasure": {
+      "equipRate": 45,
+      "equipDepthBonus": 1,
+      "items": [
+        {
+          "kind": "embers",
+          "name": "燠火のかけら",
+          "amount": 20,
+          "rate": 25
+        },
+        {
+          "kind": "torch",
+          "name": "回復薬",
+          "amount": 1,
+          "rate": 10
+        }
+      ]
+    }
   }
 }

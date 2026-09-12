@@ -2449,7 +2449,23 @@ namespace BBB.Runtime
         private void RogueFx(GameResult r)
         {
             if (r.equipDropped != null) StartCoroutine(DropRoutine(r));
+            if (r.itemDrops != null && r.itemDrops.Count > 0) StartCoroutine(ItemDropRoutine(r));
             if (r.curseOffer != null) StartCoroutine(DelayedFx(1.2f, ShowCurseOffer));
+        }
+
+        /// <summary>装備以外の落とし物を 1 つずつ、少しずらして主人公の上に出す。</summary>
+        private IEnumerator ItemDropRoutine(GameResult r)
+        {
+            yield return new WaitForSeconds(r.equipDropped != null ? 0.9f : 0.2f);
+            for (int i = 0; i < r.itemDrops.Count; i++)
+            {
+                var d = r.itemDrops[i];
+                var col = d.kind == "souls" ? Hex("#a98bff") : d.kind == "embers" ? Hex("#ffb45c") : d.kind == "torch" ? Hex("#7ee0a0") : ColGold;
+                UiFx.PopText(_charRt, $"{d.name} +{d.amount:N0}", col, 18, new Vector2(0, 40 + i * 6));
+                UiFx.Burst(_charRt, d.kind == "souls" ? UiFx.Preset.EmberSoul : UiFx.Preset.Coins, new Vector2(0, 30));
+                _audio.UiPop();
+                yield return new WaitForSeconds(0.45f);
+            }
         }
 
         private IEnumerator DropRoutine(GameResult r)

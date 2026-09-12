@@ -113,6 +113,8 @@ namespace BBB.Core
         public bool equipBagFull;
         /// <summary>拾った装備を自動で身に着けた。</summary>
         public bool equipAutoWorn;
+        /// <summary>装備以外の落とし物（名前と量）。敵・ボス・狩猟・宝箱から。</summary>
+        public List<DropEntry> itemDrops = new List<DropEntry>();
         /// <summary>このGで呪いの選択が出た。</summary>
         public CurseInstance curseOffer;
         /// <summary>このGで回復薬が 1 個増えた。</summary>
@@ -875,8 +877,7 @@ namespace BBB.Core
                 var soulCfg = Config.souls ?? new SoulConfig();
                 if (EnemyDefeatWon)
                 {
-                    RollDrop(result, ActiveEnemyTable != null && ActiveEnemyTable.IsBoss
-                                     ? (Config.equipment?.dropRateBoss ?? 0) : (Config.equipment?.dropRateMob ?? 0));
+                    RollDrops(result, ActiveEnemyTable != null && ActiveEnemyTable.IsBoss ? DropsOf("boss") : DropsOf("mob"));
                     int exp = ActiveEnemyTable != null && ActiveEnemyTable.expOnDefeat > 0 ? ActiveEnemyTable.expOnDefeat : Config.expPerDefeat;
                     result.enemyExp = ApplyExpBonus(exp);
                     result.levelUp = GainExp(result.enemyExp);
@@ -937,7 +938,7 @@ namespace BBB.Core
                     {
                         result.battleResolved = true;
                         result.battleMonster = BattleMonster;
-                        RollDrop(result, Config.equipment?.dropRateHunt ?? 0);
+                        RollDrops(result, DropsOf("hunt"));
                         result.soulsGained += GainSouls((Config.souls ?? new SoulConfig()).perAtBattle);
                         GainEmbers(EmberCfg.perAtBattle);
                         int add = Math.Max(0, BattleMonster?.rewardSpins ?? 0);
@@ -1059,12 +1060,54 @@ namespace BBB.Core
         public int CurrentDepth => CurrentStage?.depth ?? 1;
 
         /// <summary>装備を落とす抽選。落ちたら result に載せる。</summary>
-        private void RollDrop(GameResult result, int rate)
+        /// <summary>出どころの落とし物の表。drops が無ければ equipment の率だけで組む（昔の設定）。</summary>
+        public DropSource DropsOf(string source)
+        {
+            var d = Config.drops;
+            var ec = Config.equipment;
+            switch (source)
+            {
+                case "boss": return d?.boss ?? new DropSource { equipRate = ec?.dropRateBoss ?? 0, equipDepthBonus = 3 };
+                case "hunt": return d?.hunt ?? DropSource.FromRate(ec?.dropRateHunt ?? 0);
+                case "treasure": return d?.treasure ?? DropSource.FromRate(ec?.dropRateTreasure ?? 0);
+                default: return d?.mob ?? DropSource.FromRate(ec?.dropRateMob ?? 0);
+            }
+        }
+
+        /// <summary>落とし物を抽選して渡す。装備は 1 つまで、装備以外は表の 1 つずつが独立に落ちる。</summary>
+        public void RollDrops(GameResult result, DropSource src)
+        {
+            if (src == null) return;
+            RollDrop(result, src.equipRate, src.equipDepthBonus);
+            if (src.items == null) return;
+            foreach (var e in src.items)
+            {
+                if (e == null || e.rate <= 0 || e.amount <= 0) continue;
+                if (_rng.NextDouble() * 100 >= e.rate) continue;
+                int got = e.amount;
+                switch (e.kind)
+                {
+                    case "souls": got = GainSouls(e.amount); result.soulsGained += got; break;
+                    case "embers": GainEmbers(e.amount); break;
+                    case "torch":
+                        got = AdventureDirector.AddTorch(Config.adventure, Adv, e.amount, TorchSpinsPerUnit);
+                        if (got <= 0) continue;               // 持てる上限なら落ちない
+                        result.torchRefilled = true; break;
+                    case "atSpins": Adv.stockAtSpins += e.amount; break;
+                    case "atExpect": Adv.stockAtExpect += e.amount; break;
+                    case "exp": got = ApplyExpBonus(e.amount); if (GainExp(got)) result.levelUp = true; break;
+                    default: continue;
+                }
+                result.itemDrops.Add(new DropEntry { kind = e.kind, name = e.name, amount = got, rate = e.rate });
+            }
+        }
+
+        private void RollDrop(GameResult result, int rate, int depthBonus = 0)
         {
             var ec = Config.equipment;
             if (ec == null || !ec.enabled || rate <= 0) return;
             if (_rng.NextDouble() * 100 >= rate) return;
-            var item = EquipDirector.Roll(ec, CurrentDepth, _rng);
+            var item = EquipDirector.Roll(ec, CurrentDepth + Math.Max(0, depthBonus), _rng);
             if (item == null) return;
             if (!EquipDirector.PickUp(ec, Equip, item)) { result.equipBagFull = true; result.equipDropped = item; return; }
             result.equipDropped = item;
@@ -1141,7 +1184,7 @@ namespace BBB.Core
                         default: result.soulsGained += GainSouls(t.amount); break;
                     }
                     AdventureDirector.AddCount(Adv, "TREASURE");
-                    RollDrop(result, Config.equipment?.dropRateTreasure ?? 0);
+                    RollDrops(result, DropsOf("treasure"));
                 }
 
                 // --- 達成条件のルート（確率抽選より強い）---

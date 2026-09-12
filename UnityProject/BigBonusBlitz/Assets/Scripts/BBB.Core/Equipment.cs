@@ -199,6 +199,39 @@ namespace BBB.Core
         }
     }
 
+    /// <summary>装備以外の落とし物 1 種。kind は宝と同じ（souls / embers / torch / atSpins / atExpect / exp）。rate は %。</summary>
+    [Serializable]
+    public sealed class DropEntry
+    {
+        public string kind = "souls";
+        public string name = "";
+        public int amount = 10;
+        public int rate = 20;
+    }
+
+    /// <summary>落とし物の出どころ 1 つ（敵 / ボス / 狩猟 / 宝箱）。</summary>
+    [Serializable]
+    public sealed class DropSource
+    {
+        /// <summary>装備が落ちる率 %。</summary>
+        public int equipRate;
+        /// <summary>装備を作るときに深さへ足す（ボスは上位のレア度が出やすい）。</summary>
+        public int equipDepthBonus;
+        /// <summary>装備以外。1 つずつ独立に rate % で落ちる。</summary>
+        public List<DropEntry> items = new List<DropEntry>();
+
+        public static DropSource FromRate(int rate) => new DropSource { equipRate = rate };
+    }
+
+    [Serializable]
+    public sealed class DropConfig
+    {
+        public DropSource mob = new DropSource { equipRate = 22 };
+        public DropSource boss = new DropSource { equipRate = 100, equipDepthBonus = 3 };
+        public DropSource hunt = new DropSource { equipRate = 35 };
+        public DropSource treasure = new DropSource { equipRate = 45 };
+    }
+
     public static class EquipDirector
     {
         /// <summary>深さ depth の品を 1 つ作る。設定が空なら null。</summary>
