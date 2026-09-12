@@ -163,6 +163,8 @@ namespace BBB.Core
         public BonusMode BonusMode = BonusMode.NORMAL;
         public int BonusPayoutTarget;
         public int BonusEarned;
+        /// <summary>ボーナスで回した G 数と、その上限（0 なら G 数では終わらない）。</summary>
+        public int BonusGamesPlayed, BonusGamesTotal;
         // --- AT「洞窟」 ---
         /// <summary>AT 中か。</summary>
         public bool InAt;
@@ -325,6 +327,15 @@ namespace BBB.Core
                 AdventureDirector.Reset(Config.adventure, Adv);
                 AdventureDirector.ResetTorches(Config.adventure, Adv, TorchSpinsPerUnit);
             }
+        }
+
+        /// <summary>そのボーナスの G 数（設定に無ければ 0 = 枚数だけで終わる）。</summary>
+        public int BonusGamesFor(BonusMode mode)
+        {
+            var g = Config.bonusGames;
+            if (g == null) return 0;
+            string key = mode == BonusMode.BB ? "BIG" : "REG";
+            return g.TryGetValue(key, out var n) ? Math.Max(0, n) : 0;
         }
 
         public void SetSetting(int setting)
@@ -523,6 +534,7 @@ namespace BBB.Core
 
             if (BonusMode != BonusMode.NORMAL)
             {
+                BonusGamesPlayed++;
                 int r = _rng.Next(LotteryTable.Denominator);
                 CurrentRng = r + 1;
                 var t = BonusMode == BonusMode.BB ? _tBB : _tRB;
@@ -743,6 +755,8 @@ namespace BBB.Core
                 if (win.winType == WinType.BIG) { BonusMode = BonusMode.BB; BonusPayoutTarget = payouts.BIG; }
                 else { BonusMode = BonusMode.RB; BonusPayoutTarget = payouts.REG; }
                 BonusEarned = 0;
+                BonusGamesPlayed = 0;
+                BonusGamesTotal = BonusGamesFor(BonusMode);
                 // AT 期待度はボーナスごとに 0（設定値）から積み直す
                 var atx = Config.atExpect ?? new AtExpectConfig();
                 AtExpectPercent = Math.Min(Math.Max(1, atx.maxPercent),
@@ -782,11 +796,13 @@ namespace BBB.Core
                     result.hpHealed = HealHp(hpRes.bonusBellHealAmount);
                 }
 
-                if (BonusEarned >= BonusPayoutTarget)
+                // 規定枚数に届くか、G 数を使い切ったら終わる（G 数があれば、届かなくても必ず終わる）
+                if (BonusEarned >= BonusPayoutTarget || (BonusGamesTotal > 0 && BonusGamesPlayed >= BonusGamesTotal))
                 {
                     BonusMode = BonusMode.NORMAL;
                     BonusEarned = 0;
                     BonusPayoutTarget = 0;
+                    BonusGamesPlayed = 0; BonusGamesTotal = 0;
                     SpinCount = 0;
                     result.bonusEnded = true;
                     GainEmbers(EmberCfg.perBonus);

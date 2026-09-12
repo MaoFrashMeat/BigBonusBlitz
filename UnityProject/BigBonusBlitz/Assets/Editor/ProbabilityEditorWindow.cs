@@ -714,6 +714,16 @@ public sealed class ProbabilityEditorWindow : EditorWindow
             int nv = EditorGUILayout.IntField(label, v, GUILayout.Width(300));
             if (nv != v) { bb[key] = Math.Max(0, nv); _dirty = true; }
         }
+        EditorGUILayout.Space(6);
+        EditorGUILayout.LabelField("ボーナスの G 数（消化したら規定枚数に届かなくても終わる。0 なら枚数だけ）", EditorStyles.boldLabel);
+        var bg = (JObject)_game["bonusGames"];
+        if (bg == null) { bg = new JObject { ["BIG"] = 60, ["REG"] = 30 }; _game["bonusGames"] = bg; _dirty = true; }
+        foreach (var (key, label) in new[] { ("BIG", "BIG の G 数"), ("REG", "REG の G 数") })
+        {
+            int v = bg[key]?.Value<int>() ?? 0;
+            int nv = EditorGUILayout.IntField(label, v, GUILayout.Width(300));
+            if (nv != v) { bg[key] = Math.Max(0, nv); _dirty = true; }
+        }
         bool bc = at["battleConsumesAtSpins"]?.Value<bool>() ?? false;
         bool nbc = EditorGUILayout.ToggleLeft("狩猟中も AT の残りGを消費する", bc);
         if (nbc != bc) { at["battleConsumesAtSpins"] = nbc; _dirty = true; }

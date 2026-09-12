@@ -21,6 +21,7 @@ namespace BBB.Runtime
         public string bonusMode;
         public int bonusPayoutTarget;
         public int bonusEarned;
+        public int bonusGamesPlayed, bonusGamesTotal;
         public int spinCount;
         public int totalSpinCount;
         public string mode;
@@ -71,6 +72,8 @@ namespace BBB.Runtime
                 bonusMode = m.BonusMode.ToString(),
                 bonusPayoutTarget = m.BonusPayoutTarget,
                 bonusEarned = m.BonusEarned,
+                bonusGamesPlayed = m.BonusGamesPlayed,
+                bonusGamesTotal = m.BonusGamesTotal,
                 spinCount = m.SpinCount,
                 totalSpinCount = m.TotalSpinCount,
                 mode = m.Mode.ToString(),
@@ -138,6 +141,9 @@ namespace BBB.Runtime
             if (System.Enum.TryParse<BonusMode>(d.bonusMode, out var bm)) m.BonusMode = bm;
             m.BonusPayoutTarget = d.bonusPayoutTarget;
             m.BonusEarned = d.bonusEarned;
+            m.BonusGamesPlayed = d.bonusGamesPlayed;
+            // 古いセーブ（G 数なし）でボーナス中なら、今の設定の G 数を当てる
+            m.BonusGamesTotal = d.bonusGamesTotal > 0 || m.BonusMode == BonusMode.NORMAL ? d.bonusGamesTotal : m.BonusGamesFor(m.BonusMode);
             m.SpinCount = d.spinCount;
             m.TotalSpinCount = d.totalSpinCount;
             if (System.Enum.TryParse<Mode>(d.mode, out var md)) m.Mode = md;

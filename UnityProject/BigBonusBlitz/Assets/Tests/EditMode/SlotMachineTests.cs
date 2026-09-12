@@ -475,6 +475,36 @@ namespace BBB.Tests
         }
 
         [Test]
+        public void ボーナスはG数を使い切れば規定枚数に届かなくても終わる()
+        {
+            var m = NewMachine(5);          // 設定5 は REG 中のベルが少なく、純増では終わらない
+            m.Credit = 1_000_000;
+            var push = new SystemRandom(3);
+            m.DebugForceFlag = Flag.RB_A;
+            int guard = 0;
+            while (m.BonusMode == BonusMode.NORMAL && guard++ < 500)
+            {
+                m.MaxBet(); m.Lever();
+                for (int i = 0; i < 3; i++) m.Stop(i, push.Next(20));
+                m.Evaluate();
+                if (m.BonusMode == BonusMode.NORMAL) m.DebugForceFlag = Flag.RB_A;
+            }
+            Assert.AreEqual(BonusMode.RB, m.BonusMode, "REG に入らない");
+            int total = m.BonusGamesTotal;
+            Assert.Greater(total, 0, "REG の G 数が設定されていない");
+            int g = 0;
+            while (m.BonusMode != BonusMode.NORMAL && g < total + 5)
+            {
+                m.MaxBet(); m.Lever();
+                for (int i = 0; i < 3; i++) m.Stop(i, push.Next(20));   // ナビを無視して順押し
+                m.Evaluate();
+                g++;
+            }
+            Assert.AreEqual(BonusMode.NORMAL, m.BonusMode, "G 数を使い切っても REG が終わらない");
+            Assert.LessOrEqual(g, total, "設定した G 数より長く続いた");
+        }
+
+        [Test]
         public void ベル択ナビ_外すとベルを取りこぼす()
         {
             int correctPaid = 0, correctGames = 0, missPaid = 0, missGames = 0;

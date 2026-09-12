@@ -1057,11 +1057,17 @@ namespace BBB.Runtime
             bool inBonus = _m.BonusMode != BonusMode.NORMAL;
             bool held = _m.HeldBonusFlag != Flag.HAZE && _m.BonusAnnounceRemaining <= 0;   // 前兆中はまだ明かさない
             string atRank = inBonus ? AtDirector.RankFor(_m.Config.atExpect, _m.AtExpectPercent)?.name : null;
+            // G 数管理のボーナスは残り G を出し、バーも G の消化。G 数が無ければ枚数の進み
+            bool byGames = inBonus && _m.BonusGamesTotal > 0;
             _bonusLabel.text = inBonus
-                ? $"{(_m.BonusMode == BonusMode.BB ? "BIG" : "REG")}  {_m.BonusEarned} / {_m.BonusPayoutTarget}"
+                ? (byGames ? $"{(_m.BonusMode == BonusMode.BB ? "BIG" : "REG")}  残{Mathf.Max(0, _m.BonusGamesTotal - _m.BonusGamesPlayed)}G"
+                           : $"{(_m.BonusMode == BonusMode.BB ? "BIG" : "REG")}  {_m.BonusEarned} / {_m.BonusPayoutTarget}")
                 : held ? "成立中  揃えよう" : "―";
             if (_atRankLabel != null) _atRankLabel.text = atRank != null ? $"AT期待度 {atRank}" : "";
-            _bonusFill.rectTransform.sizeDelta = new Vector2(inBonus && _m.BonusPayoutTarget > 0 ? _bonusTrack.sizeDelta.x * Mathf.Clamp01((float)_m.BonusEarned / _m.BonusPayoutTarget) : 0f, _bonusTrack.sizeDelta.y);
+            float bonusRatio = !inBonus ? 0f
+                : byGames ? Mathf.Clamp01((float)_m.BonusGamesPlayed / _m.BonusGamesTotal)
+                : _m.BonusPayoutTarget > 0 ? Mathf.Clamp01((float)_m.BonusEarned / _m.BonusPayoutTarget) : 0f;
+            _bonusFill.rectTransform.sizeDelta = new Vector2(_bonusTrack.sizeDelta.x * bonusRatio, _bonusTrack.sizeDelta.y);
             _mode.text = $"設定 {_m.Setting}   総 {_m.TotalSpinCount:N0} G";
             _soulText.text = $"魂 {_m.Wallet.Souls:N0}   火 {_m.Wallet.Embers:N0}";
             _gCount.text = $"{_m.SpinCount} G";

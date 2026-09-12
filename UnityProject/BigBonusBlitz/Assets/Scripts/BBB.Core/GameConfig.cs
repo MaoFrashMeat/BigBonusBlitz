@@ -53,6 +53,11 @@ namespace BBB.Core
         public Dictionary<string, int> ceilingBonus = new Dictionary<string, int> { ["BB_A"] = 50, ["RB_A"] = 50 };
         /// <summary>ボーナス中のベル。押し順ナビが出れば従って多め、出なければ共通ベルで少なめ。</summary>
         public BonusBellConfig bonusBell = new BonusBellConfig();
+        /// <summary>
+        /// ボーナスの G 数（BIG / REG）。このG数を消化したら、規定枚数に届いていなくても終わる。
+        /// 規定枚数に先に届けばそこで終わる。0 なら G 数では終わらない（枚数だけ）。
+        /// </summary>
+        public Dictionary<string, int> bonusGames = new Dictionary<string, int> { ["BIG"] = 60, ["REG"] = 30 };
         /// <summary>ENEMY 当選から敵が出現するまでの前兆G数（このG数目の終わりに出現）。</summary>
         public int enemyPrecursorSpins = 3;
         /// <summary>Tier2中に小役を連続で引くごとに討伐率へ加算する %（2連目 +1倍、3連目 +2倍）。ハズレでリセット。</summary>

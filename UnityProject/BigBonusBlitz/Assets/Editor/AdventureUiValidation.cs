@@ -46,7 +46,7 @@ public static class AdventureUiValidation
         camera.clearFlags = CameraClearFlags.SolidColor; camera.backgroundColor = UiSkin.Bg; canvas.worldCamera = camera;
         foreach (var size in new[] { new Vector2Int(1280,720), new Vector2Int(2556,1179) })
         {
-            if (size.x == 2556) { machine.BonusMode = BonusMode.RB; machine.BonusEarned = 51; machine.BonusPayoutTarget = 90; }
+            if (size.x == 2556) { machine.BonusMode = BonusMode.RB; machine.BonusEarned = 51; machine.BonusPayoutTarget = 90; machine.BonusGamesTotal = 30; machine.BonusGamesPlayed = 18; }
             typeof(GameController).GetMethod("RefreshUi", flags).Invoke(host, null);
             typeof(GameController).GetMethod("UpdateAtFrame", flags).Invoke(host, null);
             ((Text)typeof(GameController).GetField("_message", flags).GetValue(host)).text = "BETで冒険を進めよう";
