@@ -156,7 +156,7 @@
     {
       "id": "legend_1",
       "name": "伝説の一品",
-      "desc": "レジェンド（黒）以上の装備を拾う",
+      "desc": "アビス（黒）以上の装備を拾う",
       "counter": "legendDrops",
       "target": 1,
       "rewardSouls": 300,

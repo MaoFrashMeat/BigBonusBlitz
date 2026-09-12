@@ -4035,8 +4035,8 @@
         "weightPerDepth": 25
       },
       {
-        "id": "legend",
-        "name": "レジェンド",
+        "id": "abyss",
+        "name": "アビス",
         "color": "#7c7f99",
         "affixes": 3,
         "power": 180,

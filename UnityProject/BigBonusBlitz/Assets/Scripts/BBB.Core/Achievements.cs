@@ -84,11 +84,11 @@ namespace BBB.Core
             if (r.equipDropped != null && !r.equipBagFull)
             {
                 st.Add(AchievementCounters.Drops, 1);
-                // 「伝説」は id が legend の段（黒）以上。無ければ一番上の段
+                // 「伝説の一品」は黒（abyss）以上。無ければ一番上の段
                 var rar = m.Config.equipment?.rarities;
                 if (rar != null && rar.Count > 0)
                 {
-                    int legend = rar.FindIndex(x => x != null && x.id == "legend");
+                    int legend = rar.FindIndex(x => x != null && (x.id == "abyss" || x.id == "legend"));
                     if (legend < 0) legend = rar.Count - 1;
                     if (r.equipDropped.rarity >= legend) st.Add(AchievementCounters.LegendDrops, 1);
                 }
