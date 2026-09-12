@@ -489,5 +489,31 @@ namespace BBB.Tests
             if (hazeD < hazeA) Assert.Less(high, normal * 0.95, "高確ステージでハズレが減っていない");
             else Assert.Greater(high, normal * 1.05, "高確ステージで表が変わっていない");
         }
+
+        [Test]
+        public void 物語は第2章まであり_段ごとに上中下の台詞がある()
+        {
+            var m = NewMachine(3);
+            var story = m.Config.story;
+            var adv = m.Config.adventure;
+            Assert.IsNotNull(story);
+            var ch2 = story.Find(2);
+            Assert.AreEqual(2, ch2.chapter, "第 2 章が無い（第 1 章を使い回している）");
+            Assert.Greater(ch2.opening.Count, 0);
+            Assert.Greater(ch2.onClear.Count, 0);
+            foreach (var n in adv.nodes)
+            {
+                var st = ch2.FindStage(n.column);
+                Assert.IsNotNull(st, "第 2 章に段 " + n.column + " の台詞が無い");
+                Assert.IsTrue(st.high.Count > 0 && st.mid.Count > 0 && st.low.Count > 0, "段 " + n.column + " の上中下が揃っていない");
+                var lines = StoryDirector.OnEnter(story, adv, 2, n.id);
+                Assert.IsNotNull(lines, n.id + " に着いたときの台詞が無い");
+            }
+            // 第 2 章の頭では「また来たのか」を足さない（初めて通る章）
+            Assert.IsNull(StoryDirector.Lap(story, 2, 2));
+            // 第 3 章は用意していないので第 1 章を使い回し、3 周目の台詞が足される
+            Assert.AreEqual(1, story.Find(3).chapter);
+            Assert.IsNotNull(StoryDirector.Lap(story, 3, 3));
+        }
     }
 }
