@@ -3974,7 +3974,7 @@
   },
   "equipment": {
     "enabled": true,
-    "bagSize": 12,
+    "bagSize": 16,
     "dropRateMob": 22,
     "dropRateBoss": 100,
     "dropRateHunt": 35,
@@ -4052,9 +4052,119 @@
         "minDepth": 3
       },
       {
-        "id": "a_coat",
+        "id": "w_dagger",
+        "name": "短剣",
+        "slot": "weapon",
+        "icon": "sword",
+        "effect": "statTechnique",
+        "perLevel": 0.45,
+        "min": 1,
+        "weight": 80,
+        "minDepth": 1
+      },
+      {
+        "id": "w_bow",
+        "name": "弓",
+        "slot": "weapon",
+        "icon": "sword",
+        "effect": "defeatBonus",
+        "perLevel": 1.2,
+        "min": 3,
+        "weight": 70,
+        "minDepth": 2
+      },
+      {
+        "id": "w_staff",
+        "name": "杖",
+        "slot": "weapon",
+        "icon": "sword",
+        "effect": "soulGain",
+        "perLevel": 1.6,
+        "min": 3,
+        "weight": 60,
+        "minDepth": 2
+      },
+      {
+        "id": "w_holy",
+        "name": "聖剣",
+        "slot": "weapon",
+        "icon": "sword",
+        "effect": "battleDamage",
+        "perLevel": 4.0,
+        "min": 8,
+        "weight": 20,
+        "minDepth": 5
+      },
+      {
+        "id": "h_cap",
+        "name": "革の帽子",
+        "slot": "head",
+        "icon": "shield",
+        "effect": "statLife",
+        "perLevel": 0.45,
+        "min": 1,
+        "weight": 100,
+        "minDepth": 1
+      },
+      {
+        "id": "h_helm",
+        "name": "兜",
+        "slot": "head",
+        "icon": "shield",
+        "effect": "torchSpins",
+        "perLevel": 1.3,
+        "min": 2,
+        "weight": 80,
+        "minDepth": 1
+      },
+      {
+        "id": "h_feather",
+        "name": "羽根飾り",
+        "slot": "head",
+        "icon": "shield",
+        "effect": "statLuck",
+        "perLevel": 0.45,
+        "min": 1,
+        "weight": 70,
+        "minDepth": 1
+      },
+      {
+        "id": "h_scholar",
+        "name": "学者の帽子",
+        "slot": "head",
+        "icon": "shield",
+        "effect": "expGain",
+        "perLevel": 1.6,
+        "min": 3,
+        "weight": 60,
+        "minDepth": 2
+      },
+      {
+        "id": "h_hood",
+        "name": "忍びの頭巾",
+        "slot": "head",
+        "icon": "shield",
+        "effect": "statTechnique",
+        "perLevel": 0.5,
+        "min": 1,
+        "weight": 55,
+        "minDepth": 3
+      },
+      {
+        "id": "h_crown",
+        "name": "王冠",
+        "slot": "head",
+        "icon": "shield",
+        "effect": "atStartPercent",
+        "perLevel": 0.9,
+        "min": 2,
+        "weight": 20,
+        "minDepth": 6
+      },
+      {
+        "id": "b_coat",
         "name": "外套",
-        "slot": "armor",
+        "slot": "body",
         "icon": "shield",
         "effect": "torchSpins",
         "perLevel": 1.1,
@@ -4063,9 +4173,9 @@
         "minDepth": 1
       },
       {
-        "id": "a_mail",
+        "id": "b_mail",
         "name": "鎖帷子",
-        "slot": "armor",
+        "slot": "body",
         "icon": "shield",
         "effect": "torchSpins",
         "perLevel": 1.7,
@@ -4074,20 +4184,185 @@
         "minDepth": 1
       },
       {
-        "id": "a_plate",
+        "id": "b_plate",
         "name": "重鎧",
-        "slot": "armor",
+        "slot": "body",
         "icon": "shield",
-        "effect": "torchSpins",
-        "perLevel": 2.6,
-        "min": 5,
+        "effect": "statLife",
+        "perLevel": 0.6,
+        "min": 1,
         "weight": 45,
         "minDepth": 4
       },
       {
+        "id": "b_robe",
+        "name": "ローブ",
+        "slot": "body",
+        "icon": "shield",
+        "effect": "soulGain",
+        "perLevel": 1.4,
+        "min": 2,
+        "weight": 70,
+        "minDepth": 1
+      },
+      {
+        "id": "b_travel",
+        "name": "旅装",
+        "slot": "body",
+        "icon": "shield",
+        "effect": "expGain",
+        "perLevel": 1.4,
+        "min": 2,
+        "weight": 60,
+        "minDepth": 2
+      },
+      {
+        "id": "b_dragon",
+        "name": "竜鱗の鎧",
+        "slot": "body",
+        "icon": "shield",
+        "effect": "statLife",
+        "perLevel": 0.9,
+        "min": 3,
+        "weight": 15,
+        "minDepth": 6
+      },
+      {
+        "id": "g_leather",
+        "name": "革の手袋",
+        "slot": "hands",
+        "icon": "chain",
+        "effect": "statTechnique",
+        "perLevel": 0.45,
+        "min": 1,
+        "weight": 100,
+        "minDepth": 1
+      },
+      {
+        "id": "g_gauntlet",
+        "name": "籠手",
+        "slot": "hands",
+        "icon": "chain",
+        "effect": "battleDamage",
+        "perLevel": 1.8,
+        "min": 3,
+        "weight": 70,
+        "minDepth": 1
+      },
+      {
+        "id": "g_thimble",
+        "name": "指貫",
+        "slot": "hands",
+        "icon": "chain",
+        "effect": "statLuck",
+        "perLevel": 0.4,
+        "min": 1,
+        "weight": 70,
+        "minDepth": 1
+      },
+      {
+        "id": "g_bracer",
+        "name": "腕輪",
+        "slot": "hands",
+        "icon": "chain",
+        "effect": "soulGain",
+        "perLevel": 1.2,
+        "min": 2,
+        "weight": 60,
+        "minDepth": 2
+      },
+      {
+        "id": "g_iron",
+        "name": "鉄拳",
+        "slot": "hands",
+        "icon": "chain",
+        "effect": "defeatBonus",
+        "perLevel": 0.9,
+        "min": 2,
+        "weight": 50,
+        "minDepth": 3
+      },
+      {
+        "id": "g_mage",
+        "name": "術士の手袋",
+        "slot": "hands",
+        "icon": "chain",
+        "effect": "atStartPercent",
+        "perLevel": 0.6,
+        "min": 1,
+        "weight": 35,
+        "minDepth": 4
+      },
+      {
+        "id": "f_shoes",
+        "name": "革靴",
+        "slot": "feet",
+        "icon": "boots",
+        "effect": "torchSpins",
+        "perLevel": 0.9,
+        "min": 1,
+        "weight": 100,
+        "minDepth": 1
+      },
+      {
+        "id": "f_iron",
+        "name": "鉄靴",
+        "slot": "feet",
+        "icon": "boots",
+        "effect": "statLife",
+        "perLevel": 0.45,
+        "min": 1,
+        "weight": 70,
+        "minDepth": 1
+      },
+      {
+        "id": "f_wind",
+        "name": "疾風の靴",
+        "slot": "feet",
+        "icon": "boots",
+        "effect": "statTechnique",
+        "perLevel": 0.5,
+        "min": 1,
+        "weight": 55,
+        "minDepth": 2
+      },
+      {
+        "id": "f_straw",
+        "name": "幸運の草鞋",
+        "slot": "feet",
+        "icon": "boots",
+        "effect": "statLuck",
+        "perLevel": 0.5,
+        "min": 1,
+        "weight": 60,
+        "minDepth": 1
+      },
+      {
+        "id": "f_boots",
+        "name": "旅人の長靴",
+        "slot": "feet",
+        "icon": "boots",
+        "effect": "expGain",
+        "perLevel": 1.3,
+        "min": 2,
+        "weight": 60,
+        "minDepth": 2
+      },
+      {
+        "id": "f_seeker",
+        "name": "探索靴",
+        "slot": "feet",
+        "icon": "boots",
+        "effect": "soulGain",
+        "perLevel": 1.3,
+        "min": 2,
+        "weight": 45,
+        "minDepth": 3
+      },
+      {
         "id": "t_charm",
         "name": "お守り",
-        "slot": "trinket",
+        "slot": "accessory",
         "icon": "amulet",
         "effect": "soulGain",
         "perLevel": 1.8,
@@ -4098,7 +4373,7 @@
       {
         "id": "t_ring",
         "name": "指輪",
-        "slot": "trinket",
+        "slot": "accessory",
         "icon": "amulet",
         "effect": "atStartPercent",
         "perLevel": 0.7,
@@ -4109,13 +4384,79 @@
       {
         "id": "t_lens",
         "name": "水晶",
-        "slot": "trinket",
+        "slot": "accessory",
         "icon": "amulet",
         "effect": "atInitialSpins",
         "perLevel": 0.8,
         "min": 1,
         "weight": 55,
         "minDepth": 3
+      },
+      {
+        "id": "t_clover",
+        "name": "四つ葉",
+        "slot": "accessory",
+        "icon": "amulet",
+        "effect": "statLuck",
+        "perLevel": 0.55,
+        "min": 1,
+        "weight": 70,
+        "minDepth": 1
+      },
+      {
+        "id": "t_lifeneck",
+        "name": "命の首飾り",
+        "slot": "accessory",
+        "icon": "amulet",
+        "effect": "statLife",
+        "perLevel": 0.55,
+        "min": 1,
+        "weight": 70,
+        "minDepth": 1
+      },
+      {
+        "id": "t_earring",
+        "name": "達人の耳飾り",
+        "slot": "accessory",
+        "icon": "amulet",
+        "effect": "statTechnique",
+        "perLevel": 0.55,
+        "min": 1,
+        "weight": 70,
+        "minDepth": 2
+      },
+      {
+        "id": "t_locket",
+        "name": "銀のロケット",
+        "slot": "accessory",
+        "icon": "amulet",
+        "effect": "expGain",
+        "perLevel": 1.5,
+        "min": 2,
+        "weight": 55,
+        "minDepth": 2
+      },
+      {
+        "id": "t_fang",
+        "name": "竜の牙",
+        "slot": "accessory",
+        "icon": "amulet",
+        "effect": "defeatBonus",
+        "perLevel": 1.0,
+        "min": 2,
+        "weight": 35,
+        "minDepth": 4
+      },
+      {
+        "id": "t_orb",
+        "name": "魂の宝珠",
+        "slot": "accessory",
+        "icon": "amulet",
+        "effect": "soulGain",
+        "perLevel": 2.6,
+        "min": 5,
+        "weight": 15,
+        "minDepth": 6
       }
     ],
     "affixes": [
@@ -4175,6 +4516,39 @@
         "weight": 100
       },
       {
+        "id": "p_stout",
+        "label": "剛毅の",
+        "suffix": false,
+        "effect": "statLife",
+        "perLevel": 0.3,
+        "min": 1,
+        "max": 3,
+        "slot": "",
+        "weight": 90
+      },
+      {
+        "id": "p_adept",
+        "label": "熟練の",
+        "suffix": false,
+        "effect": "statTechnique",
+        "perLevel": 0.3,
+        "min": 1,
+        "max": 3,
+        "slot": "",
+        "weight": 90
+      },
+      {
+        "id": "p_blessed",
+        "label": "強運の",
+        "suffix": false,
+        "effect": "statLuck",
+        "perLevel": 0.3,
+        "min": 1,
+        "max": 3,
+        "slot": "",
+        "weight": 90
+      },
+      {
         "id": "s_hunter",
         "label": "の狩人",
         "suffix": true,
@@ -4193,7 +4567,7 @@
         "perLevel": 1.2,
         "min": 2,
         "max": 45,
-        "slot": "armor",
+        "slot": "body",
         "weight": 100
       },
       {
@@ -4226,8 +4600,41 @@
         "perLevel": 1.5,
         "min": 2,
         "max": 60,
-        "slot": "trinket",
+        "slot": "accessory",
         "weight": 100
+      },
+      {
+        "id": "s_guard",
+        "label": "の守り",
+        "suffix": true,
+        "effect": "statLife",
+        "perLevel": 0.3,
+        "min": 1,
+        "max": 3,
+        "slot": "head",
+        "weight": 90
+      },
+      {
+        "id": "s_swift",
+        "label": "の俊足",
+        "suffix": true,
+        "effect": "statTechnique",
+        "perLevel": 0.3,
+        "min": 1,
+        "max": 3,
+        "slot": "feet",
+        "weight": 90
+      },
+      {
+        "id": "s_fortune",
+        "label": "の幸運",
+        "suffix": true,
+        "effect": "statLuck",
+        "perLevel": 0.3,
+        "min": 1,
+        "max": 3,
+        "slot": "hands",
+        "weight": 90
       }
     ]
   },

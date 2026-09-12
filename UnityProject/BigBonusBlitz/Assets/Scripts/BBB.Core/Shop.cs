@@ -53,6 +53,10 @@ namespace BBB.Core
         public const string SoulGain = "soulGain";
         /// <summary>手に入る EXP に +% する。</summary>
         public const string ExpGain = "expGain";
+        /// <summary>ステータス（ライフ / テクニック / ラック）に + する。装備だけが持つ。</summary>
+        public const string StatLife = "statLife";
+        public const string StatTechnique = "statTechnique";
+        public const string StatLuck = "statLuck";
         /// <summary>回復薬 1 個で回復するライフに + する。</summary>
         public const string TorchSpins = "torchSpins";
     }

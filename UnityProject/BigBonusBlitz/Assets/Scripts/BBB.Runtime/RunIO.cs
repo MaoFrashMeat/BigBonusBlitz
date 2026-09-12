@@ -47,11 +47,17 @@ namespace BBB.Runtime
             try { b = JsonUtility.FromJson<EquipBlob>(json); }
             catch (System.Exception) { return; }
             if (b == null) return;
-            if (b.bag != null) foreach (var it in b.bag) if (it != null) inv.Bag.Add(it);
+            // 昔の部位名（armor / trinket）は読み替える
+            if (b.bag != null) foreach (var it in b.bag) if (it != null) { it.slot = EquipSlot.Normalize(it.slot); inv.Bag.Add(it); }
             if (b.wornSlots != null && b.wornItems != null)
                 for (int i = 0; i < b.wornSlots.Count && i < b.wornItems.Count; i++)
                     if (!string.IsNullOrEmpty(b.wornSlots[i]) && b.wornItems[i] != null)
-                        inv.Worn[b.wornSlots[i]] = b.wornItems[i];
+                    {
+                        b.wornItems[i].slot = EquipSlot.Normalize(b.wornItems[i].slot);
+                        string slot = EquipSlot.Normalize(b.wornSlots[i]);
+                        if (System.Array.IndexOf(EquipSlot.All, slot) < 0) slot = inv.FreeSlotFor(b.wornItems[i].slot) ?? EquipSlot.SlotsFor(b.wornItems[i].slot)[0];
+                        inv.Worn[slot] = b.wornItems[i];
+                    }
         }
 
         public static string SaveCurse(CurseState st)

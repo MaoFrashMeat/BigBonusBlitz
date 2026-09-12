@@ -3,21 +3,62 @@ using System.Collections.Generic;
 
 namespace BBB.Core
 {
-    /// <summary>装備の部位。</summary>
+    /// <summary>
+    /// 装備の部位。品の種類（頭 / 体 / 手 / 足 / 武器 / アクセ）と、着ける枠（アクセは 1〜3 の 3 枠）を分けて持つ。
+    /// 品の slot には種類を入れ、Worn のキーには枠を入れる。
+    /// </summary>
     public static class EquipSlot
     {
+        // 品の種類
+        public const string Head = "head";
+        public const string Body = "body";
+        public const string Hands = "hands";
+        public const string Feet = "feet";
         public const string Weapon = "weapon";
-        public const string Armor = "armor";
-        public const string Trinket = "trinket";
-        public static readonly string[] All = { Weapon, Armor, Trinket };
+        public const string Accessory = "accessory";
+        // アクセの枠
+        public const string Acc1 = "acc1", Acc2 = "acc2", Acc3 = "acc3";
 
-        public static string DisplayName(string slot)
+        /// <summary>着ける枠（画面の並び順）。</summary>
+        public static readonly string[] All = { Head, Body, Hands, Feet, Weapon, Acc1, Acc2, Acc3 };
+        /// <summary>品の種類。</summary>
+        public static readonly string[] Kinds = { Head, Body, Hands, Feet, Weapon, Accessory };
+        private static readonly string[] AccSlots = { Acc1, Acc2, Acc3 };
+
+        /// <summary>その種類の品を着けられる枠。</summary>
+        public static string[] SlotsFor(string kind) => Normalize(kind) == Accessory ? AccSlots : new[] { Normalize(kind) };
+
+        /// <summary>枠 → 品の種類（acc1〜3 はアクセ）。</summary>
+        public static string KindOf(string slot)
+        {
+            slot = Normalize(slot);
+            return slot == Acc1 || slot == Acc2 || slot == Acc3 ? Accessory : slot;
+        }
+
+        /// <summary>昔の名前を読み替える（armor → 体、trinket → アクセ）。セーブと設定の両方で使う。</summary>
+        public static string Normalize(string slot)
         {
             switch (slot)
             {
+                case "armor": return Body;
+                case "trinket": return Acc1;
+                default: return slot ?? "";
+            }
+        }
+
+        public static string DisplayName(string slot)
+        {
+            switch (Normalize(slot))
+            {
+                case Head: return "頭";
+                case Body: return "体";
+                case Hands: return "手";
+                case Feet: return "足";
                 case Weapon: return "武器";
-                case Armor: return "防具";
-                case Trinket: return "装身具";
+                case Accessory: return "アクセ";
+                case Acc1: return "アクセ 1";
+                case Acc2: return "アクセ 2";
+                case Acc3: return "アクセ 3";
                 default: return slot;
             }
         }
@@ -123,12 +164,29 @@ namespace BBB.Core
     /// <summary>持ち物と装備中。ランごとに作り直す。</summary>
     public sealed class EquipInventory
     {
-        /// <summary>部位 → 装備中の品。</summary>
+        /// <summary>枠（EquipSlot.All のどれか）→ 装備中の品。</summary>
         public readonly Dictionary<string, EquipItem> Worn = new Dictionary<string, EquipItem>();
         /// <summary>鞄。</summary>
         public readonly List<EquipItem> Bag = new List<EquipItem>();
 
         public EquipItem WornOf(string slot) => Worn.TryGetValue(slot, out var v) ? v : null;
+
+        /// <summary>その品を着けている枠。着けていなければ null。</summary>
+        public string WornSlotOf(EquipItem item)
+        {
+            if (item == null) return null;
+            foreach (var kv in Worn) if (kv.Value == item) return kv.Key;
+            return null;
+        }
+
+        public bool IsWorn(EquipItem item) => WornSlotOf(item) != null;
+
+        /// <summary>その種類の品を着けられる空き枠。無ければ null。</summary>
+        public string FreeSlotFor(string kind)
+        {
+            foreach (var s in EquipSlot.SlotsFor(kind)) if (WornOf(s) == null) return s;
+            return null;
+        }
 
         public void Clear() { Worn.Clear(); Bag.Clear(); }
 
@@ -182,7 +240,7 @@ namespace BBB.Core
 
             var item = new EquipItem
             {
-                baseId = base_.id, slot = base_.slot, icon = base_.icon,
+                baseId = base_.id, slot = EquipSlot.Normalize(base_.slot), icon = base_.icon,
                 rarity = ri, level = depth,
             };
 
@@ -197,7 +255,7 @@ namespace BBB.Core
             {
                 var avail = new List<EquipAffix>();
                 foreach (var a in cfg.affixes)
-                    if (a != null && (string.IsNullOrEmpty(a.slot) || a.slot == base_.slot)) avail.Add(a);
+                    if (a != null && (string.IsNullOrEmpty(a.slot) || EquipSlot.Normalize(a.slot) == item.slot)) avail.Add(a);
                 for (int i = 0; i < want && avail.Count > 0; i++)
                 {
                     var a = PickWeighted(avail, x => x.weight, rng);
@@ -258,14 +316,37 @@ namespace BBB.Core
             return true;
         }
 
-        /// <summary>身に着ける。外れた品は鞄へ戻す。</summary>
-        public static void Equip(EquipInventory inv, EquipItem item)
+        /// <summary>
+        /// 身に着ける。枠を指定しなければ、空いている枠 → 一番弱い品の枠の順で選ぶ（アクセは 3 枠）。
+        /// 外れた品は鞄へ戻す。
+        /// </summary>
+        public static void Equip(EquipInventory inv, EquipItem item, string slot = null)
         {
             if (inv == null || item == null || string.IsNullOrEmpty(item.slot)) return;
-            var old = inv.WornOf(item.slot);
+            item.slot = EquipSlot.Normalize(item.slot);
+            var slots = EquipSlot.SlotsFor(item.slot);
+            if (slot == null || Array.IndexOf(slots, slot) < 0)
+            {
+                slot = inv.FreeSlotFor(item.slot) ?? WeakestSlot(inv, slots);
+            }
+            var old = inv.WornOf(slot);
+            if (old == item) return;
             inv.Bag.Remove(item);
-            inv.Worn[item.slot] = item;
+            inv.Worn[slot] = item;
             if (old != null) inv.Bag.Add(old);
+        }
+
+        /// <summary>枠の中で一番弱い品が入っている枠。</summary>
+        private static string WeakestSlot(EquipInventory inv, string[] slots)
+        {
+            string pick = slots[0]; int power = int.MaxValue;
+            foreach (var s in slots)
+            {
+                var w = inv.WornOf(s);
+                int p = w?.Power ?? -1;
+                if (p < power) { power = p; pick = s; }
+            }
+            return pick;
         }
 
         public static void Unequip(EquipInventory inv, string slot)
@@ -280,12 +361,16 @@ namespace BBB.Core
         /// <summary>捨てる。</summary>
         public static void Drop(EquipInventory inv, EquipItem item) => inv?.Bag.Remove(item);
 
-        /// <summary>今より強ければ自動で着る（拾った直後の判断を省く）。</summary>
+        /// <summary>今より強ければ自動で着る（拾った直後の判断を省く）。空き枠があればそこへ。</summary>
         public static bool AutoEquipIfBetter(EquipInventory inv, EquipItem item)
         {
             if (inv == null || item == null) return false;
-            var cur = inv.WornOf(item.slot);
-            if (cur != null && cur.Power >= item.Power) return false;
+            var slots = EquipSlot.SlotsFor(item.slot);
+            if (inv.FreeSlotFor(item.slot) == null)
+            {
+                var cur = inv.WornOf(WeakestSlot(inv, slots));
+                if (cur != null && cur.Power >= item.Power) return false;
+            }
             Equip(inv, item);
             return true;
         }
@@ -308,6 +393,9 @@ namespace BBB.Core
                 case ShopEffects.SoulGain: return "ソウル";
                 case ShopEffects.ExpGain: return "EXP";
                 case ShopEffects.TorchSpins: return "回復薬の効き";
+                case ShopEffects.StatLife: return "ライフ";
+                case ShopEffects.StatTechnique: return "テクニック";
+                case ShopEffects.StatLuck: return "ラック";
                 default: return effect;
             }
         }
@@ -318,6 +406,9 @@ namespace BBB.Core
             {
                 case ShopEffects.AtInitialSpins:
                 case ShopEffects.TorchSpins: return "G";
+                case ShopEffects.StatLife:
+                case ShopEffects.StatTechnique:
+                case ShopEffects.StatLuck: return "";
                 default: return "%";
             }
         }

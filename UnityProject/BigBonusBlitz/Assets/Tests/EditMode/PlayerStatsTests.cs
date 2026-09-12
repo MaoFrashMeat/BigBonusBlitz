@@ -148,5 +148,43 @@ namespace BBB.Tests
             Assert.Greater(m.PlayerLevel, lv, "レベルが上がらない");
             Assert.GreaterOrEqual(m.Stats.Unspent, per, "レベルが上がったのにポイントが増えていない");
         }
+
+        [Test]
+        public void 装備の枠は8つ_アクセは3つ着けられて4つ目は一番弱いものと入れ替わる()
+        {
+            var m = NewMachine(5);
+            Assert.AreEqual(8, EquipSlot.All.Length);
+            EquipItem Acc(int power) => new EquipItem { baseId = "t", name = "アクセ" + power, slot = EquipSlot.Accessory,
+                effectKeys = new List<string> { ShopEffects.StatLuck }, effectValues = new List<int> { power } };
+            var a1 = Acc(1); var a2 = Acc(2); var a3 = Acc(3); var a4 = Acc(4);
+            foreach (var a in new[] { a1, a2, a3, a4 }) m.Equip.Bag.Add(a);
+            EquipDirector.Equip(m.Equip, a1); EquipDirector.Equip(m.Equip, a2); EquipDirector.Equip(m.Equip, a3);
+            Assert.IsTrue(m.Equip.IsWorn(a1) && m.Equip.IsWorn(a2) && m.Equip.IsWorn(a3), "アクセが 3 つ着けられない");
+            Assert.AreEqual(6, m.LuckStat, "装備のラックが合算されていない");
+            EquipDirector.Equip(m.Equip, a4);
+            Assert.IsTrue(m.Equip.IsWorn(a4), "4 つ目が着けられない");
+            Assert.IsFalse(m.Equip.IsWorn(a1), "一番弱いものが外れていない");
+            Assert.IsTrue(m.Equip.Bag.Contains(a1), "外れた品が鞄に戻っていない");
+            Assert.AreEqual(9, m.LuckStat);
+        }
+
+        [Test]
+        public void 装備の種類ごとに品があり_昔の部位名も読み替えられる()
+        {
+            var m = NewMachine(6);
+            var bases = m.Config.equipment.bases;
+            foreach (var kind in EquipSlot.Kinds)
+                Assert.IsTrue(bases.Exists(b => EquipSlot.Normalize(b.slot) == kind), kind + " の品が無い");
+            Assert.AreEqual(EquipSlot.Body, EquipSlot.Normalize("armor"));
+            Assert.AreEqual(EquipSlot.Accessory, EquipSlot.KindOf(EquipSlot.Normalize("trinket")));
+            // 何度か作っても部位は 6 種類のどれかになる
+            var rng = new SystemRandom(9);
+            for (int i = 0; i < 200; i++)
+            {
+                var it = EquipDirector.Roll(m.Config.equipment, 1 + i % 8, rng);
+                Assert.IsNotNull(it);
+                Assert.Contains(it.slot, EquipSlot.Kinds, "知らない部位: " + it.slot);
+            }
+        }
     }
 }

@@ -251,6 +251,11 @@ namespace BBB.Core
              + Equip.EffectTotal(effect)
              + Curse.BlessTotal(effect);
 
+        /// <summary>装備込みのステータス。振ったポイント（Stats）に装備の + を足したもの。</summary>
+        public int LifeStat => Stats.Life + Equip.EffectTotal(ShopEffects.StatLife);
+        public int TechniqueStat => Stats.Technique + Equip.EffectTotal(ShopEffects.StatTechnique);
+        public int LuckStat => Stats.Luck + Equip.EffectTotal(ShopEffects.StatLuck);
+
         /// <summary>回復薬 1 個ぶんのライフ（装備 + ライフ値 + 呪い）。</summary>
         public int TorchSpinsPerUnit
         {
@@ -258,7 +263,7 @@ namespace BBB.Core
             {
                 int baseSpins = (Config.adventure?.resource?.spinsPerTorch ?? 60)
                     + BonusOf(ShopEffects.TorchSpins)
-                    + (StatsCfg != null ? (int)(Stats.Life * StatsCfg.life.torchSpins) : 0);
+                    + (StatsCfg != null ? (int)(LifeStat * StatsCfg.life.torchSpins) : 0);
                 // 呪い: ライフの減りが速くなる（= 回復薬 1 個ぶんが目減りする）
                 int drain = Curse.CurseTotal(CurseEffects.TorchDrain);
                 if (drain > 0) baseSpins = baseSpins * 100 / (100 + drain);
@@ -278,11 +283,11 @@ namespace BBB.Core
 
         /// <summary>エンゲージのG数（設定 + テクニック）。</summary>
         public int EngageMaxSpins => Math.Max(1, Config.tier2MaxSpins
-            + (StatsCfg != null ? (int)(Stats.Technique * StatsCfg.technique.engageSpins) : 0));
+            + (StatsCfg != null ? (int)(TechniqueStat * StatsCfg.technique.engageSpins) : 0));
 
         /// <summary>力尽きたときに補填されるエンバー（設定 + ライフ）。</summary>
         public int RescueCredit => Math.Max(0, (Config.adventure?.resource?.rescueCredit ?? 0)
-            + (StatsCfg != null ? (int)(Stats.Life * StatsCfg.life.rescueBonus) : 0));
+            + (StatsCfg != null ? (int)(LifeStat * StatsCfg.life.rescueBonus) : 0));
 
         /// <summary>
         /// ステージのG数が止まっているか。ボーナス中・AT 中・ボーナス持ち越し中は
@@ -296,7 +301,7 @@ namespace BBB.Core
             BonusMode != BonusMode.NORMAL ? "BONUS" : InAt ? "CAVE" : HeldBonusFlag != Flag.HAZE ? "成立中" : "";
 
         /// <summary>宝の発見率に足す %（ラック）。</summary>
-        public float TreasureBonus => StatsCfg != null ? Stats.Luck * StatsCfg.luck.treasureBonus : 0f;
+        public float TreasureBonus => StatsCfg != null ? LuckStat * StatsCfg.luck.treasureBonus : 0f;
 
         // --- デバッグ用（main.js の debug-force-flag 相当） ---
         /// <summary>次のレバーでこのフラグを強制する（null で通常抽選）。1回で解除。</summary>
@@ -381,8 +386,8 @@ namespace BBB.Core
             int extra = Curse.CurseTotal(CurseEffects.BetExtra);   // 呪い: 1G あたりの持ち出しが増える
             if (Credit < BetCost + extra) return false;
             // ライフ: 一定の率でエンバーを使わずに回せる（延命）
-            LastBetWasFree = StatsCfg != null && Stats.Life > 0
-                             && _rng.NextDouble() * 100 < Stats.Life * StatsCfg.life.freeBetRate;
+            LastBetWasFree = StatsCfg != null && LifeStat > 0
+                             && _rng.NextDouble() * 100 < LifeStat * StatsCfg.life.freeBetRate;
             int cost = LastBetWasFree ? 0 : BetCost + extra;
             Credit -= cost;
             Bet = BetCost;
@@ -593,9 +598,9 @@ namespace BBB.Core
         private Flag RollLuck()
         {
             var sc = StatsCfg;
-            if (sc == null || Stats.Luck <= 0) return Flag.HAZE;
-            double rare = Stats.Luck * sc.luck.rareRate;
-            double rep = Stats.Luck * sc.luck.replayRate;
+            if (sc == null || LuckStat <= 0) return Flag.HAZE;
+            double rare = LuckStat * sc.luck.rareRate;
+            double rep = LuckStat * sc.luck.replayRate;
             double r = _rng.NextDouble() * 100;
             if (r < rare)
             {
@@ -919,7 +924,7 @@ namespace BBB.Core
                 {
                     int dmg = AtDirectorEx.RollDamage(atc, CurrentFlag, _rng);
                     int dmgBonus = BonusOf(ShopEffects.BattleDamage)
-                                   + (StatsCfg != null ? (int)(Stats.Technique * StatsCfg.technique.battleDamage) : 0);
+                                   + (StatsCfg != null ? (int)(TechniqueStat * StatsCfg.technique.battleDamage) : 0);
                     if (dmg > 0 && dmg < 999 && dmgBonus > 0) dmg = dmg * (100 + dmgBonus) / 100;
                     bool oneShot = dmg >= 999;
                     result.battleDamage = oneShot ? BattleHp : Math.Min(dmg, BattleHp);
@@ -1060,8 +1065,8 @@ namespace BBB.Core
             if (item == null) return;
             if (!EquipDirector.PickUp(ec, Equip, item)) { result.equipBagFull = true; result.equipDropped = item; return; }
             result.equipDropped = item;
-            // 空きスロットなら勝手に着る（今より弱いものは着ない）
-            if (Equip.WornOf(item.slot) == null) { EquipDirector.Equip(Equip, item); result.equipAutoWorn = true; }
+            // 空き枠があれば勝手に着る（埋まっていれば鞄に入れるだけ）
+            if (Equip.FreeSlotFor(item.slot) != null) { EquipDirector.Equip(Equip, item); result.equipAutoWorn = true; }
         }
 
         /// <summary>エンバーが尽きたら「力尽きた」として街へ帰す（ライフ切れは AdvanceAdventure 側）。</summary>
@@ -1240,7 +1245,7 @@ namespace BBB.Core
             if (!IsTier2 || ActiveEnemyTable == null || !EnemyActive) return false;
             if (EnemyDefeatWon) return false;
             int skillBonus = BonusOf(ShopEffects.DefeatBonus)
-                             + (StatsCfg != null ? (int)(Stats.Technique * StatsCfg.technique.defeatBonus) : 0);
+                             + (StatsCfg != null ? (int)(TechniqueStat * StatsCfg.technique.defeatBonus) : 0);
             if (EnemyEngage.RollDefeat(ActiveEnemyTable, winType, _rng, multiplier, DefeatStreak, Config.defeatStreakBonus, skillBonus)) EnemyDefeatWon = true;
             DefeatStreak++;
             return EnemyDefeatWon;
