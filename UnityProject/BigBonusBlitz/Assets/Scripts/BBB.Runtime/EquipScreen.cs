@@ -6,17 +6,26 @@ using UnityEngine.UI;
 namespace BBB.Runtime
 {
     /// <summary>
-    /// 装備画面。左に着ている 8 枠（頭 / 体 / 手 / 足 / 武器 / アクセ 1〜3 を 2 列）、右に鞄、下に選んだ品の詳細と操作。
-    /// 冒険中いつでも開ける（右下の装備ボタン、キーは E。街のショップにもタブを置く）。
-    /// 板は細い縁の紺（panel_navy_sm）。題は左上の紺のタブに乗せ、
-    /// 中身は縁（左右 22px・上下 20px）を避けて置く。配置は docs/ui_rules.md 1 番に従う。
+    /// 装備画面（紙人形型）。左に立ち絵とその左右に 8 枠（頭 / 武器 / 手 / 足 と 体 / アクセ 1〜3）、
+    /// 中央に鞄と装備の合計、右に選んだ品の詳細と「着け替えると」の差分（▲▼）。
+    /// 冒険中いつでも開ける（右下の装備ボタン、キーは E）。
+    /// 板は細い縁の紺（panel_navy_sm）。題は左上の紺のタブ。配置は docs/ui_rules.md 1 番に従う。
     /// </summary>
     public static class EquipScreen
     {
+        // 表示する効果の順（ステータス → 冒険の効果）
+        private static readonly string[] EffectOrder =
+        {
+            ShopEffects.StatLife, ShopEffects.StatTechnique, ShopEffects.StatLuck,
+            ShopEffects.DefeatBonus, ShopEffects.BattleDamage, ShopEffects.TorchSpins,
+            ShopEffects.SoulGain, ShopEffects.ExpGain, ShopEffects.AtStartPercent, ShopEffects.AtInitialSpins,
+        };
+        private static readonly Color ColUp = UiSkin.Hex("#7ee0a0"), ColDown = UiSkin.Hex("#ff7a7a");
+
         public static GameObject Build(Transform stage, SlotMachine m, AudioManager audio,
                                        System.Action onChanged, System.Action onClose)
         {
-            const float W = 900f, H = 500f;
+            const float W = 1020f, H = 510f, edge = 22f;
             var cfg = m.Config.equipment;
 
             var overlay = UiFactory.Panel(stage, "EquipOverlay", Vector2.zero, new Vector2(4000, 4000), new Color(0, 0, 0, 0.86f));
@@ -28,155 +37,98 @@ namespace BBB.Runtime
             var eat = card.gameObject.AddComponent<Button>();      // 中を押しても閉じない
             eat.transition = Selectable.Transition.None;
 
-            // 題は左上のタブ、閉じるは右上。どちらも板の上辺にまたがる（飾りに隠れない）
-            const float tabW = 150f, tabH = 40f, edge = 22f;
+            // 題は左上のタブ、閉じるは右上
+            const float tabW = 150f, tabH = 40f;
             var tab = UiSkin.Img(card, "Tab", new Vector2(-W * 0.5f + edge + tabW * 0.5f, H * 0.5f - 4), new Vector2(tabW, tabH), UiSkin.Frame("pill_navy_sm"), Color.white);
             var title = UiFactory.Label(tab.transform, "Title", new Vector2(0, 1), new Vector2(tabW, tabH), "装備", 15, TextAnchor.MiddleCenter, UiSkin.Text);
             title.fontStyle = FontStyle.Bold;
             UiSkin.IconButton(card, "Close", new Vector2(W * 0.5f - edge, H * 0.5f - 4), 30, "×", () => onClose?.Invoke(), UiSkin.Btn, 16);
 
-            // 左: 着ている 8 枠（2 列）/ 右: 鞄 / 下: 詳細と操作
-            const float colW = 226f, colGap = 8f, gap = 16f;
-            const float leftW = colW * 2 + colGap;
-            float innerL = -W * 0.5f + edge + 12f, innerR = W * 0.5f - edge - 12f;
-            float leftCx = innerL + leftW * 0.5f;
-            float rightX = innerL + leftW + gap;
-            float rightW = innerR - rightX;
-            float rightCx = rightX + rightW * 0.5f;
-            float top = H * 0.5f - 52f;                       // タブの下
-
-            // ---- 詳細（下の窓）。文は左、操作は右 ----
-            const float detailH = 116f;
-            float detailW = innerR - innerL;
-            float detailCy = -H * 0.5f + 20f + detailH * 0.5f;
-            var detail = UiSkin.Inset(card, "Detail", new Vector2(0, detailCy), new Vector2(detailW, detailH), 8, null, "panel_navy_sm");
-            const float btnW = 132f, btnH = 30f;
-            float textW = detailW - 24f - (btnW * 2 + 10f) - 16f;
-            float textCx = -detailW * 0.5f + 12f + textW * 0.5f;
-            var detailName = UiFactory.Label(detail, "Name", new Vector2(textCx, 30), new Vector2(textW, 22), "品を選んでください", 15, TextAnchor.MiddleLeft, UiSkin.Text);
-            detailName.fontStyle = FontStyle.Bold;
-            var detailBody = UiFactory.Label(detail, "Body", new Vector2(textCx, -8), new Vector2(textW, 52), "", 12, TextAnchor.UpperLeft, UiSkin.TextSub);
-            detailBody.horizontalOverflow = HorizontalWrapMode.Wrap;
-
             EquipItem selected = null;
             var rows = new List<System.Action>();
+            // 下で作る部品。Refresh がこれらを使うので先に宣言しておく（ラムダの中から呼ぶため）
+            Text summary = null, empty = null, dName = null, dMeta = null, dEff = null, dNote = null, dHead = null;
+            RectTransform body2 = null;
+            Image dRing = null, dIcon = null;
+            Image[] cmpBg = null; Text[] cmpName = null, cmpOld = null, cmpNew = null;
+            Button btnEquip = null;
 
-            void ShowDetail(EquipItem it)
+            // ===== 左: 立ち絵と 8 枠 =====
+            const float artCx = -286f;
+            var artSprite = PortraitSprite();
+            if (artSprite != null)
             {
-                selected = it;
-                if (it == null)
-                {
-                    detailName.text = "品を選んでください";
-                    detailName.color = UiSkin.TextSub;
-                    detailBody.text = "";
-                    return;
-                }
-                var r = EquipDirector.RarityOf(cfg, it);
-                detailName.text = $"{it.name}   [{r.name}]   {EquipSlot.DisplayName(it.slot)}   深さ {it.level}";
-                detailName.color = UiSkin.Hex(r.color);
-                var sb = new System.Text.StringBuilder();
-                for (int i = 0; i < it.effectKeys.Count; i++)
-                    sb.Append($"{EquipDirector.EffectName(it.effectKeys[i])} +{it.effectValues[i]}{EquipDirector.EffectUnit(it.effectKeys[i])}    ");
-                detailBody.text = sb.ToString().TrimEnd();
+                // 高さ 330 → 幅 249。左右の枠（-417 / -155）の間に収まる大きさ
+                float ah = 330f, aw = ah * artSprite.rect.width / artSprite.rect.height;
+                UiSkin.Img(card, "Portrait", new Vector2(artCx, -20), new Vector2(aw, ah), artSprite, Color.white).preserveAspect = true;
             }
-
-            // 装備中の合計。左右の列と詳細の間に 1 行
-            var summary = UiFactory.Label(card, "Sum", new Vector2(0, detailCy + detailH * 0.5f + 14f), new Vector2(detailW, 18), "", 12, TextAnchor.MiddleCenter, UiSkin.TextSub);
-
-            void Refresh()
-            {
-                foreach (var a in rows) a();
-                var sb = new System.Text.StringBuilder();
-                foreach (var key in new[] { ShopEffects.StatLife, ShopEffects.StatTechnique, ShopEffects.StatLuck,
-                                            ShopEffects.DefeatBonus, ShopEffects.BattleDamage, ShopEffects.TorchSpins,
-                                            ShopEffects.SoulGain, ShopEffects.ExpGain, ShopEffects.AtStartPercent, ShopEffects.AtInitialSpins })
-                {
-                    int v = m.Equip.EffectTotal(key);
-                    if (v != 0) sb.Append($"{EquipDirector.EffectName(key)} +{v}{EquipDirector.EffectUnit(key)}   ");
-                }
-                summary.text = sb.Length > 0 ? "合計   " + sb.ToString().TrimEnd() : "装備の効果なし";
-                onChanged?.Invoke();
-            }
-
-            // ---- 着ている 8 枠（紺のピルを 2 列 × 4 段。左列: 頭 体 手 足 / 右列: 武器 アクセ 1〜3）----
-            UiFactory.Label(card, "WornHead", new Vector2(leftCx, top), new Vector2(leftW, 18), "身に着けている", 12, TextAnchor.MiddleCenter, UiSkin.TextSub);
-            const float rowH = 50f, rowGap = 6f;
+            const float slotBox = 58f, slotPitch = 92f;
+            float[] slotX = { -446f, -126f };
             for (int i = 0; i < EquipSlot.All.Length; i++)
             {
                 string slot = EquipSlot.All[i];
                 int col = i / 4, row = i % 4;
-                float cx = innerL + colW * 0.5f + col * (colW + colGap);
-                float y = top - 14f - rowH * 0.5f - row * (rowH + rowGap);
-                var box = UiSkin.Rect(card, "Worn_" + slot, new Vector2(cx, y), new Vector2(colW, rowH));
-                UiSkin.Img(box, "Body", Vector2.zero, new Vector2(colW, rowH), UiSkin.Frame("pill_navy_sm"), Color.white, true);
-                UiSkin.Img(box, "SlotBg", new Vector2(-colW * 0.5f + 30, 0), new Vector2(34, 34), UiSkin.Circle(48), new Color(1, 1, 1, 0.06f));
-                var icon = UiSkin.Img(box, "Icon", new Vector2(-colW * 0.5f + 30, 0), new Vector2(26, 26), UiSkin.Icon("shield", 64), Color.white);
-                // 枠の名前（頭 / アクセ 1 …）を小さく右上に
-                UiFactory.Label(box, "Slot", new Vector2(colW * 0.5f - 12 - 30, 12), new Vector2(60, 14), EquipSlot.DisplayName(slot), 9, TextAnchor.MiddleRight, UiSkin.TextDim);
-                var nameT = UiFactory.Label(box, "Name", new Vector2(14, 10), new Vector2(colW - 110, 16), "", 12, TextAnchor.MiddleLeft, UiSkin.Text);
-                nameT.fontStyle = FontStyle.Bold;
-                nameT.horizontalOverflow = HorizontalWrapMode.Wrap; nameT.verticalOverflow = VerticalWrapMode.Truncate;   // 長い名前は切る
-                var effT = UiFactory.Label(box, "Eff", new Vector2(24, -10), new Vector2(colW - 90, 16), "", 10, TextAnchor.MiddleLeft, UiSkin.TextSub);
-                effT.horizontalOverflow = HorizontalWrapMode.Wrap; effT.verticalOverflow = VerticalWrapMode.Truncate;
-                var btn = box.gameObject.AddComponent<Button>();
+                var pos = new Vector2(slotX[col], 170f - row * slotPitch);
+                var cell = UiSkin.Rect(card, "Worn_" + slot, pos, new Vector2(slotBox, slotBox));
+                UiSkin.Img(cell, "Body", Vector2.zero, new Vector2(slotBox, slotBox), UiSkin.Frame("slot_navy"), Color.white, true);
+                var ring = UiSkin.Img(cell, "Ring", Vector2.zero, new Vector2(44, 44), UiSkin.Ring(44, 1), new Color(1, 1, 1, 0));
+                var icon = UiSkin.Img(cell, "Icon", Vector2.zero, new Vector2(30, 30), UiSkin.Icon("shield", 64), Color.white);
+                // 枠の名前（頭 / アクセ 1 …）は上に小さな札、品の名前は下に
+                var tagBg = UiSkin.Img(cell, "TagBg", new Vector2(0, slotBox * 0.5f + 4), new Vector2(38, 12), UiSkin.Rounded(6), new Color(0, 0, 0, 0.6f));
+                UiFactory.Label(tagBg.transform, "Tag", Vector2.zero, new Vector2(38, 12), EquipSlot.DisplayName(slot), 8, TextAnchor.MiddleCenter, UiSkin.TextSub);
+                var nameT = UiFactory.Label(cell, "Name", new Vector2(0, -slotBox * 0.5f - 9), new Vector2(80, 14), "", 10, TextAnchor.MiddleCenter, UiSkin.Text);
+                nameT.horizontalOverflow = HorizontalWrapMode.Wrap; nameT.verticalOverflow = VerticalWrapMode.Truncate;
+                var btn = cell.gameObject.AddComponent<Button>();
                 btn.transition = Selectable.Transition.None;
                 string sl = slot;
                 btn.onClick.AddListener(() =>
                 {
                     var w = m.Equip.WornOf(sl);
-                    if (w != null) { ShowDetail(w); audio?.UiPop(); }
+                    if (w != null) { selected = w; audio?.UiPop(); Refresh(); }
                 });
-
                 rows.Add(() =>
                 {
                     var it = m.Equip.WornOf(sl);
+                    bool sel = it != null && it == selected;
                     if (it == null)
                     {
-                        nameT.text = EquipSlot.DisplayName(sl);
-                        nameT.color = UiSkin.TextDim;
-                        effT.text = "空き";
-                        icon.color = new Color(1, 1, 1, 0.25f);
+                        nameT.text = "空き"; nameT.color = UiSkin.TextDim;
+                        icon.sprite = UiSkin.Icon(IconFor(EquipSlot.KindOf(sl)), 64); icon.color = new Color(1, 1, 1, 0.25f);
+                        ring.color = new Color(1, 1, 1, 0);
                         return;
                     }
                     var r = EquipDirector.RarityOf(cfg, it);
-                    nameT.text = it.name;
-                    nameT.color = UiSkin.Hex(r.color);
-                    icon.sprite = UiSkin.Icon(string.IsNullOrEmpty(it.icon) ? "shield" : it.icon, 64);
-                    icon.color = Color.white;
-                    var sb = new System.Text.StringBuilder();
-                    for (int k = 0; k < it.effectKeys.Count; k++)
-                        sb.Append($"{EquipDirector.EffectName(it.effectKeys[k])}+{it.effectValues[k]}{EquipDirector.EffectUnit(it.effectKeys[k])} ");
-                    effT.text = sb.ToString().TrimEnd();
+                    nameT.text = it.name; nameT.color = UiSkin.Hex(r.color);
+                    icon.sprite = UiSkin.Icon(string.IsNullOrEmpty(it.icon) ? IconFor(it.slot) : it.icon, 64); icon.color = Color.white;
+                    ring.sprite = UiSkin.Ring(44, sel ? 2 : 1);
+                    ring.color = sel ? Color.white : UiSkin.Hex(r.color) * new Color(1, 1, 1, 0.7f);
                 });
             }
 
-            // ---- 鞄（4 列 × 4 段 = 16。bagSize がそれより小さければ余りは出さない）----
-            var bagHead = UiFactory.Label(card, "BagHead", new Vector2(rightCx, top), new Vector2(rightW, 18), "", 12, TextAnchor.MiddleCenter, UiSkin.TextSub);
+            // ===== 中央: 鞄と合計 =====
+            const float bagCx = 40f, bagCell = 54f, bagPitch = 58f;
             const int cols = 4;
             int bagRows = Mathf.Clamp(Mathf.CeilToInt(Mathf.Max(1, cfg?.bagSize ?? 12) / (float)cols), 1, 4);
-            float cell = Mathf.Min((rightW - 8) / cols, 58f);
-            var cellBtns = new List<Button>();
+            var bagHead = UiFactory.Label(card, "BagHead", new Vector2(bagCx, 190), new Vector2(240, 16), "", 11, TextAnchor.MiddleCenter, UiSkin.TextSub);
             var cellIcons = new List<Image>();
             var cellRings = new List<Image>();
             for (int i = 0; i < cols * bagRows; i++)
             {
                 int cx = i % cols, cy = i / cols;
-                var pos = new Vector2(rightCx - (cols - 1) * cell * 0.5f + cx * cell,
-                                      top - 14f - cell * 0.5f - cy * (cell + 4f));
-                var slotRt = UiSkin.Rect(card, "Bag" + i, pos, new Vector2(cell - 6, cell - 6));
-                var ring = UiSkin.Img(slotRt, "Ring", Vector2.zero, new Vector2(cell - 6, cell - 6), UiSkin.Rounded(8), new Color(1, 1, 1, 0.08f), true);
-                UiSkin.Img(slotRt, "Bg", Vector2.zero, new Vector2(cell - 10, cell - 10), UiSkin.Rounded(6), UiSkin.InsetColor);
-                var ic = UiSkin.Img(slotRt, "Icon", Vector2.zero, new Vector2(cell - 22, cell - 22), UiSkin.Icon("sword", 64), Color.white);
-                var b = ring.gameObject.AddComponent<Button>();
+                var pos = new Vector2(bagCx - (cols - 1) * bagPitch * 0.5f + cx * bagPitch, 150f - cy * bagPitch);
+                var slotRt = UiSkin.Rect(card, "Bag" + i, pos, new Vector2(bagCell, bagCell));
+                var body = UiSkin.Img(slotRt, "Body", Vector2.zero, new Vector2(bagCell, bagCell), UiSkin.Frame("slot_navy"), Color.white, true);
+                var ring = UiSkin.Img(slotRt, "Ring", Vector2.zero, new Vector2(40, 40), UiSkin.Ring(40, 1), new Color(1, 1, 1, 0));
+                var ic = UiSkin.Img(slotRt, "Icon", Vector2.zero, new Vector2(28, 28), UiSkin.Icon("sword", 64), Color.white);
+                var b = body.gameObject.AddComponent<Button>();
                 b.transition = Selectable.Transition.None;
                 int idx = i;
                 b.onClick.AddListener(() =>
                 {
-                    if (idx < m.Equip.Bag.Count) { ShowDetail(m.Equip.Bag[idx]); audio?.UiPop(); }
+                    if (idx < m.Equip.Bag.Count) { selected = m.Equip.Bag[idx]; audio?.UiPop(); Refresh(); }
                 });
-                cellBtns.Add(b); cellIcons.Add(ic); cellRings.Add(ring);
+                cellIcons.Add(ic); cellRings.Add(ring);
             }
-
             rows.Add(() =>
             {
                 int cap = Mathf.Max(1, cfg?.bagSize ?? 12);
@@ -185,18 +137,50 @@ namespace BBB.Runtime
                 {
                     bool has = i < m.Equip.Bag.Count;
                     cellIcons[i].gameObject.SetActive(has);
-                    if (!has) { cellRings[i].color = new Color(1, 1, 1, 0.08f); continue; }
+                    if (!has) { cellRings[i].color = new Color(1, 1, 1, 0); continue; }
                     var it = m.Equip.Bag[i];
                     var r = EquipDirector.RarityOf(cfg, it);
-                    cellIcons[i].sprite = UiSkin.Icon(string.IsNullOrEmpty(it.icon) ? "sword" : it.icon, 64);
-                    cellRings[i].color = UiSkin.Hex(r.color) * new Color(1, 1, 1, 0.75f);
+                    cellIcons[i].sprite = UiSkin.Icon(string.IsNullOrEmpty(it.icon) ? IconFor(it.slot) : it.icon, 64);
+                    bool sel = it == selected;
+                    cellRings[i].sprite = UiSkin.Ring(40, sel ? 2 : 1);
+                    cellRings[i].color = sel ? Color.white : UiSkin.Hex(r.color) * new Color(1, 1, 1, 0.75f);
                 }
             });
+            // 装備の合計（鞄の下）
+            summary = UiFactory.Label(card, "Sum", new Vector2(bagCx, 150f - bagRows * bagPitch - 8f), new Vector2(240, 44), "", 10, TextAnchor.UpperCenter, UiSkin.TextSub);
+            summary.horizontalOverflow = HorizontalWrapMode.Wrap;
 
-            // ---- 詳細の操作（窓の右側に 2 つ並べる）----
-            float btnDropCx = detailW * 0.5f - 12f - btnW * 0.5f;
-            float btnEquipCx = btnDropCx - btnW - 10f;
-            var btnEquip = UiSkin.Button(detail, "Equip", new Vector2(btnEquipCx, 0), new Vector2(btnW, btnH), "身に着ける", () =>
+            // ===== 右: 詳細と「着け替えると」 =====
+            const float dW = 300f, dH = 400f;
+            float dCx = W * 0.5f - edge - 12f - dW * 0.5f;
+            var detail = UiSkin.Inset(card, "Detail", new Vector2(dCx, 0), new Vector2(dW, dH), 8, null, "panel_navy_sm");
+            empty = UiFactory.Label(detail, "Empty", Vector2.zero, new Vector2(dW - 40, 40), "品を選んでください", 13, TextAnchor.MiddleCenter, UiSkin.TextSub);
+            body2 = UiSkin.Rect(detail, "Body", Vector2.zero, new Vector2(dW, dH));
+            float top = dH * 0.5f - 22f, left = -dW * 0.5f + 18f;
+            UiSkin.Img(body2, "IconBg", new Vector2(left + 24, top - 24), new Vector2(48, 48), UiSkin.Rounded(8), new Color(0, 0, 0, 0.35f));
+            dRing = UiSkin.Img(body2, "IconRing", new Vector2(left + 24, top - 24), new Vector2(48, 48), UiSkin.Ring(48, 1), Color.white);
+            dIcon = UiSkin.Img(body2, "Icon", new Vector2(left + 24, top - 24), new Vector2(34, 34), UiSkin.Icon("sword", 64), Color.white);
+            dName = UiFactory.Label(body2, "Name", new Vector2(left + 60 + (dW - 96) * 0.5f, top - 10), new Vector2(dW - 96, 18), "", 14, TextAnchor.MiddleLeft, UiSkin.Text);
+            dName.fontStyle = FontStyle.Bold;
+            dName.horizontalOverflow = HorizontalWrapMode.Wrap; dName.verticalOverflow = VerticalWrapMode.Truncate;
+            dMeta = UiFactory.Label(body2, "Meta", new Vector2(left + 60 + (dW - 96) * 0.5f, top - 30), new Vector2(dW - 96, 14), "", 10, TextAnchor.MiddleLeft, UiSkin.TextSub);
+            dEff = UiFactory.Label(body2, "Eff", new Vector2(0, top - 68), new Vector2(dW - 36, 32), "", 11, TextAnchor.UpperLeft, UiSkin.Text);
+            dEff.horizontalOverflow = HorizontalWrapMode.Wrap;
+            dNote = UiFactory.Label(body2, "Note", new Vector2(0, top - 98), new Vector2(dW - 36, 14), "", 10, TextAnchor.MiddleLeft, UiSkin.TextSub);
+            dHead = UiFactory.Label(body2, "CmpHead", new Vector2(0, top - 118), new Vector2(dW - 36, 14), "着け替えると", 11, TextAnchor.MiddleLeft, UiSkin.TextSub);
+            const int cmpRows = 7; const float cmpH = 20f, cmpPitch = 22f;
+            cmpBg = new Image[cmpRows]; cmpName = new Text[cmpRows]; cmpOld = new Text[cmpRows]; cmpNew = new Text[cmpRows];
+            for (int i = 0; i < cmpRows; i++)
+            {
+                float y = top - 138f - i * cmpPitch;
+                cmpBg[i] = UiSkin.Img(body2, "Cmp" + i, new Vector2(0, y), new Vector2(dW - 36, cmpH), UiSkin.Rounded(4), new Color(1, 1, 1, 0.05f));
+                cmpName[i] = UiFactory.Label(cmpBg[i].transform, "N", new Vector2(-(dW - 36) * 0.5f + 8 + 60, 0), new Vector2(120, cmpH), "", 11, TextAnchor.MiddleLeft, UiSkin.Text);
+                cmpOld[i] = UiFactory.Label(cmpBg[i].transform, "O", new Vector2(14, 0), new Vector2(60, cmpH), "", 11, TextAnchor.MiddleRight, UiSkin.TextSub);
+                UiFactory.Label(cmpBg[i].transform, "Arrow", new Vector2(56, 0), new Vector2(20, cmpH), "→", 11, TextAnchor.MiddleCenter, UiSkin.TextDim);
+                cmpNew[i] = UiFactory.Label(cmpBg[i].transform, "V", new Vector2((dW - 36) * 0.5f - 8 - 36, 0), new Vector2(72, cmpH), "", 11, TextAnchor.MiddleRight, UiSkin.Text);
+            }
+            const float btnW = 128f, btnH = 30f;
+            btnEquip = UiSkin.Button(body2, "Equip", new Vector2(-btnW * 0.5f - 6, -dH * 0.5f + 34), new Vector2(btnW, btnH), "身に着ける", () =>
             {
                 if (selected == null) return;
                 var wornAt = m.Equip.WornSlotOf(selected);
@@ -204,31 +188,131 @@ namespace BBB.Runtime
                 else EquipDirector.Equip(m.Equip, selected);
                 audio?.UiPop();
                 Refresh();
-                ShowDetail(selected);
             }, UiSkin.Blue, 12, false, 8);
-            var btnDrop = UiSkin.Button(detail, "Drop", new Vector2(btnDropCx, 0), new Vector2(btnW, btnH), "捨てる", () =>
+            UiSkin.Button(body2, "Drop", new Vector2(btnW * 0.5f + 6, -dH * 0.5f + 34), new Vector2(btnW, btnH), "捨てる", () =>
             {
                 if (selected == null) return;
                 var wornAt = m.Equip.WornSlotOf(selected);
                 if (wornAt != null) EquipDirector.Unequip(m.Equip, wornAt);
                 EquipDirector.Drop(m.Equip, selected);
+                selected = null;
                 audio?.UiPop();
-                ShowDetail(null);
                 Refresh();
             }, new Color(0.45f, 0.18f, 0.22f), 12, false, 8);
 
-            rows.Add(() =>
+            void RefreshDetail()
             {
                 bool has = selected != null;
-                btnEquip.interactable = has;
-                btnDrop.interactable = has;
-                if (has)
-                    UiSkin.SetButtonText(btnEquip, m.Equip.IsWorn(selected) ? "外す" : "身に着ける");
-            });
+                empty.gameObject.SetActive(!has);
+                body2.gameObject.SetActive(has);
+                if (!has) return;
+                var it = selected;
+                var r = EquipDirector.RarityOf(cfg, it);
+                var rc = UiSkin.Hex(r.color);
+                dIcon.sprite = UiSkin.Icon(string.IsNullOrEmpty(it.icon) ? IconFor(it.slot) : it.icon, 64);
+                dRing.color = rc;
+                dName.text = it.name; dName.color = rc;
+                string wornAt = m.Equip.WornSlotOf(it);
+                dMeta.text = $"{r.name}  ·  {EquipSlot.DisplayName(wornAt ?? it.slot)}  ·  深さ {it.level}";
+                var sb = new System.Text.StringBuilder();
+                for (int i = 0; i < it.effectKeys.Count; i++)
+                    sb.Append($"{EquipDirector.EffectName(it.effectKeys[i])} +{it.effectValues[i]}{EquipDirector.EffectUnit(it.effectKeys[i])}    ");
+                dEff.text = sb.ToString().TrimEnd();
 
-            ShowDetail(null);
+                // 着け替えたあとの合計（外すなら引くだけ、着けるなら入る枠の品と入れ替え）
+                var now = Totals(m.Equip, null, null);
+                Dictionary<string, int> after;
+                if (wornAt != null) { after = Totals(m.Equip, it, null); dNote.text = ""; dHead.text = "外すと"; }
+                else
+                {
+                    string target = EquipDirector.TargetSlotFor(m.Equip, it);
+                    var replaced = target != null ? m.Equip.WornOf(target) : null;
+                    after = Totals(m.Equip, replaced, it);
+                    dNote.text = replaced != null ? $"{EquipSlot.DisplayName(target)} の {replaced.name} と入れ替え" : $"{EquipSlot.DisplayName(target)} に着ける";
+                    dHead.text = "着け替えると";
+                }
+                int row = 0;
+                foreach (var key in EffectOrder)
+                {
+                    now.TryGetValue(key, out int a); after.TryGetValue(key, out int b);
+                    if (a == b || row >= cmpRows) continue;
+                    string u = EquipDirector.EffectUnit(key);
+                    cmpBg[row].gameObject.SetActive(true);
+                    cmpName[row].text = EquipDirector.EffectName(key);
+                    cmpOld[row].text = $"+{a}{u}";
+                    cmpNew[row].text = $"+{b}{u}  {(b > a ? "▲" : "▼")}";
+                    cmpNew[row].color = b > a ? ColUp : ColDown;
+                    row++;
+                }
+                if (row == 0) { cmpBg[0].gameObject.SetActive(true); cmpName[0].text = "変わらない"; cmpOld[0].text = ""; cmpNew[0].text = ""; row = 1; }
+                for (int i = row; i < cmpRows; i++) cmpBg[i].gameObject.SetActive(false);
+                UiSkin.SetButtonText(btnEquip, wornAt != null ? "外す" : "身に着ける");
+            }
+
+            void Refresh()
+            {
+                foreach (var a in rows) a();
+                var sb = new System.Text.StringBuilder("合計   ");
+                int n = 0;
+                foreach (var key in EffectOrder)
+                {
+                    int v = m.Equip.EffectTotal(key);
+                    if (v == 0) continue;
+                    sb.Append($"{EquipDirector.EffectName(key)} +{v}{EquipDirector.EffectUnit(key)}   ");
+                    n++;
+                }
+                summary.text = n > 0 ? sb.ToString().TrimEnd() : "装備の効果なし";
+                RefreshDetail();
+                onChanged?.Invoke();
+            }
+
             Refresh();
             return overlay.gameObject;
+        }
+
+        /// <summary>装備中の効果の合計。remove を外し、add を足した状態で数える（null なら何もしない）。</summary>
+        private static Dictionary<string, int> Totals(EquipInventory inv, EquipItem remove, EquipItem add)
+        {
+            var d = new Dictionary<string, int>();
+            void AddItem(EquipItem it)
+            {
+                if (it == null) return;
+                for (int i = 0; i < it.effectKeys.Count && i < it.effectValues.Count; i++)
+                {
+                    d.TryGetValue(it.effectKeys[i], out int v);
+                    d[it.effectKeys[i]] = v + it.effectValues[i];
+                }
+            }
+            foreach (var kv in inv.Worn) if (kv.Value != remove) AddItem(kv.Value);
+            AddItem(add);
+            return d;
+        }
+
+        /// <summary>品の種類ごとの既定のアイコン（品に icon が無いとき）。</summary>
+        private static string IconFor(string kind)
+        {
+            switch (EquipSlot.Normalize(kind))
+            {
+                case EquipSlot.Weapon: return "sword";
+                case EquipSlot.Feet: return "boots";
+                case EquipSlot.Hands: return "chain";
+                case EquipSlot.Accessory: return "amulet";
+                default: return "shield";
+            }
+        }
+
+        private static Sprite _portrait;
+
+        /// <summary>立ち絵（タイトルの元絵から、人物の部分だけ切り出す）。無ければ null。</summary>
+        private static Sprite PortraitSprite()
+        {
+            if (_portrait != null) return _portrait;
+            var tex = Resources.Load<Texture2D>("SaliaRig/source");
+            if (tex == null) return null;
+            // 左へ伸ばした腕と剣先を外し、顔と体を中心に（元絵 1672×941 のうち x 470〜1180）
+            int x0 = Mathf.Min(470, tex.width - 1), w = Mathf.Min(710, tex.width - x0);
+            _portrait = Sprite.Create(tex, new Rect(x0, 0, w, tex.height), new Vector2(0.5f, 0.5f), 100f);
+            return _portrait;
         }
     }
 }

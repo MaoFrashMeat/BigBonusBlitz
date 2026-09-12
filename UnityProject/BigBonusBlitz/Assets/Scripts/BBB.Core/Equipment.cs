@@ -336,6 +336,14 @@ namespace BBB.Core
             if (old != null) inv.Bag.Add(old);
         }
 
+        /// <summary>着けるならどの枠に入るか（空き枠 → 一番弱い品の枠）。画面の「着け替えると」で使う。</summary>
+        public static string TargetSlotFor(EquipInventory inv, EquipItem item)
+        {
+            if (inv == null || item == null) return null;
+            string kind = EquipSlot.Normalize(item.slot);
+            return inv.FreeSlotFor(kind) ?? WeakestSlot(inv, EquipSlot.SlotsFor(kind));
+        }
+
         /// <summary>枠の中で一番弱い品が入っている枠。</summary>
         private static string WeakestSlot(EquipInventory inv, string[] slots)
         {

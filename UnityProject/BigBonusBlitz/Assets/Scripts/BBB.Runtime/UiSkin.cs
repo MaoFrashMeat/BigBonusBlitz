@@ -176,6 +176,36 @@ namespace BBB.Runtime
             return s;
         }
 
+        /// <summary>角丸の枠線だけ（中は透明）。9スライス。thickness は線の太さ px、角の丸みは 6。</summary>
+        public static Sprite Ring(int size, int thickness)
+        {
+            string key = $"ring{thickness}";
+            if (_cache.TryGetValue(key, out var s) && s != null) return s;
+            const int radius = 6;
+            int tex = radius * 2 + 8;
+            var t = new Texture2D(tex, tex, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
+            var px = new Color32[tex * tex];
+            for (int y = 0; y < tex; y++)
+                for (int x = 0; x < tex; x++)
+                {
+                    float outer = RoundedAlpha(x, y, tex, tex, radius, 1f);
+                    // 内側の角丸を thickness ぶん縮めて引く
+                    float inner = RoundedAlphaInset(x, y, tex, tex, Mathf.Max(1, radius - thickness), thickness);
+                    px[y * tex + x] = new Color32(255, 255, 255, (byte)(255 * Mathf.Clamp01(outer - inner)));
+                }
+            t.SetPixels32(px); t.Apply();
+            s = Sprite.Create(t, new Rect(0, 0, tex, tex), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect, new Vector4(radius + 1, radius + 1, radius + 1, radius + 1));
+            _cache[key] = s;
+            return s;
+        }
+
+        /// <summary>inset ぶん内側に入った角丸矩形の中なら 1。</summary>
+        private static float RoundedAlphaInset(int x, int y, int w, int h, int radius, int inset)
+        {
+            float d = RoundedDistance(x + 0.5f, y + 0.5f, inset, inset, w - inset, h - inset, radius);
+            return Mathf.Clamp01(0.5f - d);
+        }
+
         /// <summary>角丸のぼかし影（9スライス）。blur はぼかし幅 px。</summary>
         public static Sprite Shadow(int radius, int blur)
         {
