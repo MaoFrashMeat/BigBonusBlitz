@@ -305,20 +305,25 @@ namespace BBB.Runtime
             sh.effectDistance = new Vector2(1, -2);
         }
 
-        /// <summary>モーダル: 暗幕（タップで閉じる）＋中央カード＋×。返すのは暗幕。</summary>
+        /// <summary>
+        /// モーダル: 暗幕（タップで閉じる）＋中央カード＋×。返すのは暗幕。
+        /// 板は細い縁の紺（panel_navy_sm）。題は左上の紺のタブに乗せる（隅の飾りが大きい panel_navy だと題が隠れた）。
+        /// </summary>
         private GameObject BuildModal(string name, Vector2 size, string title, System.Action onClose, out RectTransform body)
         {
             var overlay = UiFactory.Panel(_stage, name + "Overlay", Vector2.zero, new Vector2(4000, 4000), new Color(0, 0, 0, 0.62f));
             var closeBtn = overlay.gameObject.AddComponent<Button>();
             closeBtn.transition = Selectable.Transition.None;
             closeBtn.onClick.AddListener(() => onClose());
-            var card = UiSkin.Card(overlay, "Card", Vector2.zero, size, 14);
+            var card = UiSkin.Card(overlay, "Card", Vector2.zero, size, 14, frameOverride: "panel_navy_sm");
             var eat = card.gameObject.AddComponent<Button>();        // カード内のタップは閉じない
             eat.transition = Selectable.Transition.None;
-            var t = UiFactory.Label(card, "Title", new Vector2(-14, size.y * 0.5f - 22), new Vector2(size.x - 80, 24), title, 15, TextAnchor.MiddleLeft, ColText);
+            // タブの幅は題の長さから。板の上辺にまたがる
+            float tabW = Mathf.Min(size.x - 80, Mathf.Max(150, title.Length * 15 + 40)), tabH = 40f;
+            var tab = UiSkin.Img(card, "Tab", new Vector2(-size.x * 0.5f + 22 + tabW * 0.5f, size.y * 0.5f - 4), new Vector2(tabW, tabH), UiSkin.Frame("pill_navy_sm"), Color.white);
+            var t = UiFactory.Label(tab.transform, "Title", new Vector2(0, 1), new Vector2(tabW, tabH), title, 15, TextAnchor.MiddleCenter, ColText);
             t.fontStyle = FontStyle.Bold;
-            UiSkin.Img(card, "TitleLine", new Vector2(0, size.y * 0.5f - 38), new Vector2(size.x - 32, 1), null, new Color(1, 1, 1, 0.08f));
-            UiSkin.IconButton(card, "Close", new Vector2(size.x * 0.5f - 22, size.y * 0.5f - 22), 28, "×", onClose, ColBtn, 16);
+            UiSkin.IconButton(card, "Close", new Vector2(size.x * 0.5f - 22, size.y * 0.5f - 4), 30, "×", onClose, ColBtn, 16);
             body = card;
             return overlay.gameObject;
         }
