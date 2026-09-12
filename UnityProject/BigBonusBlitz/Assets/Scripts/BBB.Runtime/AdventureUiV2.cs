@@ -31,8 +31,8 @@ namespace BBB.Runtime
             Label(side,"Lv",null,15); Label(side,"BonusLabel",null,12); Label(side,"AtRank",null,10); Label(side,"Status",null,12);
             Gauge(side,"Exp"); Gauge(side,"BonusGauge");
             V2Icon(side,"PlayerIcon","swords"); V2Icon(side,"BonusIcon","crystal");
-            // 設定・グラフは右下の隅のアイコンボタン（GameController が置く）。ここでは板の色だけ合わせる
-            foreach (string name in new[] { "BtnSettings", "BtnGraph" })
+            // 装備・設定・グラフは右下の隅のアイコンボタン（GameController が置く）。ここでは板の色だけ合わせる
+            foreach (string name in new[] { "BtnEquip", "BtnSettings", "BtnGraph" })
             {
                 var b = stage.Find(name); if (b == null) continue;
                 Panel(b); Flat(b, "Body", UiSkin.Hex("#21354b"));

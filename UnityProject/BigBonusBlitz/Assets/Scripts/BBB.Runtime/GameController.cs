@@ -685,12 +685,16 @@ namespace BBB.Runtime
             _btnBet = UiSkin.Button(_stage, "BtnBet", Lbt.Pos, Lbt.Size, "MAX BET", OnBetClicked, ColAccent, 20, true, 12, UiLayout.Frame("bet"));
             AddSubHint(_btnBet, _isTouch ? "画面タップでも OK" : "Ctrl / Space");
             // STOP ボタンは廃止（2026-09-11）。リールそのものがタップで止まり、キーは Z / X / C
-            // AUTO は右下の隅にアイコン 2 つ（歯車＝設定・音量 / グラフ）を置くぶん細くする
+            // AUTO は右下の隅にアイコン 3 つ（装備 / 歯車＝設定・音量 / グラフ）を置くぶん細くする
             const float ToolIco = 44f, ToolGap = 8f;
-            float autoW = SideW - ToolIco * 2 - ToolGap * 2;
+            float autoW = SideW - ToolIco * 3 - ToolGap * 3;
             var Lau = UiLayout.Get("auto", ContentW * 0.5f - SideW + autoW * 0.5f, CtrlY, autoW, CtrlH);
             _btnAuto = UiSkin.Button(_stage, "BtnAuto", Lau.Pos, Lau.Size, "AUTO", CycleAuto, ColBtn, 18, true, 12, UiLayout.Frame("auto"));
             AddSubHint(_btnAuto, _isTouch ? "押すたび x1〜x6" : "A / Space長押し");
+            // 装備は冒険中いつでも開ける（E キーと同じ）
+            var LtE = UiLayout.Get("toolEquip", ContentW * 0.5f - ToolIco * 2.5f - ToolGap * 2, CtrlY, ToolIco, ToolIco);
+            var btnEquip = UiSkin.Button(_stage, "BtnEquip", LtE.Pos, LtE.Size, "", ToggleEquip, ColBtn, 12, false, 10);
+            UiSkin.Img(btnEquip.transform, "Icon", Vector2.zero, new Vector2(24, 24), UiSkin.Icon("shield", 64), ColGold);
             var LtS = UiLayout.Get("toolSettings", ContentW * 0.5f - ToolIco * 1.5f - ToolGap, CtrlY, ToolIco, ToolIco);
             var btnSettings = UiSkin.Button(_stage, "BtnSettings", LtS.Pos, LtS.Size, "", ToggleSettings, ColBtn, 12, false, 10);
             UiSkin.Img(btnSettings.transform, "Icon", Vector2.zero, new Vector2(24, 24), UiSkin.Icon("gear", 64), ColGold);
