@@ -131,6 +131,9 @@ sColL = -innerW / 2 + sColW / 2
 sColR = innerW / 2 - sColW / 2
 top = MidH / 2
 row('右パネルの横（2 列）', [('左の列', sColL, sColW), ('右の列', sColR, sColW)], left=-innerW / 2, right=innerW / 2)
+rankW, rankGap = 72, 8
+headW = sColW - rankW - rankGap
+row('ボーナス見出しとAT期待度', [('見出し', -sColW / 2 + headW / 2, headW), ('期待度', sColW / 2 - rankW / 2, rankW)], left=-sColW / 2, right=sColW / 2)
 stack('右パネルの左の列の縦', [
     ('PLAYER見出し', top - 20, 16), ('Lv', top - 38, 18), ('EXPゲージ', top - 51, 6),
     ('BONUS見出し', top - 70, 16), ('BONUS文字', top - 88, 16), ('BONUSゲージ', top - 102, 6),
@@ -256,8 +259,8 @@ for name, w, h in [('ゲーム中', 700.0, 340.0), ('街', 564.0, 258.0)]:
           f'縦{"OK" if ok_v else "NG"} 横{"OK" if ok_h else "NG"}  名前表示 {"あり" if g >= 44 else "なし"}')
 
 # ---------------------------------------------------------------- 結果
-stack('Adventure V2 amounts', [('ember caption',76,20), ('ember value',39,44), ('payout caption',-5,20), ('payout value',-37,36), ('resources',-76,32)], top=98, bottom=-98)
-row('Adventure V2 controls', [('BET',-351,242), ('settings',-78,144), ('graph',78,144), ('AUTO',351,242)], left=-480, right=480)
+stack('V2 button text', [('label',7,26), ('hint',-14,14)], top=28, bottom=-28)
+stack('V2 tool content', [('icon',7,20), ('caption',-12,14)], top=22, bottom=-22)
 print()
 if FAIL:
     print('NG が %d 件:' % len(FAIL))

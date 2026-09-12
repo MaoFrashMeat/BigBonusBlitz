@@ -54,6 +54,13 @@ public static class AdventureUiValidation
             // 舞台より狭い画面では実機と同じく舞台ごと縮める（SafeStage と同じ式）
             safe.Stage.localScale = Vector3.one * Mathf.Min(1f, (540f * size.x / size.y) / safe.Stage.sizeDelta.x);
             Canvas.ForceUpdateCanvases();
+            var stage = safe.Stage;
+            AssertSeparate(stage, "Side/BonusHead", "Side/AtRank");
+            AssertSeparate(stage, "Side/BonusLabel", "Side/AtRank");
+            AssertSeparate(stage, "BtnBet/Label", "BtnBet/Sub");
+            AssertSeparate(stage, "BtnAuto/Label", "BtnAuto/Sub");
+            AssertSeparate(stage, "BtnSettings/Icon", "BtnSettings/Label");
+            AssertSeparate(stage, "BtnGraph/Icon", "BtnGraph/Label");
             foreach (var g in canvas.GetComponentsInChildren<Graphic>()) { g.SetAllDirty(); g.Rebuild(CanvasUpdate.PreRender); g.canvasRenderer.cull = false; }
             Canvas.ForceUpdateCanvases();
             var target = RenderTexture.GetTemporary(size.x, size.y, 24);
@@ -67,5 +74,17 @@ public static class AdventureUiValidation
             if ((button.name == "BtnBet" || button.name == "BtnAuto" || button.name == "BtnSettings" || button.name == "BtnGraph") && ((RectTransform)button.transform).rect.height < 44) throw new Exception("Touch target smaller than 44: " + button.name);
         File.WriteAllText(Path.Combine(output,"validation.json"),"{\"passed\":true,\"resolutions\":[\"1280x720\",\"2556x1179\"],\"saveDataTouched\":false}");
         Debug.Log("ADVENTURE_UI_VALIDATION passed");
+    }
+
+    private static void AssertSeparate(RectTransform stage, string a, string b)
+    {
+        Rect Bounds(string path)
+        {
+            var rt = stage.Find(path) as RectTransform;
+            if (rt == null) throw new Exception("Missing UI: " + path);
+            var corners = new Vector3[4]; rt.GetWorldCorners(corners);
+            return Rect.MinMaxRect(corners[0].x, corners[0].y, corners[2].x, corners[2].y);
+        }
+        if (Bounds(a).Overlaps(Bounds(b))) throw new Exception("Overlapping UI: " + a + " / " + b);
     }
 }

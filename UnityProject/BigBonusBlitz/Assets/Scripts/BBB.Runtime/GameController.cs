@@ -667,9 +667,11 @@ namespace BBB.Runtime
             UiFactory.Label(side, "ExpLabel", new Vector2(sColL, top - 38), new Vector2(sColW, 18), "EXP", 10, TextAnchor.MiddleRight, UiSkin.TextDim);
             _expFill = UiSkin.Gauge(side, "Exp", new Vector2(sColL, top - 51), new Vector2(sColW, 6), ColGreen, out _expTrack);
             UiSkin.Img(side, "BonusIcon", new Vector2(sColL - sColW * 0.5f + HeadIco * 0.5f, top - 70), new Vector2(HeadIco, HeadIco), UiSkin.Icon("amulet", 64), Color.white);
-            UiSkin.Heading(side, "BonusHead", new Vector2(sColL, top - 70), sColW, "BONUS", HeadIndent);
+            const float rankW = 72f, rankGap = 8f;
+            float bonusHeadW = sColW - rankW - rankGap;
+            UiSkin.Heading(side, "BonusHead", new Vector2(sColL - sColW * 0.5f + bonusHeadW * 0.5f, top - 70), bonusHeadW, "BONUS", HeadIndent);
             _bonusLabel = UiFactory.Label(side, "BonusLabel", new Vector2(sColL, top - 88), new Vector2(sColW, 16), "―", 12, TextAnchor.MiddleLeft, ColGold);
-            _atRankLabel = UiFactory.Label(side, "AtRank", new Vector2(sColL, top - 88), new Vector2(sColW, 16), "", 10, TextAnchor.MiddleRight, UiSkin.TextDim);
+            _atRankLabel = UiFactory.Label(side, "AtRank", new Vector2(sColL + sColW * 0.5f - rankW * 0.5f, top - 70), new Vector2(rankW, 16), "", 10, TextAnchor.MiddleRight, UiSkin.TextDim);
             _bonusFill = UiSkin.Gauge(side, "BonusGauge", new Vector2(sColL, top - 102), new Vector2(sColW, 6), ColGold, out _bonusTrack);
             // 右の列
             _status = UiFactory.Label(side, "Status", new Vector2(sColR, top - 30), new Vector2(sColW, 40), "", 12, TextAnchor.UpperLeft, ColText);
