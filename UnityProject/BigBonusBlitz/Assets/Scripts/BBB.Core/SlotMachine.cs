@@ -228,6 +228,9 @@ namespace BBB.Core
         public EnemyTable ActiveEnemyTable;
         /// <summary>ソウルと持ち物。ショップの効果はここから読む。</summary>
         public readonly PlayerWallet Wallet = new PlayerWallet();
+        /// <summary>実績の進み具合（プレイヤー単位で永続）と一覧（Resources/Data/achievements.json。読み込みは Runtime 側）。</summary>
+        public readonly AchievementState Ach = new AchievementState();
+        public List<AchievementDef> Achievements = new List<AchievementDef>();
         /// <summary>潜行中に拾った装備。街に戻ると流す。</summary>
         public readonly EquipInventory Equip = new EquipInventory();
         /// <summary>受けている呪いと祝福。</summary>

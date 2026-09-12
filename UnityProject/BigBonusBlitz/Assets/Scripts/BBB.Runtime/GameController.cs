@@ -185,6 +185,9 @@ namespace BBB.Runtime
         private readonly Image[] _routeBar = new Image[3];
         private GameObject _mapBox;
         private GameObject _equipBox, _curseBox;
+        private GameObject _trophyBox;
+        private RectTransform _trophyList;
+        private Text _trophyHead;
         private RectTransform _mapBody, _mapView, _condList;
         /// <summary>冒険マップの窓の高さ。地図 320 + 分岐条件 96 が縦に収まる大きさ。</summary>
         private const float MapModalH = 500f;
@@ -692,16 +695,20 @@ namespace BBB.Runtime
             _btnBet = UiSkin.Button(_stage, "BtnBet", Lbt.Pos, Lbt.Size, "MAX BET", OnBetClicked, ColAccent, 20, true, 12, UiLayout.Frame("bet"));
             AddSubHint(_btnBet, _isTouch ? "画面タップでも OK" : "Ctrl / Space");
             // STOP ボタンは廃止（2026-09-11）。リールそのものがタップで止まり、キーは Z / X / C
-            // AUTO は右下の隅にアイコン 3 つ（装備 / 歯車＝設定・音量 / グラフ）を置くぶん細くする
+            // AUTO は右下の隅にアイコン 4 つ（装備 / 実績 / 歯車＝設定・音量 / グラフ）を置くぶん細くする
             const float ToolIco = 44f, ToolGap = 8f;
-            float autoW = SideW - ToolIco * 3 - ToolGap * 3;
+            float autoW = SideW - ToolIco * 4 - ToolGap * 4;
             var Lau = UiLayout.Get("auto", ContentW * 0.5f - SideW + autoW * 0.5f, CtrlY, autoW, CtrlH);
             _btnAuto = UiSkin.Button(_stage, "BtnAuto", Lau.Pos, Lau.Size, "AUTO", CycleAuto, ColBtn, 18, true, 12, UiLayout.Frame("auto"));
             AddSubHint(_btnAuto, _isTouch ? "押すたび x1〜x6" : "A / Space長押し");
             // 装備は冒険中いつでも開ける（E キーと同じ）
-            var LtE = UiLayout.Get("toolEquip", ContentW * 0.5f - ToolIco * 2.5f - ToolGap * 2, CtrlY, ToolIco, ToolIco);
+            var LtE = UiLayout.Get("toolEquip", ContentW * 0.5f - ToolIco * 3.5f - ToolGap * 3, CtrlY, ToolIco, ToolIco);
             var btnEquip = UiSkin.Button(_stage, "BtnEquip", LtE.Pos, LtE.Size, "", ToggleEquip, ColBtn, 12, false, 10);
             UiSkin.Img(btnEquip.transform, "Icon", Vector2.zero, new Vector2(24, 24), UiSkin.Icon("shield", 64), ColGold);
+            // 実績（トロフィー）
+            var LtT = UiLayout.Get("toolTrophy", ContentW * 0.5f - ToolIco * 2.5f - ToolGap * 2, CtrlY, ToolIco, ToolIco);
+            var btnTrophy = UiSkin.Button(_stage, "BtnTrophy", LtT.Pos, LtT.Size, "", ToggleTrophy, ColBtn, 12, false, 10);
+            UiSkin.Img(btnTrophy.transform, "Icon", Vector2.zero, new Vector2(26, 26), UiSkin.Star(96), ColGold);
             var LtS = UiLayout.Get("toolSettings", ContentW * 0.5f - ToolIco * 1.5f - ToolGap, CtrlY, ToolIco, ToolIco);
             var btnSettings = UiSkin.Button(_stage, "BtnSettings", LtS.Pos, LtS.Size, "", ToggleSettings, ColBtn, 12, false, 10);
             UiSkin.Img(btnSettings.transform, "Icon", Vector2.zero, new Vector2(24, 24), UiSkin.Icon("gear", 64), ColGold);
@@ -840,6 +847,12 @@ namespace BBB.Runtime
             UiSkin.Button(gBody, "GraphReset", new Vector2(grW * 0.5f - 90, -grH * 0.5f + 20), new Vector2(140, 28), "ここから取り直す",
                 () => { _audio.UiPop(); _graph.ResetTo(_m.Credit); _graph.SetGhost(null); _histPicked = -1; RefreshHistory(); }, ColBtn, 12, false, 8);
             _graphBox.SetActive(false);
+
+            // ===== モーダル: 実績 =====
+            _trophyBox = BuildModal("Trophy", new Vector2(760, 500), "実績", ToggleTrophy, out var tBody);
+            _trophyHead = UiFactory.Label(tBody, "Head", new Vector2(0, 250 - 58), new Vector2(700, 18), "", 12, TextAnchor.MiddleCenter, ColTextSub);
+            UiSkin.ScrollBox(tBody, "List", new Vector2(0, -24), new Vector2(704, 380), out _trophyList);
+            _trophyBox.SetActive(false);
 
             // ===== モーダル: 冒険マップ =====
             _mapBox = BuildModal("Map", new Vector2(760, MapModalH), "冒険マップ", ToggleMap, out _mapBody);
@@ -1022,7 +1035,76 @@ namespace BBB.Runtime
             _audio.UiPop();
         }
         /// <summary>レバーオン・Esc でモーダルを閉じる（game-design §16.9: 遊技を止めさせない）。</summary>
-        private void CloseModals() { if (_settingsBox != null) _settingsBox.SetActive(false); if (_debugBox != null) _debugBox.SetActive(false); if (_graphBox != null) _graphBox.SetActive(false); if (_mapBox != null) _mapBox.SetActive(false); if (_equipBox != null) { Destroy(_equipBox); _equipBox = null; } }
+        private void CloseModals() { if (_settingsBox != null) _settingsBox.SetActive(false); if (_debugBox != null) _debugBox.SetActive(false); if (_graphBox != null) _graphBox.SetActive(false); if (_mapBox != null) _mapBox.SetActive(false); if (_trophyBox != null) _trophyBox.SetActive(false); if (_equipBox != null) { Destroy(_equipBox); _equipBox = null; } }
+
+        /// <summary>実績の窓。開くたびに一覧を作り直す（解除と進み具合が変わるため）。</summary>
+        private void ToggleTrophy()
+        {
+            if (_trophyBox == null) return;
+            bool open = !_trophyBox.activeSelf;
+            CloseModals();
+            _trophyBox.SetActive(open);
+            if (open) RefreshTrophies();
+            _audio.UiPop();
+        }
+
+        private void RefreshTrophies()
+        {
+            if (_trophyList == null) return;
+            foreach (Transform c in _trophyList) Destroy(c.gameObject);
+            var defs = _m.Achievements;
+            int unlocked = 0;
+            foreach (var d in defs) if (_m.Ach.Unlocked.Contains(d.id)) unlocked++;
+            _trophyHead.text = $"解除  {unlocked} / {defs.Count}";
+            const float rowH = 44f;
+            float w = _trophyList.rect.width > 0 ? _trophyList.rect.width : 704f;
+            foreach (var d in defs)
+            {
+                bool done = _m.Ach.Unlocked.Contains(d.id);
+                bool secret = d.hidden && !done;
+                var row = UiSkin.Img(_trophyList, "Row", Vector2.zero, new Vector2(w, rowH), UiSkin.Rounded(6), done ? new Color(1f, 0.82f, 0.25f, 0.10f) : new Color(1, 1, 1, 0.04f));
+                row.gameObject.AddComponent<LayoutElement>().preferredHeight = rowH;
+                var star = UiSkin.Img(row.transform, "Star", Vector2.zero, new Vector2(26, 26), UiSkin.Star(96), done ? ColGold : new Color(1, 1, 1, 0.18f));
+                star.rectTransform.anchorMin = new Vector2(0, 0.5f); star.rectTransform.anchorMax = new Vector2(0, 0.5f);
+                star.rectTransform.anchoredPosition = new Vector2(24, 0);
+                var name = UiFactory.Label(row.transform, "Name", Vector2.zero, Vector2.zero, secret ? "？？？" : d.name, 13, TextAnchor.MiddleLeft, done ? ColGold : ColText);
+                name.fontStyle = FontStyle.Bold; Side(name.rectTransform, 48, 300); name.rectTransform.anchoredPosition += new Vector2(0, 9); name.rectTransform.sizeDelta = new Vector2(252, 18); name.rectTransform.anchorMin = new Vector2(0, 0.5f); name.rectTransform.anchorMax = new Vector2(0, 0.5f);
+                var desc = UiFactory.Label(row.transform, "Desc", Vector2.zero, Vector2.zero, secret ? "解除すると見える" : d.desc, 10, TextAnchor.MiddleLeft, ColTextSub);
+                Side(desc.rectTransform, 48, 420); desc.rectTransform.anchoredPosition += new Vector2(0, -9); desc.rectTransform.sizeDelta = new Vector2(372, 16); desc.rectTransform.anchorMin = new Vector2(0, 0.5f); desc.rectTransform.anchorMax = new Vector2(0, 0.5f);
+                // 右: 進み具合とご褒美
+                long cur = System.Math.Min(_m.Ach.Get(d.counter), d.target);
+                var prog = UiFactory.Label(row.transform, "Prog", Vector2.zero, Vector2.zero, done ? "達成" : (secret ? "" : $"{cur:N0} / {d.target:N0}"), 11, TextAnchor.MiddleRight, done ? ColGold : ColTextSub);
+                Side(prog.rectTransform, w - 300, w - 120); prog.rectTransform.anchoredPosition += new Vector2(0, 9); prog.rectTransform.sizeDelta = new Vector2(180, 16); prog.rectTransform.anchorMin = new Vector2(0, 0.5f); prog.rectTransform.anchorMax = new Vector2(0, 0.5f);
+                var track = UiSkin.Img(row.transform, "Track", Vector2.zero, Vector2.zero, UiSkin.Rounded(3), new Color(1, 1, 1, 0.10f));
+                track.rectTransform.anchorMin = new Vector2(0, 0.5f); track.rectTransform.anchorMax = new Vector2(0, 0.5f); track.rectTransform.pivot = new Vector2(0, 0.5f);
+                track.rectTransform.anchoredPosition = new Vector2(w - 300, -10); track.rectTransform.sizeDelta = new Vector2(180, 6);
+                float ratio = secret ? 0f : AchievementDirector.Progress(d, _m.Ach);
+                var fill = UiSkin.Img(row.transform, "Fill", Vector2.zero, Vector2.zero, UiSkin.Rounded(3), done ? ColGold : ColGreen);
+                fill.rectTransform.anchorMin = new Vector2(0, 0.5f); fill.rectTransform.anchorMax = new Vector2(0, 0.5f); fill.rectTransform.pivot = new Vector2(0, 0.5f);
+                fill.rectTransform.anchoredPosition = new Vector2(w - 300, -10); fill.rectTransform.sizeDelta = new Vector2(180 * ratio, 6);
+                var reward = UiFactory.Label(row.transform, "Reward", Vector2.zero, Vector2.zero, d.rewardSouls > 0 ? $"+{d.rewardSouls:N0} ソウル" : "", 11, TextAnchor.MiddleRight, done ? ColTextSub : Hex("#a98bff"));
+                Side(reward.rectTransform, w - 112, w - 10);
+            }
+        }
+
+        /// <summary>行の中で、左端から x0〜x1 の帯に置く（縦は行いっぱい）。</summary>
+        private static void Side(RectTransform rt, float x0, float x1)
+        {
+            rt.anchorMin = new Vector2(0, 0); rt.anchorMax = new Vector2(0, 1);
+            rt.pivot = new Vector2(0, 0.5f);
+            rt.anchoredPosition = new Vector2(x0, 0);
+            rt.sizeDelta = new Vector2(x1 - x0, 0);
+        }
+
+        /// <summary>実績を解除したときの表示。舞台の上に金の帯で出し、報酬のソウルも添える。</summary>
+        private void ShowAchievement(AchievementDef a)
+        {
+            if (a == null) return;
+            string text = a.rewardSouls > 0 ? $"実績解除  {a.name}   +{a.rewardSouls} ソウル" : $"実績解除  {a.name}";
+            UiFx.PopText(_stage, text, ColGold, 22, new Vector2(0, 150));
+            UiFx.Burst(_stage, UiFx.Preset.SuccessStars, new Vector2(0, 150));
+            _audio.Win();
+        }
 
         /// <summary>セーブ削除は 3 秒以内の 2 度押しで確定（§6.1: 破壊的操作を連打で通過させない）。</summary>
         private void OnResetSavePressed()
@@ -2228,6 +2310,8 @@ namespace BBB.Runtime
             var r = _m.Evaluate();
             _lastPayout = r.win.payout;
             _lastWasReplay = r.win.isReplay;
+            // 実績: 数えものを進め、解除したら知らせる
+            foreach (var a in AchievementDirector.Track(_m.Achievements, _m.Ach, r, _m)) ShowAchievement(a);
             if (_m.PrecursorRemaining == 0) _hint.text = "";
             PlayCharacter("walk");
 

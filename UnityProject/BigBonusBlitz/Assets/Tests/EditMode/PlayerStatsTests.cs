@@ -150,6 +150,49 @@ namespace BBB.Tests
         }
 
         [Test]
+        public void 実績は数えものが規定に届くと解除され_報酬のソウルが入る()
+        {
+            var m = NewMachine(7);
+            m.Achievements = new List<AchievementDef>
+            {
+                new AchievementDef { id = "first_spin", name = "はじめの一回転", counter = AchievementCounters.Spins, target = 1, rewardSouls = 30 },
+                new AchievementDef { id = "spins_3", name = "三回転", counter = AchievementCounters.Spins, target = 3, rewardSouls = 10 },
+            };
+            m.Credit = 1000;
+            long souls = m.Wallet.Souls;
+            int unlockedTotal = 0;
+            for (int g = 0; g < 3; g++)
+            {
+                m.MaxBet(); m.Lever();
+                for (int i = 0; i < 3; i++) m.Stop(i, 0);
+                var r = m.Evaluate();
+                var got = AchievementDirector.Track(m.Achievements, m.Ach, r, m);
+                unlockedTotal += got.Count;
+                if (g == 0) { Assert.AreEqual(1, got.Count, "1 回転目で解除されない"); Assert.AreEqual("first_spin", got[0].id); }
+            }
+            Assert.AreEqual(2, unlockedTotal, "解除の数が違う（二重に解除しているか、3 回転で解除されていない）");
+            Assert.IsTrue(m.Ach.Unlocked.Contains("spins_3"));
+            Assert.AreEqual(3, m.Ach.Get(AchievementCounters.Spins));
+            Assert.AreEqual(souls + 40, m.Wallet.Souls, "報酬のソウルが入っていない");
+        }
+
+        [Test]
+        public void 実績の一覧が読めて_数えもののキーが全部知っているものである()
+        {
+            var defs = GameDataLoader.LoadAchievements();
+            Assert.Greater(defs.Count, 10, "achievements.json が読めていない");
+            var known = new HashSet<string>();
+            foreach (var f in typeof(AchievementCounters).GetFields()) known.Add((string)f.GetValue(null));
+            var ids = new HashSet<string>();
+            foreach (var d in defs)
+            {
+                Assert.IsTrue(ids.Add(d.id), "id が重複: " + d.id);
+                Assert.IsTrue(known.Contains(d.counter), d.id + " の counter が知らない名前: " + d.counter);
+                Assert.Greater(d.target, 0, d.id + " の target が 0");
+            }
+        }
+
+        [Test]
         public void 装備の枠は8つ_アクセは3つ着けられて4つ目は一番弱いものと入れ替わる()
         {
             var m = NewMachine(5);

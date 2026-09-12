@@ -1,0 +1,238 @@
+{
+  "list": [
+    {
+      "id": "first_spin",
+      "name": "はじめの一回転",
+      "desc": "1 回転する",
+      "counter": "spins",
+      "target": 1,
+      "rewardSouls": 30,
+      "hidden": false
+    },
+    {
+      "id": "spins_1000",
+      "name": "千回転",
+      "desc": "1,000 回転する",
+      "counter": "spins",
+      "target": 1000,
+      "rewardSouls": 100,
+      "hidden": false
+    },
+    {
+      "id": "spins_10000",
+      "name": "一万回転",
+      "desc": "10,000 回転する",
+      "counter": "spins",
+      "target": 10000,
+      "rewardSouls": 300,
+      "hidden": false
+    },
+    {
+      "id": "spins_100000",
+      "name": "十万回転",
+      "desc": "100,000 回転する",
+      "counter": "spins",
+      "target": 100000,
+      "rewardSouls": 1000,
+      "hidden": false
+    },
+    {
+      "id": "big_1",
+      "name": "はじめての BIG",
+      "desc": "BIG BONUS を引く",
+      "counter": "big",
+      "target": 1,
+      "rewardSouls": 50,
+      "hidden": false
+    },
+    {
+      "id": "big_50",
+      "name": "BIG 50",
+      "desc": "BIG BONUS を 50 回引く",
+      "counter": "big",
+      "target": 50,
+      "rewardSouls": 300,
+      "hidden": false
+    },
+    {
+      "id": "reg_30",
+      "name": "REG 30",
+      "desc": "REG BONUS を 30 回引く",
+      "counter": "reg",
+      "target": 30,
+      "rewardSouls": 200,
+      "hidden": false
+    },
+    {
+      "id": "at_1",
+      "name": "洞窟へ",
+      "desc": "AT「洞窟」に入る",
+      "counter": "at",
+      "target": 1,
+      "rewardSouls": 50,
+      "hidden": false
+    },
+    {
+      "id": "at_20",
+      "name": "洞窟の常連",
+      "desc": "AT「洞窟」に 20 回入る",
+      "counter": "at",
+      "target": 20,
+      "rewardSouls": 300,
+      "hidden": false
+    },
+    {
+      "id": "at_best_300",
+      "name": "長い洞窟",
+      "desc": "1 回の AT で 300G 回す",
+      "counter": "atBest",
+      "target": 300,
+      "rewardSouls": 500,
+      "hidden": false
+    },
+    {
+      "id": "chapter_1",
+      "name": "はじめての章クリア",
+      "desc": "章を 1 つクリアする",
+      "counter": "chapters",
+      "target": 1,
+      "rewardSouls": 100,
+      "hidden": false
+    },
+    {
+      "id": "chapter_10",
+      "name": "歴戦の旅人",
+      "desc": "章を 10 回クリアする",
+      "counter": "chapters",
+      "target": 10,
+      "rewardSouls": 500,
+      "hidden": false
+    },
+    {
+      "id": "defeat_10",
+      "name": "討伐 10",
+      "desc": "エンゲージで敵を 10 体倒す",
+      "counter": "defeats",
+      "target": 10,
+      "rewardSouls": 100,
+      "hidden": false
+    },
+    {
+      "id": "defeat_100",
+      "name": "討伐 100",
+      "desc": "エンゲージで敵を 100 体倒す",
+      "counter": "defeats",
+      "target": 100,
+      "rewardSouls": 500,
+      "hidden": false
+    },
+    {
+      "id": "hunt_50",
+      "name": "狩人",
+      "desc": "狩猟で 50 体倒す",
+      "counter": "hunts",
+      "target": 50,
+      "rewardSouls": 300,
+      "hidden": false
+    },
+    {
+      "id": "treasure_10",
+      "name": "宝探し",
+      "desc": "宝を 10 個見つける",
+      "counter": "treasures",
+      "target": 10,
+      "rewardSouls": 100,
+      "hidden": false
+    },
+    {
+      "id": "drop_50",
+      "name": "拾い集め",
+      "desc": "装備を 50 個拾う",
+      "counter": "drops",
+      "target": 50,
+      "rewardSouls": 200,
+      "hidden": false
+    },
+    {
+      "id": "legend_1",
+      "name": "伝説の一品",
+      "desc": "レジェンド（黒）以上の装備を拾う",
+      "counter": "legendDrops",
+      "target": 1,
+      "rewardSouls": 300,
+      "hidden": false
+    },
+    {
+      "id": "full_set",
+      "name": "全身装備",
+      "desc": "8 つの枠を全部埋める",
+      "counter": "wornMax",
+      "target": 8,
+      "rewardSouls": 200,
+      "hidden": false
+    },
+    {
+      "id": "navi_500",
+      "name": "押し順の達人",
+      "desc": "押し順ナビに 500 回従う",
+      "counter": "naviHits",
+      "target": 500,
+      "rewardSouls": 300,
+      "hidden": false
+    },
+    {
+      "id": "tech_20",
+      "name": "職人",
+      "desc": "技術介入に 20 回成功する",
+      "counter": "techWins",
+      "target": 20,
+      "rewardSouls": 200,
+      "hidden": false
+    },
+    {
+      "id": "level_10",
+      "name": "Lv 10",
+      "desc": "レベル 10 になる",
+      "counter": "levelMax",
+      "target": 10,
+      "rewardSouls": 200,
+      "hidden": false
+    },
+    {
+      "id": "level_30",
+      "name": "Lv 30",
+      "desc": "レベル 30 になる",
+      "counter": "levelMax",
+      "target": 30,
+      "rewardSouls": 500,
+      "hidden": false
+    },
+    {
+      "id": "depth_8",
+      "name": "最深部",
+      "desc": "8 段目まで到達する",
+      "counter": "depthMax",
+      "target": 8,
+      "rewardSouls": 500,
+      "hidden": false
+    },
+    {
+      "id": "souls_10000",
+      "name": "魂の収集家",
+      "desc": "ソウルを累計 10,000 集める",
+      "counter": "soulsTotal",
+      "target": 10000,
+      "rewardSouls": 300,
+      "hidden": false
+    },
+    {
+      "id": "death_1",
+      "name": "旅路の洗礼",
+      "desc": "力尽きて街へ戻される",
+      "counter": "deaths",
+      "target": 1,
+      "rewardSouls": 50,
+      "hidden": true
+    }
+  ]
+}

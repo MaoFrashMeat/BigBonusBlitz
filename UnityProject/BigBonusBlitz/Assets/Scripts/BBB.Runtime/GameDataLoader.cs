@@ -11,6 +11,7 @@ namespace BBB.Runtime
         public const string GameConfigPath = "Data/game_config";
         public const string WorkflowPath = "Data/workflow_config";
         public const string EnemyTablesPath = "Data/enemy_tables";
+        public const string AchievementsPath = "Data/achievements";
 
         /// <summary>
         /// 既定値つきの List / Dictionary に JSON を読むと、既定の中身に「追記」されて二重になる。
@@ -30,8 +31,20 @@ namespace BBB.Runtime
         public static List<EnemyTable> LoadEnemyTables() =>
             JsonConvert.DeserializeObject<EnemyTableSet>(LoadText(EnemyTablesPath), Settings).tables;
 
-        public static SlotMachine CreateMachine(IRandom rng = null, int setting = 1) =>
-            new SlotMachine(LoadGameConfig(), LoadWorkflow(), LoadEnemyTables(), rng, setting);
+        public static List<AchievementDef> LoadAchievements()
+        {
+            var ta = Resources.Load<TextAsset>(AchievementsPath);
+            if (ta == null) return new List<AchievementDef>();
+            try { return JsonConvert.DeserializeObject<AchievementFile>(ta.text, Settings)?.list ?? new List<AchievementDef>(); }
+            catch (System.Exception e) { Debug.LogWarning("achievements.json が読めない: " + e.Message); return new List<AchievementDef>(); }
+        }
+
+        public static SlotMachine CreateMachine(IRandom rng = null, int setting = 1)
+        {
+            var m = new SlotMachine(LoadGameConfig(), LoadWorkflow(), LoadEnemyTables(), rng, setting);
+            m.Achievements = LoadAchievements();
+            return m;
+        }
 
         private static string LoadText(string path)
         {

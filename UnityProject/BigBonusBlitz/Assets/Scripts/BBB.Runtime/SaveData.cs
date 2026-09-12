@@ -61,6 +61,8 @@ namespace BBB.Runtime
         // 潜行中の拾い物と呪い（構造が深いので JSON 文字列で持つ）
         public string runEquip = "";
         public string runCurse = "";
+        // 実績（プレイヤー単位。潜行をまたいで残る）
+        public string achievements = "";
 
         public static void Save(SlotMachine m, AudioManager audio)
         {
@@ -105,6 +107,7 @@ namespace BBB.Runtime
                 advDecidedPriority = m.Adv.decidedPriority,
                 runEquip = RunIO.SaveEquip(m.Equip),
                 runCurse = RunIO.SaveCurse(m.Curse),
+                achievements = RunIO.SaveAchievements(m.Ach),
             };
             var ck = new System.Collections.Generic.List<string>();
             var cv = new System.Collections.Generic.List<int>();
@@ -198,6 +201,7 @@ namespace BBB.Runtime
                 RunIO.LoadEquip(m.Equip, d.runEquip);
                 RunIO.LoadCurse(m.Curse, d.runCurse);
             }
+            RunIO.LoadAchievements(m.Ach, d.achievements);
             LoadAudio(audio);   // 音量は別キー（無ければこのセーブの値）から
             return true;
         }

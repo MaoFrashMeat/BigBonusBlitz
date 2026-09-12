@@ -63,13 +63,14 @@ def main():
     w("")
     w("## レア度")
     w("")
-    w("| レア度 | 色 | 接辞の数 | 倍率 % | " + " | ".join("深さ %d" % d for d in (1, 2, 4, 6, 8)) + " |")
-    w("|---|---|---|---|" + "---|" * 5)
+    w("| レア度 | id | 色 | 接辞の数 | 倍率 % | " + " | ".join("深さ %d" % d for d in (1, 2, 4, 6, 8)) + " |")
+    w("|---|---|---|---|---|" + "---|" * 5)
     for i, r in enumerate(rarities):
         cells = []
         for d in (1, 2, 4, 6, 8):
-            cells.append("%.0f%%" % rarity_weights(rarities, d)[i])
-        w("| %s | `%s` | %d | %d | %s |" % (r["name"], r["color"], r["affixes"], r["power"], " | ".join(cells)))
+            v = rarity_weights(rarities, d)[i]
+            cells.append(("%.2f%%" if v < 1 else "%.0f%%") % v)
+        w("| %s | `%s` | `%s` | %d | %d | %s |" % (r["name"], r["id"], r["color"], r["affixes"], r["power"], " | ".join(cells)))
     w("")
     w("深さごとの列は「その深さで落ちた 1 個がそのレア度になる確率」。")
     w("")
@@ -91,8 +92,8 @@ def main():
     w("")
     w("## ベース（種類ごと）")
     w("")
-    w("「出る割合」は同じ種類の中での重みの比（深さ 8、全部が出る状態）。値の例は 並（倍率 %d）と 伝説（倍率 %d）の基礎効果。" %
-      (rarities[0]["power"], rarities[-1]["power"]))
+    w("「出る割合」は同じ種類の中での重みの比（深さ 8、全部が出る状態）。値の例は %s（倍率 %d）と %s（倍率 %d）の基礎効果。" %
+      (rarities[0]["name"], rarities[0]["power"], rarities[-1]["name"], rarities[-1]["power"]))
     for kind in KIND_ORDER:
         rows = [b for b in bases if normalize(b["slot"]) == kind]
         if not rows: continue
@@ -100,7 +101,7 @@ def main():
         w("")
         w("### %s（%d 種）" % (KIND_NAME[kind], len(rows)))
         w("")
-        w("| id | 名前 | 効果 | 深さ1あたり | 最低 | 重み | 出る割合 | 出はじめ | 並 深さ1 / 4 / 8 | 伝説 深さ4 / 8 |")
+        w("| id | 名前 | 効果 | 深さ1あたり | 最低 | 重み | 出る割合 | 出はじめ | %s 深さ1 / 4 / 8 | %s 深さ4 / 8 |" % (rarities[0]["name"], rarities[-1]["name"]))
         w("|---|---|---|---|---|---|---|---|---|---|")
         for b in rows:
             nm, unit, _ = EFFECT.get(b["effect"], (b["effect"], "", ""))
@@ -112,7 +113,7 @@ def main():
     w("")
     w("## 接辞（レア度の数だけ付く。同じ物は 2 回付かない）")
     w("")
-    w("「付く確率」は 1 つ目の接辞としてそれが選ばれる確率（その種類に付けられる接辞の重みの比）。上質は 1 つ、稀少は 2 つ、伝説は 3 つ付く。")
+    w("「付く確率」は 1 つ目の接辞としてそれが選ばれる確率（その種類に付けられる接辞の重みの比）。付く数はレア度の表の「接辞の数」。")
     w("")
     w("| id | 語 | 位置 | 効果 | 深さ1あたり | 最低〜最高 | 対象 | 重み | " + " | ".join(KIND_NAME[k] for k in KIND_ORDER) + " |")
     w("|---|---|---|---|---|---|---|---|" + "---|" * len(KIND_ORDER))
@@ -135,11 +136,11 @@ def main():
     w("")
     w("## 値の例（接辞）")
     w("")
-    w("| 接辞 | 上質 深さ2 / 5 | 稀少 深さ5 / 8 | 伝説 深さ8 |")
-    w("|---|---|---|---|")
-    fine = next((r for r in rarities if r["id"] == "fine"), rarities[min(1, len(rarities) - 1)])
+    fine = next((r for r in rarities if r["id"] in ("fine", "uncommon")), rarities[min(1, len(rarities) - 1)])
     rare = next((r for r in rarities if r["id"] == "rare"), rarities[min(2, len(rarities) - 1)])
     leg = rarities[-1]
+    w("| 接辞 | %s 深さ2 / 5 | %s 深さ5 / 8 | %s 深さ8 |" % (fine["name"], rare["name"], leg["name"]))
+    w("|---|---|---|---|")
     for a in affixes:
         nm, unit, _ = EFFECT.get(a["effect"], (a["effect"], "", ""))
         f = " / ".join("+%d%s" % (scale(a["perLevel"], d, a["min"], a["max"], fine["power"]), unit) for d in (2, 5))

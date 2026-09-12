@@ -3982,39 +3982,84 @@
     "rarities": [
       {
         "id": "common",
-        "name": "並",
-        "color": "#9aa4b8",
+        "name": "コモン",
+        "color": "#f2f4f8",
         "affixes": 0,
         "power": 100,
-        "weight": 620,
-        "weightPerDepth": -55
+        "weight": 6000,
+        "weightPerDepth": -500
       },
       {
-        "id": "fine",
-        "name": "上質",
+        "id": "uncommon",
+        "name": "アンコモン",
         "color": "#4da3ff",
         "affixes": 1,
-        "power": 120,
-        "weight": 280,
-        "weightPerDepth": 10
+        "power": 110,
+        "weight": 2600,
+        "weightPerDepth": 80
       },
       {
         "id": "rare",
-        "name": "稀少",
+        "name": "レア",
         "color": "#ffcf3f",
+        "affixes": 1,
+        "power": 120,
+        "weight": 900,
+        "weightPerDepth": 140
+      },
+      {
+        "id": "superior",
+        "name": "スーペリア",
+        "color": "#5fe08a",
         "affixes": 2,
-        "power": 145,
-        "weight": 90,
-        "weightPerDepth": 26
+        "power": 135,
+        "weight": 320,
+        "weightPerDepth": 90
+      },
+      {
+        "id": "epic",
+        "name": "エピック",
+        "color": "#ff5a5a",
+        "affixes": 2,
+        "power": 150,
+        "weight": 120,
+        "weightPerDepth": 50
+      },
+      {
+        "id": "mythic",
+        "name": "ミシック",
+        "color": "#b26bff",
+        "affixes": 3,
+        "power": 165,
+        "weight": 40,
+        "weightPerDepth": 25
       },
       {
         "id": "legend",
-        "name": "伝説",
-        "color": "#ff7a45",
+        "name": "レジェンド",
+        "color": "#7c7f99",
         "affixes": 3,
-        "power": 175,
-        "weight": 10,
-        "weightPerDepth": 14
+        "power": 180,
+        "weight": 15,
+        "weightPerDepth": 12
+      },
+      {
+        "id": "divine",
+        "name": "ディヴァイン",
+        "color": "#f4cd7c",
+        "affixes": 4,
+        "power": 200,
+        "weight": 4,
+        "weightPerDepth": 5
+      },
+      {
+        "id": "prism",
+        "name": "プリズム",
+        "color": "#ff8ae2",
+        "affixes": 5,
+        "power": 230,
+        "weight": 1,
+        "weightPerDepth": 2
       }
     ],
     "bases": [

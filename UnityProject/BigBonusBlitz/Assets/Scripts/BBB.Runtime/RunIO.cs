@@ -60,6 +60,36 @@ namespace BBB.Runtime
                     }
         }
 
+        [System.Serializable]
+        private sealed class AchBlob
+        {
+            public List<string> keys = new List<string>();
+            public List<long> values = new List<long>();
+            public List<string> unlocked = new List<string>();
+        }
+
+        public static string SaveAchievements(AchievementState st)
+        {
+            if (st == null) return "";
+            var b = new AchBlob();
+            foreach (var kv in st.Counters) { b.keys.Add(kv.Key); b.values.Add(kv.Value); }
+            b.unlocked.AddRange(st.Unlocked);
+            return JsonUtility.ToJson(b);
+        }
+
+        public static void LoadAchievements(AchievementState st, string json)
+        {
+            if (st == null) return;
+            st.Clear();
+            if (string.IsNullOrEmpty(json)) return;
+            AchBlob b;
+            try { b = JsonUtility.FromJson<AchBlob>(json); }
+            catch (System.Exception) { return; }
+            if (b == null) return;
+            for (int i = 0; i < b.keys.Count && i < b.values.Count; i++) if (!string.IsNullOrEmpty(b.keys[i])) st.Counters[b.keys[i]] = b.values[i];
+            foreach (var id in b.unlocked) if (!string.IsNullOrEmpty(id)) st.Unlocked.Add(id);
+        }
+
         public static string SaveCurse(CurseState st)
         {
             if (st == null) return "";

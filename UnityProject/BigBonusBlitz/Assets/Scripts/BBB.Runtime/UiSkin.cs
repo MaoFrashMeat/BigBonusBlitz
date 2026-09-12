@@ -176,6 +176,28 @@ namespace BBB.Runtime
             return s;
         }
 
+        /// <summary>縦に送れる窓。はみ出しは矩形マスクで切る。中身（content）は上から詰める。</summary>
+        public static ScrollRect ScrollBox(Transform parent, string name, Vector2 pos, Vector2 size, out RectTransform content)
+        {
+            var view = Img(parent, name, pos, size, null, new Color(0, 0, 0, 0.001f), true);
+            view.gameObject.AddComponent<RectMask2D>();
+            content = new GameObject("Content", typeof(RectTransform)).GetComponent<RectTransform>();
+            content.SetParent(view.transform, false);
+            content.anchorMin = new Vector2(0, 1); content.anchorMax = new Vector2(1, 1); content.pivot = new Vector2(0.5f, 1);
+            content.anchoredPosition = Vector2.zero;
+            content.sizeDelta = Vector2.zero;
+            var fit = content.gameObject.AddComponent<ContentSizeFitter>();
+            fit.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            var lf = content.gameObject.AddComponent<VerticalLayoutGroup>();
+            lf.childControlHeight = true; lf.childControlWidth = true; lf.childForceExpandHeight = false;
+            var scroll = view.gameObject.AddComponent<ScrollRect>();
+            scroll.content = content; scroll.viewport = view.rectTransform;
+            scroll.horizontal = false; scroll.vertical = true;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.scrollSensitivity = 24f;
+            return scroll;
+        }
+
         /// <summary>角丸の枠線だけ（中は透明）。9スライス。thickness は線の太さ px、角の丸みは 6。</summary>
         public static Sprite Ring(int size, int thickness)
         {
