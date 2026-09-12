@@ -23,6 +23,8 @@ namespace BBB.Runtime
             foreach (string name in new[] { "CreditLabel", "PayoutLabel", "LifeLabel" }) Label(display, name, null, 11);
             Label(display,"CreditInset/CreditNum",null,20); Label(display,"PayoutInset/PayoutNum",null,20);
             Panel(display.Find("TorchTag"), UiSkin.Hex("#0b1727"));
+            Gauge(display.Find("TorchTag"), "Gauge");
+            V2Icon(display,"LifeIcon","heart");
             V2Icon(display,"EmberIcon","ember"); V2Icon(display,"SoulIcon","crystal");
 
             // 右パネルは GameController が 2 列で組む。ここでは色と絵だけ替える
@@ -36,6 +38,8 @@ namespace BBB.Runtime
             {
                 var b = stage.Find(name); if (b == null) continue;
                 Panel(b); Flat(b, "Body", UiSkin.Hex("#21354b"));
+                Move(b, "Icon", new Vector2(0,7), new Vector2(20,20));
+                Label(b, "Label", name == "BtnSettings" ? "設定" : "グラフ", 10, new Vector2(0,-12), new Vector2(40,14));
                 var button = b.GetComponent<Button>(); if (button == null) continue;
                 var colors = button.colors; colors.normalColor = Color.white; colors.selectedColor = Color.white;
                 colors.highlightedColor = new Color(1.2f,1.2f,1.2f); colors.pressedColor = new Color(.7f,.8f,.9f); button.colors = colors;
@@ -94,8 +98,13 @@ namespace BBB.Runtime
         {
             if(root==null)return;
             var im=root.Find("Body")?.GetComponent<Image>();if(im!=null){im.sprite=MapUiV2.Sprite(art);im.type=Image.Type.Sliced;im.color=Color.white;im.pixelsPerUnitMultiplier=im.sprite.texture.width/(art=="btn_blue"?1672f:2172f)*9;}
-            foreach(string n in new[]{"Sub","Shadow","Lamp","Sheen","Bottom"}){var c=root.Find(n);if(c!=null)c.gameObject.SetActive(false);}
-            Label(root,"Label",null,20,Vector2.zero);var label=root.Find("Label")?.GetComponent<Text>();if(label!=null)label.color=Color.white;
+            foreach(string n in new[]{"Shadow","Lamp","Sheen","Bottom"}){var c=root.Find(n);if(c!=null)c.gameObject.SetActive(false);}
+            float textW = ((RectTransform)root).sizeDelta.x - 60;
+            Label(root,"Label",null,20,new Vector2(0,7),new Vector2(textW,26));
+            Label(root,"Sub",null,10,new Vector2(0,-14),new Vector2(textW,14));
+            var hint=root.Find("Sub")?.GetComponent<Text>();
+            if(hint!=null) { hint.color=art=="btn_pink"?UiSkin.Hex("#47223b"):Color.white; hint.fontStyle=FontStyle.Bold; }
+            var label=root.Find("Label")?.GetComponent<Text>();if(label!=null)label.color=Color.white;
         }
         private static void Tool(Transform root,Transform stage,float x,string title)
         {
