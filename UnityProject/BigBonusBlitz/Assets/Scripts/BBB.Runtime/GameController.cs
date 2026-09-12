@@ -186,6 +186,8 @@ namespace BBB.Runtime
         private GameObject _mapBox;
         private GameObject _equipBox, _curseBox;
         private RectTransform _mapBody, _mapView, _condList;
+        /// <summary>冒険マップの窓の高さ。地図 320 + 分岐条件 96 が縦に収まる大きさ。</summary>
+        private const float MapModalH = 500f;
         private Text _mapInfo;
         private bool _leaving;   // 章クリア・帰還で街へ戻る途中
         private Text _torchTag;
@@ -751,22 +753,24 @@ namespace BBB.Runtime
             _techBanner.gameObject.SetActive(false);
 
             // ===== モーダル: 音量・設定 =====
-            _settingsBox = BuildModal("Settings", new Vector2(400, 272), "サウンド / 設定", ToggleSettings, out var sBody);
-            UiFactory.Label(sBody, "BgmLabel", new Vector2(-140, 40), new Vector2(60, 20), "BGM", 12, TextAnchor.MiddleLeft, ColTextSub);
-            _bgmSlider = UiFactory.Slider(sBody, "BgmSlider", new Vector2(30, 40), new Vector2(230, 20), _audio.BgmVolume, v => { _audio.BgmVolume = v; });
+            _settingsBox = BuildModal("Settings", new Vector2(400, 300), "サウンド / 設定", ToggleSettings, out var sBody);
+            UiFactory.Label(sBody, "BgmLabel", new Vector2(-140, 54), new Vector2(60, 20), "BGM", 12, TextAnchor.MiddleLeft, ColTextSub);
+            _bgmSlider = UiFactory.Slider(sBody, "BgmSlider", new Vector2(30, 54), new Vector2(230, 20), _audio.BgmVolume, v => { _audio.BgmVolume = v; });
             SkinSlider(_bgmSlider);
             _bgmSlider.gameObject.AddComponent<SliderReleaseSound>().OnRelease = () => { _audio.UiPop(); SaveData.SaveAudio(_audio); };
-            UiFactory.Label(sBody, "SeLabel", new Vector2(-140, 8), new Vector2(60, 20), "SE", 12, TextAnchor.MiddleLeft, ColTextSub);
-            _seSlider = UiFactory.Slider(sBody, "SeSlider", new Vector2(30, 8), new Vector2(230, 20), _audio.SeVolume, v => { _audio.SeVolume = v; });
+            UiFactory.Label(sBody, "SeLabel", new Vector2(-140, 22), new Vector2(60, 20), "SE", 12, TextAnchor.MiddleLeft, ColTextSub);
+            _seSlider = UiFactory.Slider(sBody, "SeSlider", new Vector2(30, 22), new Vector2(230, 20), _audio.SeVolume, v => { _audio.SeVolume = v; });
             SkinSlider(_seSlider);
             _seSlider.gameObject.AddComponent<SliderReleaseSound>().OnRelease = () => { _audio.UiPop(); SaveData.SaveAudio(_audio); };
-            var bgmToggle = UiSkin.Button(sBody, "BgmToggle", new Vector2(-96, -34), new Vector2(150, 30), "BGM ON / OFF", () => { _audio.ToggleBgm(); _audio.UiPop(); SaveData.SaveAudio(_audio); }, ColBtn, 12, false, 8);
-            UiSkin.Button(sBody, "ResetSave", new Vector2(72, -34), new Vector2(150, 30), "セーブ削除", OnResetSavePressed, new Color(0.45f, 0.15f, 0.2f), 12, false, 8);
-            UiSkin.Button(sBody, "BackToTown", new Vector2(-96, -66), new Vector2(150, 30), "街へ戻る", OnBackToTown, Hex("#5b3fd0"), 12, false, 8);
-            _graphAlwaysBtn = UiSkin.Button(sBody, "GraphAlways", new Vector2(72, -66), new Vector2(150, 30), "", ToggleGraphAlways, ColBtn, 12, false, 8);
-            _resetConfirm = UiFactory.Label(sBody, "ResetConfirm", new Vector2(0, -96), new Vector2(360, 16), "", 11, TextAnchor.MiddleCenter, ColGold);
-            UiFactory.Label(sBody, "Keys", new Vector2(0, -120), new Vector2(370, 16),
-                _isTouch ? "画面をタップ: BET / 順に停止      リールをタップ: そのリールを停止" : "B: BGM   G: グラフ   M: マップ   E: 装備   R: セーブ削除   F1〜F6: 設定   D: デバッグ   Esc: 閉じる", 10, TextAnchor.MiddleCenter, UiSkin.TextDim);
+            var bgmToggle = UiSkin.Button(sBody, "BgmToggle", new Vector2(-96, -20), new Vector2(150, 30), "BGM ON / OFF", () => { _audio.ToggleBgm(); _audio.UiPop(); SaveData.SaveAudio(_audio); }, ColBtn, 12, false, 8);
+            UiSkin.Button(sBody, "ResetSave", new Vector2(72, -20), new Vector2(150, 30), "セーブ削除", OnResetSavePressed, new Color(0.45f, 0.15f, 0.2f), 12, false, 8);
+            UiSkin.Button(sBody, "BackToTown", new Vector2(-96, -52), new Vector2(150, 30), "街へ戻る", OnBackToTown, Hex("#5b3fd0"), 12, false, 8);
+            _graphAlwaysBtn = UiSkin.Button(sBody, "GraphAlways", new Vector2(72, -52), new Vector2(150, 30), "", ToggleGraphAlways, ColBtn, 12, false, 8);
+            _resetConfirm = UiFactory.Label(sBody, "ResetConfirm", new Vector2(0, -80), new Vector2(360, 16), "", 11, TextAnchor.MiddleCenter, ColGold);
+            // キー案内は 2 行（1 行だと板の幅 400 を超える）
+            var keys = UiFactory.Label(sBody, "Keys", new Vector2(0, -108), new Vector2(356, 28),
+                _isTouch ? "画面をタップ: BET / 順に停止\nリールをタップ: そのリールを停止" : "B: BGM   G: グラフ   M: マップ   E: 装備\nR: セーブ削除   F1〜F6: 設定   D: デバッグ   Esc: 閉じる", 10, TextAnchor.MiddleCenter, UiSkin.TextDim);
+            keys.horizontalOverflow = HorizontalWrapMode.Wrap;
             RefreshGraphAlwaysLabel();
             _settingsBox.SetActive(false);
 
@@ -838,8 +842,8 @@ namespace BBB.Runtime
             _graphBox.SetActive(false);
 
             // ===== モーダル: 冒険マップ =====
-            _mapBox = BuildModal("Map", new Vector2(760, 460), "冒険マップ", ToggleMap, out _mapBody);
-            _mapInfo = UiFactory.Label(_mapBody, "Info", new Vector2(0, 460 * 0.5f - 46), new Vector2(700, 20), "", 13, TextAnchor.MiddleCenter, ColTextSub);
+            _mapBox = BuildModal("Map", new Vector2(760, MapModalH), "冒険マップ", ToggleMap, out _mapBody);
+            _mapInfo = UiFactory.Label(_mapBody, "Info", new Vector2(0, MapModalH * 0.5f - 46), new Vector2(700, 20), "", 13, TextAnchor.MiddleCenter, ColTextSub);
             _mapBox.SetActive(false);
 
             // ボーナス中の枠（AT 期待度）。舞台の四辺を縁取り、期待度のランク色で点滅する
@@ -891,8 +895,9 @@ namespace BBB.Runtime
             if (_mapBody == null || !_m.AdventureEnabled) return;
             if (_mapView != null) Destroy(_mapView.gameObject);
             var cfg = _m.Config.adventure;
-            _mapView = StageMapView.Build(_mapBody, cfg, _m.Adv, new Vector2(700, 340));
-            _mapView.anchoredPosition = new Vector2(0, -16);
+            // 地図は情報行の下から分岐条件の上まで（+194 〜 -126）
+            _mapView = StageMapView.Build(_mapBody, cfg, _m.Adv, new Vector2(700, 320));
+            _mapView.anchoredPosition = new Vector2(0, 34);
             var n = _m.CurrentStage;
             string next = _m.Adv.nextId != null ? cfg.Find(_m.Adv.nextId)?.name : null;
             _mapInfo.text = $"{cfg.chapterName}   第{_m.Adv.chapter}章   現在地 {n?.id} {n?.name}   残り {_m.Adv.spinsLeft} G"
@@ -909,7 +914,7 @@ namespace BBB.Runtime
             if (conds == null || conds.Count == 0) return;
             var cfg = _m.Config.adventure;
 
-            _condList = UiSkin.Rect(_mapBody, "Conditions", new Vector2(0, -460 * 0.5f + 66), new Vector2(700, 96));
+            _condList = UiSkin.Rect(_mapBody, "Conditions", new Vector2(0, -MapModalH * 0.5f + 66), new Vector2(700, 96));
             UiFactory.Label(_condList, "Head", new Vector2(0, 38), new Vector2(700, 18), "このステージの分岐条件", 12, TextAnchor.MiddleCenter, ColTextSub);
             int shown = 0;
             foreach (var c in conds)
