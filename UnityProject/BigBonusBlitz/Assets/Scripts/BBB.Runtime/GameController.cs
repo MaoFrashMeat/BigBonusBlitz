@@ -548,12 +548,12 @@ namespace BBB.Runtime
             float cabW = reelPitch * 3 + 24;
             float innerW = SideW - 24;
 
-            // 左: EMBER / PAYOUT / LIFE を 3 行で（パネルが横に広く縦に低いので、見出しと窓を横に並べる）
+            // 左: LIFE / EMBER / PAYOUT を 3 行で（パネルが横に広く縦に低いので、見出しと窓を横に並べる）
             var Ldp = UiLayout.Get("disp", -ContentW * 0.5f + SideW * 0.5f, MidY, SideW, MidH);
             innerW = Ldp.w - 24;
             var disp = UiSkin.Card(_stage, "Display", Ldp.Pos, Ldp.Size, 12, null, true, true, true, UiLayout.Frame("disp"));
             const float HeadIco = 15f, HeadGap = 5f, HeadIndent = HeadIco + HeadGap;
-            // 行の縦位置。上から EMBER / PAYOUT / LIFE、いちばん下に設定とソウルの小さな行
+            // 行の縦位置。上から LIFE / EMBER / PAYOUT、いちばん下に設定とソウルの小さな行
             const float RowH = 26f, RowPitch = 31f;
             float rowY0 = Ldp.h * 0.5f - 12f - RowH * 0.5f;          // 1 行目の中心
             float labelW = 78f;                                        // 見出しの幅（アイコン込み）
@@ -566,24 +566,24 @@ namespace BBB.Runtime
                                         new Vector2(labelW - HeadIndent, 16), text, 11, TextAnchor.MiddleLeft, ColTextSub);
                 h.fontStyle = FontStyle.Bold;
             }
-            // 1 行目: EMBER
-            HeadRow("EmberIcon", "CreditLabel", "EMBER", rowY0, UiSkin.Icon("ember", 64), Color.white);
-            var Lcr = UiLayout.Get("credit", Ldp.x + winX, Ldp.y + rowY0, winW, RowH);
-            var creditInset = UiSkin.Inset(disp, "CreditInset", Lcr.Pos - Ldp.Pos, Lcr.Size, 6, null, UiLayout.Frame("credit") ?? "slot_navy");
-            _creditNum = UiSkin.Number(creditInset, "CreditNum", new Vector2(-6, 0), new Vector2(Lcr.w - 20, Lcr.h), "50", 20, ColText);
-            // 2 行目: PAYOUT
-            HeadRow("PayoutIcon", "PayoutLabel", "PAYOUT", rowY0 - RowPitch, UiSkin.Circle(32), ColGold);
-            UiSkin.Img(disp, "PayoutIconIn", new Vector2(-innerW * 0.5f + HeadIco * 0.5f, rowY0 - RowPitch), new Vector2(HeadIco * 0.5f, HeadIco * 0.5f), UiSkin.Circle(32), UiSkin.GoldDeep);
-            var Lpo = UiLayout.Get("payout", Ldp.x + winX, Ldp.y + rowY0 - RowPitch, winW, RowH);
-            var payInset = UiSkin.Inset(disp, "PayoutInset", Lpo.Pos - Ldp.Pos, Lpo.Size, 6, null, UiLayout.Frame("payout") ?? "pill_coin");
-            _payoutNum = UiSkin.Number(payInset, "PayoutNum", new Vector2(-6, 0), new Vector2(Lpo.w - 20, Lpo.h), "0", 20, ColGold);
-            // 3 行目: LIFE（1G で 1 減るバー。数字とバーを同じ窓に入れる）
-            HeadRow("LifeIcon", "LifeLabel", "LIFE", rowY0 - RowPitch * 2, UiSkin.Icon("potion", 64), Color.white);
-            var Llt = UiLayout.Get("lifeTag", Ldp.x + winX, Ldp.y + rowY0 - RowPitch * 2, winW, RowH);
+            // 1 行目: LIFE（1G で 1 減るバー。数字とバーを同じ窓に入れる）
+            HeadRow("LifeIcon", "LifeLabel", "LIFE", rowY0, UiSkin.Icon("potion", 64), Color.white);
+            var Llt = UiLayout.Get("lifeTag", Ldp.x + winX, Ldp.y + rowY0, winW, RowH);
             _torchTagRt = UiSkin.Inset(disp, "TorchTag", Llt.Pos - Ldp.Pos, Llt.Size, 6, null, UiLayout.Frame("lifeTag") ?? "slot_navy");
             _torchTag = UiFactory.Label(_torchTagRt, "Text", new Vector2(-6, 2), new Vector2(Llt.w - 20, 16), "", 12, TextAnchor.MiddleRight, ColText);
             _torchTag.fontStyle = FontStyle.Bold;
             _torchFill = UiSkin.Gauge(_torchTagRt, "Gauge", new Vector2(0, -RowH * 0.5f + 5), new Vector2(Llt.w - 16, 4), Hex("#7ee0a0"), out _torchTrack);
+            // 2 行目: EMBER
+            HeadRow("EmberIcon", "CreditLabel", "EMBER", rowY0 - RowPitch, UiSkin.Icon("ember", 64), Color.white);
+            var Lcr = UiLayout.Get("credit", Ldp.x + winX, Ldp.y + rowY0 - RowPitch, winW, RowH);
+            var creditInset = UiSkin.Inset(disp, "CreditInset", Lcr.Pos - Ldp.Pos, Lcr.Size, 6, null, UiLayout.Frame("credit") ?? "slot_navy");
+            _creditNum = UiSkin.Number(creditInset, "CreditNum", new Vector2(-6, 0), new Vector2(Lcr.w - 20, Lcr.h), "50", 20, ColText);
+            // 3 行目: PAYOUT
+            HeadRow("PayoutIcon", "PayoutLabel", "PAYOUT", rowY0 - RowPitch * 2, UiSkin.Circle(32), ColGold);
+            UiSkin.Img(disp, "PayoutIconIn", new Vector2(-innerW * 0.5f + HeadIco * 0.5f, rowY0 - RowPitch * 2), new Vector2(HeadIco * 0.5f, HeadIco * 0.5f), UiSkin.Circle(32), UiSkin.GoldDeep);
+            var Lpo = UiLayout.Get("payout", Ldp.x + winX, Ldp.y + rowY0 - RowPitch * 2, winW, RowH);
+            var payInset = UiSkin.Inset(disp, "PayoutInset", Lpo.Pos - Ldp.Pos, Lpo.Size, 6, null, UiLayout.Frame("payout") ?? "pill_coin");
+            _payoutNum = UiSkin.Number(payInset, "PayoutNum", new Vector2(-6, 0), new Vector2(Lpo.w - 20, Lpo.h), "0", 20, ColGold);
             // 4 行目: 左=設定 / 右=ソウル。アイコンぶんを差し引いて領域を分ける
             const float SoulIco = 14f;
             float halfW = innerW * 0.5f;

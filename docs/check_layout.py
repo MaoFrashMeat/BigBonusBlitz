@@ -105,10 +105,10 @@ row('下段の横', [
 RowH, RowPitch = 26.0, 31.0
 rowY0 = MidH / 2 - 12 - RowH / 2
 labelW = 78.0
-stack('左パネルの縦（EMBER / PAYOUT / LIFE / 設定とソウル）', [
-    ('EMBER', rowY0, RowH),
-    ('PAYOUT', rowY0 - RowPitch, RowH),
-    ('LIFE', rowY0 - RowPitch * 2, RowH),
+stack('左パネルの縦（LIFE / EMBER / PAYOUT / 設定とソウル）', [
+    ('LIFE', rowY0, RowH),
+    ('EMBER', rowY0 - RowPitch, RowH),
+    ('PAYOUT', rowY0 - RowPitch * 2, RowH),
     ('設定とソウル', -MidH / 2 + 12, 14),
 ], top=MidH / 2 - CardEdge, bottom=-MidH / 2 + CardEdge)
 row('左パネルの行の横（見出し / 窓）', [

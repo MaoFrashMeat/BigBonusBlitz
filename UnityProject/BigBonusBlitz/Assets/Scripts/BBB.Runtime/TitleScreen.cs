@@ -347,29 +347,100 @@ namespace BBB.Runtime
                 () => { _audio.ToggleBgm(); _audio.UiPop(); SaveData.SaveAudio(_audio); }, ColBtn, 13, false, 8);
         }
 
-        /// <summary>お知らせ。Resources/Data/news.txt（直した内容の一覧）をそのまま出す。長ければ縦に送る。</summary>
+        // ------------------------------------------------------------ お知らせ（開発中の遊び。V1 になったら窓ごと消す）
+        [System.Serializable] private sealed class NewsEntry { public string date = ""; public string title = ""; public string body = ""; }
+        [System.Serializable] private sealed class NewsFile { public System.Collections.Generic.List<NewsEntry> entries = new System.Collections.Generic.List<NewsEntry>(); }
+
+        private GameObject _newsList, _newsDetail;
+
+        /// <summary>
+        /// お知らせ。Resources/Data/notices.json（直した内容。日付・題・中身）を日付と題の一覧で出し、
+        /// 押すとその中身に切り替える。直したことはこの JSON に足していく。
+        /// </summary>
         private void BuildNews(Transform stage)
         {
             var size = new Vector2(560, 340);
             var card = Modal(stage, "News", "お知らせ", size, ToggleNews, out _newsBox);
-            var body = Resources.Load<TextAsset>("Data/news");
-            string text = body != null ? body.text.Replace("\r", "") : "お知らせはまだありません";
+            var entries = LoadNotices();
+            var inner = new Vector2(size.x - 60, size.y - 84);      // 縁とタブを避けた窓（上 +128 〜 下 -144）
 
-            // 縁とタブを避けた窓。はみ出しはマスクで切り、ScrollRect で送る
-            var view = UiSkin.Img(card, "View", new Vector2(0, -22), new Vector2(size.x - 60, size.y - 96), null, new Color(0, 0, 0, 0.001f), true);
-            var mask = view.gameObject.AddComponent<Mask>();
-            mask.showMaskGraphic = false;
-            var content = new GameObject("Content", typeof(RectTransform)).GetComponent<RectTransform>();
+            // 一覧: 1 行が「日付  題」。押すと中身へ
+            var list = ScrollBox(card, "List", new Vector2(0, -14), inner, out var listContent);
+            _newsList = list.gameObject;
+            // 中身: 上に「一覧へ」と題、下に本文
+            var detail = UiSkin.Rect(card, "Detail", Vector2.zero, size);
+            _newsDetail = detail.gameObject;
+            float headY = size.y * 0.5f - 66;
+            const float backW = 76f;
+            UiSkin.Button(detail, "Back", new Vector2(-inner.x * 0.5f + backW * 0.5f, headY), new Vector2(backW, 26), "＜ 一覧", ShowNewsList, ColBtn, 12, false, 6);
+            float headW = inner.x - backW - 10;
+            var head = UiFactory.Label(detail, "Head", new Vector2(inner.x * 0.5f - headW * 0.5f, headY), new Vector2(headW, 26), "", 14, TextAnchor.MiddleLeft, ColInk);
+            head.fontStyle = FontStyle.Bold;
+            var bodyView = ScrollBox(detail, "Body", new Vector2(0, -44), new Vector2(inner.x, inner.y - 48), out var bodyContent);
+            var body = WrapLabel(bodyContent, "Text", 12);
+
+            if (entries.Count == 0) WrapLabel(listContent, "Empty", 12).text = "お知らせはまだありません";
+            const float rowH = 34f;
+            foreach (var e in entries)
+            {
+                var entry = e;
+                var row = UiSkin.Img(listContent, "Row", Vector2.zero, new Vector2(inner.x, rowH), null, new Color(0, 0, 0, 0.001f), true);
+                row.gameObject.AddComponent<LayoutElement>().preferredHeight = rowH;
+                var btn = row.gameObject.AddComponent<Button>();
+                btn.transition = Selectable.Transition.None;
+                btn.onClick.AddListener(() =>
+                {
+                    head.text = $"{entry.date}   {entry.title}";
+                    body.text = entry.body ?? "";
+                    bodyView.verticalNormalizedPosition = 1f;
+                    _newsList.SetActive(false);
+                    _newsDetail.SetActive(true);
+                    _audio.UiPop();
+                });
+                Side(UiFactory.Label(row.transform, "Date", Vector2.zero, Vector2.zero, entry.date, 11, TextAnchor.MiddleLeft, ColInkSub), 8, 96);
+                Side(UiFactory.Label(row.transform, "Title", Vector2.zero, Vector2.zero, entry.title, 13, TextAnchor.MiddleLeft, ColInk), 104, inner.x - 30);
+                Side(UiFactory.Label(row.transform, "Arrow", Vector2.zero, Vector2.zero, "＞", 12, TextAnchor.MiddleRight, ColInkSub), inner.x - 30, inner.x - 6);
+                var line = UiSkin.Img(row.transform, "Line", Vector2.zero, Vector2.zero, null, new Color(0.17f, 0.18f, 0.27f, 0.12f));
+                line.rectTransform.anchorMin = new Vector2(0, 0); line.rectTransform.anchorMax = new Vector2(1, 0);
+                line.rectTransform.offsetMin = new Vector2(4, 0); line.rectTransform.offsetMax = new Vector2(-4, 1);
+            }
+            ShowNewsList();
+        }
+
+        private void ShowNewsList()
+        {
+            if (_newsList != null) _newsList.SetActive(true);
+            if (_newsDetail != null) _newsDetail.SetActive(false);
+        }
+
+        private static System.Collections.Generic.List<NewsEntry> LoadNotices()
+        {
+            var ta = Resources.Load<TextAsset>("Data/notices");
+            if (ta == null) return new System.Collections.Generic.List<NewsEntry>();
+            try { return Newtonsoft.Json.JsonConvert.DeserializeObject<NewsFile>(ta.text)?.entries ?? new System.Collections.Generic.List<NewsEntry>(); }
+            catch (System.Exception e) { Debug.LogWarning("notices.json が読めない: " + e.Message); return new System.Collections.Generic.List<NewsEntry>(); }
+        }
+
+        /// <summary>行の中で、左端から x0〜x1 の帯に置く（縦は行いっぱい）。</summary>
+        private static void Side(Text t, float x0, float x1)
+        {
+            var rt = t.rectTransform;
+            rt.anchorMin = new Vector2(0, 0); rt.anchorMax = new Vector2(0, 1);
+            rt.pivot = new Vector2(0, 0.5f);
+            rt.anchoredPosition = new Vector2(x0, 0);
+            rt.sizeDelta = new Vector2(x1 - x0, 0);
+        }
+
+        /// <summary>縦に送れる窓。はみ出しは矩形マスクで切る（ステンシル不要）。中身は上から詰める。</summary>
+        private static ScrollRect ScrollBox(Transform parent, string name, Vector2 pos, Vector2 size, out RectTransform content)
+        {
+            var view = UiSkin.Img(parent, name, pos, size, null, new Color(0, 0, 0, 0.001f), true);
+            view.gameObject.AddComponent<RectMask2D>();
+            content = new GameObject("Content", typeof(RectTransform)).GetComponent<RectTransform>();
             content.SetParent(view.transform, false);
             content.anchorMin = new Vector2(0, 1); content.anchorMax = new Vector2(1, 1); content.pivot = new Vector2(0.5f, 1);
             content.anchoredPosition = Vector2.zero;
-            var label = UiFactory.Label(content, "Text", Vector2.zero, Vector2.zero, text, 12, TextAnchor.UpperLeft, ColInk);
-            var lrt = label.rectTransform;
-            lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one; lrt.sizeDelta = Vector2.zero;
-            label.horizontalOverflow = HorizontalWrapMode.Wrap;
-            label.verticalOverflow = VerticalWrapMode.Overflow;
-            label.lineSpacing = 1.25f;
-            // 文の高さぶんだけ Content を伸ばす
+            content.sizeDelta = Vector2.zero;                        // 幅は窓と同じ（既定の 100 を足さない）
             var fit = content.gameObject.AddComponent<ContentSizeFitter>();
             fit.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
             var lf = content.gameObject.AddComponent<VerticalLayoutGroup>();
@@ -379,12 +450,26 @@ namespace BBB.Runtime
             scroll.horizontal = false; scroll.vertical = true;
             scroll.movementType = ScrollRect.MovementType.Clamped;
             scroll.scrollSensitivity = 24f;
+            return scroll;
+        }
+
+        /// <summary>幅いっぱいで折り返し、文の高さぶんだけ伸びる文字。</summary>
+        private static Text WrapLabel(RectTransform content, string name, int fontSize)
+        {
+            var label = UiFactory.Label(content, name, Vector2.zero, Vector2.zero, "", fontSize, TextAnchor.UpperLeft, ColInk);
+            var lrt = label.rectTransform;
+            lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one; lrt.sizeDelta = Vector2.zero;
+            label.horizontalOverflow = HorizontalWrapMode.Wrap;
+            label.verticalOverflow = VerticalWrapMode.Overflow;
+            label.lineSpacing = 1.25f;
+            return label;
         }
 
         private void ToggleNews()
         {
             if (_newsBox == null) return;
             _newsBox.SetActive(!_newsBox.activeSelf);
+            if (_newsBox.activeSelf) ShowNewsList();
             _audio.UiPop();
         }
 
