@@ -8,8 +8,8 @@ namespace BBB.Runtime
     /// <summary>
     /// 装備画面。左に着ている 3 部位、右に鞄、下に選んだ品の詳細と操作。
     /// 冒険中いつでも開ける（右下の装備ボタン、キーは E。街のショップにもタブを置く）。
-    /// 紺の板（panel_navy）は隅の飾りが大きいので、題は左上の紺のタブに乗せ、
-    /// 中身は縁（左右 22px・上下 20px）と飾りを避けて置く。配置は docs/ui_rules.md 1 番に従う。
+    /// 板は細い縁の紺（panel_navy_sm）。題は左上の紺のタブに乗せ、
+    /// 中身は縁（左右 22px・上下 20px）を避けて置く。配置は docs/ui_rules.md 1 番に従う。
     /// </summary>
     public static class EquipScreen
     {
@@ -24,7 +24,7 @@ namespace BBB.Runtime
             eatBg.transition = Selectable.Transition.None;
             eatBg.onClick.AddListener(() => onClose?.Invoke());
 
-            var card = UiSkin.Card(overlay, "EquipCard", Vector2.zero, new Vector2(W, H), 16);
+            var card = UiSkin.Card(overlay, "EquipCard", Vector2.zero, new Vector2(W, H), 16, frameOverride: "panel_navy_sm");
             var eat = card.gameObject.AddComponent<Button>();      // 中を押しても閉じない
             eat.transition = Selectable.Transition.None;
 
@@ -48,7 +48,7 @@ namespace BBB.Runtime
             const float detailH = 116f;
             float detailW = innerR - innerL;
             float detailCy = -H * 0.5f + 20f + detailH * 0.5f;
-            var detail = UiSkin.Inset(card, "Detail", new Vector2(0, detailCy), new Vector2(detailW, detailH), 8, null, "slot_navy");
+            var detail = UiSkin.Inset(card, "Detail", new Vector2(0, detailCy), new Vector2(detailW, detailH), 8, null, "panel_navy_sm");
             const float btnW = 132f, btnH = 30f;
             float textW = detailW - 24f - (btnW * 2 + 10f) - 16f;
             float textCx = -detailW * 0.5f + 12f + textW * 0.5f;

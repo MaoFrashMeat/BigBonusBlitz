@@ -60,6 +60,7 @@ namespace BBB.Runtime
         {
             { "panel_navy", (new Vector4(28, 26, 28, 26), 288, 113) },
             { "panel_cream_sm", (new Vector4(22, 20, 22, 20), 96, 83) },
+            { "panel_navy_sm", (new Vector4(22, 20, 22, 20), 96, 83) },       // panel_cream_sm の地を紺にしたもの（細い縁の紺の板）
             { "bar_cream_sm", (new Vector4(16, 12, 16, 12), 159, 43) },
             { "slot_navy", (new Vector4(20, 18, 20, 18), 95, 88) },
             { "btn_blue_lg", (new Vector4(48, 22, 48, 22), 288, 100) },
