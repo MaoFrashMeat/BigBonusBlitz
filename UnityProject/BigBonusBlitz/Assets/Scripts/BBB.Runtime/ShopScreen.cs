@@ -20,21 +20,21 @@ namespace BBB.Runtime
             eatBg.transition = Selectable.Transition.None;
             eatBg.onClick.AddListener(() => onClose?.Invoke());
 
-            var card = Card(overlay, "ShopCard", Vector2.zero, new Vector2(W, H), 16);
+            // 板は細い金縁の紺（他の窓と同じ）。題は左上の紺のタブ、閉じるは右上の丸
+            var card = UiSkin.Card(overlay, "ShopCard", Vector2.zero, new Vector2(W, H), 16, frameOverride: "panel_navy_sm");
             var eat = card.gameObject.AddComponent<Button>();
             eat.transition = Selectable.Transition.None;
-
-            // Header, wallet and navigation occupy separate rows.
-            const float headY = 145f, tabW = 160f;
-            const float tab1Cx = -346f, tab2Cx = -174f, tab3Cx = -2f;
-            Label(card, "Eyebrow", new Vector2(-270, 228), new Vector2(312, 16), "TOWN / TRAVELER'S EMPORIUM", 10, TextAnchor.MiddleLeft, Gold);
-            var title = Label(card, "Title", new Vector2(-270, 201), new Vector2(312, 34), "街のショップ", 28, TextAnchor.MiddleLeft, UiSkin.Text);
+            const float edge = 22f, tabTitleW = 170f;
+            var tabTitle = UiSkin.Img(card, "Tab", new Vector2(-W * 0.5f + edge + tabTitleW * 0.5f, H * 0.5f - 4), new Vector2(tabTitleW, 40), UiSkin.Frame("pill_navy_sm"), Color.white);
+            var title = UiFactory.Label(tabTitle.transform, "Title", new Vector2(0, 1), new Vector2(tabTitleW, 40), "街のショップ", 15, TextAnchor.MiddleCenter, UiSkin.Text);
             title.fontStyle = FontStyle.Bold;
-            var soul = Wallet(card, "Soul", new Vector2(124, 212), "ソウル / 強化", Blue, "soul");
-            var ember = Wallet(card, "Ember", new Vector2(300, 212), "エンバー / 補給", Gold, "ember");
-            Button(card, "Close", new Vector2(408, 213), new Vector2(44, 44), "×", () => onClose?.Invoke(), Surface, 24);
-            UiSkin.Img(card, "HeaderLine", new Vector2(0, 177), new Vector2(W - 48, 1), null, Edge);
-            Label(card, "NavHint", new Vector2(293, headY), new Vector2(264, 22), "旅支度を整え、次の冒険へ", 13, TextAnchor.MiddleRight, Muted);
+            UiSkin.IconButton(card, "Close", new Vector2(W * 0.5f - edge, H * 0.5f - 4), 30, "×", () => onClose?.Invoke(), UiSkin.Btn, 16);
+
+            // 上の段: 左にタブ 3 つ、右に財布 2 つ
+            const float headY = 190f, tabW = 150f;
+            const float tab1Cx = -W * 0.5f + 34 + tabW * 0.5f, tab2Cx = tab1Cx + tabW + 8, tab3Cx = tab2Cx + tabW + 8;
+            var ember = Wallet(card, "Ember", new Vector2(W * 0.5f - 34 - 82, headY), "エンバー", Gold, "ember");
+            var soul = Wallet(card, "Soul", new Vector2(W * 0.5f - 34 - 82 - 172, headY), "ソウル", Blue, "soul");
             // ===== タブ（装備・スキル / 補給）=====
             var res = m.Config.adventure?.resource;
             bool hasSupply = m.AdventureEnabled && res != null && res.enabled;
@@ -57,20 +57,16 @@ namespace BBB.Runtime
                 gridRoot.gameObject.SetActive(tab == 0);
                 supplyRoot.gameObject.SetActive(tab == 1);
                 statsRoot.gameObject.SetActive(tab == 2);
-                if (tabGear != null) UiSkin.SetButtonColor(tabGear, tab == 0 ? Blue : UiSkin.Btn, tab == 0 ? UiSkin.Bg : UiSkin.Text);
-                if (tabSupply != null) UiSkin.SetButtonColor(tabSupply, tab == 1 ? UiSkin.Green : UiSkin.Btn, tab == 1 ? UiSkin.Bg : UiSkin.Text);
-                if (tabStats != null) UiSkin.SetButtonColor(tabStats, tab == 2 ? Gold : UiSkin.Btn, tab == 2 ? UiSkin.Bg : UiSkin.Text);
+                SetTabLook(tabGear, tab == 0); SetTabLook(tabSupply, tab == 1); SetTabLook(tabStats, tab == 2);
             }
             if (hasSupply || hasStats)
             {
-                tabGear = Button(card, "TabGear", new Vector2(tab1Cx, headY), new Vector2(tabW, 44), "装備・スキル", () => { audio?.UiPop(); SetTab(0); }, Blue, 15, false, 8);
-                if (hasSupply) tabSupply = Button(card, "TabSupply", new Vector2(tab2Cx, headY), new Vector2(tabW, 44), "補給", () => { audio?.UiPop(); SetTab(1); }, Surface, 15, false, 8);
-                if (hasStats) tabStats = Button(card, "TabStats", new Vector2(tab3Cx, headY), new Vector2(tabW, 44), "ステータス", () => { audio?.UiPop(); SetTab(2); }, Surface, 15, false, 8);
+                tabGear = Tab(card, "TabGear", new Vector2(tab1Cx, headY), tabW, "装備・スキル", () => { audio?.UiPop(); SetTab(0); });
+                if (hasSupply) tabSupply = Tab(card, "TabSupply", new Vector2(tab2Cx, headY), tabW, "補給", () => { audio?.UiPop(); SetTab(1); });
+                if (hasStats) tabStats = Tab(card, "TabStats", new Vector2(tab3Cx, headY), tabW, "ステータス", () => { audio?.UiPop(); SetTab(2); });
             }
 
-            note = Label(card, "Note", new Vector2(0, -H * 0.5f + 22), new Vector2(W - 60, 24), "ソウルで装備・スキルを強化できます", 13, TextAnchor.MiddleCenter, Muted);
-
-            UiSkin.Img(card, "FooterLine", new Vector2(0, -214), new Vector2(W - 48, 1), null, Edge);
+            note = Label(card, "Note", new Vector2(0, -H * 0.5f + 30), new Vector2(W - 80, 22), "ソウルで装備・スキルを強化できます", 12, TextAnchor.MiddleCenter, Muted);
             var cfg = m.Config.shop;
             var items = cfg?.items ?? new List<ShopItem>();
             var rows = new List<System.Action>();
@@ -114,7 +110,7 @@ namespace BBB.Runtime
                         note.text = $"{StatsDirector.DisplayName(k)} を上げました";
                         note.color = UiSkin.Green;
                         RefreshAll();
-                    }, col, 14, false, 8);
+                    }, col, 14, false, 8, "btn_blue");
                     addButtons.Add(add);
                 }
 
@@ -129,7 +125,7 @@ namespace BBB.Runtime
                     note.text = $"{back} ポイントを戻しました";
                     note.color = UiSkin.Green;
                     RefreshAll();
-                }, Surface, 15, false, 8);
+                }, Surface, 15, false, 8, "pill_navy_sm");
 
                 rows.Add(() =>
                 {
@@ -175,7 +171,8 @@ namespace BBB.Runtime
                     note.text = $"{res.name} を 1 個 買いました";
                     note.color = UiSkin.Green;
                     RefreshAll();
-                }, UiSkin.Hex("#e08a2a"), 15, false, 10);
+                }, UiSkin.Hex("#e08a2a"), 15, false, 10, "btn_cream");
+                { var bl = buyTorch.GetComponentInChildren<Text>(); if (bl != null) bl.color = UiSkin.Hex("#3b2a12"); }
 
                 var coinCard = Card(supplyRoot, "CoinCard", new Vector2(215, -29), new Vector2(414, 232), 12, Surface);
                 UiSkin.Img(coinCard, "Bar", new Vector2(0, 114), new Vector2(382, 2), UiSkin.Rounded(2), Gold);
@@ -196,7 +193,8 @@ namespace BBB.Runtime
                     note.text = $"エンバー {res.creditAmount} を分けてもらいました";
                     note.color = UiSkin.Green;
                     RefreshAll();
-                }, Gold, 15, false, 10);
+                }, Gold, 15, false, 10, "btn_cream");
+                { var bl = buyCredit.GetComponentInChildren<Text>(); if (bl != null) bl.color = UiSkin.Hex("#3b2a12"); }
 
                 Label(supplyRoot, "SupNote", new Vector2(0, -181), new Vector2(W - 90, 44),
                     $"{res.hpName} は通常時の 1G につき 1 減る。0 になるかエンバーが尽きると力尽きて、章の最初からやり直しになる。ボーナス中のベルでも回復する。", 12, TextAnchor.MiddleCenter, Muted);
@@ -264,6 +262,7 @@ namespace BBB.Runtime
                 int col = i % cols, row = i / cols;
                 var pos = new Vector2((col - 1) * (rowW + gap), -rowH * .5f - row * (rowH + gap));
                 var body = Card(content, "Item_" + item.id, pos, new Vector2(rowW, rowH), 10, Surface);
+                var accentBar = body.Find("Accent");
                 body.anchorMin = body.anchorMax = new Vector2(.5f, 1);
                 bool isGear = item.kind == "gear";
                 var accent = isGear ? Gold : Blue;
@@ -298,7 +297,8 @@ namespace BBB.Runtime
                         note.color = UiSkin.Accent;
                     }
                     RefreshAll();
-                }, accent, 12, false, 7);
+                }, accent, 12, false, 7, isGear ? "btn_cream" : "btn_blue");
+                if (isGear) { var bl = buy.GetComponentInChildren<Text>(); if (bl != null) bl.color = UiSkin.Hex("#3b2a12"); }
                 rows.Add(() =>
                 {
                     int lv = m.Wallet.LevelOf(it.id);
@@ -331,42 +331,50 @@ namespace BBB.Runtime
         private static readonly Color Gold = UiSkin.Hex("#e6c187");
         private static readonly Color Blue = UiSkin.Hex("#8cc9ee");
 
+        /// <summary>札。紺のピル（pill_navy_sm）の絵。色は絵に含まれるので color は見ない。</summary>
         private static RectTransform Card(Transform parent, string name, Vector2 pos, Vector2 size,
             int radius = 12, Color? color = null)
         {
             var root = UiSkin.Rect(parent, name, pos, size);
-            UiSkin.Img(root, "Edge", Vector2.zero, size, UiSkin.Rounded(radius), Edge);
-            UiSkin.Img(root, "Body", Vector2.zero, size - Vector2.one * 2, UiSkin.Rounded(radius - 1), color ?? UiSkin.Hex("#101b2a"), true);
+            var frame = UiSkin.Frame("pill_navy_sm");
+            if (frame != null) UiSkin.Img(root, "Body", Vector2.zero, size, frame, Color.white, true);
+            else
+            {
+                UiSkin.Img(root, "Edge", Vector2.zero, size, UiSkin.Rounded(radius), Edge);
+                UiSkin.Img(root, "Body", Vector2.zero, size - Vector2.one * 2, UiSkin.Rounded(radius - 1), color ?? UiSkin.Hex("#101b2a"), true);
+            }
             return root;
         }
 
+        /// <summary>ボタン。frame を指定すれば枠の絵（btn_blue / btn_cream / pill_navy_sm）、無ければ役割の色から自動。</summary>
         private static Button Button(Transform parent, string name, Vector2 pos, Vector2 size, string text,
-            System.Action onClick, Color color, int fontSize = 15, bool lamp = false, int radius = 8)
+            System.Action onClick, Color color, int fontSize = 15, bool lamp = false, int radius = 8, string frame = null)
         {
-            var root = UiSkin.Rect(parent, name, pos, size);
-            var body = UiSkin.Img(root, "Body", Vector2.zero, size, UiSkin.Rounded(radius), Color.white, true);
-            var label = Label(root, "Label", Vector2.zero, size - new Vector2(12, 4), text, fontSize, TextAnchor.MiddleCenter,
-                color.grayscale > .5f ? UiSkin.Bg : UiSkin.Text);
-            label.fontStyle = FontStyle.Bold;
-            var button = root.gameObject.AddComponent<Button>();
-            button.targetGraphic = body;
-            var colors = button.colors;
-            colors.normalColor = colors.selectedColor = color;
-            colors.highlightedColor = Color.Lerp(color, Color.white, .15f);
-            colors.pressedColor = Color.Lerp(color, Color.black, .18f);
-            colors.disabledColor = UiSkin.Hex(color.grayscale > .5f ? "#748395" : "#344358");
-            button.colors = colors;
-            button.onClick.AddListener(() => onClick?.Invoke());
-            return button;
+            return UiSkin.Button(parent, name, pos, size, text, onClick, color, fontSize, lamp, radius, frame);
+        }
+
+        /// <summary>タブ。紺のピルで、選んでいるものだけ金に寄せる。</summary>
+        private static Button Tab(Transform parent, string name, Vector2 pos, float w, string text, System.Action onClick)
+            => UiSkin.Button(parent, name, pos, new Vector2(w, 40), text, onClick, UiSkin.Btn, 14, false, 8, "pill_navy_sm");
+
+        private static void SetTabLook(Button b, bool on)
+        {
+            if (b == null) return;
+            var body = b.targetGraphic as Image;
+            var tint = on ? new Color(1f, 0.92f, 0.62f, 1f) : Color.white;
+            var cb = b.colors; cb.normalColor = tint; cb.highlightedColor = tint; cb.selectedColor = tint; cb.pressedColor = tint * new Color(0.72f, 0.74f, 0.82f, 1f); b.colors = cb;
+            if (body != null) body.color = tint;
+            var t = b.GetComponentInChildren<Text>();
+            if (t != null) t.color = on ? Gold : UiSkin.Text;
         }
 
         private static Text Wallet(Transform parent, string name, Vector2 pos, string caption, Color accent, string icon)
         {
-            var root = Card(parent, name + "Wallet", pos, new Vector2(164, 58), 9, Surface);
-            UiSkin.Img(root, "Icon", new Vector2(-60, 0), new Vector2(26, 26), UiSkin.Icon(icon), Color.white);
-            Label(root, "Caption", new Vector2(19, 14), new Vector2(116, 16), caption, 10, TextAnchor.MiddleLeft, Muted);
-            var value = Label(root, "Value", new Vector2(19, -9), new Vector2(116, 26), "", 20, TextAnchor.MiddleLeft, accent);
-            value.resizeTextForBestFit = true; value.resizeTextMinSize = 12; value.resizeTextMaxSize = 20;
+            var root = Card(parent, name + "Wallet", pos, new Vector2(164, 44), 9, Surface);
+            UiSkin.Img(root, "Icon", new Vector2(-60, 0), new Vector2(24, 24), UiSkin.Icon(icon), Color.white);
+            Label(root, "Caption", new Vector2(19, 11), new Vector2(116, 14), caption, 9, TextAnchor.MiddleLeft, Muted);
+            var value = Label(root, "Value", new Vector2(19, -8), new Vector2(116, 22), "", 16, TextAnchor.MiddleLeft, accent);
+            value.resizeTextForBestFit = true; value.resizeTextMinSize = 11; value.resizeTextMaxSize = 16;
             return value;
         }
     }
