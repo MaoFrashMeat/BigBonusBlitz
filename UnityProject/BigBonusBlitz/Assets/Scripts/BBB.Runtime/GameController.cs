@@ -196,6 +196,8 @@ namespace BBB.Runtime
         private readonly Image[] _routeBar = new Image[3];
         private GameObject _mapBox;
         private GameObject _equipBox, _curseBox, _statsBox, _curseListBox;
+        /// <summary>エンゲージ中に流す斜めの帯（上下 2 本。Web 版の敵出現バナーと同じ表現）。</summary>
+        private MarqueeBand _engageBandTop, _engageBandBottom;
         /// <summary>いま出ている敵が中ボスか（討伐の見せ方を変える）。出現時に覚える。</summary>
         private bool _engagedBoss;
         private string _engagedName = "";
@@ -2002,6 +2004,30 @@ namespace BBB.Runtime
             UiFx.Ring(_enemyRt, new Color(1f, 0.3f, 0.3f, 0.8f), 40, 240, 0.4f);
             _enemyIdle = StartCoroutine(Effects.IdleBob(_enemyRt));
             StartCoroutine(EngageTitleRoutine());            // 「ENEMY ENGAGE!」叩きつけ（案1）
+            ShowEngageBanners();                             // 上下の流れる帯（Web 版と同じ）。倒す・逃げられるまで出しておく
+        }
+
+        /// <summary>
+        /// エンゲージ中の帯: 表示域の上と下に、−7° に傾いた青い帯を置いて「nゲーム以内に小役を引ければ...CHANCE!?」を流す。
+        /// Web 版（#enemy-banner-top / bottom）の見た目を写したもの。主人公と敵の後ろ、背景の前。
+        /// </summary>
+        private void ShowEngageBanners()
+        {
+            HideEngageBanners();
+            string unit = $"{_m.EngageMaxSpins}ゲーム以内に小役を引ければ...CHANCE!?";
+            var bg = new Color(0f, 0.3f, 1f, 0.6f);
+            const float bandW = AreaW * 1.3f, bandH = 44f, speed = 45f;
+            _engageBandTop = MarqueeBand.Create(_area, "EngageBandTop", new Vector2(0, AreaH * 0.5f - 8), bandW, bandH, -7f, unit, 22, bg, Color.white, speed, 0f);
+            _engageBandBottom = MarqueeBand.Create(_area, "EngageBandBottom", new Vector2(0, -AreaH * 0.5f + 14), bandW, bandH, -7f, unit, 22, bg, Color.white, speed, 0.53f);
+            int idx = _charRt.GetSiblingIndex();
+            _engageBandTop.transform.SetSiblingIndex(idx);
+            _engageBandBottom.transform.SetSiblingIndex(idx);
+        }
+
+        private void HideEngageBanners()
+        {
+            if (_engageBandTop != null) { Destroy(_engageBandTop.gameObject); _engageBandTop = null; }
+            if (_engageBandBottom != null) { Destroy(_engageBandBottom.gameObject); _engageBandBottom = null; }
         }
 
         /// <summary>
@@ -2076,6 +2102,7 @@ namespace BBB.Runtime
 
         private void HideEnemy()
         {
+            HideEngageBanners();
             if (_enemyIdle != null) { StopCoroutine(_enemyIdle); _enemyIdle = null; }
             if (_enemyRainbow != null) { StopCoroutine(_enemyRainbow); _enemyRainbow = null; }
             _enemyCg.alpha = 0f;
