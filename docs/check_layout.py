@@ -92,11 +92,13 @@ row('中段の横（表示器 / 筐体 / 操作パネル）', [
 ], left=-ContentW / 2, right=ContentW / 2)
 
 # 下段の横（MAX BET / AUTO / 装備 / 実績 / 歯車 / グラフ）
-ToolIco, ToolGap = 44.0, 8.0
+ToolIco, ToolGap, SpdW, SpdGap = 44.0, 8.0, 50.0, 6.0
 autoW = SideW - ToolIco * 4 - ToolGap * 4
+autoBtnW = autoW - SpdW - SpdGap
 row('下段の横', [
     ('MAX BET', -ContentW / 2 + SideW / 2, SideW),
-    ('AUTO', ContentW / 2 - SideW + autoW / 2, autoW),
+    ('AUTO', ContentW / 2 - SideW + autoBtnW / 2, autoBtnW),
+    ('速さ', ContentW / 2 - SideW + autoBtnW + SpdGap + SpdW / 2, SpdW),
     ('装備', ContentW / 2 - ToolIco * 3.5 - ToolGap * 3, ToolIco),
     ('実績', ContentW / 2 - ToolIco * 2.5 - ToolGap * 2, ToolIco),
     ('歯車', ContentW / 2 - ToolIco * 1.5 - ToolGap, ToolIco),

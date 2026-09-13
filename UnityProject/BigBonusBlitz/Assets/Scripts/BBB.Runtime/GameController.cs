@@ -37,7 +37,7 @@ namespace BBB.Runtime
         private Text _credit, _payout, _message, _bonus, _mode, _debug, _player, _tier2, _hint, _gCount;
         private GameObject _tier2Box;
         private Image _expFill;
-        private Button _btnBet, _btnAuto;
+        private Button _btnBet, _btnAuto, _btnAutoSpeed;
         private Slider _bgmSlider, _seSlider;
 
         private RectTransform _charRt;
@@ -702,11 +702,16 @@ namespace BBB.Runtime
             AddSubHint(_btnBet, _isTouch ? "画面タップでも OK" : "Ctrl / Space");
             // STOP ボタンは廃止（2026-09-11）。リールそのものがタップで止まり、キーは Z / X / C
             // AUTO は右下の隅にアイコン 4 つ（装備 / 実績 / 歯車＝設定・音量 / グラフ）を置くぶん細くする
-            const float ToolIco = 44f, ToolGap = 8f;
+            // AUTO は ON / OFF だけ。速さ（x1〜x6）はその右の小さなボタンで別に選ぶ（2026-09-13 本人の判断）
+            const float ToolIco = 44f, ToolGap = 8f, SpdW = 50f, SpdGap = 6f;
             float autoW = SideW - ToolIco * 4 - ToolGap * 4;
-            var Lau = UiLayout.Get("auto", ContentW * 0.5f - SideW + autoW * 0.5f, CtrlY, autoW, CtrlH);
-            _btnAuto = UiSkin.Button(_stage, "BtnAuto", Lau.Pos, Lau.Size, "AUTO", CycleAuto, ColBtn, 18, true, 12, UiLayout.Frame("auto"));
-            AddSubHint(_btnAuto, _isTouch ? "押すたび x1〜x6" : "A / Space長押し");
+            float autoBtnW = autoW - SpdW - SpdGap;
+            var Lau = UiLayout.Get("auto", ContentW * 0.5f - SideW + autoBtnW * 0.5f, CtrlY, autoBtnW, CtrlH);
+            _btnAuto = UiSkin.Button(_stage, "BtnAuto", Lau.Pos, Lau.Size, "AUTO", ToggleAuto, ColBtn, 18, true, 12, UiLayout.Frame("auto"));
+            AddSubHint(_btnAuto, _isTouch ? "ON / OFF" : "A: ON / OFF");
+            var Lsp = UiLayout.Get("autoSpeed", ContentW * 0.5f - SideW + autoBtnW + SpdGap + SpdW * 0.5f, CtrlY, SpdW, CtrlH);
+            _btnAutoSpeed = UiSkin.Button(_stage, "BtnAutoSpeed", Lsp.Pos, Lsp.Size, "x1", CycleAutoSpeed, ColBtn, 16, false, 12, UiLayout.Frame("autoSpeed"));
+            AddSubHint(_btnAutoSpeed, _isTouch ? "速さ" : "S: 速さ");
             // 装備は冒険中いつでも開ける（E キーと同じ）
             var LtE = UiLayout.Get("toolEquip", ContentW * 0.5f - ToolIco * 3.5f - ToolGap * 3, CtrlY, ToolIco, ToolIco);
             var btnEquip = UiSkin.Button(_stage, "BtnEquip", LtE.Pos, LtE.Size, "", ToggleEquip, ColBtn, 12, false, 10);
@@ -792,9 +797,9 @@ namespace BBB.Runtime
             }
             RefreshAutoStopButtons();
             _resetConfirm = UiFactory.Label(sBody, "ResetConfirm", new Vector2(0, -98), new Vector2(360, 16), "", 11, TextAnchor.MiddleCenter, ColGold);
-            // キー案内は 2 行（1 行だと板の幅 400 を超える）
-            var keys = UiFactory.Label(sBody, "Keys", new Vector2(0, -128), new Vector2(356, 28),
-                _isTouch ? "画面をタップ: BET / 順に停止\nリールをタップ: そのリールを停止" : "B: BGM   G: グラフ   M: マップ   E: 装備\nR: セーブ削除   F1〜F6: 設定   D: デバッグ   Esc: 閉じる", 10, TextAnchor.MiddleCenter, UiSkin.TextDim);
+            // キー案内は 3 行（1 行だと板の幅 400 を超える）
+            var keys = UiFactory.Label(sBody, "Keys", new Vector2(0, -134), new Vector2(356, 42),
+                _isTouch ? "画面をタップ: BET / 順に停止\nリールをタップ: そのリールを停止" : "A: AUTO   S: 速さ   B: BGM   G: グラフ\nM: マップ   E: 装備   R: セーブ削除\nF1〜F6: 設定   D: デバッグ   Esc: 閉じる", 10, TextAnchor.MiddleCenter, UiSkin.TextDim);
             keys.horizontalOverflow = HorizontalWrapMode.Wrap;
             RefreshGraphAlwaysLabel();
             _settingsBox.SetActive(false);
@@ -1232,9 +1237,15 @@ namespace BBB.Runtime
             _btnBet.interactable = betOk;
             UiSkin.SetButtonText(_btnBet, _m.IsReplay ? "REPLAY" : "MAX BET");
             UiSkin.SetLamp(_btnBet, betOk, ColGold);
-            UiSkin.SetButtonText(_btnAuto, _autoMode ? (_holdAuto ? "AUTO  x1" : $"AUTO  x{_autoSpeed}") : "AUTO");
+            UiSkin.SetButtonText(_btnAuto, "AUTO");
             UiSkin.SetButtonColor(_btnAuto, _autoMode ? ColGreen : ColBtn, _autoMode ? ColBg : ColText);
             UiSkin.SetLamp(_btnAuto, _autoMode, ColGreen);
+            // 速さのボタン: 選んだ速さ。長押しの一時オート中だけ x1 と出す
+            if (_btnAutoSpeed != null)
+            {
+                UiSkin.SetButtonText(_btnAutoSpeed, _holdAuto ? "x1" : $"x{_autoSpeedPref}");
+                UiSkin.SetButtonColor(_btnAutoSpeed, ColBtn, _autoMode ? ColGreen : ColText);
+            }
         }
         private void SetMessage(string text, bool flash = false, Color? color = null)
         {
@@ -2055,7 +2066,8 @@ namespace BBB.Runtime
                 if (kb.zKey.wasPressedThisFrame || kb.leftArrowKey.wasPressedThisFrame) StopReel(0);
                 if (kb.xKey.wasPressedThisFrame || kb.downArrowKey.wasPressedThisFrame) StopReel(1);
                 if (kb.cKey.wasPressedThisFrame || kb.rightArrowKey.wasPressedThisFrame) StopReel(2);
-                if (kb.aKey.wasPressedThisFrame) CycleAuto();
+                if (kb.aKey.wasPressedThisFrame) ToggleAuto();
+                if (kb.sKey.wasPressedThisFrame) CycleAutoSpeed();
                 if (kb.bKey.wasPressedThisFrame) { _audio.ToggleBgm(); _audio.UiPop(); SaveData.SaveAudio(_audio); }
                 if (kb.dKey.wasPressedThisFrame) ToggleDebug();
                 if (kb.gKey.wasPressedThisFrame) ToggleGraph();
@@ -3781,14 +3793,22 @@ namespace BBB.Runtime
             }
         }
 
-        /// <summary>AUTO ボタン: OFF → x1 → x2 → … → x6 → OFF と一巡する。</summary>
-        private void CycleAuto()
+        /// <summary>AUTO ボタン: ON / OFF だけ。速さは選んであるもの（x1〜x6）を使う。</summary>
+        private void ToggleAuto()
         {
             _audio.UiPop();
-            if (!_autoMode) { _autoSpeedPref = 1; SetAuto(true, 1); }
-            else if (_autoSpeedPref < AutoSpeedMax) { _autoSpeedPref++; SetAuto(true, _autoSpeedPref); }
-            else { _autoSpeedPref = 1; SetAuto(false, 1); }
+            if (_holdAuto) return;   // スペース長押し中は離すまで待つ
+            SetAuto(!_autoMode, _autoSpeedPref);
+        }
+
+        /// <summary>速さのボタン: x1 → x2 → … → x6 → x1。AUTO 中なら即その速さになる。</summary>
+        private void CycleAutoSpeed()
+        {
+            _audio.UiPop();
+            _autoSpeedPref = _autoSpeedPref % AutoSpeedMax + 1;
             SaveData.SaveOptions(_autoSpeedPref);
+            if (_autoMode && !_holdAuto) SetAuto(true, _autoSpeedPref);
+            else RefreshUi();
         }
 
         /// <summary>設定の「AUTO を止める」3 つの見た目（ON は AUTO と同じ緑）。</summary>
