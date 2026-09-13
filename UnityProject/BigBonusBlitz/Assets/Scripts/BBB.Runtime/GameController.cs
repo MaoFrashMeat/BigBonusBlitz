@@ -234,7 +234,7 @@ namespace BBB.Runtime
             }
         }
 
-        private void OnApplicationQuit() => SaveData.Save(_m, _audio);
+        private void OnApplicationQuit() { SaveData.Save(_m, _audio); _graph?.Save(); }
 
         // ------------------------------------------------------------------ UI
         // 配色は UiSkin に一元化（自分=緑 / 敵・危険=赤 / 中立=金 / 選択=アクセント1色）
@@ -830,6 +830,7 @@ namespace BBB.Runtime
             const float grW = 720f, grH = 500f;
             _graphBox = BuildModal("Graph", new Vector2(grW, grH), "スランプグラフ（エンバーの増減）", ToggleGraph, out var gBody);
             _graph = SlumpGraph.Create(gBody, new Vector2(0, grH * 0.5f - 38 - 8 - 132), new Vector2(660, 264), _m.Credit);
+            _graph.Restore(_m.Credit);   // 前回までの波形の続きから
             _runBaseCredit = _m.Credit;
             UiSkin.Heading(gBody, "HistHead", new Vector2(0, grH * 0.5f - 38 - 8 - 280), 660, "前回までの冒険", 0f);
             _histRows = new Button[RunHistory.Keep];
@@ -845,7 +846,7 @@ namespace BBB.Runtime
                 if (_histLabels[i] != null) _histLabels[i].alignment = TextAnchor.MiddleLeft;
             }
             UiSkin.Button(gBody, "GraphReset", new Vector2(grW * 0.5f - 90, -grH * 0.5f + 20), new Vector2(140, 28), "ここから取り直す",
-                () => { _audio.UiPop(); _graph.ResetTo(_m.Credit); _graph.SetGhost(null); _histPicked = -1; RefreshHistory(); }, ColBtn, 12, false, 8);
+                () => { _audio.UiPop(); _graph.ResetTo(_m.Credit); _graph.Save(); _graph.SetGhost(null); _histPicked = -1; RefreshHistory(); }, ColBtn, 12, false, 8);
             _graphBox.SetActive(false);
 
             // ===== モーダル: 冒険マップ =====
@@ -879,6 +880,7 @@ namespace BBB.Runtime
             _audio.UiPop();
             if (!_runRecorded) { RecordRun(_runEndReason); _runRecorded = true; }
             SaveData.Save(_m, _audio);
+            _graph?.Save();
             CloseModals();
             var canvasGo = _stage != null ? _stage.GetComponentInParent<Canvas>()?.gameObject : null;
             if (canvasGo != null) Destroy(canvasGo);
@@ -1009,14 +1011,14 @@ namespace BBB.Runtime
             RunHistory.Add(new RunRecord
             {
                 when = System.DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-                spins = _graph.Spins,
+                spins = _graph.RunSpins,
                 diff = _m.Credit - _runBaseCredit,
-                maxDiff = _graph.MaxDiff,
-                minDiff = _graph.MinDiff,
+                maxDiff = _graph.RunMaxDiff,
+                minDiff = _graph.RunMinDiff,
                 chapter = _m.Adv?.chapter ?? 1,
                 stage = node?.name ?? _m.Adv?.nodeId ?? "",
                 reason = reason ?? "",
-                wave = _graph.Snapshot(RunHistory.WavePoints),
+                wave = _graph.RunSnapshot(RunHistory.WavePoints),
             });
             _histPicked = -1;
             RefreshHistory();
@@ -2065,6 +2067,7 @@ namespace BBB.Runtime
         private void ResetSave()
         {
             SaveData.Clear();
+            SlumpGraph.ClearSaved();
             int setting = _m.Setting;
             _m = GameDataLoader.CreateMachine(new SystemRandom(), setting);
             HideEnemy();
@@ -2382,6 +2385,7 @@ namespace BBB.Runtime
             RollTraveler();
             RollHeroMonologue(r);
             SaveData.Save(_m, _audio);
+            if (_graph != null && _graph.Spins % 10 == 0) _graph.Save();   // 波形は 10G ごと（街へ戻るときと終了時にも）
             RefreshUi();
             if (r.chapterCleared) { StartCoroutine(ChapterClearRoutine(r)); return; }   // 街へ戻るのでオートは止める
             if (r.returnedToTown) { StartCoroutine(ReturnToTownRoutine(r)); return; }        // ライフ切れ・エンバー切れ

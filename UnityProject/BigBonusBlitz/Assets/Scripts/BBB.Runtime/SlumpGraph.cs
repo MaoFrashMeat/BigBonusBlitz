@@ -31,12 +31,24 @@ namespace BBB.Runtime
         /// <summary>間引き倍率（1 なら毎G、2 なら 2G ごと…）。</summary>
         private int _step = 1;
         private int _sinceLast;
+        // ---- 潜行をまたいで持ち越す。街へ戻っても消えず、次の冒険は続きから描く（履歴は潜行ごとに残すので、始まりの点も覚える）
+        private const string SaveKey = "bbb_graph_v1";
+        /// <summary>今の潜行が始まった点の番号と、そのときの回転数。</summary>
+        private int _runStart, _runSpinsAt;
+
+        [System.Serializable]
+        private sealed class Blob { public int baseCredit, step, spins, maxDiff, minDiff; public List<int> diff = new List<int>(); }
 
         public int Points => _diff.Count;
         public int Spins => _spins;
         public int LastDiff => _diff.Count > 0 ? _diff[_diff.Count - 1] : 0;
         public int MaxDiff { get; private set; }
         public int MinDiff { get; private set; }
+        /// <summary>今の潜行ぶんの回転数・最高・最低（潜行の始まりを 0 にして見る）。</summary>
+        public int RunSpins => _spins - _runSpinsAt;
+        public int RunMaxDiff { get { int b = RunBase, m = 0; for (int i = _runStart; i < _diff.Count; i++) m = Mathf.Max(m, _diff[i] - b); return m; } }
+        public int RunMinDiff { get { int b = RunBase, m = 0; for (int i = _runStart; i < _diff.Count; i++) m = Mathf.Min(m, _diff[i] - b); return m; } }
+        private int RunBase => _diff.Count > 0 ? _diff[Mathf.Clamp(_runStart, 0, _diff.Count - 1)] : 0;
 
         /// <param name="compact">脇に常駐させる小型版。目盛りと説明を出さず、線も細くする。</param>
         public static SlumpGraph Create(Transform parent, Vector2 pos, Vector2 size, int baseCredit,
@@ -73,17 +85,70 @@ namespace BBB.Runtime
             Redraw();
         }
 
-        /// <summary>今の波形を points 点までに間引いて返す（履歴に残すため）。</summary>
-        public int[] Snapshot(int points)
+        /// <summary>今の波形を points 点までに間引いて返す。</summary>
+        public int[] Snapshot(int points) => Thinned(_diff, points);
+
+        /// <summary>今の潜行ぶんの波形（始まりを 0 にする）。履歴に残すため。</summary>
+        public int[] RunSnapshot(int points)
         {
-            int n = _diff.Count;
+            int b = RunBase;
+            var run = new List<int>();
+            for (int i = Mathf.Max(0, _runStart); i < _diff.Count; i++) run.Add(_diff[i] - b);
+            return Thinned(run, points);
+        }
+
+        private static int[] Thinned(List<int> src, int points)
+        {
+            int n = src.Count;
             if (n == 0) return new int[0];
-            if (n <= points) return _diff.ToArray();
+            if (n <= points) return src.ToArray();
             var outp = new int[points];
             for (int i = 0; i < points; i++)
-                outp[i] = _diff[Mathf.Min(n - 1, Mathf.RoundToInt((float)i / (points - 1) * (n - 1)))];
+                outp[i] = src[Mathf.Min(n - 1, Mathf.RoundToInt((float)i / (points - 1) * (n - 1)))];
             return outp;
         }
+
+        /// <summary>前回までの記録があれば読んで続きから描く。今の潜行の始まりをここにする。</summary>
+        public void Restore(int credit)
+        {
+            string json = PlayerPrefs.GetString(SaveKey, "");
+            if (!string.IsNullOrEmpty(json))
+            {
+                try
+                {
+                    var b = JsonUtility.FromJson<Blob>(json);
+                    if (b != null && b.diff != null && b.diff.Count > 0)
+                    {
+                        _diff.Clear(); _diff.AddRange(b.diff);
+                        _baseCredit = b.baseCredit; _step = Mathf.Max(1, b.step); _spins = b.spins;
+                        MaxDiff = b.maxDiff; MinDiff = b.minDiff; _sinceLast = 0;
+                        while (_diff.Count > _maxPoints) Thin();
+                        // 街で動いたぶん（宿の補填など）は段差として見せる。回転数は増やさない
+                        int d = credit - _baseCredit;
+                        if (d != LastDiff) { _diff.Add(d); if (d > MaxDiff) MaxDiff = d; if (d < MinDiff) MinDiff = d; }
+                    }
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogWarning("グラフの記録が読めなかったので取り直す: " + e.Message);
+                    ResetTo(credit);
+                }
+            }
+            BeginRun();
+            Redraw();
+        }
+
+        /// <summary>今の点を潜行の始まりにする（履歴はここからの分を残す）。</summary>
+        public void BeginRun() { _runStart = Mathf.Max(0, _diff.Count - 1); _runSpinsAt = _spins; }
+
+        /// <summary>今の記録を置く（セーブと同じ場所）。</summary>
+        public void Save()
+        {
+            var b = new Blob { baseCredit = _baseCredit, step = _step, spins = _spins, maxDiff = MaxDiff, minDiff = MinDiff, diff = _diff };
+            PlayerPrefs.SetString(SaveKey, JsonUtility.ToJson(b));
+        }
+
+        public static void ClearSaved() => PlayerPrefs.DeleteKey(SaveKey);
 
         /// <summary>1G ぶん記録する。credit は現在のエンバー。</summary>
         public void Push(int credit)
@@ -102,7 +167,11 @@ namespace BBB.Runtime
         /// <summary>点が増えすぎたら 1 つおきに捨てて、間引き倍率を倍にする。</summary>
         private void Thin()
         {
-            for (int i = _diff.Count - 2; i > 0; i -= 2) _diff.RemoveAt(i);
+            // 残るのは 0 番と、末尾から数えて偶数番目。潜行の始まりの点も同じ規則で番号を付け直す
+            int n = _diff.Count, kept = 0;
+            for (int i = 0; i < _runStart && i < n; i++) if (i == 0 || (n - 1 - i) % 2 == 0) kept++;
+            _runStart = kept;
+            for (int i = n - 2; i > 0; i -= 2) _diff.RemoveAt(i);
             _step *= 2;
         }
 
@@ -168,6 +237,7 @@ namespace BBB.Runtime
             _diff.Clear();
             _diff.Add(0);
             MaxDiff = 0; MinDiff = 0; _spins = 0; _step = 1; _sinceLast = 0;
+            _runStart = 0; _runSpinsAt = 0;
             _baseCredit = credit;
             Redraw();
         }
