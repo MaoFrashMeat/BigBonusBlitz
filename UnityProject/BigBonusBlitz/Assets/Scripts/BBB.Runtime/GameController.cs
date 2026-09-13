@@ -198,6 +198,10 @@ namespace BBB.Runtime
         private GameObject _equipBox, _curseBox, _statsBox, _curseListBox;
         /// <summary>エンゲージ中に流す斜めの帯（上下 2 本。Web 版の敵出現バナーと同じ表現）。</summary>
         private MarqueeBand _engageBandTop, _engageBandBottom;
+        /// <summary>継続ジャッジの進みを見せる 8 マス（1G … 7G / Last）。表示域の上、ステージ札の右。</summary>
+        private RectTransform _judgeTrack;
+        private Image[] _judgeCells, _judgeCellEdges;
+        private Text[] _judgeLabels;
         /// <summary>いま出ている敵が中ボスか（討伐の見せ方を変える）。出現時に覚える。</summary>
         private bool _engagedBoss;
         private string _engagedName = "";
@@ -2932,8 +2936,9 @@ namespace BBB.Runtime
         /// <summary>AT のイベント演出（洞窟発見・バトル・討伐・終了）を一本にまとめて出す。</summary>
         private void AtFx(GameResult r)
         {
-            // 継続ジャッジ: 突入の帯 → 1G ごとの示唆（色） → 最終Gに「判定」と結果
-            if (r.judgeStarted) StartCoroutine(JudgeStartRoutine());
+            // 継続ジャッジ: 突入の帯 → 1G ごとの示唆（色） → 最終Gに「判定」と結果。上のマス（1G…Last）が 1 つずつ進む
+            if (r.judgeStarted) { ShowJudgeTrack(); StartCoroutine(JudgeStartRoutine()); }
+            else if (_m.InJudge || r.judgeResolved) UpdateJudgeTrack(r);
             if (!string.IsNullOrEmpty(r.judgeHint)) StartCoroutine(JudgeHintRoutine(r.judgeHint));
             if (r.judgeResolved) { StartCoroutine(JudgeResultRoutine(r)); return; }
             if (r.setContinued) StartCoroutine(SetContinueRoutine(r.continueSet));
@@ -3437,6 +3442,90 @@ namespace BBB.Runtime
             }
         }
 
+        /// <summary>
+        /// ジャッジの進みを見せるマス（2026-09-14 本人: 1G, 2G … 7G, Last と書かれたマスが順に進むと見やすい）。
+        /// 表示域の上、ステージ札の右に横一列。通ったマスは示唆の色で塗り、次のマスは金の縁で「今ここ」。
+        /// </summary>
+        private void ShowJudgeTrack()
+        {
+            HideJudgeTrack();
+            int n = Mathf.Max(2, _m.JudgeTotal);
+            const float cellW = 44f, cellH = 34f, gap = 6f;
+            float w = n * cellW + (n - 1) * gap;
+            _judgeTrack = UiSkin.Rect(_area, "JudgeTrack", new Vector2(-118f + w * 0.5f, AreaH * 0.5f - 24f), new Vector2(w, cellH));
+            _judgeCells = new Image[n]; _judgeCellEdges = new Image[n]; _judgeLabels = new Text[n];
+            for (int i = 0; i < n; i++)
+            {
+                float x = -w * 0.5f + cellW * 0.5f + i * (cellW + gap);
+                _judgeCellEdges[i] = UiSkin.Img(_judgeTrack, "Edge" + i, new Vector2(x, 0), new Vector2(cellW + 4, cellH + 4), UiSkin.Rounded(9), new Color(1, 1, 1, 0));
+                _judgeCells[i] = UiSkin.Img(_judgeTrack, "Cell" + i, new Vector2(x, 0), new Vector2(cellW, cellH), UiSkin.Rounded(7), new Color(0, 0, 0, 0.55f));
+                _judgeLabels[i] = UiFactory.Label(_judgeTrack, "L" + i, new Vector2(x, 1), new Vector2(cellW, cellH), i == n - 1 ? "Last" : $"{i + 1}G", 12, TextAnchor.MiddleCenter, ColTextSub);
+                _judgeLabels[i].fontStyle = FontStyle.Bold;
+                TextShadow(_judgeLabels[i], 0.8f);
+            }
+            SetJudgeCurrent(0);
+        }
+
+        /// <summary>次に来るマスを金の縁で示す。</summary>
+        private void SetJudgeCurrent(int idx)
+        {
+            if (_judgeCellEdges == null) return;
+            for (int i = 0; i < _judgeCellEdges.Length; i++)
+            {
+                bool cur = i == idx;
+                _judgeCellEdges[i].color = cur ? ColGold : new Color(1, 1, 1, 0);
+                if (cur) { _judgeLabels[i].color = ColText; }
+            }
+        }
+
+        /// <summary>このGのマスを塗る（示唆の色。無ければ灰）。最終Gは結果の色。</summary>
+        private void UpdateJudgeTrack(GameResult r)
+        {
+            if (_judgeTrack == null || _judgeCells == null) return;
+            int n = _judgeCells.Length;
+            int idx = r.judgeResolved ? n - 1 : Mathf.Clamp(_m.JudgeTotal - _m.JudgeRemaining - 1, 0, n - 1);
+            Color bg; Color fg = ColBg; string label = null;
+            if (r.judgeResolved)
+            {
+                bg = r.setContinued ? ColGold : new Color(0.45f, 0.2f, 0.26f, 0.95f);
+                fg = r.setContinued ? ColBg : ColText;
+                label = r.setContinued ? "継続" : "終了";
+            }
+            else if (!string.IsNullOrEmpty(r.judgeHint))
+            {
+                var look = JudgeHintLook(r.judgeHint);
+                bg = new Color(look.color.r, look.color.g, look.color.b, 0.92f);
+                fg = r.judgeHint == "white" || r.judgeHint == "yellow" || r.judgeHint == "gold" ? ColBg : ColText;
+            }
+            else { bg = new Color(0.36f, 0.39f, 0.47f, 0.9f); fg = ColTextSub; }
+            _judgeCells[idx].color = bg;
+            _judgeLabels[idx].color = fg;
+            if (label != null) _judgeLabels[idx].text = label;
+            if (r.judgeHint == "rainbow") RainbowTint.Apply(_judgeCells[idx], 0.92f, 0.6f);
+            StartCoroutine(PopRect(_judgeCells[idx].rectTransform, 1.25f, 0.22f));
+            SetJudgeCurrent(r.judgeResolved ? -1 : idx + 1);
+        }
+
+        private void HideJudgeTrack()
+        {
+            if (_judgeTrack != null) { Destroy(_judgeTrack.gameObject); _judgeTrack = null; }
+            _judgeCells = null; _judgeCellEdges = null; _judgeLabels = null;
+        }
+
+        /// <summary>ぽんと膨らんで戻る（マスの打感）。</summary>
+        private IEnumerator PopRect(RectTransform rt, float peak, float seconds)
+        {
+            float t = 0;
+            while (t < seconds && rt != null)
+            {
+                t += Time.deltaTime;
+                float u = Mathf.Clamp01(t / seconds);
+                rt.localScale = Vector3.one * Mathf.Lerp(peak, 1f, 1f - (1f - u) * (1f - u));
+                yield return null;
+            }
+            if (rt != null) rt.localScale = Vector3.one;
+        }
+
         /// <summary>セットを使い切った: 「継続ジャッジ」の帯と、残りGの案内。</summary>
         private IEnumerator JudgeStartRoutine()
         {
@@ -3463,6 +3552,7 @@ namespace BBB.Runtime
             yield return SlamTitle("判   定", ColText, 1.0f, 60);
             if (r.setContinued) yield return SetContinueRoutine(r.continueSet);
             else if (r.atEnded) yield return AtEndRoutine(_m.AtPayout, _m.AtSpinCount);
+            HideJudgeTrack();
         }
 
         private IEnumerator SetContinueRoutine(int set)
