@@ -5176,6 +5176,16 @@
     "enabled": true,
     "missionSlots": 1,
     "readySeconds": 1.2,
+    "ranks": [
+      { "id": "perfect",   "name": "Perfect!!",  "color": "#ff66d9", "koma": 0, "phase": 0.1,  "bonusPercent": 100, "rainbow": true },
+      { "id": "excellent", "name": "Excellent!", "color": "#ffd23f", "koma": 0, "phase": 0.2,  "bonusPercent": 70 },
+      { "id": "great",     "name": "Great!",     "color": "#7cf47c", "koma": 0, "phase": 0.3,  "bonusPercent": 50 },
+      { "id": "good",      "name": "Good",       "color": "#7cc8ff", "koma": 0, "phase": 0.4,  "bonusPercent": 30 },
+      { "id": "cool",      "name": "Cool",       "color": "#ffffff", "koma": 0, "phase": -1,   "bonusPercent": 20 },
+      { "id": "koma1",     "name": "1コマ",       "color": "#d8d8d8", "koma": 1, "phase": -1,   "bonusPercent": 10 },
+      { "id": "koma2",     "name": "2コマ",       "color": "#a8a8a8", "koma": 2, "phase": -1,   "bonusPercent": 0 }
+    ],
+    "rankFx": { "y": 70, "fontSize": 44, "inSeconds": 0.16, "holdSeconds": 0.9, "outSeconds": 0.35, "rise": 40 },
     "rates": {
       "normal": 4,
       "engage": 12,

@@ -36,6 +36,31 @@ namespace BBB.Runtime
         public event Action<ReelView> Stopped;
 
         public int TopIndex => ((int)Mathf.Floor(_pos) % Strip.Length + Strip.Length) % Strip.Length;
+        /// <summary>上段コマの中での位置（0〜1。1 に近いほどそのコマが来たばかり、0 に近いほど次のコマに移る直前）。</summary>
+        public float Frac => _pos - Mathf.Floor(_pos);
+
+        private double _updateRealtime = -1;   // 直前の Update の実時間と、そのときの位置
+        private float _posAtUpdate;
+
+        /// <summary>
+        /// 押した瞬間（pressRealtime: Time.realtimeSinceStartup と同じ軸。負なら今）の上段コマと、そのコマ内の位置。
+        /// 自由回転中は直前の Update からの時間ぶん位置を戻して出す（Input System のイベント時刻で 1 フレームより細かく測る。技術介入のランク用）。
+        /// </summary>
+        public void PressPosition(double pressRealtime, out int top, out float frac)
+        {
+            int len = Strip.Length;
+            float pos = _pos;
+            if (pressRealtime >= 0 && IsSpinning && _remainingSlip < 0f && _updateRealtime >= 0)
+            {
+                // 押してから直前の Update までの時間（負なら Update の後に押された分だけ進める）。回るほど _pos は減る
+                float back = Mathf.Clamp((float)(_updateRealtime - pressRealtime), -0.1f, 0.1f);
+                pos = _posAtUpdate + SymbolsPerSecond * SpeedScale * back;
+            }
+            pos = ((pos % len) + len) % len;
+            int fl = (int)Mathf.Floor(pos);
+            top = fl % len;
+            frac = pos - fl;
+        }
 
         public static ReelView Create(Transform parent, Symbol[] strip, Vector2 pos)
         {
@@ -148,6 +173,7 @@ namespace BBB.Runtime
             _pos -= move;
             int len = Strip.Length;
             if (_pos < 0) _pos += len;
+            _updateRealtime = Time.realtimeSinceStartupAsDouble; _posAtUpdate = _pos;
             Redraw();
             if (_remainingSlip == 0f)
             {

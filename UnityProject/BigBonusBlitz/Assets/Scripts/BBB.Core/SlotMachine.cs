@@ -30,6 +30,9 @@ namespace BBB.Core
         public bool techSuccess;
         /// <summary>技術介入の報酬。</summary>
         public int techSouls, techEmbers, techExp, techAtGames;
+        /// <summary>押した精度のランク（成功時。当てはまらなければ null）と、その上乗せ分。</summary>
+        public TechRankDef techRank;
+        public int techBonusSouls, techBonusEmbers, techBonusExp, techBonusAtGames;
         /// <summary>このGで達成したミッション（無ければ null）。</summary>
         public MissionDef missionCleared;
         /// <summary>新しく受注したミッション（無ければ null）。</summary>
@@ -348,6 +351,9 @@ namespace BBB.Core
         public readonly Symbol[][] Stopped = new Symbol[3][];
         public readonly int[] StopIndex = new int[3];
         public readonly int[] Slip = new int[3];
+        /// <summary>押した瞬間に上段にあったコマ（未停止は -1）と、そのコマ内の位置（0〜1、0.5 が中心）。技術介入のランクに使う。</summary>
+        public readonly int[] PressIndex = { -1, -1, -1 };
+        public readonly float[] PressPhase = { 0.5f, 0.5f, 0.5f };
         public bool IsGameActive { get; private set; }
 
         private LotteryTable _tA, _tB, _tC, _tD, _tBB, _tRB, _tTier2, _tAT;
@@ -437,7 +443,7 @@ namespace BBB.Core
         {
             if (Bet == 0) throw new InvalidOperationException("BET されていない");
             IsGameActive = true;
-            for (int i = 0; i < 3; i++) { Stopped[i] = null; Slip[i] = 0; }
+            for (int i = 0; i < 3; i++) { Stopped[i] = null; Slip[i] = 0; PressIndex[i] = -1; PressPhase[i] = 0.5f; }
             PressOrder.Clear();
             CurrentCommand = BellCommand.None;
             Navi = default;
@@ -713,11 +719,13 @@ namespace BBB.Core
         }
 
         // --------------------------------------------------------------- STOP
-        /// <summary>onStop。baseIdx は押した瞬間に上段にあるコマ番号。</summary>
-        public SlipController.Result Stop(int reelIndex, int baseIdx, int maxSlip = SlipController.DefaultMaxSlip)
+        /// <summary>onStop。baseIdx は押した瞬間に上段にあるコマ番号。phase はそのコマ内の位置（0〜1、0.5 が中心。技術介入のランク用）。</summary>
+        public SlipController.Result Stop(int reelIndex, int baseIdx, int maxSlip = SlipController.DefaultMaxSlip, float phase = 0.5f)
         {
             if (!IsGameActive) throw new InvalidOperationException("回転していない");
             if (Stopped[reelIndex] != null) throw new InvalidOperationException("停止済み");
+            PressIndex[reelIndex] = baseIdx;
+            PressPhase[reelIndex] = Math.Max(0f, Math.Min(1f, phase));
             // ベル択ナビ（エンゲージ）の2択を外したら、そのGのベルは取りこぼす。
             // 制御に渡す役を HAZE にすることで「揃えない」停止を選ばせる（払い出しは自然に 0 になる）。
             // 外したかどうかは押したリール番号だけで決まるので、その第二停止から効かせられる。
@@ -1040,13 +1048,23 @@ namespace BBB.Core
                 result.techSuccess = TechDirector.Judge(Tech, Stopped[Tech.reel]);
                 if (result.techSuccess)
                 {
-                    var def = TechDirector.FindLevel(Config.tech ?? TechConfig.Default(), Tech.id);
+                    var techCfg = Config.tech ?? TechConfig.Default();
+                    var def = TechDirector.FindLevel(techCfg, Tech.id);
+                    // 押した精度のランク → 成功報酬に % で上乗せ
+                    result.techRank = TechDirector.Rank(techCfg, Tech, Strips[Tech.reel], PressIndex[Tech.reel], PressPhase[Tech.reel]);
+                    int pct = result.techRank?.bonusPercent ?? 0;
+                    int Bonus(int v) => pct > 0 && v > 0 ? (int)Math.Round(v * pct / 100.0) : 0;
                     if (def != null)
                     {
                         if (def.souls > 0) { result.techSouls = GainSouls(def.souls); result.soulsGained += result.techSouls; }
                         if (def.embers > 0) { result.techEmbers = def.embers; GainEmbers(def.embers); }
                         if (def.exp > 0) { result.techExp = def.exp; if (GainExp(def.exp)) result.levelUp = true; }
                         if (def.atGames > 0 && InAt) { result.techAtGames = def.atGames; AtSpinsRemaining += def.atGames; }
+                        int bS = Bonus(def.souls), bE = Bonus(def.embers), bX = Bonus(def.exp), bG = InAt ? Bonus(def.atGames) : 0;
+                        if (bS > 0) { result.techBonusSouls = GainSouls(bS); result.soulsGained += result.techBonusSouls; }
+                        if (bE > 0) { result.techBonusEmbers = bE; GainEmbers(bE); }
+                        if (bX > 0) { result.techBonusExp = bX; if (GainExp(bX)) result.levelUp = true; }
+                        if (bG > 0) { result.techBonusAtGames = bG; AtSpinsRemaining += bG; }
                     }
                     AdvanceMissions("techSuccess", Tech.id, result);
                 }

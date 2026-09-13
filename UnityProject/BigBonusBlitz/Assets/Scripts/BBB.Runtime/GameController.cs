@@ -238,6 +238,7 @@ namespace BBB.Runtime
             QualitySettings.vSyncCount = 0;
             Application.targetFrameRate = 120;
             _audio = AudioManager.Create();
+            PressTimer.Hook();   // 停止キーの正確な時刻（ビタのランク用）
             _m = GameDataLoader.CreateMachine(new SystemRandom());
             if (!SaveData.Load(_m, _audio)) SaveData.LoadAudio(_audio);   // セーブが無くても音量設定は引き継ぐ
             _autoSpeedPref = SaveData.LoadAutoSpeed();
@@ -1306,11 +1307,12 @@ namespace BBB.Runtime
                     UiFx.Burst(_reels[r.tech.reel].GetComponent<RectTransform>(), UiFx.Preset.SuccessStars);
                     UiFx.Ring(_reels[r.tech.reel].GetComponent<RectTransform>(), new Color(1f, 0.9f, 0.4f, 0.9f), 40, 260, 0.5f);
                     var parts = new System.Collections.Generic.List<string>();
-                    if (r.techSouls > 0) parts.Add($"{{soul}}+{r.techSouls}");
-                    if (r.techEmbers > 0) parts.Add($"{{ember}}+{r.techEmbers}");
-                    if (r.techExp > 0) parts.Add($"EXP +{r.techExp}");
-                    if (r.techAtGames > 0) parts.Add($"+{r.techAtGames}G");
-                    SetMessage("技術介入 成功！  " + string.Join("  ", parts), true, ColGold);
+                    if (r.techSouls + r.techBonusSouls > 0) parts.Add($"{{soul}}+{r.techSouls + r.techBonusSouls}");
+                    if (r.techEmbers + r.techBonusEmbers > 0) parts.Add($"{{ember}}+{r.techEmbers + r.techBonusEmbers}");
+                    if (r.techExp + r.techBonusExp > 0) parts.Add($"EXP +{r.techExp + r.techBonusExp}");
+                    if (r.techAtGames + r.techBonusAtGames > 0) parts.Add($"+{r.techAtGames + r.techBonusAtGames}G");
+                    string rank = r.techRank != null ? $" {r.techRank.name}" + (r.techRank.bonusPercent > 0 ? $"（上乗せ +{r.techRank.bonusPercent}%）" : "") : "";
+                    SetMessage($"技術介入 成功！{rank}  " + string.Join("  ", parts), true, ColGold);
                     PlayCharacter("victory");
                 }
                 else
@@ -1348,7 +1350,8 @@ namespace BBB.Runtime
             else
             {
                 bool ok = TechDirector.Judge(t, _m.Stopped[t.reel]);
-                _techBanner.text = ok ? "技術介入 成功！" : "技術介入 失敗（損はしない）";
+                var rank = ok ? TechDirector.Rank(_m.Config.tech, t, _m.Strips[t.reel], _m.PressIndex[t.reel], _m.PressPhase[t.reel]) : null;
+                _techBanner.text = ok ? "技術介入 成功！" + (rank != null ? $"  {rank.name}" : "") : "技術介入 失敗（損はしない）";
                 _techBanner.color = ok ? ColGold : ColTextSub;
             }
         }
@@ -2148,9 +2151,9 @@ namespace BBB.Runtime
             {
                 if (kb.leftCtrlKey.wasPressedThisFrame || kb.rightCtrlKey.wasPressedThisFrame) OnBetClicked();
                 if (kb.spaceKey.wasPressedThisFrame) OnSpaceStep();
-                if (kb.zKey.wasPressedThisFrame || kb.leftArrowKey.wasPressedThisFrame) StopReel(0);
-                if (kb.xKey.wasPressedThisFrame || kb.downArrowKey.wasPressedThisFrame) StopReel(1);
-                if (kb.cKey.wasPressedThisFrame || kb.rightArrowKey.wasPressedThisFrame) StopReel(2);
+                if (kb.zKey.wasPressedThisFrame || kb.leftArrowKey.wasPressedThisFrame) StopReel(0, PressTimer.Latest(Key.Z, Key.LeftArrow));
+                if (kb.xKey.wasPressedThisFrame || kb.downArrowKey.wasPressedThisFrame) StopReel(1, PressTimer.Latest(Key.X, Key.DownArrow));
+                if (kb.cKey.wasPressedThisFrame || kb.rightArrowKey.wasPressedThisFrame) StopReel(2, PressTimer.Latest(Key.C, Key.RightArrow));
                 if (kb.aKey.wasPressedThisFrame) ToggleAuto();
                 if (kb.sKey.wasPressedThisFrame) CycleAutoSpeed();
                 if (kb.bKey.wasPressedThisFrame) { _audio.ToggleBgm(); _audio.UiPop(); SaveData.SaveAudio(_audio); }
@@ -2387,14 +2390,16 @@ namespace BBB.Runtime
         }
 
         private void StopReel(int i) => StopReel(i, false);
+        private void StopReel(int i, double pressTime) => StopReel(i, false, pressTime);
 
-        /// <summary>auto=true は擬似遊技など機械側の停止。false（手動）は擬似遊技中は無視する。</summary>
-        private void StopReel(int i, bool auto)
+        /// <summary>auto=true は擬似遊技など機械側の停止。false（手動）は擬似遊技中は無視する。pressTime はキーのイベント時刻（無ければ -1）。</summary>
+        private void StopReel(int i, bool auto, double pressTime = -1)
         {
             if (!_m.IsGameActive || StopsLocked || !_reels[i].IsSpinning || _m.Stopped[i] != null) return;
             if (_m.PseudoPlay && !auto) return;   // 擬似遊技中は手動停止を受け付けない
             if (_bellShowActive && _bellShowStop < 3) StartCoroutine(BellShowDefeat(_bellShowStop++));
-            var res = _m.Stop(i, _reels[i].TopIndex);
+            _reels[i].PressPosition(pressTime, out int baseIdx, out float phase);   // 押した瞬間の位置（1 フレームより細かく）
+            var res = _m.Stop(i, baseIdx, SlipController.DefaultMaxSlip, phase);
             _reels[i].StopAt(res.stopIndex, res.slip);
             if (_reels[i].LastWasPullIn)
             {
@@ -2403,7 +2408,16 @@ namespace BBB.Runtime
                 UiFx.Ring(reelRt, new Color(1f, 0.85f, 0.3f, 0.7f), 60, 220, 0.5f);
                 _audio.ReelPullIn();
             }
-            if (_m.Tech.Active && i == _m.Tech.reel) { RefreshTech(); HideTechAim(); }
+            if (_m.Tech.Active && i == _m.Tech.reel)
+            {
+                RefreshTech(); HideTechAim();
+                // 押した精度のランク（Perfect!! など）は止まった瞬間に出す。上乗せの数字は全部止まってから
+                if (TechDirector.Judge(_m.Tech, _m.Stopped[i]))
+                {
+                    var rank = TechDirector.Rank(_m.Config.tech, _m.Tech, _m.Strips[i], _m.PressIndex[i], _m.PressPhase[i]);
+                    if (rank != null) StartCoroutine(TechRankPop(i, rank, res.slip / ReelView.SymbolsPerSecond));
+                }
+            }
             // 択の正解は第三停止まで見せない（2026-09-13 本人）。成功・失敗の見せ方は全リールが止まってから
             if (_m.Navi.Active)
             {
@@ -2500,7 +2514,7 @@ namespace BBB.Runtime
                 UiFx.Absorb(_reels[1].GetComponent<RectTransform>(), _creditNum.rectTransform, UiFx.Preset.EmberSoul, emberDrops, 0.78f);
                 UiFx.Burst(_payoutNum.rectTransform, UiFx.Preset.Coins, new Vector2(0, -10));
                 UiFx.PopText(_payoutNum.rectTransform, $"+{r.win.payout}", ColGold, 24, new Vector2(0, 20));
-                if (r.win.winType == WinType.BELL) StartCoroutine(EmberGainSlide(r.win.payout));
+                if (r.win.winType == WinType.BELL) EnqueueGain("ember", r.win.payout);
                 RoleFx(r.win.winType, CellMaskFor(r.win));
                 switch (r.win.winType)
                 {
@@ -2600,6 +2614,17 @@ namespace BBB.Runtime
             }
             if (r.levelUp && _m.Stats.Unspent > 0)
                 UiFx.PopText(_player.rectTransform, $"ポイント +{_m.Config.stats?.pointsPerLevel ?? 0}", ColGold, 20, new Vector2(0, 26));
+            // 得たものは全部「GET」の帯で出す（2026-09-14 本人: 技術介入やエンゲージで入る EXP も同じ動きで）。列に積んで 1 つずつ
+            {
+                bool beat = r.enemyResolved == true;
+                int exp = r.enemyExp + r.naviExp + r.techExp + r.techBonusExp + (r.missionCleared?.exp ?? 0);
+                int emb = r.techEmbers + r.techBonusEmbers + (r.missionCleared?.embers ?? 0) + (beat ? (_engagedBoss ? _m.EmberCfg.perBoss : _m.EmberCfg.perMob) : 0);
+                int games = r.techAtGames + r.techBonusAtGames + (r.missionCleared?.atGames ?? 0);
+                if (r.soulsGained > 0) EnqueueGain("soul", r.soulsGained);
+                if (exp > 0) EnqueueGain("book", exp);
+                if (emb > 0) EnqueueGain("ember", emb);
+                if (games > 0) EnqueueGain(null, games, "G");
+            }
             AtExpectFx(r, rankBefore);
             AtFx(r);
             AdventureFx(r);
@@ -3101,11 +3126,12 @@ namespace BBB.Runtime
                 if (r.techSuccess)
                 {
                     var parts = new System.Collections.Generic.List<string>();
-                    if (r.techSouls > 0) parts.Add($"{{soul}}+{r.techSouls}");
-                    if (r.techEmbers > 0) parts.Add($"{{ember}}+{r.techEmbers}");
-                    if (r.techExp > 0) parts.Add($"EXP +{r.techExp}");
-                    if (r.techAtGames > 0) parts.Add($"AT +{r.techAtGames}G");
-                    lines.Add("技術介入 成功！ " + string.Join("  ", parts));
+                    if (r.techSouls + r.techBonusSouls > 0) parts.Add($"{{soul}}+{r.techSouls + r.techBonusSouls}");
+                    if (r.techEmbers + r.techBonusEmbers > 0) parts.Add($"{{ember}}+{r.techEmbers + r.techBonusEmbers}");
+                    if (r.techExp + r.techBonusExp > 0) parts.Add($"EXP +{r.techExp + r.techBonusExp}");
+                    if (r.techAtGames + r.techBonusAtGames > 0) parts.Add($"AT +{r.techAtGames + r.techBonusAtGames}G");
+                    string rank = r.techRank != null ? $"{r.techRank.name}！" + (r.techRank.bonusPercent > 0 ? $" 押した精度で +{r.techRank.bonusPercent}% 上乗せ " : " ") : " ";
+                    lines.Add($"技術介入 成功！ {rank}" + string.Join("  ", parts));
                 }
                 else lines.Add("技術介入は失敗。損はしないので、次に狙おう");
             }
@@ -3463,6 +3489,40 @@ namespace BBB.Runtime
         /// <summary>
         /// 帯を横切らせて大きな文字を叩きつける（ENEMY ENGAGE と同じ形）。色と文言だけ差し替えて使い回す。
         /// </summary>
+        /// <summary>
+        /// 押した精度のランク（Perfect!! など）を対象リールの上に出す。delay はリールが滑り終わるまでの秒。
+        /// 出し方は tech.rankFx（tools/fx_viewer.html の techRank と同じ式）。舞台に直接置くので表示域の外でも切れない。
+        /// </summary>
+        private IEnumerator TechRankPop(int reel, TechRankDef rank, float delay)
+        {
+            if (delay > 0f) yield return new WaitForSeconds(delay);
+            var fx = _m.Config.tech?.rankFx ?? new TechRankFxConfig();
+            var reelRt = _reels[reel].GetComponent<RectTransform>();
+            Vector2 at = _stage.InverseTransformPoint(reelRt.TransformPoint(Vector3.zero));
+            var pos0 = new Vector2(at.x, at.y + fx.y);
+            var host = UiSkin.Rect(_stage, "TechRank", pos0, new Vector2(420, fx.fontSize * 1.6f));
+            var color = Hex(string.IsNullOrEmpty(rank.color) ? "#ffffff" : rank.color);
+            var row = IconText.Render(host, rank.name, fx.fontSize, color, FontStyle.Bold, fx.fontSize, 1f, 4f, true,
+                                      new Color(color.r * 0.25f, color.g * 0.25f, color.b * 0.25f, 1f), new Vector2(2, -3));
+            if (rank.rainbow) foreach (var tx in row.texts) RainbowTint.Apply(tx, 1f, 0.75f);
+            var cg = host.gameObject.AddComponent<CanvasGroup>(); cg.blocksRaycasts = false;
+            if (rank.bonusPercent >= 100) { UiFx.Burst(reelRt, UiFx.Preset.Confetti, new Vector2(0, fx.y)); _audio.NaviSuccess(); }
+            float tIn = Mathf.Max(0.01f, fx.inSeconds), tHold = Mathf.Max(0f, fx.holdSeconds), tOut = Mathf.Max(0.01f, fx.outSeconds);
+            float t = 0;
+            while (t < tIn + tHold + tOut)
+            {
+                t += Time.deltaTime;
+                float sc = 1f, y = 0f, a = 1f;
+                if (t < tIn) { float u = t / tIn; sc = Mathf.Lerp(1.8f, 1f, 1f - Mathf.Pow(1f - u, 3f)); a = Mathf.Min(1f, u * 3f); }
+                else if (t >= tIn + tHold) { float u = Mathf.Clamp01((t - tIn - tHold) / tOut); y = fx.rise * u; a = 1f - u; }
+                host.localScale = Vector3.one * sc;
+                host.anchoredPosition = pos0 + new Vector2(0, y);
+                cg.alpha = a;
+                yield return null;
+            }
+            Destroy(host.gameObject);
+        }
+
         private IEnumerator SlamTitle(string text, Color color, float hold = 1.5f, int fontSize = 58, bool rainbow = false)
         {
             var band = UiSkin.Rect(_area, "SlamBand", Vector2.zero, new Vector2(AreaW * 1.2f, 96));
@@ -4081,9 +4141,37 @@ namespace BBB.Runtime
         /// ベルでエンバーを獲得したときの帯: 「8 {ember} 獲得！」が右から滑り込み、少し止まって左へ抜ける。
         /// 表示域の中央やや下。文字は IconText（EMB は絵）。
         /// </summary>
-        private IEnumerator EmberGainSlide(int amount)
+        private readonly System.Collections.Generic.Queue<(string icon, int amount, string unit)> _gainQueue = new System.Collections.Generic.Queue<(string, int, string)>();
+        private bool _gainPlaying;
+
+        /// <summary>「n {icon} GET」の帯を列に積む。同時に出さず、前のが抜けてから次を出す。icon が null なら unit（"G" など）の文字。</summary>
+        private void EnqueueGain(string icon, int amount, string unit = null)
+        {
+            if (amount <= 0) return;
+            _gainQueue.Enqueue((icon, amount, unit));
+            if (!_gainPlaying) StartCoroutine(GainQueueRoutine());
+        }
+
+        private IEnumerator GainQueueRoutine()
+        {
+            _gainPlaying = true;
+            while (_gainQueue.Count > 0)
+            {
+                var g = _gainQueue.Dequeue();
+                yield return GainSlide(g.icon, g.amount, g.unit);
+                yield return new WaitForSeconds(0.08f);
+            }
+            _gainPlaying = false;
+        }
+
+        /// <summary>
+        /// 「n {icon} GET」の帯（ベルのエンバー、敵の EXP、技術介入の報酬など、得たもの全部に使う）。
+        /// 動きと部品は reelFx.emberGain（tools/fx_viewer.html と同じ式）。icon は UiSkin.Icon の名前（ember / soul / book）。
+        /// </summary>
+        private IEnumerator GainSlide(string icon, int amount, string unit = null)
         {
             var fx = _m.Config.reelFx?.emberGain ?? new EmberGainFxConfig();
+            string iconName = string.IsNullOrEmpty(icon) ? "ember" : icon;
             float bandW = fx.bandW, bandH = fx.bandH, y0 = fx.y;
             var band = UiSkin.Rect(_area, "EmberGain", new Vector2(AreaW * 0.5f + bandW * 0.6f, y0), new Vector2(bandW, bandH));
             // 部品は設定で ON/OFF（2026-09-14 本人: 枠は要らない。細かく切り替えたい）
@@ -4098,7 +4186,7 @@ namespace BBB.Runtime
             Image back = null;
             if (fx.backIcon)
             {
-                back = UiSkin.Img(band, "BackIcon", new Vector2(fx.backIconX, fx.backIconY), new Vector2(fx.backIconSize, fx.backIconSize), UiSkin.Icon("ember", 64), new Color(1f, 1f, 1f, Mathf.Clamp01(fx.backIconAlpha)));
+                back = UiSkin.Img(band, "BackIcon", new Vector2(fx.backIconX, fx.backIconY), new Vector2(fx.backIconSize, fx.backIconSize), UiSkin.Icon(iconName, 64), new Color(1f, 1f, 1f, Mathf.Clamp01(fx.backIconAlpha)));
                 back.preserveAspect = true;
                 back.rectTransform.localRotation = Quaternion.Euler(0, 0, fx.backIconRot);
             }
@@ -4116,7 +4204,7 @@ namespace BBB.Runtime
                 float numW = fx.digitGap * (s.Length - 1); var dw = new float[s.Length];
                 for (int i = 0; i < s.Length; i++) { var sp = numArt[s[i] - '0']; dw[i] = fx.numH * sp.rect.width / sp.rect.height; numW += dw[i]; }
                 float picW = fx.picH * kakutoku.rect.width / kakutoku.rect.height;
-                float x = -(numW + (fx.showIcon ? gap + iconW : 0f) + picGap + picW) * 0.5f;
+                float x = -(numW + (fx.showIcon || unit != null ? gap + iconW : 0f) + picGap + picW) * 0.5f;
                 digitSlots = new Image[s.Length];
                 for (int i = 0; i < s.Length; i++)
                 {
@@ -4126,11 +4214,20 @@ namespace BBB.Runtime
                     pieces.Add(digitSlots[i]); movers.Add(digitSlots[i].rectTransform);
                 }
                 x -= fx.digitGap;
-                if (fx.showIcon)   // 手前の炎（OFF なら数字のすぐ右に「獲得」）
+                if (fx.showIcon || unit != null)   // 手前の絵（OFF なら数字のすぐ右に「獲得」）。単位（"G"）は絵の代わりに金の文字
                 {
                     x += gap;
-                    var icon = UiSkin.Img(row, "Icon", new Vector2(x + iconW * 0.5f + fx.iconX, fx.iconY), new Vector2(iconW, iconW), UiSkin.Icon("ember", 64), Color.white);
-                    icon.rectTransform.localRotation = Quaternion.Euler(0, 0, fx.iconRot); pieces.Add(icon);
+                    if (unit != null)
+                    {
+                        // 単位の文字は絵用のずらし・傾き（iconX/Y、iconRot）を受けない
+                        var ut = UiFactory.Label(row, "Unit", new Vector2(x + iconW * 0.5f, 0), new Vector2(iconW * 1.4f, iconW * 1.4f), unit, fx.fontSize, TextAnchor.MiddleCenter, Hex("#ffd23f"));
+                        ut.fontStyle = FontStyle.Bold; pieces.Add(ut);
+                    }
+                    else
+                    {
+                        var iconImg = UiSkin.Img(row, "Icon", new Vector2(x + iconW * 0.5f + fx.iconX, fx.iconY), new Vector2(iconW, iconW), UiSkin.Icon(iconName, 64), Color.white);
+                        iconImg.rectTransform.localRotation = Quaternion.Euler(0, 0, fx.iconRot); pieces.Add(iconImg);
+                    }
                     x += iconW;
                 }
                 x += picGap;
@@ -4139,7 +4236,7 @@ namespace BBB.Runtime
             }
             else
             {
-                string ember = fx.showIcon ? " {ember}" : "";
+                string ember = unit != null ? unit : fx.showIcon ? " {" + iconName + "}" : "";
                 var parts = IconText.Render(row, kakutoku != null ? $"{amount}{ember}" : $"{amount}{ember} 獲得！", fx.fontSize, Hex("#ffd23f"), FontStyle.Bold, fx.fontSize * 1.1f, 1f, fx.iconGap, true, new Color(0.4f, 0.12f, 0f, 1f), new Vector2(2, -3));
                 foreach (var ic in parts.icons) if (ic != null) { ic.rectTransform.anchoredPosition += new Vector2(fx.iconX, fx.iconY); ic.rectTransform.localRotation = Quaternion.Euler(0, 0, fx.iconRot); }   // 炎の絵だけずらす・傾ける
                 numText = parts.texts.Count > 0 ? parts.texts[0] : null;

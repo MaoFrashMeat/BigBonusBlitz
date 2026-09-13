@@ -53,6 +53,17 @@
 (function () {
   const AreaW = 940, AreaH = 300;           // ゲームの表示域（StageCard の中）。舞台 1170×540 の中で中央やや上
   const AreaCx = 585, AreaCy = 20 + 14 + 150;   // 舞台の左上原点での表示域の中心（帯 28 + 余白 の下）
+  const ReelCy = 440, ReelCx = i => 585 + (i - 1) * 131;   // リール窓の中心（筐体は舞台の下段。ピッチ 123+8）
+  // 技術介入のランク（game_config.json の tech.ranks の写し。名前・色・上乗せ % はそちらで変える）
+  const RANKS = [
+    { id: "perfect", name: "Perfect!!", color: "#ff66d9", rainbow: true },
+    { id: "excellent", name: "Excellent!", color: "#ffd23f" },
+    { id: "great", name: "Great!", color: "#7cf47c" },
+    { id: "good", name: "Good", color: "#7cc8ff" },
+    { id: "cool", name: "Cool", color: "#ffffff" },
+    { id: "koma1", name: "1コマ", color: "#d8d8d8" },
+    { id: "koma2", name: "2コマ", color: "#a8a8a8" },
+  ];
   const cv = document.getElementById("stage"), g = cv.getContext("2d");
   const assets = {};
   function img(src) { if (assets[src]) return assets[src]; const im = new Image(); im.src = src; assets[src] = im; return im; }
@@ -247,6 +258,39 @@
         g.restore();
         return true;
       }
+    },
+    {
+      id: "techRank", name: "技術介入のランク（Perfect!! など）", key: "tech.rankFx",
+      note: "対象リールが止まった瞬間、その上に出る。大きく出て縮む → 止まる → 上へ流れて消える。ランクの名前・色・上乗せ % は game_config.json の tech.ranks。",
+      params: [
+        { group: "例", key: "rank", label: "ランク", type: "select", def: "perfect", options: RANKS.map(r => [r.id, r.name]), local: true },
+        { group: "例", key: "reel", label: "リール", type: "select", def: "1", options: [["0", "左"], ["1", "中"], ["2", "右"]], local: true },
+        { group: "動き", key: "y", label: "高さ（リール中心から）", min: -60, max: 220, step: 1, def: 70 },
+        { group: "動き", key: "fontSize", label: "文字", min: 20, max: 90, step: 1, def: 44 },
+        { group: "動き", key: "inSeconds", label: "入る秒", min: 0.05, max: 1, step: 0.01, def: 0.16 },
+        { group: "動き", key: "holdSeconds", label: "止まる秒", min: 0, max: 3, step: 0.05, def: 0.9 },
+        { group: "動き", key: "outSeconds", label: "抜ける秒", min: 0.05, max: 1.5, step: 0.01, def: 0.35 },
+        { group: "動き", key: "rise", label: "上へ流れる量", min: 0, max: 120, step: 1, def: 40 },
+      ],
+      total: p => p.inSeconds + p.holdSeconds + p.outSeconds,
+      draw(t, p) {
+        // GameController.TechRankPop と同じ式
+        const tIn = Math.max(0.01, p.inSeconds), tHold = Math.max(0, p.holdSeconds), tOut = Math.max(0.01, p.outSeconds);
+        if (t >= tIn + tHold + tOut) return false;
+        let sc = 1, y = 0, a = 1;
+        if (t < tIn) { const u = t / tIn; sc = lerp(1.8, 1, 1 - Math.pow(1 - u, 3)); a = Math.min(1, u * 3); }
+        else if (t >= tIn + tHold) { const u = Math.min(1, (t - tIn - tHold) / tOut); y = p.rise * u; a = 1 - u; }
+        const r = RANKS.find(x => x.id === p.rank) || RANKS[0];
+        const cx = ReelCx(+p.reel || 0), cy = ReelCy - p.y - y;
+        const col = r.rainbow ? "hsl(" + ((t * 0.45 * 360) % 360) + ",75%,62%)" : r.color;
+        g.save(); g.globalAlpha = a; g.translate(cx, cy); g.scale(sc, sc);
+        g.font = "bold " + p.fontSize + "px sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.lineJoin = "round";
+        g.lineWidth = 6; g.strokeStyle = "rgba(0,0,0,0.55)"; g.strokeText(r.name, 2, 3);
+        g.lineWidth = 4; g.strokeStyle = "rgba(0,0,0,0.75)"; g.strokeText(r.name, 0, 0);
+        g.fillStyle = col; g.fillText(r.name, 0, 0);
+        g.restore();
+        return true;
+      }
     }
   ];
   // ---- 型ごとの姿勢（GameController.EmberGainPose と同じ式）
@@ -292,6 +336,7 @@
   function buildParams() {
     document.getElementById("fxName").textContent = cur.name;
     document.getElementById("fxNote").textContent = cur.note || "";
+    document.querySelector("details.picker").style.display = cur.id === "emberGain" ? "" : "none";
     const host = document.getElementById("params"); host.innerHTML = "";
     const sections = {};
     const sectionOf = name => {

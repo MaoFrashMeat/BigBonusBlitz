@@ -43,6 +43,38 @@ namespace BBB.Core
         public int souls, embers, exp, atGames;
     }
 
+    /// <summary>
+    /// 押した精度のランク（2026-09-14 本人: 2コマ目押し / 1コマ目押し / ビタ押し。ビタの中はタイミングで 5 段、最高 Perfect!! 最低 Cool）。
+    /// 上から順に見て最初に当てはまるものを使う。報酬は成功報酬に bonusPercent % を上乗せする。
+    /// </summary>
+    public sealed class TechRankDef
+    {
+        public string id = "";
+        public string name = "";
+        /// <summary>文字の色（#rrggbb）。</summary>
+        public string color = "#ffffff";
+        /// <summary>狙いの上段コマの何コマ手前で押したか（0 = ビタ、1 = 1コマ目押し、2 = 2コマ目押し）。</summary>
+        public int koma = 0;
+        /// <summary>ビタの中の精度: 押した瞬間のコマ内の位置が、コマの中心からどれだけずれていたか（0〜0.5）。負なら問わない。</summary>
+        public float phase = -1f;
+        /// <summary>成功報酬に上乗せする割合（%）。</summary>
+        public int bonusPercent = 0;
+        /// <summary>文字を虹色で出す（最高ランク用）。</summary>
+        public bool rainbow = false;
+    }
+
+    /// <summary>ランクの文字の出し方（対象リールの上に出す。tools/fx_viewer.html と同じ式）。</summary>
+    public sealed class TechRankFxConfig
+    {
+        /// <summary>リールの中心からの高さ（px、上が +）と文字の大きさ。</summary>
+        public float y = 70f;
+        public int fontSize = 44;
+        /// <summary>入る秒（大きく出て縮む）/ 止まる秒 / 抜ける秒（上へ流れて消える）。</summary>
+        public float inSeconds = 0.16f, holdSeconds = 0.9f, outSeconds = 0.35f;
+        /// <summary>抜けるときに上へ流れる量（px）。</summary>
+        public float rise = 40f;
+    }
+
     /// <summary>場面ごとの発生率。オート中は出さない。</summary>
     public sealed class TechSceneRate
     {
@@ -67,10 +99,25 @@ namespace BBB.Core
         public int missionSlots = 1;
         /// <summary>課題が出たGは、この秒数だけ停止を受け付けず「Ready？」を見せて構えさせる。</summary>
         public float readySeconds = 1.2f;
+        /// <summary>押した精度のランク（上から順に判定）と、その文字の出し方。</summary>
+        public List<TechRankDef> ranks = new List<TechRankDef>();
+        public TechRankFxConfig rankFx = new TechRankFxConfig();
+
+        public static List<TechRankDef> DefaultRanks() => new List<TechRankDef>
+        {
+            new TechRankDef { id = "perfect",   name = "Perfect!!",  color = "#ff66d9", koma = 0, phase = 0.10f, bonusPercent = 100, rainbow = true },
+            new TechRankDef { id = "excellent", name = "Excellent!", color = "#ffd23f", koma = 0, phase = 0.20f, bonusPercent = 70 },
+            new TechRankDef { id = "great",     name = "Great!",     color = "#7cf47c", koma = 0, phase = 0.30f, bonusPercent = 50 },
+            new TechRankDef { id = "good",      name = "Good",       color = "#7cc8ff", koma = 0, phase = 0.40f, bonusPercent = 30 },
+            new TechRankDef { id = "cool",      name = "Cool",       color = "#ffffff", koma = 0, phase = -1f,   bonusPercent = 20 },
+            new TechRankDef { id = "koma1",     name = "1コマ",       color = "#d8d8d8", koma = 1, phase = -1f,   bonusPercent = 10 },
+            new TechRankDef { id = "koma2",     name = "2コマ",       color = "#a8a8a8", koma = 2, phase = -1f,   bonusPercent = 0 },
+        };
 
         public static TechConfig Default()
         {
             var c = new TechConfig();
+            c.ranks = DefaultRanks();
             c.levels.Add(new TechLevelDef
             {
                 id = "easy_star", name = "★を枠内に", kind = "TwoKoma", weight = 40,
@@ -211,6 +258,26 @@ namespace BBB.Core
             }
             foreach (var s in stopped) if (s == ch.symbol) return true;   // 枠内にあれば成功
             return false;
+        }
+
+        /// <summary>
+        /// 押した精度のランク。pressIdx は押した瞬間に上段にあったコマ、phase はそのコマ内の位置（0〜1、0.5 が中心）。
+        /// 狙いの上段コマ（その図柄が狙う段に来る位置）まで、滑る向きに何コマ手前かを数え、maxSlip を超えれば null（腕でなく制御で入った）。
+        /// </summary>
+        public static TechRankDef Rank(TechConfig cfg, TechChallenge ch, Symbol[] strip, int pressIdx, float phase, int maxSlip = SlipController.DefaultMaxSlip)
+        {
+            if (cfg?.ranks == null || cfg.ranks.Count == 0 || !ch.Active || strip == null || pressIdx < 0) return null;
+            int len = strip.Length, koma = int.MaxValue;
+            foreach (var aim in AimIndices(strip, ch.symbol, ch.row >= 0 && ch.row < 3 ? ch.row : 1))
+            {
+                int k = ((pressIdx - aim) % len + len) % len;   // 上段のコマ番号は回るほど減るので、aim+k で押せば k コマ滑って aim に止まる
+                if (k < koma) koma = k;
+            }
+            if (koma > maxSlip) return null;
+            float dev = Math.Abs(Math.Max(0f, Math.Min(1f, phase)) - 0.5f);
+            foreach (var r in cfg.ranks)
+                if (r != null && r.koma == koma && (r.phase < 0f || dev <= r.phase + 1e-4f)) return r;
+            return null;
         }
 
         public static TechLevelDef FindLevel(TechConfig cfg, string id)
