@@ -85,7 +85,8 @@ namespace BBB.Runtime
         /// </summary>
         private readonly float[] _naviDepth = { 1f, 1f, 1f };
         private readonly float[] _naviDepthTarget = { 1f, 1f, 1f };
-        private static readonly float[] NaviDepthScale = { 1f, 0.85f, 0.7f };   // 手前 / 次（手前と奥の中間） / 奥
+        // 2026-09-13 本人: 「1」は大きくして「最初にこれを押す」、2 番以降は小さく・色も少し落として「ここじゃない」
+        private static readonly float[] NaviDepthScale = { 1.15f, 0.72f, 0.6f };   // 押す番（大きく） / 次の候補（小さく） / 済み・無効（奥）
         // きらきら（紋章の縁に生まれて消える星）と、コーティング（形に沿って走る光の帯）。
         // 数値は tools/navi_viewer.html で本人が選んだ組み合わせ:
         //   背景=ゆっくり上下 x0.8 / 文字=上下（速め）x0.4 / 速さ 0.7 / 奥 0.7 / 同位相
@@ -1583,6 +1584,8 @@ namespace BBB.Runtime
             // 「?」は第一停止の前は候補（奥）、第一停止のあとは押す番（手前）
             int rank = txt == "-" ? 2 : txt == "?" && _m.PressOrder.Count == 0 ? 1 : 0;
             _naviDepthTarget[i] = NaviDepthScale[rank];
+            bool next = rank == 1;                                   // まだ押さない候補: 色を少し落とす
+            if (next) { ring = ring * 0.8f; ring.a = 1f; fg = fg * 0.8f; fg.a = 1f; glow.a *= 0.5f; }
 
             string file = NaviGlyphFile(txt);
             var glyph = file != null ? ArtLoader.Sprite("Art/UI/Navi/" + file) : null;
@@ -1594,7 +1597,7 @@ namespace BBB.Runtime
             if (useArt)
             {
                 bool dim = ring == ColBtnDisabled;
-                var tint = dim ? new Color(0.55f, 0.58f, 0.68f, 0.9f) : Color.white;
+                var tint = dim ? new Color(0.55f, 0.58f, 0.68f, 0.9f) : next ? new Color(0.78f, 0.8f, 0.88f, 1f) : Color.white;
                 _naviEmblemBg[i].sprite = bg;
                 _naviEmblemBg[i].color = tint;
                 _naviEmblemFg[i].color = tint;
@@ -2638,16 +2641,12 @@ namespace BBB.Runtime
                 UiFx.Burst(_torchTagRt, UiFx.Preset.Sparks, new Vector2(0, -8));
             }
             // ライフが回復した（通常時のリプレイ／ボーナス中のベル）。
-            // 通常時はバーが出ているのでその上に、止まっている間は主人公の上に出す
+            // 回復した数値は主人公の頭の上に大きく出す（2026-09-13 本人: バーの上だと気づきにくい）
             if (r.hpHealed > 0)
             {
-                var res = _m.Config.adventure?.resource;
                 _audio.RoleBell();
-                bool barShown = _torchTagRt != null && _torchTagRt.gameObject.activeInHierarchy;
-                var at = barShown ? _torchTagRt : _charRt;
-                var off = barShown ? new Vector2(0, 20) : new Vector2(0, 52);
-                UiFx.PopText(at, $"{res?.hpName ?? "ライフ"} +{r.hpHealed}", Hex("#7ee0a0"), 22, off);
-                UiFx.Burst(at, UiFx.Preset.SuccessStars, barShown ? new Vector2(0, 6) : new Vector2(0, 30));
+                UiFx.PopText(_charRt, $"+{r.hpHealed}", Hex("#7ee0a0"), 30, new Vector2(0, 64));
+                UiFx.Burst(_charRt, UiFx.Preset.SuccessStars, new Vector2(0, 30));
             }
             if (r.atStockUsed > 0) UiFx.PopText(_atChip.rectTransform, $"地図 +{r.atStockUsed} G", ColGold, 20, new Vector2(0, 22));
             if (r.routeDecided != null && !r.stageChanged)
