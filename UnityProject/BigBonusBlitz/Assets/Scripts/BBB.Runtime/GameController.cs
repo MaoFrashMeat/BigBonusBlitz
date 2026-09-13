@@ -4083,8 +4083,9 @@ namespace BBB.Runtime
         /// </summary>
         private IEnumerator EmberGainSlide(int amount)
         {
-            const float bandW = 360f, bandH = 64f;
-            var band = UiSkin.Rect(_area, "EmberGain", new Vector2(AreaW * 0.5f + bandW * 0.6f, -8f), new Vector2(bandW, bandH));
+            var fx = _m.Config.reelFx?.emberGain ?? new EmberGainFxConfig();
+            float bandW = fx.bandW, bandH = fx.bandH, y0 = fx.y;
+            var band = UiSkin.Rect(_area, "EmberGain", new Vector2(AreaW * 0.5f + bandW * 0.6f, y0), new Vector2(bandW, bandH));
             UiSkin.Img(band, "Bg", Vector2.zero, new Vector2(bandW, bandH), UiSkin.Rounded(14), new Color(0.05f, 0.03f, 0.02f, 0.82f));
             UiSkin.Img(band, "Edge", new Vector2(0, bandH * 0.5f - 1), new Vector2(bandW - 20, 2), null, new Color(1f, 0.6f, 0.2f, 0.95f));
             UiSkin.Img(band, "Edge2", new Vector2(0, -bandH * 0.5f + 1), new Vector2(bandW - 20, 2), null, new Color(1f, 0.6f, 0.2f, 0.95f));
@@ -4092,10 +4093,10 @@ namespace BBB.Runtime
             // 「獲得」は絵（assets/symbols/text の金文字。無ければ文字）。数と炎の絵の右に並べる
             var kakutoku = ArtLoader.Sprite("Art/UI/Text/kakutoku");
             var row = UiSkin.Rect(band, "Row", new Vector2(0, 1), new Vector2(bandW, bandH));
-            var parts = IconText.Render(row, kakutoku != null ? $"{amount} {{ember}}" : $"{amount} {{ember}} 獲得！", 40, Hex("#ffd23f"), FontStyle.Bold, 44f, 1f, 6f, true, new Color(0.4f, 0.12f, 0f, 1f), new Vector2(2, -3));
+            var parts = IconText.Render(row, kakutoku != null ? $"{amount} {{ember}}" : $"{amount} {{ember}} 獲得！", fx.fontSize, Hex("#ffd23f"), FontStyle.Bold, fx.fontSize * 1.1f, 1f, 6f, true, new Color(0.4f, 0.12f, 0f, 1f), new Vector2(2, -3));
             if (kakutoku != null)
             {
-                const float picH = 52f, picGap = 10f;
+                float picH = fx.picH; const float picGap = 10f;
                 float picW = picH * kakutoku.rect.width / kakutoku.rect.height;
                 float total = parts.width + picGap + picW;
                 // 数字と炎を左へ寄せ、その右に「獲得」の絵
@@ -4105,15 +4106,16 @@ namespace BBB.Runtime
             }
             var cg = band.gameObject.AddComponent<CanvasGroup>(); cg.blocksRaycasts = false;
             float xIn = AreaW * 0.5f + bandW * 0.6f, xOut = -AreaW * 0.5f - bandW * 0.6f;
-            // 滑り込み（減速）→ 保持 → 左へ加速して抜ける
+            float tIn = Mathf.Max(0.01f, fx.inSeconds), tHold = Mathf.Max(0f, fx.holdSeconds), tOut = Mathf.Max(0.01f, fx.outSeconds);
+            // 滑り込み（減速）→ 保持（小さく震える）→ 左へ加速して抜ける。数値は tools/fx_viewer.html と同じ式
             float t = 0;
-            while (t < 0.24f) { t += Time.deltaTime; float u = 1f - Mathf.Pow(1f - Mathf.Clamp01(t / 0.24f), 3f); band.anchoredPosition = new Vector2(Mathf.Lerp(xIn, 0f, u), -8f); yield return null; }
-            band.anchoredPosition = new Vector2(0, -8f);
-            UiFx.Burst(_area, UiFx.Preset.Sparks, new Vector2(0, -8f));
+            while (t < tIn) { t += Time.deltaTime; float u = 1f - Mathf.Pow(1f - Mathf.Clamp01(t / tIn), 3f); band.anchoredPosition = new Vector2(Mathf.Lerp(xIn, 0f, u), y0); yield return null; }
+            band.anchoredPosition = new Vector2(0, y0);
+            UiFx.Burst(_area, UiFx.Preset.Sparks, new Vector2(0, y0));
             t = 0;
-            while (t < 0.55f) { t += Time.deltaTime; band.anchoredPosition = new Vector2(3f * Mathf.Sin(t * 30f) * (1f - t / 0.55f), -8f); yield return null; }
+            while (t < tHold) { t += Time.deltaTime; band.anchoredPosition = new Vector2(3f * Mathf.Sin(t * 30f) * (1f - t / tHold), y0); yield return null; }
             t = 0;
-            while (t < 0.26f) { t += Time.deltaTime; float u = Mathf.Pow(Mathf.Clamp01(t / 0.26f), 2.2f); band.anchoredPosition = new Vector2(Mathf.Lerp(0f, xOut, u), -8f); cg.alpha = 1f - u * 0.4f; yield return null; }
+            while (t < tOut) { t += Time.deltaTime; float u = Mathf.Pow(Mathf.Clamp01(t / tOut), 2.2f); band.anchoredPosition = new Vector2(Mathf.Lerp(0f, xOut, u), y0); cg.alpha = 1f - u * 0.4f; yield return null; }
             Destroy(band.gameObject);
         }
 

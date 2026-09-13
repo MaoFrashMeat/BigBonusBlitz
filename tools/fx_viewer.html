@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>演出ビューア</title>
+<style>
+  :root { --bg:#0f1b2d; --panel:#17263a; --panel2:#1d2f47; --line:#2f4460; --ink:#f4f6fa; --muted:#98a3b8; --gold:#f4cd7c; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:"Yu Gothic","Hiragino Sans",sans-serif; font-size:14px; }
+  .wrap { display:grid; grid-template-columns: 220px 1fr 340px; gap:14px; padding:14px; max-width:1700px; margin:0 auto; }
+  h1 { font-size:18px; margin:0 0 6px; grid-column:1 / -1; }
+  .sub { color:var(--muted); font-size:12px; grid-column:1 / -1; margin-top:-4px; }
+  .list { background:var(--panel); border-radius:8px; padding:8px; }
+  .list button { display:block; width:100%; text-align:left; font:inherit; background:transparent; color:var(--ink); border:0; border-radius:6px; padding:8px 10px; cursor:pointer; }
+  .list button.sel { background:var(--panel2); color:var(--gold); font-weight:bold; }
+  .stagebox { background:#000; border-radius:8px; padding:6px; }
+  canvas { display:block; width:100%; height:auto; border-radius:6px; }
+  .ctrl { background:var(--panel); border-radius:8px; padding:10px 12px; }
+  .ctrl h2 { font-size:14px; margin:0 0 8px; }
+  .row { display:flex; align-items:center; gap:8px; margin:6px 0; font-size:12px; color:var(--muted); }
+  .row label { flex:0 0 96px; }
+  .row input[type=range] { flex:1; }
+  .row span { flex:0 0 52px; text-align:right; color:var(--ink); }
+  button.primary { font:inherit; font-weight:bold; background:var(--gold); color:#3b2a12; border:0; border-radius:6px; padding:8px 16px; cursor:pointer; }
+  button.plain { font:inherit; background:var(--panel2); color:var(--ink); border:1px solid var(--line); border-radius:6px; padding:6px 12px; cursor:pointer; }
+  pre { background:var(--bg); padding:8px; border-radius:6px; font-size:12px; white-space:pre-wrap; user-select:all; margin:8px 0 0; }
+  .note { color:var(--muted); font-size:12px; line-height:1.6; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>演出ビューア</h1>
+  <div class="sub">ゲームの舞台（1170×540）の上で演出だけを再生する。数値を動かして「再生」。下の JSON を貼れば game_config.json に入る（ゲーム側も同じ式で動く）。Space でも再生。</div>
+  <div class="list" id="list"></div>
+  <div class="stagebox"><canvas id="stage" width="1170" height="540"></canvas></div>
+  <div class="ctrl">
+    <h2 id="fxName"></h2>
+    <div id="params"></div>
+    <div class="row" style="margin-top:10px"><button class="primary" id="play">再生</button><button class="plain" id="loop">繰り返し: OFF</button><button class="plain" id="reset">既定に戻す</button></div>
+    <div class="note" id="fxNote"></div>
+    <pre id="out"></pre>
+  </div>
+</div>
+<script>
+(function () {
+  const AreaW = 940, AreaH = 300;           // ゲームの表示域（StageCard の中）。舞台 1170×540 の中で中央やや上
+  const AreaCx = 585, AreaCy = 20 + 14 + 150;   // 舞台の左上原点での表示域の中心（帯 28 + 余白 の下）
+  const cv = document.getElementById("stage"), g = cv.getContext("2d");
+  const assets = {};
+  function img(src) { if (assets[src]) return assets[src]; const im = new Image(); im.src = src; assets[src] = im; return im; }
+  const bg = img("fx_bg.jpg");
+  const emberIcon = img("../UnityProject/BigBonusBlitz/Assets/Resources/Art/UI/Icons/ember.png");
+  const kakutoku = img("../assets/symbols/text/kakutoku_1.png");
+
+  // 演出の一覧。params は game_config.json のキーと同じ名前にする。draw(t, p) は t 秒時点を描き、終わったら false
+  const FX = [
+    {
+      id: "emberGain", name: "n EMB 獲得！（ベル）", key: "reelFx.emberGain",
+      note: "右から滑り込み（減速）→ 止まって小さく震える → 左へ加速して抜ける。「獲得」は assets/symbols/text の絵。",
+      params: [
+        { key: "inSeconds", label: "入る秒", min: 0.05, max: 1, step: 0.01, def: 0.24 },
+        { key: "holdSeconds", label: "止まる秒", min: 0, max: 2, step: 0.05, def: 0.55 },
+        { key: "outSeconds", label: "抜ける秒", min: 0.05, max: 1, step: 0.01, def: 0.26 },
+        { key: "y", label: "高さ", min: -140, max: 140, step: 1, def: -8 },
+        { key: "bandW", label: "帯の幅", min: 200, max: 700, step: 2, def: 360 },
+        { key: "bandH", label: "帯の高さ", min: 40, max: 120, step: 1, def: 64 },
+        { key: "fontSize", label: "文字", min: 20, max: 80, step: 1, def: 40 },
+        { key: "picH", label: "獲得の絵", min: 24, max: 100, step: 1, def: 52 },
+        { key: "amount", label: "枚数（例）", min: 1, max: 15, step: 1, def: 8, local: true },
+      ],
+      total: p => p.inSeconds + p.holdSeconds + p.outSeconds,
+      draw(t, p) {
+        const xIn = AreaW / 2 + p.bandW * 0.6, xOut = -AreaW / 2 - p.bandW * 0.6;
+        let x, alpha = 1;
+        if (t < p.inSeconds) { const u = 1 - Math.pow(1 - t / p.inSeconds, 3); x = xIn + (0 - xIn) * u; }
+        else if (t < p.inSeconds + p.holdSeconds) { const th = t - p.inSeconds; x = 3 * Math.sin(th * 30) * (1 - th / Math.max(0.001, p.holdSeconds)); }
+        else if (t < p.inSeconds + p.holdSeconds + p.outSeconds) { const u = Math.pow((t - p.inSeconds - p.holdSeconds) / p.outSeconds, 2.2); x = 0 + (xOut - 0) * u; alpha = 1 - u * 0.4; }
+        else return false;
+        const cx = AreaCx + x, cy = AreaCy - p.y;
+        g.save(); g.globalAlpha = alpha;
+        // 光
+        const grd = g.createRadialGradient(cx, cy, 10, cx, cy, p.bandW * 0.6);
+        grd.addColorStop(0, "rgba(255,140,40,0.35)"); grd.addColorStop(1, "rgba(255,140,40,0)");
+        g.fillStyle = grd; g.fillRect(cx - p.bandW, cy - p.bandH * 1.5, p.bandW * 2, p.bandH * 3);
+        // 帯
+        roundRect(cx - p.bandW / 2, cy - p.bandH / 2, p.bandW, p.bandH, 14); g.fillStyle = "rgba(13,8,5,0.82)"; g.fill();
+        g.fillStyle = "rgba(255,153,51,0.95)"; g.fillRect(cx - p.bandW / 2 + 10, cy - p.bandH / 2, p.bandW - 20, 2); g.fillRect(cx - p.bandW / 2 + 10, cy + p.bandH / 2 - 2, p.bandW - 20, 2);
+        // 文字: 「n」「炎」「獲得の絵」を測って中央に
+        const fs = p.fontSize; g.font = "bold " + fs + "px sans-serif"; g.textBaseline = "middle";
+        const numW = g.measureText(String(p.amount)).width, iconW = fs * 1.1, gap = 6, picGap = 10;
+        const picOk = kakutoku.complete && kakutoku.naturalWidth > 0;
+        const picW = picOk ? p.picH * kakutoku.naturalWidth / kakutoku.naturalHeight : g.measureText("獲得！").width;
+        const total = numW + gap + iconW + picGap + picW;
+        let x0 = cx - total / 2;
+        g.lineWidth = 5; g.strokeStyle = "rgba(102,31,0,1)"; g.lineJoin = "round"; g.strokeText(String(p.amount), x0, cy + 1);
+        g.fillStyle = "#ffd23f"; g.fillText(String(p.amount), x0, cy + 1); x0 += numW + gap;
+        if (emberIcon.complete && emberIcon.naturalWidth) g.drawImage(emberIcon, x0, cy - iconW / 2, iconW, iconW); x0 += iconW + picGap;
+        if (picOk) g.drawImage(kakutoku, x0, cy - p.picH / 2, picW, p.picH);
+        else { g.strokeText("獲得！", x0, cy + 1); g.fillText("獲得！", x0, cy + 1); }
+        g.restore();
+        return true;
+      }
+    }
+  ];
+  function roundRect(x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
+
+  let cur = FX[0], params = {}, playing = -1, loop = false;
+  const store = () => { try { localStorage.setItem("bbb_fx_" + cur.id, JSON.stringify(params)); } catch (e) {} };
+  function loadParams() {
+    params = {}; cur.params.forEach(p => params[p.key] = p.def);
+    try { const s = JSON.parse(localStorage.getItem("bbb_fx_" + cur.id) || "null"); if (s) Object.assign(params, s); } catch (e) {}
+  }
+  function buildList() {
+    const list = document.getElementById("list"); list.innerHTML = "";
+    FX.forEach(fx => { const b = document.createElement("button"); b.textContent = fx.name; b.className = fx === cur ? "sel" : ""; b.addEventListener("click", () => { cur = fx; loadParams(); buildList(); buildParams(); play(); }); list.appendChild(b); });
+  }
+  function buildParams() {
+    document.getElementById("fxName").textContent = cur.name;
+    document.getElementById("fxNote").textContent = cur.note || "";
+    const host = document.getElementById("params"); host.innerHTML = "";
+    cur.params.forEach(p => {
+      const row = document.createElement("div"); row.className = "row";
+      const lb = document.createElement("label"); lb.textContent = p.label;
+      const rg = document.createElement("input"); rg.type = "range"; rg.min = p.min; rg.max = p.max; rg.step = p.step; rg.value = params[p.key];
+      const v = document.createElement("span"); v.textContent = params[p.key];
+      rg.addEventListener("input", e => { params[p.key] = parseFloat(e.target.value); v.textContent = e.target.value; store(); output(); });
+      row.appendChild(lb); row.appendChild(rg); row.appendChild(v); host.appendChild(row);
+    });
+    output();
+  }
+  function output() {
+    const o = {}; cur.params.forEach(p => { if (!p.local) o[p.key] = params[p.key]; });
+    document.getElementById("out").textContent = '"' + cur.key.split(".").pop() + '": ' + JSON.stringify(o) + "\n（game_config.json の " + cur.key + "）";
+  }
+  function play() { playing = performance.now(); }
+  function frame(now) {
+    g.clearRect(0, 0, cv.width, cv.height);
+    if (bg.complete && bg.naturalWidth) g.drawImage(bg, 0, 0, cv.width, cv.height); else { g.fillStyle = "#101a2a"; g.fillRect(0, 0, cv.width, cv.height); }
+    // 表示域の枠（薄く）
+    g.strokeStyle = "rgba(255,255,255,0.12)"; g.strokeRect(AreaCx - AreaW / 2, AreaCy - AreaH / 2, AreaW, AreaH);
+    if (playing >= 0) {
+      const t = (now - playing) / 1000;
+      const alive = cur.draw(t, params);
+      if (!alive) { if (loop) playing = now + 400; else playing = -1; }
+    }
+    requestAnimationFrame(frame);
+  }
+  document.getElementById("play").addEventListener("click", play);
+  document.getElementById("loop").addEventListener("click", e => { loop = !loop; e.target.textContent = "繰り返し: " + (loop ? "ON" : "OFF"); if (loop) play(); });
+  document.getElementById("reset").addEventListener("click", () => { cur.params.forEach(p => params[p.key] = p.def); store(); buildParams(); play(); });
+  document.addEventListener("keydown", e => { if (e.key === " " && !(e.target && e.target.tagName === "INPUT")) { e.preventDefault(); play(); } });
+  loadParams(); buildList(); buildParams(); requestAnimationFrame(frame); setTimeout(play, 600);
+})();
+</script>
+</body>
+</html>

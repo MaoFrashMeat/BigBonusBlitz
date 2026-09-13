@@ -207,6 +207,8 @@ MonoBehaviour に依存しない。テストとハーネスはここだけ見る
 | `CurseScreen.cs` | 受けている呪いと祝福の一覧。装備画面の「呪いと祝福」から |
 | `IconText.cs` | 文字の中にアイコンを混ぜて 1 行に並べる（"{soul}+90"）。メッセージ・帯・説明の吹き出しで使う |
 | `MarqueeBand.cs` | 文が流れ続ける斜めの帯（エンゲージ中。Web 版の敵出現バナーの写し） |
+
+演出と図柄の確認は `tools/fx_viewer.html`（演出を再生して数値を決める。数値は game_config.json と同じキー）と `tools/symbol_viewer.html`（図柄の候補・回転・点滅）。ブラウザで開くだけ。
 | `RunIO.cs` | 潜行中の持ち物をセーブに載せる橋渡し |
 
 ### データ（`Assets/Resources/Data/`）

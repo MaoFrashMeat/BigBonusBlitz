@@ -240,6 +240,18 @@ namespace BBB.Core
     }
 
     /// <summary>エンバーの入手量。ソウルと同じ場面で、別の量が入る。</summary>
+    /// <summary>「n EMB 獲得！」の帯（ベルの払い出し）。tools/fx_viewer.html で試して決める。</summary>
+    public sealed class EmberGainFxConfig
+    {
+        /// <summary>右から滑り込む秒数 / 止まっている秒数 / 左へ抜ける秒数。</summary>
+        public float inSeconds = 0.24f, holdSeconds = 0.55f, outSeconds = 0.26f;
+        /// <summary>帯の位置（表示域の中央からの高さ）と大きさ。</summary>
+        public float y = -8f, bandW = 360f, bandH = 64f;
+        /// <summary>文字の大きさと、「獲得」の絵の高さ。</summary>
+        public int fontSize = 40;
+        public float picH = 52f;
+    }
+
     public sealed class ReelFxConfig
     {
         /// <summary>点滅の周期（秒。暗→明で 1 周期）。</summary>
@@ -248,6 +260,8 @@ namespace BBB.Core
         public float blinkDim = 0.28f;
         /// <summary>点滅を続ける秒数。</summary>
         public float blinkSeconds = 1.4f;
+        /// <summary>ベルの「n EMB 獲得！」の帯。</summary>
+        public EmberGainFxConfig emberGain = new EmberGainFxConfig();
     }
 
     public sealed class EmberConfig
