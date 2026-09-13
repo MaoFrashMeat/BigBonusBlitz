@@ -2248,6 +2248,8 @@ namespace BBB.Runtime
             CloseModals();
             _dustRt.gameObject.SetActive(false);
             if (_m.EnemyActive) _enemyCg.alpha = 1f;   // JS onLever: 潰した敵を戻す
+            if (_paylineRoutine != null) { StopCoroutine(_paylineRoutine); _paylineRoutine = null; _paylineFlash.alpha = 0f; foreach (var fx in _cellFx) if (fx != null) fx.gameObject.SetActive(false); }
+            foreach (var rv in _reels) rv.ResetBrightness();   // 前のGの点滅を持ち越さない
             _charRt.localRotation = Quaternion.identity;
             ExitFocus();
             _m.AutoPlaying = _autoMode;    // オート中は技術介入の課題を出さない
@@ -4090,22 +4092,34 @@ namespace BBB.Runtime
             for (int i = 0; i < _cellFx.Length; i++)
                 if (_cellFx[i] != null) _cellFx[i].gameObject.SetActive((cellMask & (1 << i)) != 0);
 
-            const float period = 0.22f;
-            float total = period * pulses;
+            // 光の脈は役ごとの回数、図柄そのものの点滅は実機のように 1.4 秒ほど続ける（2026-09-14 本人）
+            const float period = 0.22f, blinkPeriod = 0.13f, blinkTotal = 1.4f;
+            float glowTotal = period * pulses;
+            float total = Mathf.Max(glowTotal, blinkTotal);
             float t = 0;
             while (t < total)
             {
                 t += Time.deltaTime;
-                float u = (t % period) / period;
-                float a = u < 0.35f ? u / 0.35f : 1f - (u - 0.35f) / 0.65f;
-                _paylineFlash.alpha = Mathf.Clamp01(a);
-                var c = rainbow ? Color.HSVToRGB((t * 1.5f) % 1f, 0.7f, 1f) : color;
-                for (int i = 0; i < _cellFx.Length; i++)
-                    if (_cellFx[i] != null && _cellFx[i].gameObject.activeSelf) _cellFx[i].color = new Color(c.r, c.g, c.b, 0.55f);
+                if (t < glowTotal)
+                {
+                    float u = (t % period) / period;
+                    float a = u < 0.35f ? u / 0.35f : 1f - (u - 0.35f) / 0.65f;
+                    _paylineFlash.alpha = Mathf.Clamp01(a);
+                    var c = rainbow ? Color.HSVToRGB((t * 1.5f) % 1f, 0.7f, 1f) : color;
+                    for (int i = 0; i < _cellFx.Length; i++)
+                        if (_cellFx[i] != null && _cellFx[i].gameObject.activeSelf) _cellFx[i].color = new Color(c.r, c.g, c.b, 0.55f);
+                }
+                else _paylineFlash.alpha = 0f;
+                // 揃ったコマの図柄を暗↔明で点滅（それ以外のコマは触らない）
+                bool on = ((int)(t / blinkPeriod)) % 2 == 0;
+                for (int reel = 0; reel < 3; reel++)
+                    for (int row = 0; row < 3; row++)
+                        if ((cellMask & (1 << (reel * 3 + row))) != 0) _reels[reel].SetRowBrightness(row, on ? 1f : 0.28f);
                 yield return null;
             }
             _paylineFlash.alpha = 0f;
             for (int i = 0; i < _cellFx.Length; i++) if (_cellFx[i] != null) _cellFx[i].gameObject.SetActive(false);
+            foreach (var rv in _reels) rv.ResetBrightness();
             _paylineRoutine = null;
         }
 

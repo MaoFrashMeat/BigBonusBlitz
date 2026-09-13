@@ -104,6 +104,21 @@ namespace BBB.Runtime
             _pullInTotal = dist;
         }
 
+        /// <summary>窓の段（0=上 1=中 2=下）の図柄の明るさ（1 で通常）。役が決まったコマの点滅に使う。</summary>
+        public void SetRowBrightness(int windowRow, float k)
+        {
+            if (_rows == null || windowRow < 0 || windowRow > 2) return;
+            var img = _rows[windowRow + 1];
+            if (img != null) img.color = new Color(k, k, k, 1f);
+        }
+
+        /// <summary>全段の明るさを戻す（次の回転の前に）。</summary>
+        public void ResetBrightness()
+        {
+            if (_rows == null) return;
+            foreach (var img in _rows) if (img != null) img.color = Color.white;
+        }
+
         private void Update()
         {
             if (!IsSpinning)
