@@ -2183,6 +2183,13 @@ namespace BBB.Runtime
             float waitSec = _autoMode ? SpinWaitSeconds / Mathf.Max(1, _autoSpeed) : SpinWaitSeconds;
             float unlockAt = _lastSpinStartTime + waitSec;
             _stopUnlockTime = Mathf.Max(Time.time, unlockAt);
+            // 技術介入の課題が出たG: 大きく「Ready？」を出し、その間は停止を受け付けない（構える時間）
+            if (_m.Tech.Active)
+            {
+                float readySec = Mathf.Max(0f, _m.Config.tech?.readySeconds ?? 1.2f);
+                _stopUnlockTime = Mathf.Max(_stopUnlockTime, Time.time + readySec);
+                StartCoroutine(TechReadyRoutine(readySec));
+            }
             _lastSpinStartTime = Time.time;
             StartReels(hint);
             if (_stopUnlockTime > Time.time + 0.02f)
@@ -2192,9 +2199,17 @@ namespace BBB.Runtime
             }
         }
 
+        /// <summary>技術介入の「Ready？」。帯が消えるころに停止が解禁され、「GO！」を小さく出す。</summary>
+        private IEnumerator TechReadyRoutine(float readySec)
+        {
+            _audio.Precog(2);
+            yield return SlamTitle("Ready？", ColGold, Mathf.Max(0.2f, readySec - 0.6f), 76);
+            if (_m.IsGameActive && _m.Tech.Active) UiFx.PopText(_area, "GO！", ColGold, 36, new Vector2(0, 40));
+        }
+
         private IEnumerator WaitRoutine(float remain)
         {
-            SetMessage("WAIT", false, ColTextSub);
+            SetMessage(_m.Tech.Active ? "READY?" : "WAIT", false, _m.Tech.Active ? ColGold : ColTextSub);
             RefreshUi();
             OnWaitStart?.Invoke(remain);
             yield return new WaitForSeconds(remain);

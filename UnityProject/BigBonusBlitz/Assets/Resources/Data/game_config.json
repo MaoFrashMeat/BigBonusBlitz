@@ -5158,6 +5158,7 @@
   "tech": {
     "enabled": true,
     "missionSlots": 1,
+    "readySeconds": 1.2,
     "rates": {
       "normal": 4,
       "engage": 12,

@@ -65,6 +65,8 @@ namespace BBB.Core
         public List<MissionDef> missions = new List<MissionDef>();
         /// <summary>同時に持てるミッション数。</summary>
         public int missionSlots = 1;
+        /// <summary>課題が出たGは、この秒数だけ停止を受け付けず「Ready？」を見せて構えさせる。</summary>
+        public float readySeconds = 1.2f;
 
         public static TechConfig Default()
         {
