@@ -49,6 +49,7 @@
   </div>
 </div>
 <script src="text_rects.js"></script>
+<script src="fx_defaults.js"></script>
 <script>
 (function () {
   const AreaW = 940, AreaH = 300;           // ゲームの表示域（StageCard の中）。舞台 1170×540 の中で中央やや上
@@ -69,11 +70,15 @@
   function img(src) { if (assets[src]) return assets[src]; const im = new Image(); im.src = src; assets[src] = im; return im; }
   const bg = img("fx_bg.jpg");
   const emberIcon = img("../UnityProject/BigBonusBlitz/Assets/Resources/Art/UI/Icons/ember.png");
+  const soulIcon = img("../UnityProject/BigBonusBlitz/Assets/Resources/Art/UI/Icons/crystal.png");   // UiSkin の読み替え: soul → crystal
+  const bookIcon = img("../UnityProject/BigBonusBlitz/Assets/Resources/Art/UI/Icons/tome.png");      // exp → book → tome
+  const GAIN_KINDS = { ember: { im: () => emberIcon }, soul: { im: () => soulIcon }, book: { im: () => bookIcon }, games: { im: () => null, unit: "G" } };
+  const GAIN_SEQ = [["soul", 45], ["book", 30], ["ember", 25], ["games", 5]];   // 技術介入 hard_bar 成功の例（ソウル → EXP → エンバー → G）
   const builtKakutoku = img("../UnityProject/BigBonusBlitz/Assets/Resources/Art/UI/Text/kakutoku.png");
   const candWord = (name, v) => img("../assets/symbols/text/" + name + "_" + v + ".png");
   // 数字の絵: 候補（assets/symbols/number/num{d}_{v}.png、この PC にあるとき）→ 組んだもの（Resources/Art/UI/Text/num_{d}.png）→ 文字 の順で使う
   const NUM_KEY = "bbb_fx_numchoice";
-  let numChoice = { "0": 1, "1": 1, "2": 1, "3": 1, "4": 1, "5": 1, "6": 1, "7": 1, "8": 1, "9": 1, "kakutoku": 1 };
+  let numChoice = Object.assign({ "0": 1, "1": 1, "2": 1, "3": 1, "4": 1, "5": 1, "6": 1, "7": 1, "8": 1, "9": 1, "kakutoku": 1 }, (window.BBB_FX_DEFAULTS || {}).textChoice || {});   // 初期値は text_choice.json（fx_sync.py が写す）
   try { const s = JSON.parse(localStorage.getItem(NUM_KEY) || "null"); if (s) Object.assign(numChoice, s); } catch (e) {}
   const builtNum = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(d => img("../UnityProject/BigBonusBlitz/Assets/Resources/Art/UI/Text/num_" + d + ".png"));
   const candNum = (d, v) => img("../assets/symbols/number/num" + d + "_" + v + ".png");
@@ -119,9 +124,10 @@
   // 演出の一覧。params は game_config.json のキーと同じ名前にする。draw(t, p) は t 秒時点を描き、終わったら false
   const FX = [
     {
-      id: "emberGain", name: "n EMB 獲得！（ベル）", key: "reelFx.emberGain",
-      note: "右から滑り込み（減速）→ 止まって小さく震える → 左へ加速して抜ける。「獲得」は assets/symbols/text の絵。",
+      id: "emberGain", name: "n GET の帯（エンバー / ソウル / EXP / G）", key: "reelFx.emberGain",
+      note: "得たものは全部この帯。ゲームでは列に積んで 1 つずつ（0.08 秒空けて）出る。「順に全部」で技術介入成功の例（ソウル 45 → EXP 30 → エンバー 25 → 5G）を通しで見られる。",
       params: [
+        { group: "例", key: "kind", label: "種類", type: "select", def: "ember", options: [["ember", "エンバー"], ["soul", "ソウル"], ["book", "EXP"], ["games", "AT の G 数"], ["seq", "順に全部（ソウル→EXP→エンバー→G）"]], local: true },
         { group: "動き", key: "style", label: "型", type: "select", def: "slideRL", options: [["slideRL", "右→左スライド"], ["slideLR", "左→右スライド"], ["pop", "中央でポン"], ["drop", "上から落ちて弾む"], ["rise", "下からふわっと"], ["zoom", "急拡大して消える"], ["flip", "縦に開く"], ["slam", "叩きつけ"], ["spiral", "回りながら収まる"], ["pulse", "明滅"]] },
         { group: "動き", key: "inSeconds", label: "入る秒", min: 0.05, max: 1, step: 0.01, def: 0.24 },
         { group: "動き", key: "holdSeconds", label: "止まる秒", min: 0, max: 2, step: 0.05, def: 0.55 },
@@ -172,8 +178,22 @@
         { group: "足す効果", key: "wobbleSpeed", label: "揺れの速さ", min: 1, max: 30, step: 1, def: 8 },
         { group: "足す効果", key: "glowPulse", label: "光が脈打つ", type: "bool", def: false },
       ],
-      total: p => p.inSeconds + p.holdSeconds + p.outSeconds,
+      total: p => (p.inSeconds + p.holdSeconds + p.outSeconds) * (p.kind === "seq" ? GAIN_SEQ.length : 1) + (p.kind === "seq" ? 0.08 * (GAIN_SEQ.length - 1) : 0),
       draw(t, p) {
+        const one = p.inSeconds + p.holdSeconds + p.outSeconds;
+        if (p.kind === "seq") {
+          // ゲームの列と同じ: 前の帯が抜けてから 0.08 秒あけて次
+          const step = one + 0.08, i = Math.floor(t / step);
+          if (i >= GAIN_SEQ.length) return false;
+          const lt = t - i * step;
+          if (lt < one) this.band(lt, p, GAIN_KINDS[GAIN_SEQ[i][0]], GAIN_SEQ[i][1]);
+          return true;
+        }
+        return this.band(t, p, GAIN_KINDS[p.kind] || GAIN_KINDS.ember, p.amount);
+      },
+      // 帯 1 本（GameController.GainSlide と同じ手順）。kind.im() が絵、kind.unit が絵の代わりの文字（"G"）
+      band(t, p, kind, amount) {
+        const icon = kind.im(), unit = kind.unit || null;
         const xIn = AreaW / 2 + p.bandW * 0.6;
         const q = emberGainPose(p.style || "slideRL", t, p, xIn);
         if (!q) return false;
@@ -194,11 +214,12 @@
         if (p.showBand) { roundRect(cx - p.bandW / 2, cy - p.bandH / 2, p.bandW, p.bandH, 14); g.fillStyle = "rgba(13,8,5,0.82)"; g.fill(); }
         if (p.showEdges) { g.fillStyle = "rgba(255,153,51,0.95)"; g.fillRect(cx - p.bandW / 2 + 10, cy - p.bandH / 2, p.bandW - 20, 2); g.fillRect(cx - p.bandW / 2 + 10, cy + p.bandH / 2 - 2, p.bandW - 20, 2); }
         // 後ろの大きな炎（ON のとき。文字より先に描く）
-        if (p.backIcon && emberIcon.complete && emberIcon.naturalWidth) {
+        const backIm = icon || emberIcon;   // 単位（G）のときは炎
+        if (p.backIcon && backIm.complete && backIm.naturalWidth) {
           const s = p.backIconSize, bx = cx + (p.backIconX || 0), by = cy - (p.backIconY || 0);
           const rot = ((p.backIconRot || 0) + (p.backIconSpin || 0) * t) * Math.PI / 180;   // 度。反時計回りが +（ゲームと同じ）
           g.globalAlpha = q.alpha * Math.min(1, Math.max(0, p.backIconAlpha));
-          g.save(); g.translate(bx, by); g.rotate(-rot); g.drawImage(emberIcon, -s / 2, -s / 2, s, s); g.restore();
+          g.save(); g.translate(bx, by); g.rotate(-rot); g.drawImage(backIm, -s / 2, -s / 2, s, s); g.restore();
           g.globalAlpha = q.alpha;
         }
         // 火花（止まった瞬間から 0.4 秒。簡易）
@@ -208,15 +229,15 @@
         }
         // 「n」「炎」「獲得の絵」を測って中央に。数字は絵があれば絵（無ければ文字）
         const fs = p.fontSize; g.font = "bold " + fs + "px sans-serif"; g.textBaseline = "middle";
-        const shown = q.countU < 1 ? Math.round(p.amount * q.countU) : p.amount;
+        const shown = q.countU < 1 ? Math.round(amount * q.countU) : amount;
         const iconW = fs * 1.1, gap = p.iconGap ?? 6, picGap = p.picGap ?? 10, dgap = p.digitGap || 0, picX = p.picX || 0, picY = p.picY || 0;
         const word = wordArt("kakutoku"), picOk = !!word;
         const picW = picOk ? p.picH * word.b.w / word.b.h : g.measureText("獲得！").width;
-        const digits = String(p.amount).split("").map(ch => digitArt(+ch));
+        const digits = String(amount).split("").map(ch => digitArt(+ch));
         const artOk = picOk && digits.every(Boolean);
         const numH = p.numH || 56;
-        const numW = artOk ? digits.reduce((w, a) => w + numH * a.b.w / a.b.h, 0) + dgap * (digits.length - 1) : g.measureText(String(p.amount)).width;
-        const showIcon = p.showIcon !== false;
+        const numW = artOk ? digits.reduce((w, a) => w + numH * a.b.w / a.b.h, 0) + dgap * (digits.length - 1) : g.measureText(String(amount)).width;
+        const showIcon = p.showIcon !== false || unit !== null;
         const total = numW + (showIcon ? gap + iconW : 0) + picGap + picW;
         let x0 = cx - total / 2;
         // 桁ごとの「ポンと出る」「ゆらゆら」（GameController と同じ式。文字のときは数字 1 つが対象）
@@ -249,7 +270,11 @@
         }
         if (showIcon) {
         x0 += gap;
-        if (emberIcon.complete && emberIcon.naturalWidth) piece(imgDraw(emberIcon, 0, 0, emberIcon.naturalWidth, emberIcon.naturalHeight, x0 + (p.iconX || 0), cy - iconW / 2 - (p.iconY || 0), iconW, iconW), x0 + iconW / 2 + (p.iconX || 0), cy - (p.iconY || 0), 99, p.iconRot);
+        if (unit !== null) {   // 単位の文字は絵用のずらし・傾きを受けない（ゲームと同じ）
+          const ux = x0 + iconW / 2;
+          piece((ox, oy, tint) => { g.font = "bold " + fs + "px sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.lineWidth = 5; g.strokeStyle = tint || "rgba(102,31,0,1)"; g.lineJoin = "round"; g.strokeText(unit, ux + ox, cy + 1 + oy); g.fillStyle = tint || "#ffd23f"; g.fillText(unit, ux + ox, cy + 1 + oy); g.textAlign = "start"; }, ux, cy, 99, 0);
+        }
+        else if (icon.complete && icon.naturalWidth) piece(imgDraw(icon, 0, 0, icon.naturalWidth, icon.naturalHeight, x0 + (p.iconX || 0), cy - iconW / 2 - (p.iconY || 0), iconW, iconW), x0 + iconW / 2 + (p.iconX || 0), cy - (p.iconY || 0), 99, p.iconRot);
         x0 += iconW;
         }
         x0 += picGap;
@@ -324,9 +349,11 @@
   function roundRect(x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
 
   let cur = FX[0], params = {}, playing = -1, loop = false;
+  // 「既定」はゲームの今の値（tools/fx_defaults.js。py -3 tools/fx_sync.py で game_config.json から写す）。無ければ項目の def
+  const defOf = p => { const d = (window.BBB_FX_DEFAULTS || {})[cur.key]; return d && d[p.key] !== undefined ? d[p.key] : p.def; };
   const store = () => { try { localStorage.setItem("bbb_fx_" + cur.id, JSON.stringify(params)); } catch (e) {} };
   function loadParams() {
-    params = {}; cur.params.forEach(p => params[p.key] = p.def);
+    params = {}; cur.params.forEach(p => params[p.key] = defOf(p));
     try { const s = JSON.parse(localStorage.getItem("bbb_fx_" + cur.id) || "null"); if (s) Object.assign(params, s); } catch (e) {}
   }
   function buildList() {
@@ -417,7 +444,7 @@
   }
   document.getElementById("play").addEventListener("click", play);
   document.getElementById("loop").addEventListener("click", e => { loop = !loop; e.target.textContent = "繰り返し: " + (loop ? "ON" : "OFF"); if (loop) play(); });
-  document.getElementById("reset").addEventListener("click", () => { cur.params.forEach(p => params[p.key] = p.def); store(); buildParams(); play(); });
+  document.getElementById("reset").addEventListener("click", () => { cur.params.forEach(p => params[p.key] = defOf(p)); store(); buildParams(); play(); });
   document.addEventListener("keydown", e => { if (e.key === " " && !(e.target && e.target.tagName === "INPUT")) { e.preventDefault(); play(); } });
   loadParams(); buildList(); buildParams(); buildPicker(); requestAnimationFrame(frame); setTimeout(play, 600);
   window.bbbFx = { get params() { return params; }, drawAt: t => { g.clearRect(0, 0, cv.width, cv.height); return cur.draw(t, params); } };   // 確認用（自動チェックが t 秒時点を描いて読む）

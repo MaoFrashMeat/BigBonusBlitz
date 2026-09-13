@@ -2,6 +2,12 @@
   "entries": [
     {
       "date": "2026-09-14",
+      "version": "dev 179",
+      "title": "演出ビューア: 「GET」の帯をソウル / EXP / エンバー / G で順に再生。既定はゲームの今の値",
+      "body": "・種類の選択（エンバー / ソウル / EXP / AT の G 数 / 順に全部）。「順に全部」は技術介入成功の例（ソウル 45 → EXP 30 → エンバー 25 → 5G）をゲームと同じ間隔で通しで見せる\n・「既定に戻す」がゲームの今の値（game_config.json と text_choice.json）になる。py -3 tools/fx_sync.py で写す"
+    },
+    {
+      "date": "2026-09-14",
       "version": "dev 178",
       "title": "技術介入に押した精度のランク（2コマ / 1コマ / ビタ 5 段）と上乗せ。得たものは全部「GET」の帯で",
       "body": "・対象リールを止めた瞬間、その上にランクが出る。ビタは押したタイミングで Perfect!! / Excellent! / Great! / Good / Cool、手前なら 1コマ / 2コマ\n・成功報酬にランクの上乗せ（Perfect!! で +100% … 1コマ +10%、2コマ 0%）。表は game_config.json の tech.ranks\n・停止キーはフレームより細かい時刻（Input System のイベント時刻）で押した位置を出す\n・ベルのエンバーだけでなく、敵を倒した EXP・ソウル・技術介入や任務の報酬・AT の G 数も同じ「GET」の帯で順に出る\n・tools/fx_viewer.html に「技術介入のランク」を追加（tech.rankFx）"
