@@ -196,6 +196,8 @@ namespace BBB.Runtime
         private readonly Image[] _routeBar = new Image[3];
         private GameObject _mapBox;
         private GameObject _equipBox, _curseBox, _statsBox, _curseListBox;
+        /// <summary>呪いの申し出の「受ける / 断る」（キーからも押せるように持っておく）。</summary>
+        private System.Action _curseTake, _curseRefuse;
         /// <summary>エンゲージ中に流す斜めの帯（上下 2 本。Web 版の敵出現バナーと同じ表現）。</summary>
         private MarqueeBand _engageBandTop, _engageBandBottom;
         /// <summary>技術介入の「狙え！」（狙う図柄の柱と文字）。対象のリールを止めるまで出しておく。</summary>
@@ -2134,6 +2136,14 @@ namespace BBB.Runtime
             // Play 中にスクリプトが再コンパイルされると非シリアライズ参照が消える。その状態で回さない（NRE の連打防止）
             if (_m == null || _creditNum == null) return;
             var kb = Keyboard.current;
+            // 呪いの申し出: Space で受ける、Shift で断る（2026-09-14 本人）。窓が出ている間は他のキーを取らない
+            if (kb != null && _curseBox != null)
+            {
+                if (kb.spaceKey.wasPressedThisFrame) _curseTake?.Invoke();
+                else if (kb.leftShiftKey.wasPressedThisFrame || kb.rightShiftKey.wasPressedThisFrame) _curseRefuse?.Invoke();
+                _spaceHold = 0f;
+                kb = null;
+            }
             if (kb != null && !_inputLocked)
             {
                 if (kb.leftCtrlKey.wasPressedThisFrame || kb.rightCtrlKey.wasPressedThisFrame) OnBetClicked();
@@ -2719,20 +2729,25 @@ namespace BBB.Runtime
             {
                 Destroy(_curseBox);
                 _curseBox = null;
+                _curseTake = null; _curseRefuse = null;
                 _m.Curse.Offer = null;
                 _inputLocked = false;
                 SaveData.Save(_m, _audio);
                 RefreshUi();
             }
 
-            UiSkin.Button(card, "Take", new Vector2(-100, -H * 0.5f + 34), new Vector2(180, 38), "受ける", () =>
+            _curseTake = () =>
             {
+                if (_curseBox == null) return;
                 _m.Curse.Taken.Add(off);
                 _audio.RoleChance();
                 StartCoroutine(EdgeGlow(Hex("#c060ff"), 1.2f, false));
                 Close();
-            }, Hex("#7a3fd0"), 15, true, 10);
-            UiSkin.Button(card, "Refuse", new Vector2(100, -H * 0.5f + 34), new Vector2(180, 38), "断る", () => { _audio.UiPop(); Close(); }, ColBtn, 15, false, 10);
+            };
+            _curseRefuse = () => { if (_curseBox == null) return; _audio.UiPop(); Close(); };
+            var take = UiSkin.Button(card, "Take", new Vector2(-100, -H * 0.5f + 34), new Vector2(180, 38), "受ける", () => _curseTake?.Invoke(), Hex("#7a3fd0"), 15, true, 10);
+            var refuse = UiSkin.Button(card, "Refuse", new Vector2(100, -H * 0.5f + 34), new Vector2(180, 38), "断る", () => _curseRefuse?.Invoke(), ColBtn, 15, false, 10);
+            if (!_isTouch) { AddSubHint(take, "Space"); AddSubHint(refuse, "Shift"); }
 
             _curseBox = overlay.gameObject;
         }
