@@ -282,6 +282,9 @@ namespace BBB.Core
         /// </summary>
         public float stackY = 0f, stackGap = 100f, stackStagger = 0.05f, stackScale = 0.7f;
         public bool stackFit = true;
+        /// <summary>セリフ（説明の吹き出し）が出ているときは、その枠より上に出す（枠の上端からの余白 px）。</summary>
+        public bool aboveDialogue = true;
+        public float dialogueMargin = 8f;
         /// <summary>
         /// 動きの型。slideRL（右→左）/ slideLR（左→右）/ pop（中央でポン）/ drop（上から落ちて弾む）/ rise（下からふわっと）/
         /// zoom（急拡大して消える）/ flip（縦に開く）/ slam（叩きつけ）/ spiral（回りながら収まる）/ pulse（明滅）

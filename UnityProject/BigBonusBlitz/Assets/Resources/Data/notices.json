@@ -2,6 +2,12 @@
   "entries": [
     {
       "date": "2026-09-14",
+      "version": "dev 182",
+      "title": "セリフ（説明の吹き出し）が出ているときは「GET」の帯をその枠より上に出す",
+      "body": "・吹き出しの上端＋余白（dialogueMargin 8）より下にはみ出す分だけ持ち上げる。縦に並ぶときは残りの高さに収まるまで縮める\n・reelFx.emberGain の aboveDialogue で ON/OFF。ビューアは「セリフを出す（例）」で確かめられる"
+    },
+    {
+      "date": "2026-09-14",
       "version": "dev 181",
       "title": "AT の G 数加算の帯が「＋」と「G」の金文字の絵に",
       "body": "・「+5G GET」の ＋ と G が assets/symbols/text の絵（tools/text_choice.json の words.plus / words.g → py -3 tools/text_build.py）。数字と同じ高さで並ぶ\n・ビューアの「数字と獲得の書体」に G と ＋ の候補の行を追加"

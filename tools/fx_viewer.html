@@ -55,6 +55,19 @@
   const AreaW = 940, AreaH = 300;           // ゲームの表示域（StageCard の中）。舞台 1170×540 の中で中央やや上
   const AreaCx = 585, AreaCy = 20 + 14 + 150;   // 舞台の左上原点での表示域の中心（帯 28 + 余白 の下）
   const ReelCy = 440, ReelCx = i => 585 + (i - 1) * 131;   // リール窓の中心（筐体は舞台の下段。ピッチ 123+8）
+  // セリフ（会話・説明の吹き出し）: StageCard の下部、中心は表示域の中心から 114 下、620×54。名前タグ（92×20）が上に 10 はみ出す
+  const DialogCy = AreaCy + 114, DialogTopY = -(114 - 27 - 10);   // DialogTopY は表示域の座標（上が +）での枠の上端 = -77
+  function drawDialogue(name, text) {
+    const w = 620, h = 54, x = AreaCx - w / 2, y = DialogCy - h / 2;
+    g.save();
+    g.fillStyle = "rgba(0,0,0,0.35)"; roundRect(x - 6, y - 2, w + 12, h + 12, 16); g.fill();
+    g.fillStyle = "#2b3a52"; roundRect(x, y, w, h, 15); g.fill();
+    g.fillStyle = "rgba(8,10,20,0.94)"; roundRect(x + 1, y + 1, w - 2, h - 2, 14); g.fill();
+    g.fillStyle = "#4d8dff"; roundRect(x + 10, y - 10, 92, 20, 10); g.fill();
+    g.fillStyle = "#101828"; g.font = "bold 11px sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(name, x + 56, y);
+    g.fillStyle = "#f4f6fa"; g.font = "15px sans-serif"; g.textAlign = "left"; g.fillText(text, x + 18, y + h / 2 + 3);
+    g.restore();
+  }
   // 技術介入のランク（game_config.json の tech.ranks の写し。名前・色・上乗せ % はそちらで変える）
   const RANKS = [
     { id: "perfect", name: "Perfect!!", color: "#ff66d9", rainbow: true },
@@ -182,25 +195,35 @@
         { group: "複数のとき", key: "stackStagger", label: "行ごとの遅れ（秒）", min: 0, max: 0.3, step: 0.01, def: 0.05 },
         { group: "複数のとき", key: "stackScale", label: "帯の大きさ", min: 0.3, max: 1.5, step: 0.01, def: 0.7 },
         { group: "複数のとき", key: "stackFit", label: "収まらなければ縮める", type: "bool", def: true },
+        { group: "セリフのとき", key: "withDialogue", label: "セリフを出す（例）", type: "bool", def: false, local: true },
+        { group: "セリフのとき", key: "aboveDialogue", label: "枠より上に出す", type: "bool", def: true },
+        { group: "セリフのとき", key: "dialogueMargin", label: "枠からの余白", min: 0, max: 60, step: 1, def: 8 },
       ],
       total: p => p.inSeconds + p.holdSeconds + p.outSeconds + (p.kind === "stack" ? (p.stackStagger || 0) * (GAIN_SEQ.length - 1) : 0),
       draw(t, p) {
+        // セリフ（説明の吹き出し）の例。ゲームでは表示域の下部に 620×54 の枠（名前タグが上に 10 はみ出す）
+        if (p.withDialogue) drawDialogue("説明", "技術介入 成功！ Perfect!!  押した精度で +100% 上乗せ");
         // ゲームでは帯は表示域（940×300）の中にしか見えない（外は切れる）ので、ここでも同じ範囲で切る
         g.save(); g.beginPath(); g.rect(AreaCx - AreaW / 2, AreaCy - AreaH / 2, AreaW, AreaH); g.clip();
         let alive;
-        if (p.kind === "stack") {
+        const stack = p.kind === "stack", n = stack ? GAIN_SEQ.length : 1;
+        let scale = stack ? Math.max(0.1, p.stackScale || 1) : 1;
+        // GameController.GainQueueRoutine と同じ: セリフがあれば床をその枠の上端＋余白にし、収まらなければ縮め、一番下の行が床より上になるまで持ち上げる
+        const dialog = p.withDialogue && p.aboveDialogue !== false, floor = dialog ? DialogTopY + (p.dialogueMargin || 0) : -AreaH / 2;
+        if (stack && p.stackFit) { const need = n * (p.stackGap || 100) * scale, avail = AreaH / 2 - floor - 16; if (need > avail) scale *= avail / need; }
+        const gap = (p.stackGap || 100) * scale;
+        let center = stack ? (p.stackY || 0) : p.y;
+        if (dialog) { const bottom = center - (n - 1) / 2 * gap - (p.numH || 56) * scale / 2; if (floor > bottom) center += floor - bottom; }
+        if (stack) {
           // ゲームの 1 組と同じ: 上から順に並べ（中心は stackY）、行ごとに stackStagger 秒遅らせて一気に出す
-          const n = GAIN_SEQ.length; alive = false;
-          let scale = Math.max(0.1, p.stackScale || 1);
-          if (p.stackFit) { const need = n * (p.stackGap || 100) * scale, avail = AreaH - 16; if (need > avail) scale *= avail / need; }
-          const gap = (p.stackGap || 100) * scale;
+          alive = false;
           for (let i = 0; i < n; i++) {
             const lt = t - i * (p.stackStagger || 0);
             if (lt < 0) { alive = true; continue; }
-            if (this.band(lt, p, GAIN_KINDS[GAIN_SEQ[i][0]], GAIN_SEQ[i][1], (p.stackY || 0) - p.y + ((n - 1) / 2 - i) * gap, scale)) alive = true;
+            if (this.band(lt, p, GAIN_KINDS[GAIN_SEQ[i][0]], GAIN_SEQ[i][1], center - p.y + ((n - 1) / 2 - i) * gap, scale)) alive = true;
           }
         }
-        else alive = this.band(t, p, GAIN_KINDS[p.kind] || GAIN_KINDS.ember, p.amount, 0);
+        else alive = this.band(t, p, GAIN_KINDS[p.kind] || GAIN_KINDS.ember, p.amount, center - p.y, 1);
         g.restore();
         return alive;
       },

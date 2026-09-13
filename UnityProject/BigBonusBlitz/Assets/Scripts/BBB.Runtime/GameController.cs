@@ -4178,8 +4178,22 @@ namespace BBB.Runtime
                 // 上から順に並べる（2 本以上のときの中心は stackY、大きさは stackScale。1 本は y のまま等倍）。行ごとに少し遅らせて出す
                 float center = n > 1 ? fx.stackY : fx.y;
                 float scale = n > 1 ? Mathf.Max(0.1f, fx.stackScale) : 1f;
-                if (n > 1 && fx.stackFit) { float need = n * fx.stackGap * scale, avail = AreaH - 16f; if (need > avail) scale *= avail / need; }   // 表示域に収まらなければさらに縮める
+                // セリフ（吹き出し）が出ていれば、その枠より上へ（2026-09-14 本人）。枠の上端（名前タグの分 +10）を表示域の座標で
+                bool dialog = fx.aboveDialogue && _dialogBox != null && _dialogBox.activeSelf;
+                float floor = -AreaH * 0.5f;
+                if (dialog)
+                {
+                    var drt = (RectTransform)_dialogBox.transform;
+                    floor = _area.InverseTransformPoint(drt.TransformPoint(new Vector3(0, drt.rect.yMax + 10f, 0))).y + fx.dialogueMargin;
+                }
+                if (n > 1 && fx.stackFit) { float need = n * fx.stackGap * scale, avail = AreaH * 0.5f - floor - 16f; if (need > avail) scale *= avail / need; }   // 収まらなければさらに縮める（セリフの分も引く）
                 float gap = fx.stackGap * scale;
+                if (dialog)
+                {
+                    // 一番下の行の数字の下端が枠の上端＋余白より上になるまで持ち上げる
+                    float bottom = center - (n - 1) * 0.5f * gap - fx.numH * scale * 0.5f;
+                    if (floor > bottom) center += floor - bottom;
+                }
                 for (int i = 0; i < n; i++)
                     StartCoroutine(GainSlide(group[i].icon, group[i].amount, group[i].unit, center - fx.y + ((n - 1) * 0.5f - i) * gap, i * fx.stackStagger, scale));
                 float total = Mathf.Max(0.01f, fx.inSeconds) + Mathf.Max(0f, fx.holdSeconds) + Mathf.Max(0.01f, fx.outSeconds) + (n - 1) * fx.stackStagger;
