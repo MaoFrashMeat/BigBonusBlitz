@@ -185,11 +185,7 @@ namespace BBB.Runtime
         private readonly Image[] _routeBar = new Image[3];
         private GameObject _mapBox;
         private GameObject _equipBox, _curseBox;
-        private GameObject _trophyBox;
-        private RectTransform _trophyList;
-        private Text _trophyHead;
-        private int _trophyTab;                                   // 0=実績 1=装備図鑑 2=お宝図鑑
-        private readonly Button[] _trophyTabs = new Button[3];
+        private GameObject _trophyBox;                            // 実績と図鑑（TrophyScreen）。開いている間だけある
         private RectTransform _mapBody, _mapView, _condList;
         /// <summary>冒険マップの窓の高さ。地図 320 + 分岐条件 96 が縦に収まる大きさ。</summary>
         private const float MapModalH = 500f;
@@ -852,20 +848,6 @@ namespace BBB.Runtime
                 () => { _audio.UiPop(); _graph.ResetTo(_m.Credit); _graph.SetGhost(null); _histPicked = -1; RefreshHistory(); }, ColBtn, 12, false, 8);
             _graphBox.SetActive(false);
 
-            // ===== モーダル: 実績 =====
-            _trophyBox = BuildModal("Trophy", new Vector2(760, 500), "実績と図鑑", ToggleTrophy, out var tBody);
-            // 上にタブ 3 つ（実績 / 装備図鑑 / お宝図鑑）、その下に解除数、残りが一覧
-            string[] tabNames = { "実績", "装備の図鑑", "お宝の図鑑" };
-            for (int i = 0; i < 3; i++)
-            {
-                int tab = i;
-                _trophyTabs[i] = UiSkin.Button(tBody, "Tab" + i, new Vector2(-352 + 70 + i * 148, 250 - 54), new Vector2(140, 34), tabNames[i],
-                    () => { _trophyTab = tab; _audio.UiPop(); RefreshTrophies(); }, ColBtn, 13, false, 8, "pill_navy_sm");
-            }
-            _trophyHead = UiFactory.Label(tBody, "Head", new Vector2(120, 250 - 54), new Vector2(440, 18), "", 12, TextAnchor.MiddleRight, ColTextSub);
-            UiSkin.ScrollBox(tBody, "List", new Vector2(0, -34), new Vector2(704, 360), out _trophyList);
-            _trophyBox.SetActive(false);
-
             // ===== モーダル: 冒険マップ =====
             _mapBox = BuildModal("Map", new Vector2(760, MapModalH), "冒険マップ", ToggleMap, out _mapBody);
             _mapInfo = UiFactory.Label(_mapBody, "Info", new Vector2(0, MapModalH * 0.5f - 46), new Vector2(700, 20), "", 13, TextAnchor.MiddleCenter, ColTextSub);
@@ -1047,196 +1029,15 @@ namespace BBB.Runtime
             _audio.UiPop();
         }
         /// <summary>レバーオン・Esc でモーダルを閉じる（game-design §16.9: 遊技を止めさせない）。</summary>
-        private void CloseModals() { if (_settingsBox != null) _settingsBox.SetActive(false); if (_debugBox != null) _debugBox.SetActive(false); if (_graphBox != null) _graphBox.SetActive(false); if (_mapBox != null) _mapBox.SetActive(false); if (_trophyBox != null) _trophyBox.SetActive(false); if (_equipBox != null) { Destroy(_equipBox); _equipBox = null; } }
+        private void CloseModals() { if (_settingsBox != null) _settingsBox.SetActive(false); if (_debugBox != null) _debugBox.SetActive(false); if (_graphBox != null) _graphBox.SetActive(false); if (_mapBox != null) _mapBox.SetActive(false); if (_trophyBox != null) { Destroy(_trophyBox); _trophyBox = null; } if (_equipBox != null) { Destroy(_equipBox); _equipBox = null; } }
 
-        /// <summary>実績の窓。開くたびに一覧を作り直す（解除と進み具合が変わるため）。</summary>
+        /// <summary>実績と図鑑の窓の開け閉め（★ ボタン）。開くたびに作り直す（解除と進み具合が変わるため）。</summary>
         private void ToggleTrophy()
         {
-            if (_trophyBox == null) return;
-            bool open = !_trophyBox.activeSelf;
+            if (_trophyBox != null) { Destroy(_trophyBox); _trophyBox = null; _audio.UiPop(); return; }
             CloseModals();
-            _trophyBox.SetActive(open);
-            if (open) RefreshTrophies();
             _audio.UiPop();
-        }
-
-        private void RefreshTrophies()
-        {
-            if (_trophyList == null) return;
-            foreach (Transform c in _trophyList) Destroy(c.gameObject);
-            for (int i = 0; i < _trophyTabs.Length; i++)
-            {
-                if (_trophyTabs[i] == null) continue;
-                bool on = i == _trophyTab;
-                var body = _trophyTabs[i].targetGraphic as Image;
-                var tint = on ? new Color(1f, 0.92f, 0.62f, 1f) : Color.white;
-                var cb = _trophyTabs[i].colors; cb.normalColor = tint; cb.highlightedColor = tint; cb.selectedColor = tint; _trophyTabs[i].colors = cb;
-                if (body != null) body.color = tint;
-                var tl = _trophyTabs[i].GetComponentInChildren<Text>(); if (tl != null) tl.color = on ? ColGold : ColText;
-            }
-            if (_trophyTab == 1) { RefreshEquipCodex(); return; }
-            if (_trophyTab == 2) { RefreshTreasureCodex(); return; }
-            var defs = _m.Achievements;
-            int unlocked = 0;
-            foreach (var d in defs) if (_m.Ach.Unlocked.Contains(d.id)) unlocked++;
-            _trophyHead.text = $"解除  {unlocked} / {defs.Count}";
-            const float rowH = 44f;
-            float w = _trophyList.rect.width > 0 ? _trophyList.rect.width : 704f;
-            foreach (var d in defs)
-            {
-                bool done = _m.Ach.Unlocked.Contains(d.id);
-                bool secret = d.hidden && !done;
-                var row = UiSkin.Img(_trophyList, "Row", Vector2.zero, new Vector2(w, rowH), UiSkin.Rounded(6), done ? new Color(1f, 0.82f, 0.25f, 0.10f) : new Color(1, 1, 1, 0.04f));
-                row.gameObject.AddComponent<LayoutElement>().preferredHeight = rowH;
-                var star = UiSkin.Img(row.transform, "Star", Vector2.zero, new Vector2(26, 26), UiSkin.Star(96), done ? ColGold : new Color(1, 1, 1, 0.18f));
-                star.rectTransform.anchorMin = new Vector2(0, 0.5f); star.rectTransform.anchorMax = new Vector2(0, 0.5f);
-                star.rectTransform.anchoredPosition = new Vector2(24, 0);
-                var name = UiFactory.Label(row.transform, "Name", Vector2.zero, Vector2.zero, secret ? "？？？" : d.name, 13, TextAnchor.MiddleLeft, done ? ColGold : ColText);
-                name.fontStyle = FontStyle.Bold; Side(name.rectTransform, 48, 300); name.rectTransform.anchoredPosition += new Vector2(0, 9); name.rectTransform.sizeDelta = new Vector2(252, 18); name.rectTransform.anchorMin = new Vector2(0, 0.5f); name.rectTransform.anchorMax = new Vector2(0, 0.5f);
-                var desc = UiFactory.Label(row.transform, "Desc", Vector2.zero, Vector2.zero, secret ? "解除すると見える" : d.desc, 10, TextAnchor.MiddleLeft, ColTextSub);
-                Side(desc.rectTransform, 48, 420); desc.rectTransform.anchoredPosition += new Vector2(0, -9); desc.rectTransform.sizeDelta = new Vector2(372, 16); desc.rectTransform.anchorMin = new Vector2(0, 0.5f); desc.rectTransform.anchorMax = new Vector2(0, 0.5f);
-                // 右: 進み具合とご褒美
-                long cur = System.Math.Min(_m.Ach.Get(d.counter), d.target);
-                var prog = UiFactory.Label(row.transform, "Prog", Vector2.zero, Vector2.zero, done ? "達成" : (secret ? "" : $"{cur:N0} / {d.target:N0}"), 11, TextAnchor.MiddleRight, done ? ColGold : ColTextSub);
-                Side(prog.rectTransform, w - 300, w - 120); prog.rectTransform.anchoredPosition += new Vector2(0, 9); prog.rectTransform.sizeDelta = new Vector2(180, 16); prog.rectTransform.anchorMin = new Vector2(0, 0.5f); prog.rectTransform.anchorMax = new Vector2(0, 0.5f);
-                var track = UiSkin.Img(row.transform, "Track", Vector2.zero, Vector2.zero, UiSkin.Rounded(3), new Color(1, 1, 1, 0.10f));
-                track.rectTransform.anchorMin = new Vector2(0, 0.5f); track.rectTransform.anchorMax = new Vector2(0, 0.5f); track.rectTransform.pivot = new Vector2(0, 0.5f);
-                track.rectTransform.anchoredPosition = new Vector2(w - 300, -10); track.rectTransform.sizeDelta = new Vector2(180, 6);
-                float ratio = secret ? 0f : AchievementDirector.Progress(d, _m.Ach);
-                var fill = UiSkin.Img(row.transform, "Fill", Vector2.zero, Vector2.zero, UiSkin.Rounded(3), done ? ColGold : ColGreen);
-                fill.rectTransform.anchorMin = new Vector2(0, 0.5f); fill.rectTransform.anchorMax = new Vector2(0, 0.5f); fill.rectTransform.pivot = new Vector2(0, 0.5f);
-                fill.rectTransform.anchoredPosition = new Vector2(w - 300, -10); fill.rectTransform.sizeDelta = new Vector2(180 * ratio, 6);
-                var reward = UiFactory.Label(row.transform, "Reward", Vector2.zero, Vector2.zero, d.rewardSouls > 0 ? $"+{d.rewardSouls:N0} ソウル" : "", 11, TextAnchor.MiddleRight, done ? ColTextSub : Hex("#a98bff"));
-                Side(reward.rectTransform, w - 112, w - 10);
-            }
-        }
-
-        /// <summary>図鑑の行の下地。</summary>
-        private Image CodexRow(float w, float h, bool seen)
-        {
-            var row = UiSkin.Img(_trophyList, "Row", Vector2.zero, new Vector2(w, h), UiSkin.Rounded(6), seen ? new Color(1, 1, 1, 0.06f) : new Color(1, 1, 1, 0.025f));
-            row.gameObject.AddComponent<LayoutElement>().preferredHeight = h;
-            return row;
-        }
-
-        /// <summary>図鑑の見出し行（種類名と 入手 n / N）。</summary>
-        private void CodexHeader(float w, string text)
-        {
-            var h = UiFactory.Label(_trophyList, "Head", Vector2.zero, new Vector2(w, 22), text, 11, TextAnchor.MiddleLeft, ColGold);
-            h.fontStyle = FontStyle.Bold;
-            h.gameObject.AddComponent<LayoutElement>().preferredHeight = 22;
-        }
-
-        /// <summary>装備の図鑑: 種類ごとに 40 種。拾ったことのある物は名前と効果、まだの物は灰色の「？？？」。</summary>
-        private void RefreshEquipCodex()
-        {
-            var eq = _m.Config.equipment;
-            if (eq?.bases == null) return;
-            float w = _trophyList.rect.width > 0 ? _trophyList.rect.width : 704f;
-            int seenTotal = 0;
-            foreach (var b in eq.bases) if (_m.Ach.Get(AchievementCounters.SeenPrefix + b.id) > 0) seenTotal++;
-            _trophyHead.text = $"見つけた装備  {seenTotal} / {eq.bases.Count}";
-            const float rowH = 40f;
-            foreach (var kind in EquipSlot.Kinds)
-            {
-                var list = eq.bases.FindAll(b => b != null && EquipSlot.Normalize(b.slot) == kind);
-                if (list.Count == 0) continue;
-                int seenKind = 0;
-                foreach (var b in list) if (_m.Ach.Get(AchievementCounters.SeenPrefix + b.id) > 0) seenKind++;
-                CodexHeader(w, $"{EquipSlot.DisplayName(kind)}   {seenKind} / {list.Count}");
-                foreach (var b in list)
-                {
-                    long n = _m.Ach.Get(AchievementCounters.SeenPrefix + b.id);
-                    bool seen = n > 0;
-                    var row = CodexRow(w, rowH, seen);
-                    var icon = UiSkin.Img(row.transform, "Icon", Vector2.zero, new Vector2(24, 24), UiSkin.Icon(string.IsNullOrEmpty(b.icon) ? "shield" : b.icon, 64), seen ? Color.white : new Color(1, 1, 1, 0.2f));
-                    icon.rectTransform.anchorMin = new Vector2(0, 0.5f); icon.rectTransform.anchorMax = new Vector2(0, 0.5f); icon.rectTransform.anchoredPosition = new Vector2(24, 0);
-                    var name = UiFactory.Label(row.transform, "Name", Vector2.zero, Vector2.zero, seen ? b.name : "？？？", 13, TextAnchor.MiddleLeft, seen ? ColText : UiSkin.TextDim);
-                    name.fontStyle = FontStyle.Bold; Side(name.rectTransform, 48, 200);
-                    if (seen)
-                    {
-                        // 上段: 効果と伸び / 下段: その効果の意味
-                        string eff = $"{EquipDirector.EffectName(b.effect)}  深さ 1 で +{Mathf.Max(b.min, Mathf.RoundToInt(b.perLevel))}{EquipDirector.EffectUnit(b.effect)}〜";
-                        CodexLine(row.transform, "Eff", eff, 10, ColText, 200, w - 120, 8);
-                        CodexLine(row.transform, "Desc", EquipDirector.EffectDesc(b.effect), 9, ColTextSub, 200, w - 120, -9);
-                    }
-                    else CodexLine(row.transform, "Eff", $"深さ {b.minDepth} から出る", 10, ColTextSub, 200, w - 120, 0);
-                    var cnt = UiFactory.Label(row.transform, "Count", Vector2.zero, Vector2.zero, seen ? $"×{n:N0}" : "", 11, TextAnchor.MiddleRight, ColGold);
-                    Side(cnt.rectTransform, w - 110, w - 12);
-                }
-            }
-        }
-
-        /// <summary>図鑑の行の中の 1 行テキスト（x0〜x1 の帯、行の中央から dy だけ上）。</summary>
-        private static void CodexLine(Transform row, string name, string text, int size, Color color, float x0, float x1, float dy)
-        {
-            var t = UiFactory.Label(row, name, Vector2.zero, Vector2.zero, text, size, TextAnchor.MiddleLeft, color);
-            var rt = t.rectTransform;
-            rt.anchorMin = new Vector2(0, 0.5f); rt.anchorMax = new Vector2(0, 0.5f); rt.pivot = new Vector2(0, 0.5f);
-            rt.anchoredPosition = new Vector2(x0, dy); rt.sizeDelta = new Vector2(x1 - x0, 16);
-        }
-
-        /// <summary>お宝の図鑑: 宝箱から出る物と、見つけた回数。</summary>
-        private void RefreshTreasureCodex()
-        {
-            var list = _m.Config.adventure?.treasures;
-            if (list == null) return;
-            float w = _trophyList.rect.width > 0 ? _trophyList.rect.width : 704f;
-            int seenTotal = 0;
-            foreach (var t in list) if (_m.Ach.Get(AchievementCounters.TreasurePrefix + t.id) > 0) seenTotal++;
-            _trophyHead.text = $"見つけたお宝  {seenTotal} / {list.Count}";
-            const float rowH = 44f;
-            foreach (var t in list)
-            {
-                long n = _m.Ach.Get(AchievementCounters.TreasurePrefix + t.id);
-                bool seen = n > 0;
-                var row = CodexRow(w, rowH, seen);
-                var icon = UiSkin.Img(row.transform, "Icon", Vector2.zero, new Vector2(26, 26), UiSkin.Icon(TreasureIcon(t.kind), 64), seen ? Color.white : new Color(1, 1, 1, 0.2f));
-                icon.rectTransform.anchorMin = new Vector2(0, 0.5f); icon.rectTransform.anchorMax = new Vector2(0, 0.5f); icon.rectTransform.anchoredPosition = new Vector2(24, 0);
-                var name = UiFactory.Label(row.transform, "Name", Vector2.zero, Vector2.zero, seen ? t.name : "？？？", 13, TextAnchor.MiddleLeft, seen ? ColText : UiSkin.TextDim);
-                name.fontStyle = FontStyle.Bold; Side(name.rectTransform, 48, 260);
-                var desc = UiFactory.Label(row.transform, "Desc", Vector2.zero, Vector2.zero, seen ? TreasureDesc(t) : "宝箱から出る", 10, TextAnchor.MiddleLeft, ColTextSub);
-                Side(desc.rectTransform, 260, w - 120);
-                var cnt = UiFactory.Label(row.transform, "Count", Vector2.zero, Vector2.zero, seen ? $"×{n:N0}" : "", 11, TextAnchor.MiddleRight, ColGold);
-                Side(cnt.rectTransform, w - 110, w - 12);
-            }
-        }
-
-        private static string TreasureIcon(string kind)
-        {
-            switch (kind)
-            {
-                case "souls": return "soul";
-                case "atSpins": return "book";
-                case "atExpect": return "amulet";
-                case "exp": return "book";
-                case "torch": return "potion";
-                case "embers": return "ember";
-                default: return "amulet";
-            }
-        }
-
-        private static string TreasureDesc(TreasureDef t)
-        {
-            switch (t.kind)
-            {
-                case "souls": return $"ソウル +{t.amount:N0}";
-                case "atSpins": return $"次の洞窟（AT）に +{t.amount}G";
-                case "atExpect": return $"次のボーナスの AT 期待度 +{t.amount}%";
-                case "exp": return $"EXP +{t.amount:N0}";
-                case "torch": return $"回復薬 +{t.amount}";
-                case "embers": return $"エンバー +{t.amount:N0}";
-                default: return t.kind;
-            }
-        }
-
-        /// <summary>行の中で、左端から x0〜x1 の帯に置く（縦は行いっぱい）。</summary>
-        private static void Side(RectTransform rt, float x0, float x1)
-        {
-            rt.anchorMin = new Vector2(0, 0); rt.anchorMax = new Vector2(0, 1);
-            rt.pivot = new Vector2(0, 0.5f);
-            rt.anchoredPosition = new Vector2(x0, 0);
-            rt.sizeDelta = new Vector2(x1 - x0, 0);
+            _trophyBox = TrophyScreen.Build(_stage, _m, _audio, () => { Destroy(_trophyBox); _trophyBox = null; });
         }
 
         /// <summary>実績を解除したときの表示。舞台の上に金の帯で出し、報酬のソウルも添える。</summary>

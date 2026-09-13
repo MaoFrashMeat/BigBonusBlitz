@@ -24,7 +24,7 @@ namespace BBB.Runtime
         private Text _chapterTitle, _hpValue, _torchValue, _emberValue;
         private RectTransform _mapView, _mapPanel;
         private bool _busy;
-        private GameObject _shopBox;
+        private GameObject _shopBox, _equipBox, _trophyBox;
 
         /// <summary>マップを開く（タイトルから、またはゲーム中の「街へ戻る」から）。</summary>
         public static MapScreen Open()
@@ -133,6 +133,9 @@ namespace BBB.Runtime
             _infoText = UiFactory.Label(stage, "Info", new Vector2(0, -212), new Vector2(StageW - 64, 22), _arriveMessage, 14, TextAnchor.MiddleCenter, UiSkin.Gold);
 
             MapUiV2.Button(stage, "BtnTitle", new Vector2(-376, -244), new Vector2(160, 44), "タイトルへ", () => { _audio.UiPop(); StartCoroutine(BackToTitle()); }, secondary: true);
+            // 右下: 装備と実績（冒険中の右下と同じ窓を街からも開ける）
+            MapUiV2.Button(stage, "BtnEquip", new Vector2(StageW * .5f - 24 - 96 - 8 - 48, -244), new Vector2(96, 44), "装備", OpenEquip, secondary: true);
+            MapUiV2.Button(stage, "BtnTrophy", new Vector2(StageW * .5f - 24 - 48, -244), new Vector2(96, 44), "実績", OpenTrophy, secondary: true);
             _hpValue = FooterStat(stage, "heart", -180, _m.Config.adventure?.resource?.hpName ?? "ライフ");
             _torchValue = FooterStat(stage, "compass", 40, _m.Config.adventure?.resource?.name ?? "補給");
             _emberValue = FooterStat(stage, "ember", 260, "エンバー");
@@ -229,6 +232,23 @@ namespace BBB.Runtime
         }
 
         // -------------------------------------------------------------- ACTION
+        /// <summary>装備画面（冒険中の E と同じ窓）。着け替えたらその場でセーブ。</summary>
+        private void OpenEquip()
+        {
+            if (_equipBox != null || _m.Config.equipment == null || !_m.Config.equipment.enabled) return;
+            _audio.UiPop();
+            _equipBox = EquipScreen.Build(_safe.Stage, _m, _audio, () => SaveData.Save(_m, _audio),
+                                          () => { Destroy(_equipBox); _equipBox = null; RefreshQuestDesc(); });
+        }
+
+        /// <summary>実績と図鑑の窓。</summary>
+        private void OpenTrophy()
+        {
+            if (_trophyBox != null) return;
+            _audio.UiPop();
+            _trophyBox = TrophyScreen.Build(_safe.Stage, _m, _audio, () => { Destroy(_trophyBox); _trophyBox = null; });
+        }
+
         private void OpenShop()
         {
             if (_busy) return;

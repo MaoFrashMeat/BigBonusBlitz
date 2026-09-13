@@ -201,7 +201,8 @@ MonoBehaviour に依存しない。テストとハーネスはここだけ見る
 | `SaveData.cs` | PlayerPrefs 保存。音量と操作は別キー |
 | `GameDataLoader.cs` | JSON 読み込み（`ObjectCreationHandling.Replace` 必須） |
 | `SlumpGraph.cs` | 差枚グラフ |
-| `EquipScreen.cs` | 装備画面（3 部位 + 鞄 + 詳細）。E キーで開く |
+| `EquipScreen.cs` | 装備画面（紙人形 8 枠 + 鞄 + 詳細）。冒険中は E / 右下、街は右下の「装備」 |
+| `TrophyScreen.cs` | 実績と図鑑の窓（実績 / 装備の図鑑 / お宝の図鑑）。冒険中は ★、街は右下の「実績」 |
 | `RunIO.cs` | 潜行中の持ち物をセーブに載せる橋渡し |
 
 ### データ（`Assets/Resources/Data/`）
