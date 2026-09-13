@@ -1049,7 +1049,7 @@ namespace BBB.Runtime
             string text = a.rewardSouls > 0 ? $"実績解除  {a.name}   +{a.rewardSouls} ソウル" : $"実績解除  {a.name}";
             UiFx.PopText(_stage, text, ColGold, 22, new Vector2(0, 150));
             UiFx.Burst(_stage, UiFx.Preset.SuccessStars, new Vector2(0, 150));
-            _audio.Win();
+            _audio.Achievement();
         }
 
         /// <summary>セーブ削除は 3 秒以内の 2 度押しで確定（§6.1: 破壊的操作を連打で通過させない）。</summary>
@@ -2411,7 +2411,7 @@ namespace BBB.Runtime
                 var col = d.kind == "souls" ? Hex("#a98bff") : d.kind == "embers" ? Hex("#ffb45c") : d.kind == "torch" ? Hex("#7ee0a0") : ColGold;
                 UiFx.PopText(_charRt, $"{d.name} +{d.amount:N0}", col, 18, new Vector2(0, 40 + i * 6));
                 UiFx.Burst(_charRt, d.kind == "souls" ? UiFx.Preset.EmberSoul : UiFx.Preset.Coins, new Vector2(0, 30));
-                _audio.UiPop();
+                _audio.Pickup(d.kind);
                 yield return new WaitForSeconds(0.45f);
             }
         }

@@ -26,6 +26,8 @@ namespace BBB.Runtime
         private AudioClip _pullIn, _pullInLand;
         /// <summary>予告（素材 se_precog_weak / se_precog_strong があれば優先）。</summary>
         private AudioClip _precogWeak, _precogStrong;
+        /// <summary>実績解除と落とし物（素材 se_achievement / se_pickup_soul / se_pickup_ember / se_pickup_item があれば優先）。</summary>
+        private AudioClip _achievement, _pickupSoul, _pickupEmber, _pickupItem;
 
         public float BgmVolume { get => _bgmBaseVolume; set { _bgmBaseVolume = value; _bgm.volume = value; } }
         public float SeVolume { get => _se.volume; set { _se.volume = value; _sePitched.volume = value; } }
@@ -76,6 +78,10 @@ namespace BBB.Runtime
             am._pullInLand = Resources.Load<AudioClip>("Audio/SE/se_pullin_land") ?? SfxSynth.PullInLand();
             am._precogWeak = Resources.Load<AudioClip>("Audio/SE/se_precog_weak") ?? SfxSynth.PrecogWeak();
             am._precogStrong = Resources.Load<AudioClip>("Audio/SE/se_precog_strong") ?? SfxSynth.PrecogStrong();
+            am._achievement = Resources.Load<AudioClip>("Audio/SE/se_achievement") ?? SfxSynth.Achievement();
+            am._pickupSoul = Resources.Load<AudioClip>("Audio/SE/se_pickup_soul") ?? SfxSynth.PickupSoul();
+            am._pickupEmber = Resources.Load<AudioClip>("Audio/SE/se_pickup_ember") ?? SfxSynth.PickupEmber();
+            am._pickupItem = Resources.Load<AudioClip>("Audio/SE/se_pickup_item") ?? SfxSynth.PickupItem();
             am._bgm.volume = 0.5f;
             am._se.volume = 0.8f;
             am._sePitched.volume = 0.8f;
@@ -192,6 +198,20 @@ namespace BBB.Runtime
                 yield return wait;
             }
             _sePitched.pitch = 1f;
+        }
+
+        /// <summary>実績解除の音（役の音より式典寄りの 3 音）。</summary>
+        public void Achievement() => Play(_achievement, 0.9f);
+
+        /// <summary>落とし物を拾う音。kind は落とし物の種類（souls / embers / それ以外）。</summary>
+        public void Pickup(string kind)
+        {
+            switch (kind)
+            {
+                case "souls": Play(_pickupSoul, 0.7f); break;
+                case "embers": Play(_pickupEmber, 0.8f); break;
+                default: Play(_pickupItem, 0.7f); break;
+            }
         }
 
         /// <summary>予告音。stage 1=弱 2=強。</summary>

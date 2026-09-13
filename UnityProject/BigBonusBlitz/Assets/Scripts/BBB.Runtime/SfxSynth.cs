@@ -257,6 +257,88 @@ namespace BBB.Runtime
             return Make("synth_precog_strong", d);
         }
 
+        /// <summary>実績解除: 上昇の 3 音（G5 C6 E6）を鐘で鳴らし、最後の音を長く残す。役の音より「式典」寄り。</summary>
+        public static AudioClip Achievement(float seconds = 1.1f)
+        {
+            int n = Mathf.RoundToInt(Sr * seconds);
+            var d = new float[n];
+            float[] notes = { 783.99f, 1046.5f, 1318.5f };
+            for (int i = 0; i < n; i++)
+            {
+                float t = i / (float)Sr;
+                float v = 0f;
+                for (int k = 0; k < notes.Length; k++)
+                {
+                    float st = t - k * 0.13f;
+                    if (st < 0) continue;
+                    float decay = k == notes.Length - 1 ? 0.5f : 0.18f;
+                    v += Pluck(st, notes[k], decay, 0.2f) * 0.55f + Pluck(st, notes[k] * 2f, decay * 0.5f, 0f) * 0.2f;
+                }
+                // 最後の音に重ねる高いきらめき（ゆっくり揺れる）
+                float st3 = t - 0.26f;
+                if (st3 > 0) v += Mathf.Sin(2f * Mathf.PI * 2637f * st3) * (0.6f + 0.4f * Mathf.Sin(2f * Mathf.PI * 6f * st3)) * Mathf.Exp(-st3 / 0.4f) * 0.15f;
+                d[i] = Soft(v) * 0.9f;
+            }
+            return Make("synth_achievement", d);
+        }
+
+        /// <summary>ソウルを拾う: 息のような高い持続音がふわっと上がって消える（金属音ではなく「魂」らしく）。</summary>
+        public static AudioClip PickupSoul(float seconds = 0.5f)
+        {
+            int n = Mathf.RoundToInt(Sr * seconds);
+            var d = new float[n];
+            float phase = 0f, phase2 = 0f;
+            for (int i = 0; i < n; i++)
+            {
+                float t = i / (float)Sr;
+                float f = Mathf.Lerp(880f, 1760f, 1f - Mathf.Exp(-t / 0.12f));   // 上がっていく
+                phase += 2f * Mathf.PI * f / Sr;
+                phase2 += 2f * Mathf.PI * (f * 1.5f) / Sr;                     // 5 度上を薄く
+                float env = Mathf.Sin(Mathf.PI * Mathf.Clamp01(t / seconds));   // ふわっと出てふわっと消える
+                float vib = 1f + 0.01f * Mathf.Sin(2f * Mathf.PI * 7f * t);
+                float v = Mathf.Sin(phase * vib) * 0.5f + Mathf.Sin(phase2) * 0.18f;
+                d[i] = Soft(v * env) * 0.8f;
+            }
+            return Make("synth_pickup_soul", d);
+        }
+
+        /// <summary>エンバー（灯）を拾う: 低い「ぼっ」と火のはぜる粒（ノイズの短い粒を散らす）。</summary>
+        public static AudioClip PickupEmber(float seconds = 0.4f)
+        {
+            int n = Mathf.RoundToInt(Sr * seconds);
+            var d = new float[n];
+            var rng = new System.Random(77);
+            float lp = 0f, phase = 0f;
+            for (int i = 0; i < n; i++)
+            {
+                float t = i / (float)Sr;
+                float f = Mathf.Lerp(90f, 260f, Mathf.Exp(-t / 0.06f));         // 「ぼっ」: 高めから低く落ちる
+                phase += 2f * Mathf.PI * f / Sr;
+                float puff = Mathf.Sin(phase) * Mathf.Exp(-t / 0.09f) * 0.9f;
+                float noise = (float)(rng.NextDouble() * 2 - 1);
+                lp += 0.12f * (noise - lp);
+                float whoosh = lp * Mathf.Exp(-t / 0.12f) * 1.2f;
+                // はぜる粒: まばらに短い高音のパチッ
+                float crackle = (rng.NextDouble() < 0.004 && t > 0.05f) ? 0.6f : 0f;
+                d[i] = Soft(puff + whoosh + crackle * Mathf.Exp(-t / 0.3f)) * 0.9f;
+            }
+            return Make("synth_pickup_ember", d);
+        }
+
+        /// <summary>回復薬や地図など: 「ぽこっ」と弾む 2 音（低→高）。役の音と紛れない丸い音。</summary>
+        public static AudioClip PickupItem(float seconds = 0.3f)
+        {
+            int n = Mathf.RoundToInt(Sr * seconds);
+            var d = new float[n];
+            for (int i = 0; i < n; i++)
+            {
+                float t = i / (float)Sr;
+                float v = Pluck(t, 587.3f, 0.06f, 0.1f) * 0.8f + Pluck(t - 0.09f, 880f, 0.08f, 0.1f) * 0.8f;
+                d[i] = Soft(v) * 0.8f;
+            }
+            return Make("synth_pickup_item", d);
+        }
+
         /// <summary>通常時の小さな獲得音: 短い「チャリ」1 発（枚数少なめの控えめな音）。</summary>
         public static AudioClip SmallCoin(float seconds = 0.18f)
         {
