@@ -61,6 +61,18 @@
         <label>表示 <select id="zoom"><option value="1">実寸（ゲームと同じ 123×56）</option><option value="1.5">1.5 倍</option><option value="2">2 倍</option></select></label>
       </div>
       <div class="note">配列は game_config.json の reelStrips そのまま。速さの既定 80 rpm はゲームの回転と同じ（20 コマで 1 周 0.75 秒）。止めると次のコマ境界で止まる。各リールの下のバーで位置をコマ単位（0.05 刻み）にずらせる（回転中に動かすと止まる）。</div>
+      <div class="ctrl" style="border-top:1px solid var(--line);padding-top:10px">
+        <b style="font-size:13px">役の点滅</b>
+        <select id="blinkLine"><option value="mid">中段そろい</option><option value="top">上段そろい</option><option value="diag">斜め（右下がり）</option><option value="cherry">チェリー（左の中段）</option></select>
+        <button class="primary" id="blinkTest">点滅を試す</button>
+        <label><input type="checkbox" id="blinkLoop"> 繰り返す</label>
+      </div>
+      <div class="ctrl">
+        <label>周期 <input type="range" id="blinkPeriod" min="0.05" max="0.4" step="0.01" value="0.13"> <span id="blinkPeriodV">0.13</span> 秒</label>
+        <label>暗さ <input type="range" id="blinkDim" min="0" max="0.9" step="0.02" value="0.28"> <span id="blinkDimV">0.28</span></label>
+        <label>長さ <input type="range" id="blinkSeconds" min="0.4" max="3" step="0.1" value="1.4"> <span id="blinkSecondsV">1.4</span> 秒</label>
+      </div>
+      <div class="note">ゲームでは揃ったコマの図柄が「暗さ」の明るさと通常を「周期」で行き来し、「長さ」だけ続く（game_config.json の reelFx）。</div>
     </div>
     <div class="out">
       <b>選んだもの</b>
@@ -168,6 +180,15 @@
   const SYM_KEY = { RED7: "red7", BLUE7: "white7", STAR: "bell", WATERMELON: "watermelon", CHERRY: "cherry", BAR: "bar", REPLAY: "replay", BLANK: "remix" };
   const CELL_W = 123, CELL_H = 56, ROWS = 3;
   const reels = [0, 1, 2].map(i => ({ pos: (i * 7) % 20, spinning: false, stopping: false, bounce: 0, lastMove: 0 }));
+  // 役の点滅: 対象の段（リールごとの窓の段 0〜2、-1 で無し）と、始めた時刻
+  const blink = { rows: [-1, -1, -1], start: -1, params: { period: 0.13, dim: 0.28, seconds: 1.4 } };
+  try { const bp = JSON.parse(localStorage.getItem("bbb_blink_v1") || "null"); if (bp) blink.params = bp; } catch (e) {}
+  function blinkBrightness(r, k, now) {
+    if (blink.start < 0 || blink.rows[r] !== k) return 1;
+    const t = (now - blink.start) / 1000;
+    if (t >= blink.params.seconds) return 1;
+    return Math.floor(t / blink.params.period) % 2 === 0 ? 1 : blink.params.dim;
+  }
   let lastT = 0;
   function zoom() { return parseFloat(document.getElementById("zoom").value); }
   function buildReels() {
@@ -210,12 +231,15 @@
       const rc = trim ? trimRect(im, src) : { x: 0, y: 0, w: im.naturalWidth, h: im.naturalHeight };
       const kk = Math.min(cv.width * scale / rc.w, cellH * scale / rc.h), w = rc.w * kk, h = rc.h * kk;
       g.imageSmoothingQuality = "high";
+      const bright = reels[r].spinning ? 1 : blinkBrightness(r, k, performance.now());
+      if (bright < 1) g.filter = "brightness(" + bright + ")";
       if (blur) {
         const spread = reels[r].lastMove * z;   // 1 フレームで動いた px
         g.globalAlpha = 0.34;
         for (let b = -1; b <= 1; b++) g.drawImage(im, rc.x, rc.y, rc.w, rc.h, (cv.width - w) / 2, y + (cellH - h) / 2 + b * spread * 0.35, w, h);
         g.globalAlpha = 1;
       } else g.drawImage(im, rc.x, rc.y, rc.w, rc.h, (cv.width - w) / 2, y + (cellH - h) / 2, w, h);
+      g.filter = "none";
     }
     // 段の境目
     g.fillStyle = "#f2f4f7";
@@ -239,6 +263,7 @@
         rl.lastMove = move * CELL_H;
       } else if (rl.bounce > 0) rl.bounce = Math.max(0, rl.bounce - 40 * dt);
     });
+    if (blink.start >= 0 && document.getElementById("blinkLoop").checked && (t - blink.start) / 1000 >= blink.params.seconds + 0.6) blink.start = t;
     document.querySelectorAll("#reels canvas").forEach(cv => drawReel(cv, parseInt(cv.dataset.r)));
     syncBars();
     requestAnimationFrame(tick);
@@ -300,10 +325,31 @@
       if (oldArt) o.key_bg = true;
       json[s.out] = o;
     });
-    document.getElementById("result").textContent = parts.join("、") + "\n\n" + JSON.stringify(json, null, 2);
+    const fx = { blinkPeriod: blink.params.period, blinkDim: blink.params.dim, blinkSeconds: blink.params.seconds };
+    document.getElementById("result").textContent = parts.join("、") + "、点滅 周期 " + fx.blinkPeriod + " / 暗さ " + fx.blinkDim + " / 長さ " + fx.blinkSeconds
+      + "\n\n" + JSON.stringify(json, null, 2) + "\n\n\"reelFx\": " + JSON.stringify(fx, null, 2);
   }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(choice)); } catch (e) {} }
-  function spinAll() { reels.forEach(rl => { rl.spinning = true; rl.stopping = false; }); }
+  function spinAll() { reels.forEach(rl => { rl.spinning = true; rl.stopping = false; }); blink.start = -1; }
+  function startBlink() {
+    const line = document.getElementById("blinkLine").value;
+    blink.rows = line === "mid" ? [1, 1, 1] : line === "top" ? [0, 0, 0] : line === "diag" ? [0, 1, 2] : [1, -1, -1];
+    blink.start = performance.now();
+  }
+  function readBlinkParams() {
+    blink.params = { period: parseFloat(document.getElementById("blinkPeriod").value), dim: parseFloat(document.getElementById("blinkDim").value), seconds: parseFloat(document.getElementById("blinkSeconds").value) };
+    document.getElementById("blinkPeriodV").textContent = blink.params.period.toFixed(2);
+    document.getElementById("blinkDimV").textContent = blink.params.dim.toFixed(2);
+    document.getElementById("blinkSecondsV").textContent = blink.params.seconds.toFixed(1);
+    try { localStorage.setItem("bbb_blink_v1", JSON.stringify(blink.params)); } catch (e) {}
+    result();
+  }
+  document.getElementById("blinkTest").addEventListener("click", startBlink);
+  ["blinkPeriod", "blinkDim", "blinkSeconds"].forEach(id => document.getElementById(id).addEventListener("input", readBlinkParams));
+  (function initBlink() {
+    document.getElementById("blinkPeriod").value = blink.params.period; document.getElementById("blinkDim").value = blink.params.dim; document.getElementById("blinkSeconds").value = blink.params.seconds;
+    readBlinkParams();
+  })();
   document.getElementById("spin").addEventListener("click", spinAll);
   [0, 1, 2].forEach(i => document.getElementById("stop" + i).addEventListener("click", () => { if (reels[i].spinning) reels[i].stopping = true; }));
   document.getElementById("rpm").addEventListener("input", e => { document.getElementById("rpmV").textContent = e.target.value; });

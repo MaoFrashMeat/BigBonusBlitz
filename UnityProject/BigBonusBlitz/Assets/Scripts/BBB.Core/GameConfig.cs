@@ -98,6 +98,8 @@ namespace BBB.Core
         public DropConfig drops;
         /// <summary>呪いと祝福。</summary>
         public CurseConfig curse;
+        /// <summary>リールの見せ方（役が決まったコマの点滅）。tools/symbol_viewer.html で試して決める。</summary>
+        public ReelFxConfig reelFx = new ReelFxConfig();
 
         public Payouts PayoutsFor(BonusMode m)
         {
@@ -238,6 +240,16 @@ namespace BBB.Core
     }
 
     /// <summary>エンバーの入手量。ソウルと同じ場面で、別の量が入る。</summary>
+    public sealed class ReelFxConfig
+    {
+        /// <summary>点滅の周期（秒。暗→明で 1 周期）。</summary>
+        public float blinkPeriod = 0.13f;
+        /// <summary>暗いときの明るさ（0〜1）。</summary>
+        public float blinkDim = 0.28f;
+        /// <summary>点滅を続ける秒数。</summary>
+        public float blinkSeconds = 1.4f;
+    }
+
     public sealed class EmberConfig
     {
         /// <summary>はじめから始めたときの所持。</summary>

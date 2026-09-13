@@ -4092,8 +4092,10 @@ namespace BBB.Runtime
             for (int i = 0; i < _cellFx.Length; i++)
                 if (_cellFx[i] != null) _cellFx[i].gameObject.SetActive((cellMask & (1 << i)) != 0);
 
-            // 光の脈は役ごとの回数、図柄そのものの点滅は実機のように 1.4 秒ほど続ける（2026-09-14 本人）
-            const float period = 0.22f, blinkPeriod = 0.13f, blinkTotal = 1.4f;
+            // 光の脈は役ごとの回数、図柄そのものの点滅は実機のように続ける（周期・暗さ・長さは game_config の reelFx）
+            var fx = _m.Config.reelFx ?? new ReelFxConfig();
+            const float period = 0.22f;
+            float blinkPeriod = Mathf.Max(0.03f, fx.blinkPeriod), blinkTotal = Mathf.Max(0f, fx.blinkSeconds), dim = Mathf.Clamp01(fx.blinkDim);
             float glowTotal = period * pulses;
             float total = Mathf.Max(glowTotal, blinkTotal);
             float t = 0;
@@ -4111,10 +4113,10 @@ namespace BBB.Runtime
                 }
                 else _paylineFlash.alpha = 0f;
                 // 揃ったコマの図柄を暗↔明で点滅（それ以外のコマは触らない）
-                bool on = ((int)(t / blinkPeriod)) % 2 == 0;
+                bool on = t >= blinkTotal || ((int)(t / blinkPeriod)) % 2 == 0;
                 for (int reel = 0; reel < 3; reel++)
                     for (int row = 0; row < 3; row++)
-                        if ((cellMask & (1 << (reel * 3 + row))) != 0) _reels[reel].SetRowBrightness(row, on ? 1f : 0.28f);
+                        if ((cellMask & (1 << (reel * 3 + row))) != 0) _reels[reel].SetRowBrightness(row, on ? 1f : dim);
                 yield return null;
             }
             _paylineFlash.alpha = 0f;

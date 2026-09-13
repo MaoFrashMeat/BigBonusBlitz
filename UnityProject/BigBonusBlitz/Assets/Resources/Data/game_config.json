@@ -5041,6 +5041,11 @@
       }
     ]
   },
+  "reelFx": {
+    "blinkPeriod": 0.13,
+    "blinkDim": 0.28,
+    "blinkSeconds": 1.4
+  },
   "curse": {
     "enabled": true,
     "offerRate": 35,
