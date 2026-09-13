@@ -2,6 +2,12 @@
   "entries": [
     {
       "date": "2026-09-14",
+      "version": "dev 177",
+      "title": "「n EMB 獲得！」を本人の調整値に（数字の書体、GET の絵、大きな炎、影と縁取り）",
+      "body": "・reelFx.emberGain をビューアで決めた値に差し替え（手前の炎は OFF、後ろに大きな炎、影・縁取り・桁が順にポン・数え上げ）\n・数字の書体を候補 3/3/2/1/3/1/2/2/1/1 に、「獲得」は候補 3（GET）に組み直し"
+    },
+    {
+      "date": "2026-09-14",
       "version": "dev 176",
       "title": "「n EMB 獲得！」の詰め・傾き・数え上げの開始、「獲得」の書体も候補から。ビューアは数値でも打てる",
       "body": "・数え上げは「画面で止まってから何秒後に始めて何秒で数えるか」で管理（countOffset / countSeconds）\n・桁の間・数字と炎の間・炎と「獲得」の間を詰められ、数字・炎・「獲得」を傾けられる。手前の炎は ON/OFF\n・「獲得」も assets/symbols/text の候補から選べる（tools/text_choice.json → py -3 tools/text_build.py。数字と同じ表）\n・ビューア: バーの横に数値の箱（Enter で再生）。file:// で開いても候補の書体が反映されるよう範囲を tools/text_rects.js に持つ"

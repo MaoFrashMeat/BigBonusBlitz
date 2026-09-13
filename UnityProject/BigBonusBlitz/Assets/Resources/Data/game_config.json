@@ -5045,12 +5045,12 @@
     "blinkPeriod": 0.13,
     "blinkDim": 0.28,
     "blinkSeconds": 1.4,
-    "emberGain": { "inSeconds": 0.24, "holdSeconds": 0.55, "outSeconds": 0.26, "y": -8, "bandW": 360, "bandH": 64, "fontSize": 40, "picH": 52, "numH": 56, "iconX": 0, "iconY": 0, "picX": 0, "picY": 0,
-                   "digitGap": 0, "iconGap": 6, "picGap": 10, "numRot": 0, "iconRot": 0, "picRot": 0,
-                   "backIcon": false, "backIconSize": 120, "backIconAlpha": 0.45, "backIconX": 0, "backIconY": 0, "backIconRot": 0, "backIconSpin": 0,
-                   "showBand": false, "showEdges": false, "showGlow": true, "shake": true, "sparks": true, "showIcon": true, "countUp": false, "countOffset": 0, "countSeconds": 0.3,
-                   "shadow": false, "shadowX": 3, "shadowY": -3, "shadowAlpha": 0.6, "outline": false, "outlineSize": 2, "outlineAlpha": 0.8,
-                   "digitBounce": false, "wobble": false, "wobbleDeg": 6, "wobbleSpeed": 8, "glowPulse": false, "style": "slideRL" }
+    "emberGain": { "style": "slideRL", "inSeconds": 0.1, "holdSeconds": 1, "outSeconds": 0.1, "y": -85, "bandW": 438, "bandH": 112, "fontSize": 44, "numH": 99, "picH": 39,
+                   "iconX": 40, "iconY": 13, "picX": 7, "picY": -35, "digitGap": 5, "iconGap": -30, "picGap": 10, "numRot": 0, "iconRot": -9, "picRot": 0,
+                   "backIcon": true, "backIconSize": 158, "backIconAlpha": 1, "backIconX": 9, "backIconY": 17, "backIconRot": -14, "backIconSpin": 0,
+                   "showBand": false, "showEdges": true, "showGlow": false, "shake": true, "sparks": true, "showIcon": false, "countUp": true, "countOffset": 0, "countSeconds": 0.3,
+                   "shadow": true, "shadowX": 3, "shadowY": -5, "shadowAlpha": 1, "outline": true, "outlineSize": 4, "outlineAlpha": 1,
+                   "digitBounce": true, "wobble": false, "wobbleDeg": 0, "wobbleSpeed": 30, "glowPulse": true }
   },
   "curse": {
     "enabled": true,
