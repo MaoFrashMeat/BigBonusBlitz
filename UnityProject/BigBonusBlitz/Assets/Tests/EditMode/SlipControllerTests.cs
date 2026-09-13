@@ -79,16 +79,30 @@ namespace BBB.Tests
                     }
         }
 
-        [TestCase(Flag.CHERRY_A)]
-        [TestCase(Flag.CHERRY_C)]
-        public void チェリー当選時は左リールにチェリーが止まる(Flag flag)
+        [TestCase(Flag.CHERRY_A, true)]
+        [TestCase(Flag.CHERRY_C, false)]
+        public void チェリー当選時は左リールにチェリーが止まる(Flag flag, bool anyRow)
         {
-            for (int a = 0; a < 20; a++)
+            // チェリーは必須役ではないので、4 コマ滑らせても届かない押し位置では取りこぼす。
+            // A（どの段でもよい）は届く位置で必ず止まる。C は段の縛りがあるので、届く位置の一部で止まる
+            int len = _strips[0].Length, reachable = 0, hits = 0;
+            for (int a = 0; a < len; a++)
             {
+                bool canReach = false;
+                for (int k = 0; k <= SlipController.DefaultMaxSlip && !canReach; k++)
+                    foreach (var s in SlipController.Window(_strips[0], ((a - k) % len + len) % len))
+                        if (s == Symbol.CHERRY) { canReach = true; break; }
                 var stopped = new Symbol[3][];
                 var r = SlipController.Stop(_strips, 0, a, flag, Flag.HAZE, stopped);
-                Assert.Contains(Symbol.CHERRY, r.symbols, $"{flag} push={a}");
+                bool hit = System.Array.IndexOf(r.symbols, Symbol.CHERRY) >= 0;
+                if (hit) hits++;
+                Assert.IsFalse(hit && !canReach, $"{flag} push={a}: 届かないはずの位置でチェリーが止まった（滑りが 4 コマを超えている）");
+                if (!canReach) continue;
+                reachable++;
+                if (anyRow) Assert.IsTrue(hit, $"{flag} push={a}: 届く位置なのに止まらない");
             }
+            Assert.Greater(reachable, len / 2, "チェリーが届く押し位置が少なすぎる");
+            if (!anyRow) Assert.GreaterOrEqual(hits, reachable * 2 / 3, $"{flag}: 段の縛りを差し引いても止まる位置が少なすぎる（{hits}/{reachable}）");
         }
 
         [Test]

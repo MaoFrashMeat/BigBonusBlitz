@@ -127,6 +127,7 @@ namespace BBB.Tests
             m.Config.adventure.resource.enabled = false;
             var node = m.Config.adventure.Find("A");
             node.spins = 100000;   // ステージが終わらないようにして条件だけ見る
+            node.routeByFlag.Clear();   // チャンス目のルートが先に B2 を決めると、条件は「もう同じ行き先」で出ない
             node.routeConditions.Add(new RouteCondition
             {
                 to = "B2", label = "リプレイ 15 回",
@@ -250,8 +251,12 @@ namespace BBB.Tests
             int replayHeals = 0, healsWhileHeld = 0, replaysInNormal = 0;
             for (int g = 0; g < 20000; g++)
             {
-                bool held = m.StageHeld;
-                var r = PlayOne(m, push);
+                if (m.Credit < SlotMachine.BetCost && !m.IsReplay) m.Credit += 100_000;
+                Assert.IsTrue(m.MaxBet(), "BET失敗");
+                m.Lever();
+                bool held = m.StageHeld;   // レバーを叩いた時点（ボーナス成立・AT 開始はここで決まる）
+                for (int i = 0; i < 3; i++) m.Stop(i, push.Next(20));
+                var r = m.Evaluate();
                 bool replay = r.win.isReplay;
                 if (replay && !held) replaysInNormal++;
                 if (r.hpHealed <= 0) continue;
@@ -451,7 +456,7 @@ namespace BBB.Tests
             m.PendingAt = true;
             Assert.IsTrue(m.MaxBet());
             m.Lever();
-            int expect = System.Math.Max(1, (m.Config.at?.initialSpins ?? 50) + ShopDirector.EffectTotal(m.Config.shop, m.Wallet, ShopEffects.AtInitialSpins)) + 7;
+            int expect = System.Math.Max(1, (m.Config.at?.initialSpins ?? 50) + m.BonusOf(ShopEffects.AtInitialSpins)) + 7 - 1;   // 装備込みの +G。開始Gで 1G 消化
             Assert.AreEqual(expect, m.AtSpinsRemaining);
             Assert.AreEqual(0, m.Adv.stockAtSpins);
             for (int i = 0; i < 3; i++) m.Stop(i, push.Next(20));
@@ -462,12 +467,15 @@ namespace BBB.Tests
         public void 高確ステージは指定モードのテーブルで抽選する()
         {
             // B2 は mode="D"。内部モードが A でも D の表を引く（ハズレ率の差で確認）
+            const int Shift = 12000;   // D の表: ハズレを減らしてスイカに回す（設定の表が同じでも仕組みを確かめられるように）
             var cfgA = GameDataLoader.CreateMachine(new SystemRandom(1), 1).Config;
-            int hazeA = cfgA.probabilities_A["1"]["HAZE"], hazeD = cfgA.probabilities_D["1"]["HAZE"];
-            Assume.That(hazeA != hazeD, "テーブルが同じなので判定できない");
+            int hazeA = cfgA.probabilities_A["1"]["HAZE"], hazeD = cfgA.probabilities_D["1"]["HAZE"] - Shift;
             int Count(bool high)
             {
                 var m = NewMachine(11);
+                m.Config.probabilities_D["1"]["HAZE"] -= Shift;
+                m.Config.probabilities_D["1"]["SUICA_A"] += Shift;
+                m.SetSetting(1);
                 m.Config.adventure = TinyConfig();
                 m.Config.adventure.resource.enabled = false;
                 AdventureDirector.Enter(m.Config.adventure, m.Adv, high ? "B2" : "B1");

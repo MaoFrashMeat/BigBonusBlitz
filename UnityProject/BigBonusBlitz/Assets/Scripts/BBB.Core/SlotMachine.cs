@@ -728,6 +728,7 @@ namespace BBB.Core
             IsGameActive = false;
 
             var result = new GameResult { flag = CurrentFlag, hint = HintKind.None, atStockUsed = _atStockUsed };
+            bool heldAtLever = StageHeld;   // このGが始まった時点で止まっていたか（ボーナスが終わるGのリプレイで回復しないため）
             _atStockUsed = 0;
             var payouts = CurrentPayouts;
             var win = WinEvaluator.Evaluate(Stopped, BonusMode, payouts);
@@ -859,7 +860,7 @@ namespace BBB.Core
                 // ライフが減るのも通常時だけなので、止まっている間は回復もしない
                 var repRes = Config.adventure?.resource;
                 if (AdventureEnabled && repRes != null && repRes.enabled
-                    && !StageHeld && repRes.replayHealAmount > 0)
+                    && !heldAtLever && !StageHeld && repRes.replayHealAmount > 0)
                 {
                     result.hpHealed += HealHp(repRes.replayHealAmount);
                 }

@@ -55,9 +55,11 @@ namespace BBB.Tests
         }
 
         [Test]
-        public void 敵テーブルは3種_スライムはVariantA()
+        public void 敵テーブルは通常3種とボス3種_スライムはVariantA()
         {
-            Assert.AreEqual(3, _enemies.Count);
+            Assert.AreEqual(6, _enemies.Count, "通常 3 種 + ボス 3 種");
+            Assert.AreEqual(3, _enemies.FindAll(t => !t.IsBoss).Count, "通常の敵は 3 種");
+            Assert.AreEqual(3, _enemies.FindAll(t => t.IsBoss).Count, "ボスは 3 種");
             var slime = _enemies.Find(t => t.enemyType == "slime");
             Assert.IsNotNull(slime);
             Assert.AreEqual("A", slime.variant);

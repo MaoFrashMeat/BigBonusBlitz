@@ -45,8 +45,9 @@ namespace BBB.Tests
             m.Bet = 3;
             m.Credit = 10;
             Assert.IsTrue(m.MaxBet());
-            // JS: replayCost(3) を引いた上で bet=3。クレジットは 10-3=7
-            Assert.AreEqual(7, m.Credit);
+            // 再遊技: エンバーを使わずに回す（クレジットは 10 のまま）。BET は立つ
+            Assert.AreEqual(10, m.Credit);
+            Assert.AreEqual(SlotMachine.BetCost, m.Bet);
             Assert.IsFalse(m.IsReplay);
         }
 
@@ -357,13 +358,15 @@ namespace BBB.Tests
                 for (int g = 0; g < total + 3 && !started; g++)
                 {
                     Assert.IsTrue(m.MaxBet());
+                    int stock = m.Adv.stockAtSpins;   // 宝で貯めた上乗せ（AT の開始で使われる）
                     m.Lever();
                     if (m.AtEntryStage > 0) seq.Add(m.AtEntryStage);
                     if (m.AtJustStarted)
                     {
                         started = true;
                         Assert.AreEqual(total, seq.Count, "前兆の段階数が総G数と合わない");
-                        Assert.AreEqual(initial - 1, m.AtSpinsRemaining, "AT の初期G数が違う（開始Gの1G消化ぶんを除く）");
+                        int expected = System.Math.Max(1, System.Math.Max(cfg.at.setSpins, initial) + m.BonusOf(ShopEffects.AtInitialSpins)) + stock - 1;
+                        Assert.AreEqual(expected, m.AtSpinsRemaining, "AT の初期G数が違う（開始Gの1G消化ぶんを除く。装備の +G と宝の貯金込み）");
                     }
                     for (int i = 0; i < 3; i++) m.Stop(i, push.Next(20));
                     m.Evaluate();

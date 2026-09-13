@@ -2474,7 +2474,7 @@ namespace BBB.Runtime
         {
             var cfg = _m.Config.equipment;
             var rar = EquipDirector.RarityOf(cfg, r.equipDropped);
-            var col = Hex(rar.color);
+            var col = rar.id == "prism" ? Color.HSVToRGB((Time.time * 0.45f) % 1f, 0.7f, 1f) : Hex(rar.color);
             _audio.Win();
             UiFx.Burst(_enemyRt != null && _m.EnemyActive ? _enemyRt : _charRt,
                        r.equipDropped.rarity >= 2 ? UiFx.Preset.RainbowStars : UiFx.Preset.Coins, new Vector2(0, 20));

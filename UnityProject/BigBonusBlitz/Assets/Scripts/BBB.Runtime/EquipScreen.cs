@@ -92,16 +92,16 @@ namespace BBB.Runtime
                     bool sel = it != null && it == selected;
                     if (it == null)
                     {
-                        nameT.text = "空き"; nameT.color = UiSkin.TextDim;
+                        nameT.text = "空き"; RainbowTint.Remove(nameT); nameT.color = UiSkin.TextDim;
                         icon.sprite = UiSkin.Icon(IconFor(EquipSlot.KindOf(sl)), 64); icon.color = new Color(1, 1, 1, 0.25f);
                         ring.color = new Color(1, 1, 1, 0);
                         return;
                     }
                     var r = EquipDirector.RarityOf(cfg, it);
-                    nameT.text = it.name; nameT.color = UiSkin.Hex(r.color);
+                    nameT.text = it.name; RarityColor(nameT, r);
                     icon.sprite = UiSkin.Icon(string.IsNullOrEmpty(it.icon) ? IconFor(it.slot) : it.icon, 64); icon.color = Color.white;
                     ring.sprite = UiSkin.Ring(44, sel ? 2 : 1);
-                    ring.color = sel ? Color.white : UiSkin.Hex(r.color) * new Color(1, 1, 1, 0.7f);
+                    if (sel) { RainbowTint.Remove(ring); ring.color = Color.white; } else RarityColor(ring, r, 0.7f);
                 });
             }
 
@@ -137,13 +137,13 @@ namespace BBB.Runtime
                 {
                     bool has = i < m.Equip.Bag.Count;
                     cellIcons[i].gameObject.SetActive(has);
-                    if (!has) { cellRings[i].color = new Color(1, 1, 1, 0); continue; }
+                    if (!has) { RainbowTint.Remove(cellRings[i]); cellRings[i].color = new Color(1, 1, 1, 0); continue; }
                     var it = m.Equip.Bag[i];
                     var r = EquipDirector.RarityOf(cfg, it);
                     cellIcons[i].sprite = UiSkin.Icon(string.IsNullOrEmpty(it.icon) ? IconFor(it.slot) : it.icon, 64);
                     bool sel = it == selected;
                     cellRings[i].sprite = UiSkin.Ring(40, sel ? 2 : 1);
-                    cellRings[i].color = sel ? Color.white : UiSkin.Hex(r.color) * new Color(1, 1, 1, 0.75f);
+                    if (sel) { RainbowTint.Remove(cellRings[i]); cellRings[i].color = Color.white; } else RarityColor(cellRings[i], r, 0.75f);
                 }
             });
             // 装備の合計（鞄の下）
@@ -208,10 +208,9 @@ namespace BBB.Runtime
                 if (!has) return;
                 var it = selected;
                 var r = EquipDirector.RarityOf(cfg, it);
-                var rc = UiSkin.Hex(r.color);
                 dIcon.sprite = UiSkin.Icon(string.IsNullOrEmpty(it.icon) ? IconFor(it.slot) : it.icon, 64);
-                dRing.color = rc;
-                dName.text = it.name; dName.color = rc;
+                RarityColor(dRing, r);
+                dName.text = it.name; RarityColor(dName, r);
                 string wornAt = m.Equip.WornSlotOf(it);
                 dMeta.text = $"{r.name}  ·  {EquipSlot.DisplayName(wornAt ?? it.slot)}  ·  深さ {it.level}";
                 var sb = new System.Text.StringBuilder();
@@ -286,6 +285,16 @@ namespace BBB.Runtime
             foreach (var kv in inv.Worn) if (kv.Value != remove) AddItem(kv.Value);
             AddItem(add);
             return d;
+        }
+
+        /// <summary>レア度の色を付ける。プリズム（虹）は色相を回す。</summary>
+        private static void RarityColor(Graphic g, EquipRarity r, float alpha = 1f)
+        {
+            if (g == null) return;
+            if (r != null && r.id == "prism") { RainbowTint.Apply(g, alpha); return; }
+            RainbowTint.Remove(g);
+            var c = UiSkin.Hex(r?.color ?? "#ffffff"); c.a = alpha;
+            g.color = c;
         }
 
         /// <summary>品の種類ごとの既定のアイコン（品に icon が無いとき）。</summary>

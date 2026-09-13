@@ -109,6 +109,8 @@ namespace BBB.Tests
             int CountHaze(int luck)
             {
                 var m = NewMachine(11);
+                m.Config.stats.luck.rareRate = 1.5f;     // 1 点あたり 1.5%（20 点で 30%）。本番の値だと揺れに埋もれる
+                m.Config.stats.luck.replayRate = 1.5f;
                 m.Stats.Luck = luck;
                 m.Credit = 10_000_000;
                 var push = new SystemRandom(5);
