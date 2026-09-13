@@ -742,7 +742,9 @@ namespace BBB.Runtime
                 _naviGlow[i] = UiSkin.Img(cell, "Glow", Vector2.zero, new Vector2(badge * 2.4f, badge * 2.4f), UiSkin.Glow(96), new Color(1, 0.85f, 0.3f, 0f));
                 UiSkin.Img(cell, "Shadow", new Vector2(0, -3), new Vector2(badge + 18, badge + 18), UiSkin.Shadow(Mathf.RoundToInt(badge * 0.5f), 9), new Color(0, 0, 0, 0.6f));
                 // 丸＋文字（? / ○ / × / - 用）。数字のときは下の紋章に切り替える
+                // 大きさは下端を揃えて変える（軸を下に置く）。大きくなっても下のリールへ被らない（2026-09-13 本人）
                 var proc = UiSkin.Rect(cell, "Proc", Vector2.zero, new Vector2(badge, badge));
+                proc.pivot = new Vector2(0.5f, 0f); proc.anchoredPosition = new Vector2(0, -badge * 0.5f);
                 _naviProc[i] = proc.gameObject;
                 _naviBg[i] = UiSkin.Img(proc, "Ring", Vector2.zero, new Vector2(badge, badge), UiSkin.Rounded(Mathf.RoundToInt(badge * 0.5f)), ColBtn);
                 UiSkin.Img(proc, "Inner", Vector2.zero, new Vector2(badge - 8, badge - 8), UiSkin.Rounded(Mathf.RoundToInt(badge * 0.5f) - 4), new Color(0.04f, 0.05f, 0.09f, 0.92f));
@@ -754,9 +756,11 @@ namespace BBB.Runtime
                 // 揺れは AnimateNavi が毎フレーム付ける（背景と文字で周期を変えてふわふわさせる）
                 _naviEmblemBg[i] = UiSkin.Img(cell, "EmblemBg", Vector2.zero, new Vector2(badge + 26, badge + 26), null, Color.white);
                 _naviEmblemBg[i].preserveAspect = true;
+                _naviEmblemBg[i].rectTransform.pivot = new Vector2(0.5f, 0f);   // 軸は下端（揺れの位置は AnimateNavi が下端基準で置く）
                 _naviEmblemBg[i].gameObject.SetActive(false);
                 _naviEmblemFg[i] = UiSkin.Img(cell, "EmblemFg", Vector2.zero, new Vector2(badge + 26, badge + 26), null, Color.white);
                 _naviEmblemFg[i].preserveAspect = true;
+                _naviEmblemFg[i].rectTransform.pivot = new Vector2(0.5f, 0f);
                 _naviEmblemFg[i].gameObject.SetActive(false);
                 // コーティング: 絵の形に切り抜いた光の帯（Mask は親の絵の不透明な所だけ子を見せる）
                 _naviSheenBg[i] = MakeNaviSheen(_naviEmblemBg[i]);
@@ -1633,8 +1637,9 @@ namespace BBB.Runtime
                 var bg = _naviEmblemBg[i]; var fg = _naviEmblemFg[i];
                 if (bg == null || fg == null || !bg.gameObject.activeSelf) { ClearNaviSparks(i); continue; }
 
-                // 背景: ゆっくり上下 x0.8（2px）。回転と脈は無し
-                bg.rectTransform.anchoredPosition = new Vector2(0, 2.0f * Mathf.Sin(t * 1.5f));
+                // 背景: ゆっくり上下 x0.8（2px）。回転と脈は無し。軸が下端なので、絵の半分ぶん下げて元の位置に置く
+                float baseY = -bg.rectTransform.sizeDelta.y * 0.5f;
+                bg.rectTransform.anchoredPosition = new Vector2(0, baseY + 2.0f * Mathf.Sin(t * 1.5f));
                 bg.rectTransform.localRotation = Quaternion.identity;
                 bg.rectTransform.localScale = Vector3.one * depth;
 
@@ -1646,7 +1651,7 @@ namespace BBB.Runtime
                     float u = _naviPopT[i] / 0.28f;
                     pop = 1.4f - 0.4f * (1f - (1f - u) * (1f - u));   // 大きく出て、すっと収まる
                 }
-                fg.rectTransform.anchoredPosition = new Vector2(0.6f * Mathf.Sin(t * 1.1f + 2.4f), 2f + 1.4f * Mathf.Sin(t * 2.3f + 4.8f));
+                fg.rectTransform.anchoredPosition = new Vector2(0.6f * Mathf.Sin(t * 1.1f + 2.4f), baseY + 2f + 1.4f * Mathf.Sin(t * 2.3f + 4.8f));
                 fg.rectTransform.localScale = Vector3.one * (depth * pop * (1f + 0.02f * Mathf.Sin(t * 2.3f + 2.4f)));
 
                 // コーティング: 1.5 秒（+0〜0.6）ごとに光の帯が 0.6 秒かけて斜めに通り抜ける
