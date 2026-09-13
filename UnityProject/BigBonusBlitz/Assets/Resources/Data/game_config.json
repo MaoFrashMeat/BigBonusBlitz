@@ -5050,7 +5050,8 @@
                    "backIcon": true, "backIconSize": 158, "backIconAlpha": 1, "backIconX": 9, "backIconY": 17, "backIconRot": -14, "backIconSpin": 0,
                    "showBand": false, "showEdges": true, "showGlow": false, "shake": true, "sparks": true, "showIcon": false, "countUp": true, "countOffset": 0, "countSeconds": 0.3,
                    "shadow": true, "shadowX": 3, "shadowY": -5, "shadowAlpha": 1, "outline": true, "outlineSize": 4, "outlineAlpha": 1,
-                   "digitBounce": true, "wobble": false, "wobbleDeg": 0, "wobbleSpeed": 30, "glowPulse": true }
+                   "digitBounce": true, "wobble": false, "wobbleDeg": 0, "wobbleSpeed": 30, "glowPulse": true,
+                   "stackY": 0, "stackGap": 100, "stackStagger": 0.05, "stackScale": 0.7, "stackFit": true }
   },
   "curse": {
     "enabled": true,

@@ -276,6 +276,13 @@ namespace BBB.Core
         public bool digitBounce = false, wobble = false, glowPulse = false;
         public float wobbleDeg = 6f, wobbleSpeed = 8f;
         /// <summary>
+        /// 同じ G で複数（技術介入のソウル・EXP・エンバー・G 数など）得たときは縦に並べて一気に出す:
+        /// 並びの中心の高さ（px。1 本のときの y とは別）/ 行の間隔（px）/ 行ごとの遅れ（秒、0 で完全に同時）/
+        /// 縦に並べるときの帯の大きさ（1 で 1 本のときと同じ）/ 表示域（上下 300px）に収まらないときはさらに縮める。
+        /// </summary>
+        public float stackY = 0f, stackGap = 100f, stackStagger = 0.05f, stackScale = 0.7f;
+        public bool stackFit = true;
+        /// <summary>
         /// 動きの型。slideRL（右→左）/ slideLR（左→右）/ pop（中央でポン）/ drop（上から落ちて弾む）/ rise（下からふわっと）/
         /// zoom（急拡大して消える）/ flip（縦に開く）/ slam（叩きつけ）/ spiral（回りながら収まる）/ pulse（明滅）
         /// </summary>

@@ -125,9 +125,9 @@
   const FX = [
     {
       id: "emberGain", name: "n GET の帯（エンバー / ソウル / EXP / G）", key: "reelFx.emberGain",
-      note: "得たものは全部この帯。ゲームでは列に積んで 1 つずつ（0.08 秒空けて）出る。「順に全部」で技術介入成功の例（ソウル 45 → EXP 30 → エンバー 25 → 5G）を通しで見られる。",
+      note: "得たものは全部この帯。同じ G で複数得たら縦に並べて一気に出る（技術介入のソウル・EXP・エンバー・G 数など）。「縦に全部」がその例（ソウル 45 / EXP 30 / エンバー 25 / 5G）。",
       params: [
-        { group: "例", key: "kind", label: "種類", type: "select", def: "ember", options: [["ember", "エンバー"], ["soul", "ソウル"], ["book", "EXP"], ["games", "AT の G 数"], ["seq", "順に全部（ソウル→EXP→エンバー→G）"]], local: true },
+        { group: "例", key: "kind", label: "種類", type: "select", def: "ember", options: [["ember", "エンバー"], ["soul", "ソウル"], ["book", "EXP"], ["games", "AT の G 数"], ["stack", "縦に全部（技術介入の例: ソウル / EXP / エンバー / G）"]], local: true },
         { group: "動き", key: "style", label: "型", type: "select", def: "slideRL", options: [["slideRL", "右→左スライド"], ["slideLR", "左→右スライド"], ["pop", "中央でポン"], ["drop", "上から落ちて弾む"], ["rise", "下からふわっと"], ["zoom", "急拡大して消える"], ["flip", "縦に開く"], ["slam", "叩きつけ"], ["spiral", "回りながら収まる"], ["pulse", "明滅"]] },
         { group: "動き", key: "inSeconds", label: "入る秒", min: 0.05, max: 1, step: 0.01, def: 0.1 },
         { group: "動き", key: "holdSeconds", label: "止まる秒", min: 0, max: 2, step: 0.05, def: 1 },
@@ -177,29 +177,43 @@
         { group: "足す効果", key: "wobbleDeg", label: "揺れの角度", min: 0, max: 20, step: 1, def: 0 },
         { group: "足す効果", key: "wobbleSpeed", label: "揺れの速さ", min: 1, max: 30, step: 1, def: 30 },
         { group: "足す効果", key: "glowPulse", label: "光が脈打つ", type: "bool", def: true },
+        { group: "複数のとき", key: "stackY", label: "並びの中心の高さ", min: -140, max: 140, step: 1, def: 0 },
+        { group: "複数のとき", key: "stackGap", label: "行の間隔", min: 40, max: 200, step: 1, def: 100 },
+        { group: "複数のとき", key: "stackStagger", label: "行ごとの遅れ（秒）", min: 0, max: 0.3, step: 0.01, def: 0.05 },
+        { group: "複数のとき", key: "stackScale", label: "帯の大きさ", min: 0.3, max: 1.5, step: 0.01, def: 0.7 },
+        { group: "複数のとき", key: "stackFit", label: "収まらなければ縮める", type: "bool", def: true },
       ],
-      total: p => (p.inSeconds + p.holdSeconds + p.outSeconds) * (p.kind === "seq" ? GAIN_SEQ.length : 1) + (p.kind === "seq" ? 0.08 * (GAIN_SEQ.length - 1) : 0),
+      total: p => p.inSeconds + p.holdSeconds + p.outSeconds + (p.kind === "stack" ? (p.stackStagger || 0) * (GAIN_SEQ.length - 1) : 0),
       draw(t, p) {
-        const one = p.inSeconds + p.holdSeconds + p.outSeconds;
-        if (p.kind === "seq") {
-          // ゲームの列と同じ: 前の帯が抜けてから 0.08 秒あけて次
-          const step = one + 0.08, i = Math.floor(t / step);
-          if (i >= GAIN_SEQ.length) return false;
-          const lt = t - i * step;
-          if (lt < one) this.band(lt, p, GAIN_KINDS[GAIN_SEQ[i][0]], GAIN_SEQ[i][1]);
-          return true;
+        // ゲームでは帯は表示域（940×300）の中にしか見えない（外は切れる）ので、ここでも同じ範囲で切る
+        g.save(); g.beginPath(); g.rect(AreaCx - AreaW / 2, AreaCy - AreaH / 2, AreaW, AreaH); g.clip();
+        let alive;
+        if (p.kind === "stack") {
+          // ゲームの 1 組と同じ: 上から順に並べ（中心は stackY）、行ごとに stackStagger 秒遅らせて一気に出す
+          const n = GAIN_SEQ.length; alive = false;
+          let scale = Math.max(0.1, p.stackScale || 1);
+          if (p.stackFit) { const need = n * (p.stackGap || 100) * scale, avail = AreaH - 16; if (need > avail) scale *= avail / need; }
+          const gap = (p.stackGap || 100) * scale;
+          for (let i = 0; i < n; i++) {
+            const lt = t - i * (p.stackStagger || 0);
+            if (lt < 0) { alive = true; continue; }
+            if (this.band(lt, p, GAIN_KINDS[GAIN_SEQ[i][0]], GAIN_SEQ[i][1], (p.stackY || 0) - p.y + ((n - 1) / 2 - i) * gap, scale)) alive = true;
+          }
         }
-        return this.band(t, p, GAIN_KINDS[p.kind] || GAIN_KINDS.ember, p.amount);
+        else alive = this.band(t, p, GAIN_KINDS[p.kind] || GAIN_KINDS.ember, p.amount, 0);
+        g.restore();
+        return alive;
       },
-      // 帯 1 本（GameController.GainSlide と同じ手順）。kind.im() が絵、kind.unit が絵の代わりの文字（"G"）
-      band(t, p, kind, amount) {
+      // 帯 1 本（GameController.GainSlide と同じ手順）。kind.im() が絵、kind.unit が絵の代わりの文字（"G"）、yOff は縦に並べるときのずれ
+      band(t, p, kind, amount, yOff, scale) {
+        scale = scale || 1;
         const icon = kind.im(), unit = kind.unit || null;
         const xIn = AreaW / 2 + p.bandW * 0.6;
         const q = emberGainPose(p.style || "slideRL", t, p, xIn);
         if (!q) return false;
-        const cx = AreaCx + q.x, cy = AreaCy - p.y - q.y;
+        const cx = AreaCx + q.x, cy = AreaCy - (p.y + (yOff || 0)) - q.y;
         g.save(); g.globalAlpha = q.alpha;
-        g.translate(cx, cy); g.rotate(-q.rot * Math.PI / 180); g.scale(q.sx, q.sy); g.translate(-cx, -cy);
+        g.translate(cx, cy); g.rotate(-q.rot * Math.PI / 180); g.scale(q.sx * scale, q.sy * scale); g.translate(-cx, -cy);
         // 段階（0 入る / 1 止まる / 2 抜ける）と、止まってからの秒。足せる効果に使う（GameController.EmberGainPhase と同じ）
         const tIn = Math.max(0.01, p.inSeconds), tHold = Math.max(0, p.holdSeconds);
         const ph = t < tIn ? 0 : t < tIn + tHold ? 1 : 2, pu = ph === 0 ? t / tIn : ph === 1 ? (tHold > 0 ? (t - tIn) / tHold : 1) : 1, th = Math.max(0, t - tIn);

@@ -4141,25 +4141,49 @@ namespace BBB.Runtime
         /// ベルでエンバーを獲得したときの帯: 「8 {ember} 獲得！」が右から滑り込み、少し止まって左へ抜ける。
         /// 表示域の中央やや下。文字は IconText（EMB は絵）。
         /// </summary>
-        private readonly System.Collections.Generic.Queue<(string icon, int amount, string unit)> _gainQueue = new System.Collections.Generic.Queue<(string, int, string)>();
-        private bool _gainPlaying;
+        private readonly System.Collections.Generic.List<(string icon, int amount, string unit)> _gainPending = new System.Collections.Generic.List<(string, int, string)>();
+        private readonly System.Collections.Generic.Queue<System.Collections.Generic.List<(string icon, int amount, string unit)>> _gainQueue = new System.Collections.Generic.Queue<System.Collections.Generic.List<(string icon, int amount, string unit)>>();
+        private bool _gainPlaying, _gainFlushScheduled;
 
-        /// <summary>「n {icon} GET」の帯を列に積む。同時に出さず、前のが抜けてから次を出す。icon が null なら unit（"G" など）の文字。</summary>
+        /// <summary>
+        /// 「n {icon} GET」の帯を積む。同じフレームに積まれたもの（同じ G で得たソウル・EXP・エンバー・G 数）は 1 組にして縦に並べ一気に出す
+        /// （2026-09-14 本人: 順番でなく一気に縦に）。組と組は前のが抜けてから。icon が null なら unit（"G" など）の文字。
+        /// </summary>
         private void EnqueueGain(string icon, int amount, string unit = null)
         {
             if (amount <= 0) return;
-            _gainQueue.Enqueue((icon, amount, unit));
+            _gainPending.Add((icon, amount, unit));
+            if (!_gainFlushScheduled) { _gainFlushScheduled = true; StartCoroutine(GainFlushRoutine()); }
+        }
+
+        /// <summary>次のフレームで、積まれた分を 1 組にして列へ（同じ Update で積まれたものが 1 組になる）。</summary>
+        private IEnumerator GainFlushRoutine()
+        {
+            yield return null;
+            _gainFlushScheduled = false;
+            if (_gainPending.Count == 0) yield break;
+            _gainQueue.Enqueue(new System.Collections.Generic.List<(string icon, int amount, string unit)>(_gainPending));
+            _gainPending.Clear();
             if (!_gainPlaying) StartCoroutine(GainQueueRoutine());
         }
 
         private IEnumerator GainQueueRoutine()
         {
             _gainPlaying = true;
+            var fx = _m.Config.reelFx?.emberGain ?? new EmberGainFxConfig();
             while (_gainQueue.Count > 0)
             {
-                var g = _gainQueue.Dequeue();
-                yield return GainSlide(g.icon, g.amount, g.unit);
-                yield return new WaitForSeconds(0.08f);
+                var group = _gainQueue.Dequeue();
+                int n = group.Count;
+                // 上から順に並べる（2 本以上のときの中心は stackY、大きさは stackScale。1 本は y のまま等倍）。行ごとに少し遅らせて出す
+                float center = n > 1 ? fx.stackY : fx.y;
+                float scale = n > 1 ? Mathf.Max(0.1f, fx.stackScale) : 1f;
+                if (n > 1 && fx.stackFit) { float need = n * fx.stackGap * scale, avail = AreaH - 16f; if (need > avail) scale *= avail / need; }   // 表示域に収まらなければさらに縮める
+                float gap = fx.stackGap * scale;
+                for (int i = 0; i < n; i++)
+                    StartCoroutine(GainSlide(group[i].icon, group[i].amount, group[i].unit, center - fx.y + ((n - 1) * 0.5f - i) * gap, i * fx.stackStagger, scale));
+                float total = Mathf.Max(0.01f, fx.inSeconds) + Mathf.Max(0f, fx.holdSeconds) + Mathf.Max(0.01f, fx.outSeconds) + (n - 1) * fx.stackStagger;
+                yield return new WaitForSeconds(total + 0.08f);
             }
             _gainPlaying = false;
         }
@@ -4168,11 +4192,12 @@ namespace BBB.Runtime
         /// 「n {icon} GET」の帯（ベルのエンバー、敵の EXP、技術介入の報酬など、得たもの全部に使う）。
         /// 動きと部品は reelFx.emberGain（tools/fx_viewer.html と同じ式）。icon は UiSkin.Icon の名前（ember / soul / book）。
         /// </summary>
-        private IEnumerator GainSlide(string icon, int amount, string unit = null)
+        private IEnumerator GainSlide(string icon, int amount, string unit = null, float yOffset = 0f, float delay = 0f, float scale = 1f)
         {
+            if (delay > 0f) yield return new WaitForSeconds(delay);
             var fx = _m.Config.reelFx?.emberGain ?? new EmberGainFxConfig();
             string iconName = string.IsNullOrEmpty(icon) ? "ember" : icon;
-            float bandW = fx.bandW, bandH = fx.bandH, y0 = fx.y;
+            float bandW = fx.bandW, bandH = fx.bandH, y0 = fx.y + yOffset;
             var band = UiSkin.Rect(_area, "EmberGain", new Vector2(AreaW * 0.5f + bandW * 0.6f, y0), new Vector2(bandW, bandH));
             // 部品は設定で ON/OFF（2026-09-14 本人: 枠は要らない。細かく切り替えたい）
             if (fx.showBand) UiSkin.Img(band, "Bg", Vector2.zero, new Vector2(bandW, bandH), UiSkin.Rounded(14), new Color(0.05f, 0.03f, 0.02f, 0.82f));
@@ -4270,7 +4295,7 @@ namespace BBB.Runtime
                 t += Time.deltaTime;
                 if (!EmberGainPose(fx.style ?? "slideRL", t, fx, xIn, out var pos, out var sc, out float rot, out float alpha, out float countU)) break;
                 band.anchoredPosition = new Vector2(pos.x, y0 + pos.y);
-                band.localScale = new Vector3(sc.x, sc.y, 1f);
+                band.localScale = new Vector3(sc.x * scale, sc.y * scale, 1f);
                 band.localRotation = Quaternion.Euler(0, 0, rot);
                 cg.alpha = alpha;
                 if (back != null && fx.backIconSpin != 0f) back.rectTransform.localRotation = Quaternion.Euler(0, 0, fx.backIconRot + fx.backIconSpin * t);
