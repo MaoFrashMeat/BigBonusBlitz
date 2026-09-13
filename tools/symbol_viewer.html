@@ -7,6 +7,11 @@
   :root { --bg:#0f1b2d; --panel:#17263a; --panel2:#1d2f47; --line:#2f4460; --ink:#f4f6fa; --muted:#98a3b8; --gold:#f4cd7c; --good:#7ee0a0; }
   body { margin:0; background:var(--bg); color:var(--ink); font-family:"Yu Gothic","Hiragino Sans",sans-serif; font-size:14px; }
   .wrap { display:grid; grid-template-columns: 1fr 560px; gap:16px; padding:16px; max-width:1500px; margin:0 auto; }
+  .strips { grid-column: 1 / -1; background:var(--panel); border-radius:8px; padding:12px; }
+  .strips h2 { font-size:14px; margin:0 0 8px; display:flex; gap:12px; align-items:center; }
+  .striprow { display:flex; gap:24px; justify-content:center; align-items:flex-start; }
+  .strip { background:#f2f4f7; border-radius:6px; padding:6px; }
+  .strip .cap { text-align:center; color:#556; font-size:12px; margin-bottom:4px; }
   h1 { font-size:18px; margin:0 0 6px; }
   .sub { color:var(--muted); font-size:12px; margin-bottom:10px; }
   .sym { background:var(--panel); border-radius:8px; padding:10px 12px; margin-bottom:10px; }
@@ -63,6 +68,10 @@
       <div class="ctrl"><button class="primary" id="copy">コピー</button><button id="reset">選び直す</button><span id="copied" class="note"></span></div>
       <div class="note">Claude にはこの文をそのまま貼れば足りる（下の JSON は tools/symbol_choice.json の symbols と同じ形。自分で書き換えて <code>py -3 tools/symbol_build.py</code> でも反映できる）。</div>
     </div>
+  </div>
+  <div class="strips">
+    <h2>配列全体（各リール 20 コマ）<label>表示 <select id="stripZoom"><option value="0.5">半分</option><option value="0.75" selected>3/4</option><option value="1">実寸</option></select></label><small style="color:var(--muted);font-weight:normal">上から 0 番。番号は game_config の reelStrips の順</small></h2>
+    <div class="striprow" id="strips"></div>
   </div>
 </div>
 <script>
@@ -234,7 +243,39 @@
     syncBars();
     requestAnimationFrame(tick);
   }
+  function buildStrips() {
+    const host = document.getElementById("strips"); host.innerHTML = "";
+    const z = parseFloat(document.getElementById("stripZoom").value);
+    for (let r = 0; r < 3; r++) {
+      const box = document.createElement("div"); box.className = "strip";
+      const cap = document.createElement("div"); cap.className = "cap"; cap.textContent = ["左", "中", "右"][r]; box.appendChild(cap);
+      const cv = document.createElement("canvas"); cv.width = (CELL_W + 26) * z; cv.height = (CELL_H + 4) * STRIPS[r].length * z; cv.dataset.r = r; cv.style.borderRadius = "4px";
+      box.appendChild(cv); host.appendChild(box);
+    }
+  }
+  function drawStrips() {
+    const trim = document.getElementById("trim").checked;
+    const z = parseFloat(document.getElementById("stripZoom").value);
+    document.querySelectorAll("#strips canvas").forEach(cv => {
+      const r = parseInt(cv.dataset.r), g = cv.getContext("2d"), strip = STRIPS[r];
+      const cw = CELL_W * z, ch = CELL_H * z, pitch = (CELL_H + 4) * z, x0 = 26 * z;
+      g.fillStyle = "#f2f4f7"; g.fillRect(0, 0, cv.width, cv.height);
+      for (let i = 0; i < strip.length; i++) {
+        const y = i * pitch;
+        g.fillStyle = "#e9edf2"; g.fillRect(x0, y, cw, ch);
+        g.fillStyle = "#667"; g.font = (11 * z + 3) + "px sans-serif"; g.textBaseline = "middle"; g.fillText(String(i), 4 * z, y + ch / 2);
+        const sdef = symOf(strip[i]); if (!sdef) continue;
+        const src = chosenSrc(sdef), scale = scaleOf(sdef);
+        const im = load(src); if (!im.complete || !im.naturalWidth) continue;
+        const rc = trim ? trimRect(im, src) : { x: 0, y: 0, w: im.naturalWidth, h: im.naturalHeight };
+        const kk = Math.min(cw * scale / rc.w, ch * scale / rc.h), w = rc.w * kk, h = rc.h * kk;
+        g.imageSmoothingQuality = "high";
+        g.drawImage(im, rc.x, rc.y, rc.w, rc.h, x0 + (cw - w) / 2, y + (ch - h) / 2, w, h);
+      }
+    });
+  }
   function drawAll() {
+    drawStrips();
     const trim = document.getElementById("trim").checked;
     document.querySelectorAll(".cand canvas").forEach(cv => { const s = SYMS.find(x => x.key === cv.parentElement.dataset.key); drawInto(cv, cv.parentElement.dataset.src, s ? scaleOf(s) : 0.92, trim); });
     result();
@@ -267,6 +308,7 @@
   [0, 1, 2].forEach(i => document.getElementById("stop" + i).addEventListener("click", () => { if (reels[i].spinning) reels[i].stopping = true; }));
   document.getElementById("rpm").addEventListener("input", e => { document.getElementById("rpmV").textContent = e.target.value; });
   document.getElementById("zoom").addEventListener("change", buildReels);
+  document.getElementById("stripZoom").addEventListener("change", () => { buildStrips(); drawStrips(); });
   document.getElementById("trim").addEventListener("change", drawAll);
   document.addEventListener("keydown", e => {
     if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "SELECT")) return;
@@ -286,7 +328,7 @@
     catch (e) { document.getElementById("copied").textContent = "コピーできなかった。文を選んで Ctrl+C"; }
   });
   document.getElementById("reset").addEventListener("click", () => { choice = {}; save(); build(); });
-  buildReels(); build(); requestAnimationFrame(tick);
+  buildReels(); buildStrips(); build(); requestAnimationFrame(tick);
 })();
 </script>
 </body>
