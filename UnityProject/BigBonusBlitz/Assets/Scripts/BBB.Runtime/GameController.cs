@@ -2500,6 +2500,7 @@ namespace BBB.Runtime
                 UiFx.Absorb(_reels[1].GetComponent<RectTransform>(), _creditNum.rectTransform, UiFx.Preset.EmberSoul, emberDrops, 0.78f);
                 UiFx.Burst(_payoutNum.rectTransform, UiFx.Preset.Coins, new Vector2(0, -10));
                 UiFx.PopText(_payoutNum.rectTransform, $"+{r.win.payout}", ColGold, 24, new Vector2(0, 20));
+                if (r.win.winType == WinType.BELL) StartCoroutine(EmberGainSlide(r.win.payout));
                 RoleFx(r.win.winType, CellMaskFor(r.win));
                 switch (r.win.winType)
                 {
@@ -4044,7 +4045,7 @@ namespace BBB.Runtime
                 case WinType.BELL:
                     // 音は獲得音（通常=控えめ / ボーナス=連打）に任せ、ここでは重ねない（ベルは頻出。重ねると「うるさい」）
                     PaylineFlash(ColGold, 2, false, cellMask);
-                    if (!inBonus) UiFx.Cutin(_area, "BELL", ColGold, ArtLoader.SymbolSprite(Symbol.STAR), 0.7f, 0.35f, false, new Vector2(0, -20));
+                    // 「n EMB 獲得！」が右から入って左へ抜ける（2026-09-14 本人）。金額は Evaluate 側で渡す
                     break;
                 case WinType.REPLAY:
                     PaylineFlash(UiSkin.Blue, 2, false, cellMask);
@@ -4074,6 +4075,34 @@ namespace BBB.Runtime
                     StartCoroutine(EdgeGlow(ColGold, 1.5f, true));
                     break;
             }
+        }
+
+        /// <summary>
+        /// ベルでエンバーを獲得したときの帯: 「8 {ember} 獲得！」が右から滑り込み、少し止まって左へ抜ける。
+        /// 表示域の中央やや下。文字は IconText（EMB は絵）。
+        /// </summary>
+        private IEnumerator EmberGainSlide(int amount)
+        {
+            const float bandW = 360f, bandH = 64f;
+            var band = UiSkin.Rect(_area, "EmberGain", new Vector2(AreaW * 0.5f + bandW * 0.6f, -8f), new Vector2(bandW, bandH));
+            UiSkin.Img(band, "Bg", Vector2.zero, new Vector2(bandW, bandH), UiSkin.Rounded(14), new Color(0.05f, 0.03f, 0.02f, 0.82f));
+            UiSkin.Img(band, "Edge", new Vector2(0, bandH * 0.5f - 1), new Vector2(bandW - 20, 2), null, new Color(1f, 0.6f, 0.2f, 0.95f));
+            UiSkin.Img(band, "Edge2", new Vector2(0, -bandH * 0.5f + 1), new Vector2(bandW - 20, 2), null, new Color(1f, 0.6f, 0.2f, 0.95f));
+            UiSkin.Img(band, "Glow", Vector2.zero, new Vector2(bandW + 80, bandH + 80), UiSkin.Glow(96), new Color(1f, 0.55f, 0.15f, 0.35f));
+            var row = UiSkin.Rect(band, "Row", new Vector2(0, 1), new Vector2(bandW, bandH));
+            IconText.Render(row, $"{amount} {{ember}} 獲得！", 40, Hex("#ffd23f"), FontStyle.Bold, 44f, 1f, 6f, true, new Color(0.4f, 0.12f, 0f, 1f), new Vector2(2, -3));
+            var cg = band.gameObject.AddComponent<CanvasGroup>(); cg.blocksRaycasts = false;
+            float xIn = AreaW * 0.5f + bandW * 0.6f, xOut = -AreaW * 0.5f - bandW * 0.6f;
+            // 滑り込み（減速）→ 保持 → 左へ加速して抜ける
+            float t = 0;
+            while (t < 0.24f) { t += Time.deltaTime; float u = 1f - Mathf.Pow(1f - Mathf.Clamp01(t / 0.24f), 3f); band.anchoredPosition = new Vector2(Mathf.Lerp(xIn, 0f, u), -8f); yield return null; }
+            band.anchoredPosition = new Vector2(0, -8f);
+            UiFx.Burst(_area, UiFx.Preset.Sparks, new Vector2(0, -8f));
+            t = 0;
+            while (t < 0.55f) { t += Time.deltaTime; band.anchoredPosition = new Vector2(3f * Mathf.Sin(t * 30f) * (1f - t / 0.55f), -8f); yield return null; }
+            t = 0;
+            while (t < 0.26f) { t += Time.deltaTime; float u = Mathf.Pow(Mathf.Clamp01(t / 0.26f), 2.2f); band.anchoredPosition = new Vector2(Mathf.Lerp(0f, xOut, u), -8f); cg.alpha = 1f - u * 0.4f; yield return null; }
+            Destroy(band.gameObject);
         }
 
         /// <summary>
