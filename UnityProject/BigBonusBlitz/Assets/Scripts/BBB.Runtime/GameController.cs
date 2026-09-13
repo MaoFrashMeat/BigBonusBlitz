@@ -1368,6 +1368,15 @@ namespace BBB.Runtime
         /// 押された → 暗くなる → 回りながら縮む → 星になる → チョンと消える。
         /// 「押した手応え」を目で返すためのもので、0.5 秒ほどで終わる。
         /// </summary>
+        /// <summary>第三停止のバッジに結果（○ = 正解 / × = 外れ）を出し、少し見せてから消す。</summary>
+        private IEnumerator RevealNaviBadge(int i, bool ok)
+        {
+            ApplyNaviBadge(i, ok ? "○" : "×", ok ? ColGold : ColAccent, ok ? ColGold : ColAccent,
+                           ok ? new Color(1f, 0.85f, 0.3f, 0.6f) : new Color(1f, 0.3f, 0.4f, 0.5f));
+            yield return new WaitForSeconds(0.9f);
+            yield return PopNaviBadge(i);
+        }
+
         private IEnumerator PopNaviBadge(int i)
         {
             var cell = _naviCells[i];
@@ -1573,7 +1582,7 @@ namespace BBB.Runtime
                 string txt; Color ring, fg, glow;
                 if (i == n.first) { txt = "1"; ring = ColGold; fg = ColGold; glow = new Color(1f, 0.85f, 0.3f, pressed == 0 ? 0.45f : 0.12f); }
                 else { txt = "?"; ring = blue; fg = ColText; glow = new Color(0.4f, 0.6f, 1f, pressed == 1 && n.InChoice ? 0.45f : 0.2f); }
-                if (pressed >= 2 && _m.CurrentCommand != BellCommand.None)
+                if (pressed >= 3 && _m.CurrentCommand != BellCommand.None)   // 結果は全リール停止後にだけ
                 {
                     bool ok = _m.CurrentCommand == BellCommand.Success;
                     if (i == n.correctReel) { txt = "○"; ring = ok ? ColGold : ColBtnDisabled; fg = ok ? ColGold : ColTextSub; glow = ok ? new Color(1f, 0.85f, 0.3f, 0.6f) : new Color(0, 0, 0, 0); }
@@ -2310,17 +2319,21 @@ namespace BBB.Runtime
                 _audio.ReelPullIn();
             }
             if (_m.Tech.Active && i == _m.Tech.reel) RefreshTech();
+            // 択の正解は第三停止まで見せない（2026-09-13 本人）。成功・失敗の見せ方は全リールが止まってから
             if (_m.Navi.Active)
             {
                 if (_m.PressOrder.Count == 1 && _m.Navi.InChoice) EnterFocus();
-                else if (_m.PressOrder.Count == 2 && _m.CurrentCommand == BellCommand.Success) StartCoroutine(NaviSuccessRoutine());
-                else if (_m.PressOrder.Count == 2 && _m.CurrentCommand == BellCommand.Fail) StartCoroutine(NaviFailRoutine());
+                else if (_m.PressOrder.Count == 3 && _m.CurrentCommand == BellCommand.Success) StartCoroutine(NaviSuccessRoutine());
+                else if (_m.PressOrder.Count == 3 && _m.CurrentCommand == BellCommand.Fail) StartCoroutine(NaviFailRoutine());
             }
-            // 押したバッジは膨らんで消える（打感。次のGのナビと混ざらないように）
+            // 押したバッジは膨らんで消える（打感。次のGのナビと混ざらないように）。
+            // 第三停止のバッジだけは ○ / × を見せてから消す
             if ((_m.Navi.Active || _m.Navi2.Active) && !_naviPopped[i])
             {
                 _naviPopped[i] = true;
-                StartCoroutine(PopNaviBadge(i));
+                bool reveal = _m.Navi.Active && _m.PressOrder.Count == 3 && _m.CurrentCommand != BellCommand.None;
+                if (reveal) StartCoroutine(RevealNaviBadge(i, _m.CurrentCommand == BellCommand.Success));
+                else StartCoroutine(PopNaviBadge(i));
             }
             RefreshNavi();
 

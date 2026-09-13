@@ -720,10 +720,9 @@ namespace BBB.Core
             if (Stopped[reelIndex] != null) throw new InvalidOperationException("停止済み");
             // ベル択ナビ（エンゲージ）の2択を外したら、そのGのベルは取りこぼす。
             // 制御に渡す役を HAZE にすることで「揃えない」停止を選ばせる（払い出しは自然に 0 になる）。
-            // 外したかどうかは押したリール番号だけで決まるので、その第二停止から効かせられる。
-            bool naviMissed = Navi.Active && CurrentFlag.IsBell() &&
-                (CurrentCommand == BellCommand.Fail ||
-                 (PressOrder.Count == 1 && Navi.InChoice && reelIndex != Navi.correctReel));
+            // 外したかどうかは第二停止で決まるが、正解は第三停止まで見せない（2026-09-13 本人）:
+            // 第二停止はベルを揃える向きに止め、外していれば第三停止でこぼす
+            bool naviMissed = Navi.Active && CurrentFlag.IsBell() && PressOrder.Count == 2 && CurrentCommand == BellCommand.Fail;
             var flagForStop = naviMissed ? Flag.HAZE : CurrentFlag;
 
             // 小役優先: 小役を狙うゲームではボーナス図柄を同時に揃えない
@@ -733,7 +732,15 @@ namespace BBB.Core
             // ただし前兆中は引き込みを切る＝実機どおりの目押しにする。察した人だけが擬似遊技を待たずに揃えられる
             bool pullIn = held != Flag.HAZE && CurrentFlag.IsBonus() && BonusAnnounceRemaining <= 0;
             int slipMax = pullIn ? Math.Min(Strips[reelIndex].Length - 1, Math.Max(maxSlip, Config.bonusPullInSlip)) : maxSlip;
-            var res = SlipController.Stop(Strips, reelIndex, baseIdx, flagForStop, held, idx, slipMax);
+            // 外したGの第三停止は、こぼすために滑りを広げる（2 リールにベルが乗っていると 4 コマでは避けきれないことがある）
+            int missSlip = Math.Min(Strips[reelIndex].Length - 1, Math.Max(slipMax, Config.bellCommand?.missSlip ?? 8));
+            if (naviMissed) slipMax = missSlip;
+            // 外した第二停止: ベルを揃える向きの制御のまま、「第三停止でこぼせる」位置だけから選ぶ（見た目は正解と同じ）
+            bool wrongSecond = Navi.Active && CurrentFlag.IsBell() && PressOrder.Count == 1 && Navi.InChoice && reelIndex != Navi.correctReel;
+            var res = wrongSecond
+                ? SlipController.Stop(Strips, reelIndex, baseIdx, flagForStop, held, idx, slipMax,
+                                      st => SlipController.IsFeasibleFrom(Strips, Flag.HAZE, held, st, missSlip))
+                : SlipController.Stop(Strips, reelIndex, baseIdx, flagForStop, held, idx, slipMax);
             Stopped[reelIndex] = res.symbols;
             StopIndex[reelIndex] = res.stopIndex;
             Slip[reelIndex] = res.slip;
