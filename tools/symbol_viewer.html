@@ -21,7 +21,9 @@
   .side { position:sticky; top:16px; align-self:start; }
   .reels { background:var(--panel); border-radius:8px; padding:12px; }
   .reelrow { display:flex; gap:10px; justify-content:center; }
-  .reel { background:#f2f4f7; border-radius:6px; padding:6px; display:flex; flex-direction:column; gap:6px; }
+  .reel { background:#f2f4f7; border-radius:6px; padding:6px; display:flex; flex-direction:column; gap:6px; align-items:center; }
+  .reel input[type=range] { margin:0; }
+  .posv { font-size:11px; color:#556; }
   .cell { width:160px; height:73px; background:#e9edf2; border-radius:4px; display:flex; align-items:center; justify-content:center; overflow:hidden; }
   .ctrl { display:flex; gap:8px; align-items:center; margin:10px 0; flex-wrap:wrap; }
   button { font:inherit; background:var(--panel2); color:var(--ink); border:1px solid var(--line); border-radius:6px; padding:6px 12px; cursor:pointer; }
@@ -54,7 +56,7 @@
         <label><input type="checkbox" id="blur"> 回転中のブレを足す</label>
         <label>表示 <select id="zoom"><option value="1">実寸（ゲームと同じ 123×56）</option><option value="1.5">1.5 倍</option><option value="2">2 倍</option></select></label>
       </div>
-      <div class="note">配列は game_config.json の reelStrips そのまま。速さの既定 80 rpm はゲームの回転と同じ（20 コマで 1 周 0.75 秒）。止めると次のコマ境界で止まる。</div>
+      <div class="note">配列は game_config.json の reelStrips そのまま。速さの既定 80 rpm はゲームの回転と同じ（20 コマで 1 周 0.75 秒）。止めると次のコマ境界で止まる。各リールの下のバーで位置をコマ単位（0.05 刻み）にずらせる（回転中に動かすと止まる）。</div>
     </div>
     <div class="out">
       <b>選んだもの</b>
@@ -158,8 +160,19 @@
     for (let r = 0; r < 3; r++) {
       const reel = document.createElement("div"); reel.className = "reel";
       const cv = document.createElement("canvas"); cv.width = CELL_W * z; cv.height = (CELL_H * ROWS + 12) * z; cv.dataset.r = r; cv.style.borderRadius = "4px";
-      reel.appendChild(cv); host.appendChild(reel);
+      reel.appendChild(cv);
+      // 位置をずらすスクロールバー（コマ単位。0.05 コマ刻みで途中の見え方も確かめられる）
+      const bar = document.createElement("input"); bar.type = "range"; bar.min = 0; bar.max = STRIPS[r].length; bar.step = 0.05; bar.value = reels[r].pos;
+      bar.style.width = (CELL_W * z) + "px"; bar.dataset.r = r; bar.title = "リールの位置（コマ）";
+      bar.addEventListener("input", e => { const rl = reels[r]; rl.spinning = false; rl.stopping = false; rl.bounce = 0; rl.pos = parseFloat(e.target.value) % STRIPS[r].length; });
+      reel.appendChild(bar);
+      const v = document.createElement("div"); v.className = "posv"; v.dataset.r = r; v.textContent = reels[r].pos.toFixed(2); reel.appendChild(v);
+      host.appendChild(reel);
     }
+  }
+  function syncBars() {
+    document.querySelectorAll("#reels input[type=range]").forEach(bar => { const rl = reels[bar.dataset.r]; if (rl.spinning && document.activeElement !== bar) bar.value = rl.pos; });
+    document.querySelectorAll("#reels .posv").forEach(v => { v.textContent = reels[v.dataset.r].pos.toFixed(2); });
   }
   function symSrc(name) { const s = SYMS.find(x => x.key === SYM_KEY[name]); return s ? chosenSrc(s) : null; }
   function drawReel(cv, r) {
@@ -203,13 +216,14 @@
         if (rl.stopping) {
           const target = Math.ceil(rl.pos - 1e-6);
           const remain = target - rl.pos;
-          if (remain <= move) { move = remain; rl.spinning = false; rl.stopping = false; rl.pos = target % len; rl.bounce = 6; }
+          if (remain <= move) { move = remain; rl.spinning = false; rl.stopping = false; rl.pos = target % len; rl.bounce = 6; const bar = document.querySelector('#reels input[data-r="' + r + '"]'); if (bar) bar.value = rl.pos; }
         }
         if (rl.spinning) rl.pos = (rl.pos + move) % len;
         rl.lastMove = move * CELL_H;
       } else if (rl.bounce > 0) rl.bounce = Math.max(0, rl.bounce - 40 * dt);
     });
     document.querySelectorAll("#reels canvas").forEach(cv => drawReel(cv, parseInt(cv.dataset.r)));
+    syncBars();
     requestAnimationFrame(tick);
   }
   function drawAll() {
