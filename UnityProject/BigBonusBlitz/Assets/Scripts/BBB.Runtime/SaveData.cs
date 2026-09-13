@@ -15,6 +15,7 @@ namespace BBB.Runtime
         private const string KeyAutoSpeed = "bbb_opt_auto_speed";
         private const string KeyGraphAlways = "bbb_graph_always";
         private const string KeyAutoStop = "bbb_opt_auto_stop";
+        private const string KeyNewsSeen = "bbb_news_seen";
 
         public int credit;
         public int heldBonusFlag;
@@ -253,6 +254,10 @@ namespace BBB.Runtime
 
         /// <summary>保存されたオート速度（無ければ 1）。</summary>
         public static int LoadAutoSpeed() => Mathf.Clamp(PlayerPrefs.GetInt(KeyAutoSpeed, 1), 1, 6);
+
+        /// <summary>お知らせを最後に開いたときの、いちばん新しい項目の印（版 + 日付）。無ければ空。</summary>
+        public static string LoadNewsSeen() => PlayerPrefs.GetString(KeyNewsSeen, "");
+        public static void SaveNewsSeen(string mark) { PlayerPrefs.SetString(KeyNewsSeen, mark ?? ""); PlayerPrefs.Save(); }
 
         /// <summary>AUTO を止める条件（ビット: 1=実績解除 2=アビス以上の装備 4=中ボス出現）。既定は全部 ON。</summary>
         public const int AutoStopAchievement = 1, AutoStopRareEquip = 2, AutoStopBoss = 4, AutoStopDefault = 7;

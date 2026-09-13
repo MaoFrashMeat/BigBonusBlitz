@@ -220,7 +220,13 @@ namespace BBB.Runtime
 
             // 下の丸ボタン 3 つ
             float px = -StageW * 0.5f + 24 + PillW * 0.5f;
-            Pill(stage, "News", TitleUiLayout.Get("pillNews", px, PillY, PillW, PillH, "bell", "お知らせ", "pill_navy_sm"), ToggleNews);
+            var newsPill = Pill(stage, "News", TitleUiLayout.Get("pillNews", px, PillY, PillW, PillH, "bell", "お知らせ", "pill_navy_sm"), ToggleNews);
+            // 未読の数を赤い丸で（ピルの右上）。BuildNews で数が決まってから中身を入れる
+            var badge = UiSkin.Img(newsPill.transform, "Badge", new Vector2(PillW * 0.5f - 10, PillH * 0.5f - 4), new Vector2(20, 20), UiSkin.Circle(48), UiSkin.Hex("#ff4d6d"));
+            var badgeText = UiFactory.Label(badge.transform, "N", new Vector2(0, 1), new Vector2(20, 20), "", 11, TextAnchor.MiddleCenter, Color.white);
+            badgeText.fontStyle = FontStyle.Bold;
+            _newsBadge = badge.gameObject;
+            _newsBadge.SetActive(false);
             px += PillW + 12f;
             Pill(stage, "Config", TitleUiLayout.Get("pillConfig", px, PillY, PillW, PillH, "gear", "設定", "pill_navy_sm"), ToggleSettings);
             px += PillW + 12f;
@@ -352,6 +358,11 @@ namespace BBB.Runtime
         [System.Serializable] private sealed class NewsFile { public System.Collections.Generic.List<NewsEntry> entries = new System.Collections.Generic.List<NewsEntry>(); }
 
         private GameObject _newsList, _newsDetail;
+        /// <summary>未読の印。ピルの右上の赤い丸（数字入り）と、一覧の行の点。開いて閉じたら消える。</summary>
+        private GameObject _newsBadge;
+        private readonly System.Collections.Generic.List<GameObject> _newsDots = new System.Collections.Generic.List<GameObject>();
+        private string _newsNewestMark = "";
+        private static string NewsMark(NewsEntry e) => e == null ? "" : (e.version ?? "") + "|" + (e.date ?? "");
 
         /// <summary>
         /// お知らせ。Resources/Data/notices.json（直した内容。日付・版・題・中身）を日付と題の一覧で出し、
@@ -383,10 +394,25 @@ namespace BBB.Runtime
             var body = WrapLabel(bodyContent, "Text", 12);
 
             if (entries.Count == 0) WrapLabel(listContent, "Empty", 12).text = "お知らせはまだありません";
-            const float rowH = 34f;
-            foreach (var e in entries)
+            // 未読: 前回開いたときのいちばん新しい項目より上にある行。初めて（印が無い）なら全部読んだ扱い
+            string seen = SaveData.LoadNewsSeen();
+            int unread = 0;
+            if (entries.Count > 0)
             {
-                var entry = e;
+                _newsNewestMark = NewsMark(entries[0]);
+                if (seen.Length == 0) SaveData.SaveNewsSeen(_newsNewestMark);
+                else { unread = entries.FindIndex(x => NewsMark(x) == seen); if (unread < 0) unread = entries.Count; }
+            }
+            if (_newsBadge != null)
+            {
+                _newsBadge.SetActive(unread > 0);
+                var nt = _newsBadge.GetComponentInChildren<Text>(); if (nt != null) nt.text = unread > 9 ? "9+" : unread.ToString();
+            }
+            const float rowH = 34f;
+            for (int ei = 0; ei < entries.Count; ei++)
+            {
+                var entry = entries[ei];
+                bool isNew = ei < unread;
                 var row = UiSkin.Img(listContent, "Row", Vector2.zero, new Vector2(inner.x, rowH), null, new Color(0, 0, 0, 0.001f), true);
                 row.gameObject.AddComponent<LayoutElement>().preferredHeight = rowH;
                 var btn = row.gameObject.AddComponent<Button>();
@@ -401,7 +427,14 @@ namespace BBB.Runtime
                     _newsDetail.SetActive(true);
                     _audio.UiPop();
                 });
-                Side(UiFactory.Label(row.transform, "Date", Vector2.zero, Vector2.zero, entry.date, 11, TextAnchor.MiddleLeft, ColInkSub), 8, 96);
+                if (isNew)
+                {
+                    // 未読の印: 日付の左の赤い点
+                    var dot = UiSkin.Img(row.transform, "New", Vector2.zero, new Vector2(8, 8), UiSkin.Circle(24), UiSkin.Hex("#ff4d6d"));
+                    dot.rectTransform.anchorMin = new Vector2(0, 0.5f); dot.rectTransform.anchorMax = new Vector2(0, 0.5f); dot.rectTransform.anchoredPosition = new Vector2(4, 0);
+                    _newsDots.Add(dot.gameObject);
+                }
+                Side(UiFactory.Label(row.transform, "Date", Vector2.zero, Vector2.zero, entry.date, 11, TextAnchor.MiddleLeft, ColInkSub), 12, 100);
                 Side(UiFactory.Label(row.transform, "Title", Vector2.zero, Vector2.zero, entry.title, 13, TextAnchor.MiddleLeft, ColInk), 104, inner.x - 104);
                 // 一覧では版の番号だけ（「dev 118」）。ハッシュは中身の方に出す
                 string shortVer = (entry.version ?? "").Split('·')[0].Trim();
@@ -476,7 +509,18 @@ namespace BBB.Runtime
         {
             if (_newsBox == null) return;
             _newsBox.SetActive(!_newsBox.activeSelf);
-            if (_newsBox.activeSelf) ShowNewsList();
+            if (_newsBox.activeSelf)
+            {
+                ShowNewsList();
+                // 開いたら読んだ扱い。ピルの数は消し、行の点は閉じるまで残す（どれが新しいか見えるように）
+                if (_newsNewestMark.Length > 0) SaveData.SaveNewsSeen(_newsNewestMark);
+                if (_newsBadge != null) _newsBadge.SetActive(false);
+            }
+            else
+            {
+                foreach (var d in _newsDots) if (d != null) d.SetActive(false);
+                _newsDots.Clear();
+            }
             _audio.UiPop();
         }
 
