@@ -63,16 +63,18 @@ def main():
     w("")
     w("## レア度")
     w("")
-    w("| レア度 | id | 色 | 接辞の数 | 倍率 % | " + " | ".join("深さ %d" % d for d in (1, 2, 4, 6, 8)) + " |")
-    w("|---|---|---|---|---|" + "---|" * 5)
+    sell_pct = eq.get("sellDepthPercent", 15)
+    w("| レア度 | id | 色 | 接辞の数 | 倍率 % | 売値 深さ1 / 4 / 8 | " + " | ".join("深さ %d" % d for d in (1, 2, 4, 6, 8)) + " |")
+    w("|---|---|---|---|---|---|" + "---|" * 5)
     for i, r in enumerate(rarities):
         cells = []
         for d in (1, 2, 4, 6, 8):
             v = rarity_weights(rarities, d)[i]
             cells.append(("%.2f%%" if v < 1 else "%.0f%%") % v)
-        w("| %s | `%s` | `%s` | %d | %d | %s |" % (r["name"], r["id"], r["color"], r["affixes"], r["power"], " | ".join(cells)))
+        sell = " / ".join("%d" % int(round(r.get("sellSouls", 0) * (1 + sell_pct / 100.0 * (d - 1)))) for d in (1, 4, 8))
+        w("| %s | `%s` | `%s` | %d | %d | %s | %s |" % (r["name"], r["id"], r["color"], r["affixes"], r["power"], sell, " | ".join(cells)))
     w("")
-    w("深さごとの列は「その深さで落ちた 1 個がそのレア度になる確率」。")
+    w("深さごとの列は「その深さで落ちた 1 個がそのレア度になる確率」。売値はソウル。式: `売値 × (1 + %d%% × (深さ − 1))`（`sellDepthPercent`）。" % sell_pct)
     w("")
     w("## 効果の意味")
     w("")

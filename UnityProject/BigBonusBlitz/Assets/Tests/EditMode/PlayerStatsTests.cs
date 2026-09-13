@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using BBB.Core;
 using BBB.Runtime;
 using NUnit.Framework;
@@ -257,6 +257,29 @@ namespace BBB.Tests
                 Assert.IsNotNull(it);
                 Assert.Contains(it.slot, EquipSlot.Kinds, "知らない部位: " + it.slot);
             }
+        }
+
+        [Test]
+        public void 装備を売るとレア度と深さのソウルが入り_着けていれば外れる()
+        {
+            var m = NewMachine(7);
+            var cfg = m.Config.equipment;
+            EquipItem Item(int rarity, int depth) => new EquipItem { baseId = "t", name = "品", slot = EquipSlot.Weapon, rarity = rarity, level = depth,
+                effectKeys = new List<string> { ShopEffects.StatLife }, effectValues = new List<int> { 1 } };
+            var cheap = Item(0, 1); var deep = Item(0, 8); var top = Item(cfg.rarities.Count - 1, 1);
+            Assert.AreEqual(cfg.rarities[0].sellSouls, EquipDirector.SellValue(cfg, cheap), "深さ 1 はレア度の売値そのまま");
+            Assert.Greater(EquipDirector.SellValue(cfg, deep), EquipDirector.SellValue(cfg, cheap), "深いほど高い");
+            Assert.Greater(EquipDirector.SellValue(cfg, top), EquipDirector.SellValue(cfg, deep), "レアほど高い");
+            foreach (var it in new[] { cheap, deep, top }) m.Equip.Bag.Add(it);
+            EquipDirector.Equip(m.Equip, top);
+            Assert.IsTrue(m.Equip.IsWorn(top));
+            int before = m.Wallet.Souls;
+            int got = EquipDirector.Sell(cfg, m.Equip, m.Wallet, top);
+            Assert.AreEqual(EquipDirector.SellValue(cfg, top), got);
+            Assert.AreEqual(before + got, m.Wallet.Souls, "ソウルが入っていない");
+            Assert.IsFalse(m.Equip.IsWorn(top), "売った品が着いたまま");
+            Assert.IsFalse(m.Equip.Bag.Contains(top), "売った品が鞄に残っている");
+            Assert.AreEqual(0, EquipDirector.Sell(cfg, m.Equip, m.Wallet, top), "二度売れる");
         }
     }
 }

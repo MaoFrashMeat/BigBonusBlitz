@@ -61,7 +61,7 @@ namespace BBB.Runtime
             RectTransform body2 = null;
             Image dRing = null, dIcon = null;
             Image[] cmpBg = null; Text[] cmpName = null, cmpOld = null, cmpNew = null;
-            Button btnEquip = null;
+            Button btnEquip = null, btnSell = null;
 
             // ===== 左: 立ち絵と 8 枠 =====
             const float artCx = -286f;
@@ -202,14 +202,14 @@ namespace BBB.Runtime
                 audio?.UiPop();
                 Refresh();
             }, UiSkin.Blue, 12, false, 8);
-            UiSkin.Button(body2, "Drop", new Vector2(btnW * 0.5f + 6, -dH * 0.5f + 34), new Vector2(btnW, btnH), "捨てる", () =>
+            // 売る: レア度と深さでソウルが入る（ボタンに売値を出す）
+            btnSell = UiSkin.Button(body2, "Sell", new Vector2(btnW * 0.5f + 6, -dH * 0.5f + 34), new Vector2(btnW, btnH), "売る", () =>
             {
                 if (selected == null) return;
-                var wornAt = m.Equip.WornSlotOf(selected);
-                if (wornAt != null) EquipDirector.Unequip(m.Equip, wornAt);
-                EquipDirector.Drop(m.Equip, selected);
+                int got = EquipDirector.Sell(cfg, m.Equip, m.Wallet, selected);
                 selected = null;
                 audio?.UiPop();
+                UiFx.PopText(card, $"売った  +{got:N0} ソウル（所持 {m.Wallet.Souls:N0}）", UiSkin.Gold, 16, new Vector2(0, -H * 0.5f + 40));
                 Refresh();
             }, new Color(0.45f, 0.18f, 0.22f), 12, false, 8);
 
@@ -220,6 +220,7 @@ namespace BBB.Runtime
                 body2.gameObject.SetActive(has);
                 if (!has) return;
                 var it = selected;
+                UiSkin.SetButtonText(btnSell, $"売る  +{EquipDirector.SellValue(cfg, it):N0} ソウル");
                 var r = EquipDirector.RarityOf(cfg, it);
                 dIcon.sprite = UiSkin.Icon(string.IsNullOrEmpty(it.icon) ? IconFor(it.slot) : it.icon, 64);
                 RarityColor(dRing, r);

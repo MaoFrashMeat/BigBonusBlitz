@@ -4321,6 +4321,7 @@
     "dropRateBoss": 100,
     "dropRateHunt": 35,
     "dropRateTreasure": 45,
+    "sellDepthPercent": 15,
     "rarities": [
       {
         "id": "common",
@@ -4329,7 +4330,8 @@
         "affixes": 0,
         "power": 100,
         "weight": 6000,
-        "weightPerDepth": -500
+        "weightPerDepth": -500,
+        "sellSouls": 5
       },
       {
         "id": "uncommon",
@@ -4338,7 +4340,8 @@
         "affixes": 1,
         "power": 110,
         "weight": 2600,
-        "weightPerDepth": 80
+        "weightPerDepth": 80,
+        "sellSouls": 12
       },
       {
         "id": "rare",
@@ -4347,7 +4350,8 @@
         "affixes": 1,
         "power": 120,
         "weight": 900,
-        "weightPerDepth": 140
+        "weightPerDepth": 140,
+        "sellSouls": 30
       },
       {
         "id": "superior",
@@ -4356,7 +4360,8 @@
         "affixes": 2,
         "power": 135,
         "weight": 320,
-        "weightPerDepth": 90
+        "weightPerDepth": 90,
+        "sellSouls": 60
       },
       {
         "id": "epic",
@@ -4365,7 +4370,8 @@
         "affixes": 2,
         "power": 150,
         "weight": 120,
-        "weightPerDepth": 50
+        "weightPerDepth": 50,
+        "sellSouls": 120
       },
       {
         "id": "mythic",
@@ -4374,7 +4380,8 @@
         "affixes": 3,
         "power": 165,
         "weight": 40,
-        "weightPerDepth": 25
+        "weightPerDepth": 25,
+        "sellSouls": 250
       },
       {
         "id": "abyss",
@@ -4383,7 +4390,8 @@
         "affixes": 3,
         "power": 180,
         "weight": 15,
-        "weightPerDepth": 12
+        "weightPerDepth": 12,
+        "sellSouls": 450
       },
       {
         "id": "divine",
@@ -4392,7 +4400,8 @@
         "affixes": 4,
         "power": 200,
         "weight": 4,
-        "weightPerDepth": 5
+        "weightPerDepth": 5,
+        "sellSouls": 800
       },
       {
         "id": "prism",
@@ -4401,7 +4410,8 @@
         "affixes": 5,
         "power": 230,
         "weight": 1,
-        "weightPerDepth": 2
+        "weightPerDepth": 2,
+        "sellSouls": 1500
       }
     ],
     "bases": [

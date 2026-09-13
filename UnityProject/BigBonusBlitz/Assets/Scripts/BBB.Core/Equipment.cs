@@ -114,6 +114,8 @@ namespace BBB.Core
         public int weight = 100;
         /// <summary>深さ 1 ごとに重みへ足す値（負なら深いほど出にくい）。</summary>
         public float weightPerDepth;
+        /// <summary>売ったときのソウル（深さ 1）。</summary>
+        public int sellSouls;
     }
 
     [Serializable]
@@ -129,6 +131,8 @@ namespace BBB.Core
         public int dropRateHunt = 35;
         /// <summary>宝から出る率 %。</summary>
         public int dropRateTreasure = 45;
+        /// <summary>売値の深さの上乗せ %（深さ 1 ごと）。</summary>
+        public int sellDepthPercent = 15;
         public List<EquipRarity> rarities = new List<EquipRarity>();
         public List<EquipBase> bases = new List<EquipBase>();
         public List<EquipAffix> affixes = new List<EquipAffix>();
@@ -401,6 +405,27 @@ namespace BBB.Core
 
         /// <summary>捨てる。</summary>
         public static void Drop(EquipInventory inv, EquipItem item) => inv?.Bag.Remove(item);
+
+        /// <summary>売値（ソウル）。レア度の売値に、深さ 1 ごとに sellDepthPercent % を上乗せ。</summary>
+        public static int SellValue(EquipConfig cfg, EquipItem item)
+        {
+            if (cfg == null || item == null) return 0;
+            int basePrice = Math.Max(0, RarityOf(cfg, item).sellSouls);
+            int depth = Math.Max(1, item.level);
+            return (int)Math.Round(basePrice * (1.0 + Math.Max(0, cfg.sellDepthPercent) / 100.0 * (depth - 1)));
+        }
+
+        /// <summary>売る: 着けていれば外し、鞄から消してソウルを足す。戻り値は入ったソウル。</summary>
+        public static int Sell(EquipConfig cfg, EquipInventory inv, PlayerWallet wallet, EquipItem item)
+        {
+            if (inv == null || item == null) return 0;
+            int value = SellValue(cfg, item);
+            var wornAt = inv.WornSlotOf(item);
+            if (wornAt != null) Unequip(inv, wornAt);
+            if (!inv.Bag.Remove(item)) return 0;
+            if (wallet != null) wallet.Souls += value;
+            return value;
+        }
 
         /// <summary>今より強ければ自動で着る（拾った直後の判断を省く）。空き枠があればそこへ。</summary>
         public static bool AutoEquipIfBetter(EquipInventory inv, EquipItem item)
