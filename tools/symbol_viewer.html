@@ -39,7 +39,7 @@
 <div class="wrap">
   <div>
     <h1>図柄を決めるビューア</h1>
-    <div class="sub">assets/symbols の候補を押して選ぶ。右のリールは実際の配列で回せる（Space: 回す→順に止める、Z / X / C: 左中右）。回っているときの見やすさで決める。選んだ番号は下に出る（このページを閉じても残る）。</div>
+    <div class="sub">assets/symbols の候補を押して選ぶ。図柄ごとに大きさ（コマに対する %）を変えられる。右のリールは実際の配列で回せる（Space: 回す→順に止める、Z / X / C: 左中右）。選んだ内容は下に出る（このページを閉じても残る）。</div>
     <div id="list"></div>
   </div>
   <div class="side">
@@ -51,7 +51,6 @@
         <label>速さ <input type="range" id="rpm" min="40" max="110" value="80"> <span id="rpmV">80</span> rpm</label>
       </div>
       <div class="ctrl">
-        <label>絵の大きさ <input type="range" id="scale" min="70" max="100" value="92"> <span id="scaleV">92</span>%</label>
         <label><input type="checkbox" id="trim" checked> 透明な余白を切る</label>
         <label><input type="checkbox" id="blur"> 回転中のブレを足す</label>
         <label>表示 <select id="zoom"><option value="1">実寸（ゲームと同じ 123×56）</option><option value="1.5">1.5 倍</option><option value="2">2 倍</option></select></label>
@@ -62,7 +61,7 @@
       <b>選んだもの</b>
       <pre id="result"></pre>
       <div class="ctrl"><button class="primary" id="copy">コピー</button><button id="reset">選び直す</button><span id="copied" class="note"></span></div>
-      <div class="note">Claude にはこの文をそのまま貼れば足りる。</div>
+      <div class="note">Claude にはこの文をそのまま貼れば足りる（下の JSON は tools/symbol_choice.json の symbols と同じ形。自分で書き換えて <code>py -3 tools/symbol_build.py</code> でも反映できる）。</div>
     </div>
   </div>
 </div>
@@ -71,24 +70,27 @@
   const A = "../assets/symbols/";
   const CUR = "../UnityProject/BigBonusBlitz/Assets/Resources/Art/Symbols/";
   // 図柄ごとの候補。current は今の絵（比較用・「今のまま」も選べる）
+  const SRC = "../tools/symbol_src/";
+  // out = Unity 側の名前（Resources/Art/Symbols/*.png）。defScale = 大きさの既定（7 と BAR は大きめ）
   const SYMS = [
-    { key: "red7", label: "赤7", current: CUR + "red7.png", cands: [A + "red7.png"] },
-    { key: "white7", label: "白7（青7 の代わり）", current: CUR + "blue7.png", cands: [1,2,3,4,5].map(i => A + "white7_" + i + ".png") },
-    { key: "bell", label: "ベル（今は星）", current: CUR + "star.png", cands: [1,2,3,4,5,6,7,8,9,10].map(i => A + "bell_" + i + ".png") },
-    { key: "watermelon", label: "スイカ", current: CUR + "watermelon.png", cands: [1,2,3,4,5].map(i => A + "watermelon_" + i + ".png").concat([1,2,3,4,5].map(i => A + "watermelon_cat_" + i + ".png")),
-      names: ["1","2","3","4","5","cat 1","cat 2","cat 3","cat 4","cat 5"] },
-    { key: "cherry", label: "チェリー", current: CUR + "cherry.png", cands: [1,2,3,4,5].map(i => A + "cherry_" + i + ".png") },
-    { key: "bar", label: "BAR", current: CUR + "bar.png", cands: [] },
-    { key: "replay", label: "リプレイ", current: CUR + "replay.png", cands: [] },
-    { key: "remix", label: "ブランク（REMIX）", current: CUR + "remix.png", cands: [] },
+    { key: "red7", out: "red7", label: "赤7", current: CUR + "red7.png", cands: [A + "red7.png"], defScale: 100 },
+    { key: "white7", out: "blue7", label: "白7（青7 の代わり）", current: CUR + "blue7.png", cands: [1,2,3,4,5].map(i => A + "white7_" + i + ".png"), defScale: 100 },
+    { key: "bell", out: "star", label: "ベル（今は星）", current: CUR + "star.png", cands: [1,2,3,4,5,6,7,8,9,10].map(i => A + "bell_" + i + ".png"), defScale: 92 },
+    { key: "watermelon", out: "watermelon", label: "スイカ", current: CUR + "watermelon.png", cands: [1,2,3,4,5].map(i => A + "watermelon_" + i + ".png").concat([1,2,3,4,5].map(i => A + "watermelon_cat_" + i + ".png")),
+      names: ["1","2","3","4","5","cat 1","cat 2","cat 3","cat 4","cat 5"], defScale: 92 },
+    { key: "cherry", out: "cherry", label: "チェリー", current: CUR + "cherry.png", cands: [1,2,3,4,5].map(i => A + "cherry_" + i + ".png"), defScale: 92 },
+    { key: "bar", out: "bar", label: "BAR", current: SRC + "bar_keyed.png", cands: [], defScale: 100 },
+    { key: "replay", out: "replay", label: "リプレイ", current: SRC + "replay_keyed.png", cands: [], defScale: 92 },
+    { key: "remix", out: "remix", label: "ブランク（REMIX）", current: SRC + "remix_keyed.png", cands: [], defScale: 92 },
   ];
+  function scaleOf(s) { const v = choice["scale_" + s.key]; return (typeof v === "number" ? v : s.defScale) / 100; }
   const KEY = "bbb_symbol_choice_v1";
   let choice = {};
   try { choice = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { choice = {}; }
   const imgs = {};   // src → HTMLImageElement（読み込み済み）
   const trimCache = {};
   // 透明な余白を切った矩形（file:// では canvas の画素が読めないので、Python で測った値をここに置く。tools/symbol_trim.py）
-  const TRIM = {"_ref_watermelon_cat_old.png": {"x": 0, "y": 0, "w": 216, "h": 140}, "bell_1.png": {"x": 439, "y": 101, "w": 1108, "h": 608}, "bell_10.png": {"x": 180, "y": 31, "w": 1552, "h": 791}, "bell_2.png": {"x": 311, "y": 69, "w": 1241, "h": 664}, "bell_3.png": {"x": 526, "y": 73, "w": 812, "h": 662}, "bell_4.png": {"x": 381, "y": 108, "w": 1085, "h": 596}, "bell_5.png": {"x": 573, "y": 92, "w": 714, "h": 621}, "bell_6.png": {"x": 115, "y": 6, "w": 1593, "h": 822}, "bell_7.png": {"x": 322, "y": 16, "w": 1182, "h": 757}, "bell_8.png": {"x": 222, "y": 11, "w": 1333, "h": 781}, "bell_9.png": {"x": 176, "y": 25, "w": 1515, "h": 742}, "cherry_1.png": {"x": 361, "y": 10, "w": 1178, "h": 816}, "cherry_2.png": {"x": 285, "y": 7, "w": 1276, "h": 829}, "cherry_3.png": {"x": 381, "y": 6, "w": 1160, "h": 808}, "cherry_4.png": {"x": 271, "y": 9, "w": 1397, "h": 803}, "cherry_5.png": {"x": 383, "y": 9, "w": 1119, "h": 793}, "red7.png": {"x": 11, "y": 0, "w": 1846, "h": 810}, "watermelon_1.png": {"x": 260, "y": 65, "w": 1379, "h": 706}, "watermelon_2.png": {"x": 383, "y": 42, "w": 1131, "h": 766}, "watermelon_3.png": {"x": 221, "y": 24, "w": 1424, "h": 781}, "watermelon_4.png": {"x": 337, "y": 9, "w": 1371, "h": 813}, "watermelon_5.png": {"x": 220, "y": 41, "w": 1569, "h": 759}, "watermelon_cat_1.png": {"x": 109, "y": 27, "w": 1643, "h": 790}, "watermelon_cat_2.png": {"x": 416, "y": 81, "w": 1143, "h": 685}, "watermelon_cat_3.png": {"x": 347, "y": 86, "w": 1293, "h": 669}, "watermelon_cat_4.png": {"x": 428, "y": 56, "w": 1089, "h": 731}, "watermelon_cat_5.png": {"x": 382, "y": 77, "w": 1129, "h": 681}, "white7_1.png": {"x": 32, "y": 54, "w": 1800, "h": 743}, "white7_2.png": {"x": 7, "y": 31, "w": 1849, "h": 772}, "white7_3.png": {"x": 35, "y": 0, "w": 1823, "h": 844}, "white7_4.png": {"x": 22, "y": 22, "w": 1830, "h": 805}, "white7_5.png": {"x": 12, "y": 19, "w": 1846, "h": 813}};
+  const TRIM = {"_ref_watermelon_cat_old.png": {"x": 0, "y": 0, "w": 216, "h": 140}, "bell_1.png": {"x": 439, "y": 101, "w": 1108, "h": 608}, "bell_10.png": {"x": 180, "y": 31, "w": 1552, "h": 791}, "bell_2.png": {"x": 311, "y": 69, "w": 1241, "h": 664}, "bell_3.png": {"x": 526, "y": 73, "w": 812, "h": 662}, "bell_4.png": {"x": 381, "y": 108, "w": 1085, "h": 596}, "bell_5.png": {"x": 573, "y": 92, "w": 714, "h": 621}, "bell_6.png": {"x": 115, "y": 6, "w": 1593, "h": 822}, "bell_7.png": {"x": 322, "y": 16, "w": 1182, "h": 757}, "bell_8.png": {"x": 222, "y": 11, "w": 1333, "h": 781}, "bell_9.png": {"x": 176, "y": 25, "w": 1515, "h": 742}, "cherry_1.png": {"x": 361, "y": 10, "w": 1178, "h": 816}, "cherry_2.png": {"x": 285, "y": 7, "w": 1276, "h": 829}, "cherry_3.png": {"x": 381, "y": 6, "w": 1160, "h": 808}, "cherry_4.png": {"x": 271, "y": 9, "w": 1397, "h": 803}, "cherry_5.png": {"x": 383, "y": 9, "w": 1119, "h": 793}, "red7.png": {"x": 11, "y": 0, "w": 1846, "h": 810}, "watermelon_1.png": {"x": 260, "y": 65, "w": 1379, "h": 706}, "watermelon_2.png": {"x": 383, "y": 42, "w": 1131, "h": 766}, "watermelon_3.png": {"x": 221, "y": 24, "w": 1424, "h": 781}, "watermelon_4.png": {"x": 337, "y": 9, "w": 1371, "h": 813}, "watermelon_5.png": {"x": 220, "y": 41, "w": 1569, "h": 759}, "watermelon_cat_1.png": {"x": 109, "y": 27, "w": 1643, "h": 790}, "watermelon_cat_2.png": {"x": 416, "y": 81, "w": 1143, "h": 685}, "watermelon_cat_3.png": {"x": 347, "y": 86, "w": 1293, "h": 669}, "watermelon_cat_4.png": {"x": 428, "y": 56, "w": 1089, "h": 731}, "watermelon_cat_5.png": {"x": 382, "y": 77, "w": 1129, "h": 681}, "white7_1.png": {"x": 32, "y": 54, "w": 1800, "h": 743}, "white7_2.png": {"x": 7, "y": 31, "w": 1849, "h": 772}, "white7_3.png": {"x": 35, "y": 0, "w": 1823, "h": 844}, "white7_4.png": {"x": 22, "y": 22, "w": 1830, "h": 805}, "white7_5.png": {"x": 12, "y": 19, "w": 1846, "h": 813}, "bar_keyed.png": {"x": 0, "y": 0, "w": 159, "h": 73}, "remix_keyed.png": {"x": 30, "y": 4, "w": 98, "h": 64}, "replay_keyed.png": {"x": 1, "y": 0, "w": 122, "h": 73}};
 
   function load(src) {
     if (imgs[src]) return imgs[src];
@@ -111,7 +113,7 @@
     if (maxX < 0) return (trimCache[src] = { x: 0, y: 0, w: c.width, h: c.height });
     return (trimCache[src] = { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 });
   }
-  function drawInto(canvas, src, scale, trim) {
+  function drawInto(canvas, src, scale, trim) {   // scale は 0〜1（コマに対する大きさ）
     const g = canvas.getContext("2d"); g.clearRect(0, 0, canvas.width, canvas.height);
     const im = load(src); if (!im.complete || !im.naturalWidth) return;
     const r = trim ? trimRect(im, src) : { x: 0, y: 0, w: im.naturalWidth, h: im.naturalHeight };
@@ -131,6 +133,12 @@
     SYMS.forEach(s => {
       const box = document.createElement("div"); box.className = "sym";
       const h = document.createElement("h2"); h.innerHTML = s.label + (s.cands.length ? "" : " <small>新しい絵は無い（今のまま）</small>");
+      // 図柄ごとの大きさ（コマに対する %）。7 と BAR は大きめが既定
+      const sl = document.createElement("label"); sl.style.marginLeft = "auto"; sl.innerHTML = "大きさ ";
+      const rg = document.createElement("input"); rg.type = "range"; rg.min = 60; rg.max = 115; rg.value = Math.round(scaleOf(s) * 100);
+      const rv = document.createElement("span"); rv.textContent = rg.value + "%";
+      rg.addEventListener("input", e => { choice["scale_" + s.key] = parseInt(e.target.value); rv.textContent = e.target.value + "%"; save(); drawAll(); });
+      sl.appendChild(rg); sl.appendChild(document.createTextNode(" ")); sl.appendChild(rv); h.appendChild(sl);
       box.appendChild(h);
       const row = document.createElement("div"); row.className = "cands";
       const mk = (src, idx, name) => {
@@ -138,7 +146,7 @@
         const cv = document.createElement("canvas"); cv.width = 144; cv.height = 68; el.appendChild(cv);
         const n = document.createElement("span"); n.className = "n"; n.textContent = name; el.appendChild(n);
         el.addEventListener("click", () => { choice[s.key] = idx; save(); build(); });
-        el.dataset.src = src; row.appendChild(el);
+        el.dataset.src = src; el.dataset.key = s.key; row.appendChild(el);
       };
       mk(s.current, "cur", "今");
       s.cands.forEach((src, i) => mk(src, i, s.names ? s.names[i] : String(i + 1)));
@@ -173,10 +181,10 @@
     document.querySelectorAll("#reels input[type=range]").forEach(bar => { const rl = reels[bar.dataset.r]; if (rl.spinning && document.activeElement !== bar) bar.value = rl.pos; });
     document.querySelectorAll("#reels .posv").forEach(v => { v.textContent = reels[v.dataset.r].pos.toFixed(2); });
   }
-  function symSrc(name) { const s = SYMS.find(x => x.key === SYM_KEY[name]); return s ? chosenSrc(s) : null; }
+  function symOf(name) { return SYMS.find(x => x.key === SYM_KEY[name]); }
   function drawReel(cv, r) {
     const z = zoom(), g = cv.getContext("2d");
-    const scale = parseInt(document.getElementById("scale").value) / 100, trim = document.getElementById("trim").checked;
+    const trim = document.getElementById("trim").checked;
     const blur = document.getElementById("blur").checked && reels[r].spinning;
     g.fillStyle = "#f2f4f7"; g.fillRect(0, 0, cv.width, cv.height);
     const strip = STRIPS[r], len = strip.length, cellH = CELL_H * z, gap = 6 * z;
@@ -187,7 +195,8 @@
       const idx = ((base + k) % len + len) % len;
       const y = (k + frac) * cellH + (k >= 0 ? gap * Math.min(k, ROWS - 1) : 0) + reels[r].bounce * z;
       g.fillStyle = "#e9edf2"; g.fillRect(0, y, cv.width, cellH);
-      const src = symSrc(strip[idx]); if (!src) continue;
+      const sdef = symOf(strip[idx]); if (!sdef) continue;
+      const src = chosenSrc(sdef), scale = scaleOf(sdef);
       const im = load(src); if (!im.complete || !im.naturalWidth) continue;
       const rc = trim ? trimRect(im, src) : { x: 0, y: 0, w: im.naturalWidth, h: im.naturalHeight };
       const kk = Math.min(cv.width * scale / rc.w, cellH * scale / rc.h), w = rc.w * kk, h = rc.h * kk;
@@ -226,18 +235,29 @@
     requestAnimationFrame(tick);
   }
   function drawAll() {
-    const scale = parseInt(document.getElementById("scale").value) / 100, trim = document.getElementById("trim").checked;
-    document.querySelectorAll(".cand canvas").forEach(cv => drawInto(cv, cv.parentElement.dataset.src, scale, trim));
+    const trim = document.getElementById("trim").checked;
+    document.querySelectorAll(".cand canvas").forEach(cv => { const s = SYMS.find(x => x.key === cv.parentElement.dataset.key); drawInto(cv, cv.parentElement.dataset.src, s ? scaleOf(s) : 0.92, trim); });
     result();
   }
   function result() {
-    const parts = SYMS.filter(s => s.cands.length).map(s => {
+    const parts = SYMS.map(s => {
       const c = choice[s.key];
-      const name = (c === undefined || c === "cur") ? "今のまま" : (s.names ? s.names[c] : String(c + 1));
-      return s.key + " " + name;
+      const name = !s.cands.length ? "" : ((c === undefined || c === "cur") ? " 今のまま" : " " + (s.names ? s.names[c] : String(c + 1)));
+      return s.key + name + " (" + Math.round(scaleOf(s) * 100) + "%)";
     });
-    parts.push("大きさ " + document.getElementById("scale").value + "%" + (document.getElementById("trim").checked ? "" : "（余白は切らない）"));
-    document.getElementById("result").textContent = parts.join("、");
+    // tools/symbol_choice.json の symbols にそのまま貼れる形
+    const json = {};
+    SYMS.forEach(s => {
+      const c = choice[s.key];
+      let src;
+      if (!s.cands.length) src = "tools/symbol_src/" + s.out + ".png";
+      else if (c === undefined || c === "cur") src = "(今のまま)";
+      else src = s.cands[c].replace("../", "");
+      const o = { src: src, scale: Math.round(scaleOf(s) * 100) / 100 };
+      if (!s.cands.length) o.key_bg = true;
+      json[s.out] = o;
+    });
+    document.getElementById("result").textContent = parts.join("、") + "\n\n" + JSON.stringify(json, null, 2);
   }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(choice)); } catch (e) {} }
   function spinAll() { reels.forEach(rl => { rl.spinning = true; rl.stopping = false; }); }
@@ -245,7 +265,6 @@
   [0, 1, 2].forEach(i => document.getElementById("stop" + i).addEventListener("click", () => { if (reels[i].spinning) reels[i].stopping = true; }));
   document.getElementById("rpm").addEventListener("input", e => { document.getElementById("rpmV").textContent = e.target.value; });
   document.getElementById("zoom").addEventListener("change", buildReels);
-  document.getElementById("scale").addEventListener("input", e => { document.getElementById("scaleV").textContent = e.target.value; drawAll(); });
   document.getElementById("trim").addEventListener("change", drawAll);
   document.addEventListener("keydown", e => {
     if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "SELECT")) return;

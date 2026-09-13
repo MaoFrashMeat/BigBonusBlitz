@@ -6,7 +6,7 @@ from PIL import Image
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 base = os.path.join(ROOT, "assets", "symbols")
 rects = {}
-for f in sorted(glob.glob(os.path.join(base, "*.png"))):
+for f in sorted(glob.glob(os.path.join(base, "*.png"))) + sorted(glob.glob(os.path.join(ROOT, "tools", "symbol_src", "*_keyed.png"))):
     im = Image.open(f).convert("RGBA")
     a = im.split()[3].point(lambda v: 255 if v > 16 else 0)
     bb = a.getbbox() or (0, 0, im.width, im.height)

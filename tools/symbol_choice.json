@@ -1,0 +1,14 @@
+{
+  "cell": [160, 73],
+  "multiplier": 2,
+  "symbols": {
+    "red7":       { "src": "assets/symbols/red7.png",         "scale": 1.0 },
+    "blue7":      { "src": "assets/symbols/white7_5.png",     "scale": 1.0 },
+    "bar":        { "src": "tools/symbol_src/bar.png",        "scale": 1.0,  "key_bg": true },
+    "star":       { "src": "assets/symbols/bell_8.png",       "scale": 0.92 },
+    "watermelon": { "src": "assets/symbols/watermelon_3.png", "scale": 0.92 },
+    "cherry":     { "src": "assets/symbols/cherry_1.png",     "scale": 0.92 },
+    "replay":     { "src": "tools/symbol_src/replay.png",     "scale": 0.92, "key_bg": true },
+    "remix":      { "src": "tools/symbol_src/remix.png",      "scale": 0.92, "key_bg": true }
+  }
+}

@@ -350,6 +350,12 @@ UI は成功・失敗の演出と ○/× を全リール停止後に出す。
 → 覆した（同日）: 本人「見えていても構わない。第三停止で音を出して、第二で出すな、ということ」。制御の変更（候補絞り・missSlip）は戻し、
 音と演出・○/× を第三停止に遅らせる部分だけ残した。
 
+### 決定: リールの図柄は tools/symbol_choice.json から組み立てる（元絵 → 余白カット → 図柄ごとの大きさでコマに収める）
+本人（2026-09-14）「red7 1、white7 5、bell 8、watermelon 3、cherry 1、大きさ 92%。赤白7 と BAR は他より大きく見せたい」。
+元絵は assets/symbols（git には入れていない。1 枚 1〜2MB）。`tools/symbol_build.py` が JSON どおりに 320×146 の透過 PNG を
+Resources/Art/Symbols へ書く。大きさは 7 と BAR が 100%、他は 92%。BAR・リプレイ・ブランクは旧絵（tools/symbol_src）の背景を
+透明にして使う。選び直しは `tools/symbol_viewer.html`（実配列で回して見比べ、JSON を吐く）。
+
 ---
 
 ## 検証の記録
