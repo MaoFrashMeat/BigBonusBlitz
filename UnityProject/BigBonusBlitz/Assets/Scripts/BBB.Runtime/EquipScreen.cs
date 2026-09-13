@@ -96,8 +96,9 @@ namespace BBB.Runtime
                 // 枠の名前（頭 / アクセ 1 …）は上に小さな札、品の名前は下に
                 var tagBg = UiSkin.Img(cell, "TagBg", new Vector2(0, slotBox * 0.5f + 4), new Vector2(38, 12), UiSkin.Rounded(6), new Color(0, 0, 0, 0.6f));
                 UiFactory.Label(tagBg.transform, "Tag", Vector2.zero, new Vector2(38, 12), EquipSlot.DisplayName(slot), 8, TextAnchor.MiddleCenter, UiSkin.TextSub);
-                var nameT = UiFactory.Label(cell, "Name", new Vector2(0, -slotBox * 0.5f - 9), new Vector2(80, 14), "", 10, TextAnchor.MiddleCenter, UiSkin.Text);
-                nameT.horizontalOverflow = HorizontalWrapMode.Wrap; nameT.verticalOverflow = VerticalWrapMode.Truncate;
+                // 品の名前は 2 行まで（「深淵の達人の耳飾りの狩人」のような 12 字でも切れない）。下の枠の札に当たらない高さ
+                var nameT = UiFactory.Label(cell, "Name", new Vector2(0, -slotBox * 0.5f - 13), new Vector2(88, 24), "", 9, TextAnchor.UpperCenter, UiSkin.Text);
+                nameT.horizontalOverflow = HorizontalWrapMode.Wrap; nameT.verticalOverflow = VerticalWrapMode.Truncate; nameT.lineSpacing = 1.0f;
                 var btn = cell.gameObject.AddComponent<Button>();
                 btn.transition = Selectable.Transition.None;
                 string sl = slot;
