@@ -441,6 +441,25 @@ namespace BBB.Core
             }
         }
 
+        /// <summary>効果の意味（1 行）。装備画面の説明と図鑑で使う。</summary>
+        public static string EffectDesc(string effect)
+        {
+            switch (effect)
+            {
+                case ShopEffects.DefeatBonus: return "エンゲージで敵を倒す率が上がる";
+                case ShopEffects.AtStartPercent: return "ボーナス開始時の AT 期待度が上がる";
+                case ShopEffects.AtInitialSpins: return "洞窟（AT）の初期 G 数が増える";
+                case ShopEffects.BattleDamage: return "狩猟で与えるダメージが増える";
+                case ShopEffects.SoulGain: return "手に入るソウルが増える";
+                case ShopEffects.ExpGain: return "手に入る EXP が増える";
+                case ShopEffects.TorchSpins: return "回復薬 1 個で回復するライフが増える";
+                case ShopEffects.StatLife: return "ライフ: BET が無料になる率・回復薬の効き・力尽きたときの補填";
+                case ShopEffects.StatTechnique: return "テクニック: エンゲージの G 数・討伐率・狩猟ダメージ";
+                case ShopEffects.StatLuck: return "ラック: レア役とリプレイに化ける率・宝の発見率";
+                default: return "";
+            }
+        }
+
         public static string EffectUnit(string effect)
         {
             switch (effect)

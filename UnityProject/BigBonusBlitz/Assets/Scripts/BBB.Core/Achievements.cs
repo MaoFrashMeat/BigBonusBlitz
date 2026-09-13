@@ -48,6 +48,9 @@ namespace BBB.Core
         public const string SoulsTotal = "soulsTotal";   // ソウルの累計
         public const string Deaths = "deaths";           // 力尽きた回数
         public const string WornMax = "wornMax";         // 同時に着けた最多（最高値）
+        /// <summary>図鑑用: 拾った装備の種類ごとの回数（"seen:" + baseId）と、宝の種類ごとの回数（"treasure:" + id）。</summary>
+        public const string SeenPrefix = "seen:";
+        public const string TreasurePrefix = "treasure:";
     }
 
     /// <summary>実績の進み具合（プレイヤー単位で永続。潜行をまたいで残る）。</summary>
@@ -80,10 +83,15 @@ namespace BBB.Core
             if (r.chapterCleared) st.Add(AchievementCounters.Chapters, 1);
             if (r.enemyResolved == true) st.Add(AchievementCounters.Defeats, 1);
             if (r.battleResolved == true) st.Add(AchievementCounters.Hunts, 1);
-            if (r.treasure != null) st.Add(AchievementCounters.Treasures, 1);
+            if (r.treasure != null)
+            {
+                st.Add(AchievementCounters.Treasures, 1);
+                if (!string.IsNullOrEmpty(r.treasure.id)) st.Add(AchievementCounters.TreasurePrefix + r.treasure.id, 1);
+            }
             if (r.equipDropped != null && !r.equipBagFull)
             {
                 st.Add(AchievementCounters.Drops, 1);
+                if (!string.IsNullOrEmpty(r.equipDropped.baseId)) st.Add(AchievementCounters.SeenPrefix + r.equipDropped.baseId, 1);
                 // 「伝説の一品」は黒（abyss）以上。無ければ一番上の段
                 var rar = m.Config.equipment?.rarities;
                 if (rar != null && rar.Count > 0)

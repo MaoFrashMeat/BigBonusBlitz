@@ -47,7 +47,7 @@ namespace BBB.Runtime
             EquipItem selected = null;
             var rows = new List<System.Action>();
             // 下で作る部品。Refresh がこれらを使うので先に宣言しておく（ラムダの中から呼ぶため）
-            Text summary = null, empty = null, dName = null, dMeta = null, dEff = null, dNote = null, dHead = null;
+            Text summary = null, empty = null, dName = null, dMeta = null, dEff = null, dEffDesc = null, dNote = null, dHead = null;
             RectTransform body2 = null;
             Image dRing = null, dIcon = null;
             Image[] cmpBg = null; Text[] cmpName = null, cmpOld = null, cmpNew = null;
@@ -164,15 +164,18 @@ namespace BBB.Runtime
             dName.fontStyle = FontStyle.Bold;
             dName.horizontalOverflow = HorizontalWrapMode.Wrap; dName.verticalOverflow = VerticalWrapMode.Truncate;
             dMeta = UiFactory.Label(body2, "Meta", new Vector2(left + 60 + (dW - 96) * 0.5f, top - 30), new Vector2(dW - 96, 14), "", 10, TextAnchor.MiddleLeft, UiSkin.TextSub);
-            dEff = UiFactory.Label(body2, "Eff", new Vector2(0, top - 68), new Vector2(dW - 36, 32), "", 11, TextAnchor.UpperLeft, UiSkin.Text);
+            dEff = UiFactory.Label(body2, "Eff", new Vector2(0, top - 62), new Vector2(dW - 36, 20), "", 11, TextAnchor.UpperLeft, UiSkin.Text);
             dEff.horizontalOverflow = HorizontalWrapMode.Wrap;
-            dNote = UiFactory.Label(body2, "Note", new Vector2(0, top - 98), new Vector2(dW - 36, 14), "", 10, TextAnchor.MiddleLeft, UiSkin.TextSub);
-            dHead = UiFactory.Label(body2, "CmpHead", new Vector2(0, top - 118), new Vector2(dW - 36, 14), "着け替えると", 11, TextAnchor.MiddleLeft, UiSkin.TextSub);
-            const int cmpRows = 7; const float cmpH = 20f, cmpPitch = 22f;
+            // 効果の意味（1 行ずつ。読めば何に効くか分かる）
+            dEffDesc = UiFactory.Label(body2, "EffDesc", new Vector2(0, top - 92), new Vector2(dW - 36, 40), "", 9, TextAnchor.UpperLeft, UiSkin.TextSub);
+            dEffDesc.horizontalOverflow = HorizontalWrapMode.Wrap; dEffDesc.verticalOverflow = VerticalWrapMode.Truncate;
+            dNote = UiFactory.Label(body2, "Note", new Vector2(0, top - 122), new Vector2(dW - 36, 14), "", 10, TextAnchor.MiddleLeft, UiSkin.TextSub);
+            dHead = UiFactory.Label(body2, "CmpHead", new Vector2(0, top - 140), new Vector2(dW - 36, 14), "着け替えると", 11, TextAnchor.MiddleLeft, UiSkin.TextSub);
+            const int cmpRows = 6; const float cmpH = 20f, cmpPitch = 22f;
             cmpBg = new Image[cmpRows]; cmpName = new Text[cmpRows]; cmpOld = new Text[cmpRows]; cmpNew = new Text[cmpRows];
             for (int i = 0; i < cmpRows; i++)
             {
-                float y = top - 138f - i * cmpPitch;
+                float y = top - 160f - i * cmpPitch;
                 cmpBg[i] = UiSkin.Img(body2, "Cmp" + i, new Vector2(0, y), new Vector2(dW - 36, cmpH), UiSkin.Rounded(4), new Color(1, 1, 1, 0.05f));
                 cmpName[i] = UiFactory.Label(cmpBg[i].transform, "N", new Vector2(-(dW - 36) * 0.5f + 8 + 60, 0), new Vector2(120, cmpH), "", 11, TextAnchor.MiddleLeft, UiSkin.Text);
                 cmpOld[i] = UiFactory.Label(cmpBg[i].transform, "O", new Vector2(14, 0), new Vector2(60, cmpH), "", 11, TextAnchor.MiddleRight, UiSkin.TextSub);
@@ -217,6 +220,15 @@ namespace BBB.Runtime
                 for (int i = 0; i < it.effectKeys.Count; i++)
                     sb.Append($"{EquipDirector.EffectName(it.effectKeys[i])} +{it.effectValues[i]}{EquipDirector.EffectUnit(it.effectKeys[i])}    ");
                 dEff.text = sb.ToString().TrimEnd();
+                var ds = new System.Text.StringBuilder();
+                var shown = new HashSet<string>();
+                for (int i = 0; i < it.effectKeys.Count; i++)
+                {
+                    if (!shown.Add(it.effectKeys[i])) continue;
+                    string desc = EquipDirector.EffectDesc(it.effectKeys[i]);
+                    if (desc.Length > 0) ds.Append(EquipDirector.EffectName(it.effectKeys[i])).Append(" … ").Append(desc).Append('\n');
+                }
+                dEffDesc.text = ds.ToString().TrimEnd();
 
                 // 着け替えたあとの合計（外すなら引くだけ、着けるなら入る枠の品と入れ替え）
                 var now = Totals(m.Equip, null, null);
