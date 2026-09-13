@@ -4,6 +4,7 @@
     py -3 tools/symbol_rename.py bar            # assets/symbols 直下の日本語名を bar_N.png に
     py -3 tools/symbol_rename.py push button    # assets/symbols/button の日本語名を push_N.png に
     py -3 tools/symbol_rename.py --list         # 日本語名のファイルを数えるだけ
+    py -3 tools/symbol_rename.py replay --match 01_08   # 名前に 01_08 を含むもの（そのバッチ）だけ
 """
 import os, re, sys
 
@@ -25,9 +26,12 @@ def sort_key(name):
 
 
 def main():
-    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    argv = sys.argv[1:]
+    match = argv[argv.index("--match") + 1] if "--match" in argv and argv.index("--match") + 1 < len(argv) else None
+    if match: del argv[argv.index("--match"):argv.index("--match") + 2]
+    args = [a for a in argv if not a.startswith("--")]
     folder = os.path.join(BASE, args[1]) if len(args) > 1 else BASE
-    files = sorted((f for f in os.listdir(folder) if is_japanese_name(f) and f.lower().endswith(".png")), key=sort_key)
+    files = sorted((f for f in os.listdir(folder) if is_japanese_name(f) and f.lower().endswith(".png") and (not match or match in f)), key=sort_key)
     if "--list" in sys.argv or not args:
         print(f"{folder}: 日本語名 {len(files)} 件")
         for f in files: print("  " + f)

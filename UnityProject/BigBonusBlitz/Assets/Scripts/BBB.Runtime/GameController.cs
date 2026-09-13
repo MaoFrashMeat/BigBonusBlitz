@@ -198,6 +198,8 @@ namespace BBB.Runtime
         private GameObject _equipBox, _curseBox, _statsBox, _curseListBox;
         /// <summary>エンゲージ中に流す斜めの帯（上下 2 本。Web 版の敵出現バナーと同じ表現）。</summary>
         private MarqueeBand _engageBandTop, _engageBandBottom;
+        /// <summary>技術介入の「狙え！」（狙う図柄の柱と文字）。対象のリールを止めるまで出しておく。</summary>
+        private GameObject _techAim;
         /// <summary>継続ジャッジの進みを見せる 8 マス（1G … 7G / Last）。表示域の上、ステージ札の右。</summary>
         private RectTransform _judgeTrack;
         private Image[] _judgeCells, _judgeCellEdges;
@@ -2263,6 +2265,7 @@ namespace BBB.Runtime
                 float readySec = Mathf.Max(0f, _m.Config.tech?.readySeconds ?? 1.2f);
                 _stopUnlockTime = Mathf.Max(_stopUnlockTime, Time.time + readySec);
                 StartCoroutine(TechReadyRoutine(readySec));
+                ShowTechAim();                   // 狙う図柄を柱で見せる「狙え！」（対象リールを止めるまで）
             }
             _lastSpinStartTime = Time.time;
             StartReels(hint);
@@ -2274,6 +2277,72 @@ namespace BBB.Runtime
         }
 
         /// <summary>技術介入の「Ready？」。帯が消えるころに停止が解禁され、「GO！」を小さく出す。</summary>
+        /// <summary>
+        /// 「狙え！」の演出（2026-09-14 本人: 実機のように、狙う図柄を縦に並べた柱と「狙え！」を画面に出す）。
+        /// 表示域の左寄りに、狙う図柄を 3 コマ縦に積んだ柱（ビタなら狙う段だけ明るい）と炎色の光、右に「狙え！」。
+        /// レバーオンで出て、対象のリールを止めたら消える。
+        /// </summary>
+        private void ShowTechAim()
+        {
+            HideTechAim();
+            var t = _m.Tech;
+            if (!t.Active) return;
+            var root = UiSkin.Rect(_area, "TechAim", new Vector2(-60f, 0f), new Vector2(420f, 220f));
+            var fire = new Color(1f, 0.45f, 0.1f);
+            UiSkin.Img(root, "Glow", new Vector2(-70f, 0f), new Vector2(420f, 420f), UiSkin.Glow(96), new Color(fire.r, fire.g, fire.b, 0.95f));
+            UiSkin.Img(root, "Glow2", new Vector2(-70f, 0f), new Vector2(260f, 300f), UiSkin.Glow(96), new Color(1f, 0.85f, 0.35f, 0.8f));
+            UiSkin.Img(root, "Glow3", new Vector2(120f, -4f), new Vector2(300f, 200f), UiSkin.Glow(96), new Color(fire.r, fire.g, fire.b, 0.7f));
+            // 図柄の柱: 3 コマ。ビタは狙う段だけ明るく、枠内ならどこでもよいので 3 つとも明るい
+            const float cw = 118f, ch = 54f, gap = 4f;
+            var sprite = ArtLoader.SymbolSprite(t.symbol);
+            for (int k = 0; k < 3; k++)
+            {
+                float y = (1 - k) * (ch + gap);
+                bool lit = t.kind != TechKind.Vita || k == t.row;
+                UiSkin.Img(root, "CellEdge" + k, new Vector2(-70f, y), new Vector2(cw + 6, ch + 6), UiSkin.Rounded(9), lit ? new Color(1f, 0.85f, 0.3f, 0.95f) : new Color(1f, 1f, 1f, 0.15f));
+                UiSkin.Img(root, "Cell" + k, new Vector2(-70f, y), new Vector2(cw, ch), UiSkin.Rounded(7), lit ? new Color(0.95f, 0.95f, 0.96f, 1f) : new Color(0.25f, 0.25f, 0.3f, 0.9f));
+                if (sprite != null)
+                {
+                    var img = UiSkin.Img(root, "Sym" + k, new Vector2(-70f, y), new Vector2(cw - 10, ch - 6), sprite, lit ? Color.white : new Color(1, 1, 1, 0.35f));
+                    img.preserveAspect = true;
+                }
+            }
+            // 「狙え！」と、どのリールをどう押すか
+            string reel = t.reel == 0 ? "左" : t.reel == 1 ? "中" : "右";
+            string how = t.kind == TechKind.Vita ? (t.row == 0 ? "上段にビタ" : t.row == 2 ? "下段にビタ" : "中段にビタ") : "枠内に";
+            var head = UiFactory.Label(root, "Head", new Vector2(120f, 62f), new Vector2(220f, 22f), $"{reel}リール  {SymbolName(t.symbol)} を {how}", 13, TextAnchor.MiddleCenter, ColText);
+            head.fontStyle = FontStyle.Bold; TextShadow(head, 1f);
+            var aim = UiFactory.Label(root, "Aim", new Vector2(120f, -4f), new Vector2(220f, 90f), "狙え！", 58, TextAnchor.MiddleCenter, Hex("#ffd23f"));
+            aim.fontStyle = FontStyle.Bold;
+            var ol = aim.gameObject.AddComponent<Outline>(); ol.effectColor = new Color(0.55f, 0.05f, 0.02f, 1f); ol.effectDistance = new Vector2(3, -3);
+            var sh = aim.gameObject.AddComponent<Shadow>(); sh.effectColor = new Color(0, 0, 0, 0.7f); sh.effectDistance = new Vector2(2, -4);
+            var cg = root.gameObject.AddComponent<CanvasGroup>(); cg.blocksRaycasts = false;
+            _techAim = root.gameObject;
+            root.SetAsLastSibling();
+            StartCoroutine(TechAimPulse(root, aim.rectTransform));
+            UiFx.Burst(_area, UiFx.Preset.Sparks, new Vector2(-70f, 0f));
+            StartCoroutine(EdgeGlow(fire, 1.0f, false));
+        }
+
+        /// <summary>柱が出るときの弾みと、「狙え！」の脈。消えるまで続く。</summary>
+        private IEnumerator TechAimPulse(RectTransform root, RectTransform aim)
+        {
+            float t = 0;
+            while (t < 0.22f && root != null) { t += Time.deltaTime; float u = Mathf.Clamp01(t / 0.22f); root.localScale = Vector3.one * Mathf.Lerp(1.35f, 1f, 1f - (1f - u) * (1f - u)); yield return null; }
+            if (root != null) root.localScale = Vector3.one;
+            while (root != null && aim != null)
+            {
+                aim.localScale = Vector3.one * (1f + 0.06f * Mathf.Sin(Time.time * 7f));
+                aim.localRotation = Quaternion.Euler(0, 0, -6f + 2f * Mathf.Sin(Time.time * 3f));
+                yield return null;
+            }
+        }
+
+        private void HideTechAim()
+        {
+            if (_techAim != null) { Destroy(_techAim); _techAim = null; }
+        }
+
         private IEnumerator TechReadyRoutine(float readySec)
         {
             _audio.Precog(2);
@@ -2322,7 +2391,7 @@ namespace BBB.Runtime
                 UiFx.Ring(reelRt, new Color(1f, 0.85f, 0.3f, 0.7f), 60, 220, 0.5f);
                 _audio.ReelPullIn();
             }
-            if (_m.Tech.Active && i == _m.Tech.reel) RefreshTech();
+            if (_m.Tech.Active && i == _m.Tech.reel) { RefreshTech(); HideTechAim(); }
             // 択の正解は第三停止まで見せない（2026-09-13 本人）。成功・失敗の見せ方は全リールが止まってから
             if (_m.Navi.Active)
             {
