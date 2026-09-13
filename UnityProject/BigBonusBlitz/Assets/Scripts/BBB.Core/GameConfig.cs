@@ -252,13 +252,19 @@ namespace BBB.Core
         public float picH = 52f, numH = 56f;
         /// <summary>炎の絵と「獲得」の絵のずらし（px。右が +、上が +）。数字との並びや詰まり具合を合わせる用。</summary>
         public float iconX = 0f, iconY = 0f, picX = 0f, picY = 0f;
+        /// <summary>詰め: 桁と桁の間 / 数字と炎の間 / 炎と「獲得」の間（px。負で重ねる）。傾き: 数字 / 炎 / 「獲得」（度、反時計回り+）。</summary>
+        public float digitGap = 0f, iconGap = 6f, picGap = 10f, numRot = 0f, iconRot = 0f, picRot = 0f;
         /// <summary>文字の後ろに大きな炎の絵を敷く。大きさ（px）/ 濃さ（0〜1）/ ずらし（右+ 上+）/ 傾き（度、反時計回り+）/ 回る速さ（度/秒、0 で止まる）。</summary>
         public bool backIcon = false;
         public float backIconSize = 120f, backIconAlpha = 0.45f, backIconX = 0f, backIconY = 0f, backIconRot = 0f, backIconSpin = 0f;
-        /// <summary>部品ごとの ON/OFF: 黒い帯 / 上下の線 / 後ろの光 / 止まっている間の震え / 止まった瞬間の火花。</summary>
-        public bool showBand = false, showEdges = false, showGlow = true, shake = true, sparks = true;
-        /// <summary>数字が 0 から増えていく（入る間に数え上げる）。どの型にも足せる追加の効果。</summary>
+        /// <summary>部品ごとの ON/OFF: 黒い帯 / 上下の線 / 後ろの光 / 止まっている間の震え / 止まった瞬間の火花 / 数字の右の炎（手前）。</summary>
+        public bool showBand = false, showEdges = false, showGlow = true, shake = true, sparks = true, showIcon = true;
+        /// <summary>
+        /// 数字が 0 から増えていく。どの型にも足せる追加の効果。
+        /// 画面で止まった瞬間を 0 として countOffset 秒後に数え始め、countSeconds 秒かけて枚数に届く（負なら止まる前から）。
+        /// </summary>
         public bool countUp = false;
+        public float countOffset = 0f, countSeconds = 0.3f;
         /// <summary>
         /// 足せる効果（どの型にも重なる）: 落ち影（ずれ x/y px、濃さ 0〜1）/ 縁取り（太さ px、濃さ）/
         /// 桁が順にポンと出る / 止まっている間、桁がゆらゆら揺れる（角度、速さ）/ 後ろの光が脈打つ。

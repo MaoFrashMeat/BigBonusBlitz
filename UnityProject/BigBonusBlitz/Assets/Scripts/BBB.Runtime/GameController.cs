@@ -4112,41 +4112,50 @@ namespace BBB.Runtime
             if (numArt != null && kakutoku != null)
             {
                 string s = amount.ToString();
-                float iconW = fx.fontSize * 1.1f; const float gap = 6f, picGap = 10f;
-                float numW = 0; var dw = new float[s.Length];
+                float iconW = fx.fontSize * 1.1f, gap = fx.iconGap, picGap = fx.picGap;
+                float numW = fx.digitGap * (s.Length - 1); var dw = new float[s.Length];
                 for (int i = 0; i < s.Length; i++) { var sp = numArt[s[i] - '0']; dw[i] = fx.numH * sp.rect.width / sp.rect.height; numW += dw[i]; }
                 float picW = fx.picH * kakutoku.rect.width / kakutoku.rect.height;
-                float x = -(numW + gap + iconW + picGap + picW) * 0.5f;
+                float x = -(numW + (fx.showIcon ? gap + iconW : 0f) + picGap + picW) * 0.5f;
                 digitSlots = new Image[s.Length];
                 for (int i = 0; i < s.Length; i++)
                 {
                     digitSlots[i] = UiSkin.Img(row, "Num" + i, new Vector2(x + dw[i] * 0.5f, 0), new Vector2(dw[i], fx.numH), numArt[s[i] - '0'], Color.white);
-                    digitSlots[i].preserveAspect = true; x += dw[i];
+                    digitSlots[i].preserveAspect = true; x += dw[i] + fx.digitGap;
+                    digitSlots[i].rectTransform.localRotation = Quaternion.Euler(0, 0, fx.numRot);
                     pieces.Add(digitSlots[i]); movers.Add(digitSlots[i].rectTransform);
                 }
-                x += gap;
-                pieces.Add(UiSkin.Img(row, "Icon", new Vector2(x + iconW * 0.5f + fx.iconX, fx.iconY), new Vector2(iconW, iconW), UiSkin.Icon("ember", 64), Color.white));
-                x += iconW + picGap;
+                x -= fx.digitGap;
+                if (fx.showIcon)   // 手前の炎（OFF なら数字のすぐ右に「獲得」）
+                {
+                    x += gap;
+                    var icon = UiSkin.Img(row, "Icon", new Vector2(x + iconW * 0.5f + fx.iconX, fx.iconY), new Vector2(iconW, iconW), UiSkin.Icon("ember", 64), Color.white);
+                    icon.rectTransform.localRotation = Quaternion.Euler(0, 0, fx.iconRot); pieces.Add(icon);
+                    x += iconW;
+                }
+                x += picGap;
                 var pic = UiSkin.Img(row, "Kakutoku", new Vector2(x + picW * 0.5f + fx.picX, fx.picY), new Vector2(picW, fx.picH), kakutoku, Color.white);
-                pic.preserveAspect = true; pieces.Add(pic);
+                pic.preserveAspect = true; pic.rectTransform.localRotation = Quaternion.Euler(0, 0, fx.picRot); pieces.Add(pic);
             }
             else
             {
-                var parts = IconText.Render(row, kakutoku != null ? $"{amount} {{ember}}" : $"{amount} {{ember}} 獲得！", fx.fontSize, Hex("#ffd23f"), FontStyle.Bold, fx.fontSize * 1.1f, 1f, 6f, true, new Color(0.4f, 0.12f, 0f, 1f), new Vector2(2, -3));
-                foreach (var ic in parts.icons) if (ic != null) ic.rectTransform.anchoredPosition += new Vector2(fx.iconX, fx.iconY);   // 炎の絵だけずらせる
+                string ember = fx.showIcon ? " {ember}" : "";
+                var parts = IconText.Render(row, kakutoku != null ? $"{amount}{ember}" : $"{amount}{ember} 獲得！", fx.fontSize, Hex("#ffd23f"), FontStyle.Bold, fx.fontSize * 1.1f, 1f, fx.iconGap, true, new Color(0.4f, 0.12f, 0f, 1f), new Vector2(2, -3));
+                foreach (var ic in parts.icons) if (ic != null) { ic.rectTransform.anchoredPosition += new Vector2(fx.iconX, fx.iconY); ic.rectTransform.localRotation = Quaternion.Euler(0, 0, fx.iconRot); }   // 炎の絵だけずらす・傾ける
                 numText = parts.texts.Count > 0 ? parts.texts[0] : null;
+                if (numText != null) numText.rectTransform.localRotation = Quaternion.Euler(0, 0, fx.numRot);
                 foreach (var tx in parts.texts) if (tx != null) pieces.Add(tx);
                 foreach (var ic in parts.icons) if (ic != null) pieces.Add(ic);
                 if (numText != null) movers.Add(numText.rectTransform);
                 if (kakutoku != null)
                 {
-                    float picH = fx.picH; const float picGap = 10f;
+                    float picH = fx.picH, picGap = fx.picGap;
                     float picW = picH * kakutoku.rect.width / kakutoku.rect.height;
                     float total = parts.width + picGap + picW;
                     // 数字と炎を左へ寄せ、その右に「獲得」の絵
                     foreach (Transform c in row) ((RectTransform)c).anchoredPosition += new Vector2(-(picGap + picW) * 0.5f, 0);
                     var pic = UiSkin.Img(band, "Kakutoku", new Vector2(total * 0.5f - picW * 0.5f + fx.picX, 1 + fx.picY), new Vector2(picW, picH), kakutoku, Color.white);
-                    pic.preserveAspect = true; pieces.Add(pic);
+                    pic.preserveAspect = true; pic.rectTransform.localRotation = Quaternion.Euler(0, 0, fx.picRot); pieces.Add(pic);
                 }
             }
             // 縁取り → 落ち影 の順に付ける（影は縁取りごと落ちる）
@@ -4175,7 +4184,7 @@ namespace BBB.Runtime
                     int n = movers.Count; float k = 1f + 0.25f * (n - 1);
                     for (int i = 0; i < n; i++) { float b = ph == 0 ? Mathf.Max(0.01f, EaseOutBack(Mathf.Clamp01(pu * k - 0.25f * i))) : 1f; movers[i].localScale = new Vector3(b, b, 1f); }
                 }
-                if (fx.wobble) for (int i = 0; i < movers.Count; i++) movers[i].localRotation = Quaternion.Euler(0, 0, ph == 1 ? fx.wobbleDeg * Mathf.Sin(t * fx.wobbleSpeed + i * 0.9f) : 0f);
+                if (fx.wobble) for (int i = 0; i < movers.Count; i++) movers[i].localRotation = Quaternion.Euler(0, 0, fx.numRot + (ph == 1 ? fx.wobbleDeg * Mathf.Sin(t * fx.wobbleSpeed + i * 0.9f) : 0f));
                 if (fx.glowPulse && glow != null)
                 {
                     float w = ph >= 1 ? Mathf.Sin(th * 14f) : 0f;
@@ -4244,7 +4253,7 @@ namespace BBB.Runtime
             int phase = t < tIn ? 0 : t < tIn + tHold ? 1 : t < tIn + tHold + tOut ? 2 : 3;
             if (phase == 3) return false;
             float u = phase == 0 ? t / tIn : phase == 1 ? (tHold > 0 ? (t - tIn) / tHold : 1f) : (t - tIn - tHold) / tOut;
-            if (fx.countUp && phase == 0) countU = u;   // 数え上げは追加の効果（どの型にも重なる）
+            if (fx.countUp) countU = Mathf.Clamp01((t - tIn - fx.countOffset) / Mathf.Max(0.01f, fx.countSeconds));   // 数え上げ: 止まった瞬間からのオフセットで管理（どの型にも重なる）
             float shake = fx.shake && phase == 1 ? 3f * Mathf.Sin((t - tIn) * 30f) * (1f - u) : 0f;
             switch (style)
             {
