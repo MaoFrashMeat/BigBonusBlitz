@@ -185,6 +185,9 @@ namespace BBB.Runtime
         private readonly Image[] _routeBar = new Image[3];
         private GameObject _mapBox;
         private GameObject _equipBox, _curseBox, _statsBox, _curseListBox;
+        /// <summary>いま出ている敵が中ボスか（討伐の見せ方を変える）。出現時に覚える。</summary>
+        private bool _engagedBoss;
+        private string _engagedName = "";
         private GameObject _trophyBox;                            // 実績と図鑑（TrophyScreen）。開いている間だけある
         private RectTransform _mapBody, _mapView, _condList;
         /// <summary>冒険マップの窓の高さ。地図 320 + 分岐条件 96 が縦に収まる大きさ。</summary>
@@ -1927,7 +1930,9 @@ namespace BBB.Runtime
             if (_enemyIdle != null) StopCoroutine(_enemyIdle);
             StartCoroutine(SpawnEnemyRoutine());
             // 中ボスは名乗りを上げる（通常の雑魚とはっきり区別する）
-            if (table != null && table.IsBoss) StartCoroutine(SlamTitle($"中ボス  {table.name}", Hex("#ff9a3c"), 1.5f, 46));
+            _engagedBoss = table != null && table.IsBoss;
+            _engagedName = table?.name ?? "";
+            if (_engagedBoss) StartCoroutine(SlamTitle($"中ボス  {table.name}", Hex("#ff9a3c"), 1.5f, 46));
         }
 
         private IEnumerator SpawnEnemyRoutine()
@@ -2335,9 +2340,19 @@ namespace BBB.Runtime
             if (r.enemyResolved == true)
             {
                 _audio.EnemyDeath();
-                StartCoroutine(DefeatRoutine());
-                SetMessage($"ENEMY DEFEATED!  EXP +{_m.Config.expPerDefeat}{(r.levelUp ? $"   LEVEL UP! Lv.{_m.PlayerLevel}" : "")}", true, ColGold);
-                StartCoroutine(Effects.Shake(_stage, 0.3f, 5f));
+                if (_engagedBoss)
+                {
+                    // 中ボス: 撃破の帯 → 報酬のまとめ → 戦利品 → 装備（落とし物は RogueFx では出さない）
+                    StartCoroutine(BossDefeatRoutine(r));
+                    SetMessage($"中ボス撃破！  EXP +{r.enemyExp}{(r.levelUp ? $"   LEVEL UP! Lv.{_m.PlayerLevel}" : "")}", true, Hex("#ff9a3c"));
+                    StartCoroutine(Effects.Shake(_stage, 0.6f, 9f));
+                }
+                else
+                {
+                    StartCoroutine(DefeatRoutine());
+                    SetMessage($"ENEMY DEFEATED!  EXP +{_m.Config.expPerDefeat}{(r.levelUp ? $"   LEVEL UP! Lv.{_m.PlayerLevel}" : "")}", true, ColGold);
+                    StartCoroutine(Effects.Shake(_stage, 0.3f, 5f));
+                }
             }
             else if (r.enemyResolved == false)
             {
@@ -2396,9 +2411,44 @@ namespace BBB.Runtime
         /// <summary>装備が落ちたとき、呪いが出たときの見せ方。</summary>
         private void RogueFx(GameResult r)
         {
-            if (r.equipDropped != null) StartCoroutine(DropRoutine(r));
-            if (r.itemDrops != null && r.itemDrops.Count > 0) StartCoroutine(ItemDropRoutine(r));
-            if (r.curseOffer != null) StartCoroutine(DelayedFx(1.2f, ShowCurseOffer));
+            bool bossLoot = r.enemyResolved == true && _engagedBoss;   // 中ボスの戦利品は BossDefeatRoutine がまとめて見せる
+            if (r.equipDropped != null && !bossLoot) StartCoroutine(DropRoutine(r));
+            if (r.itemDrops != null && r.itemDrops.Count > 0 && !bossLoot) StartCoroutine(ItemDropRoutine(r));
+            if (r.curseOffer != null) StartCoroutine(DelayedFx(bossLoot ? 5.5f : 1.2f, ShowCurseOffer));
+        }
+
+        /// <summary>中ボスの討伐: 爆散 → 「撃破」の帯 → 報酬のまとめ → 戦利品を一列に → 落ちた装備。雑魚とはっきり差をつける。</summary>
+        private IEnumerator BossDefeatRoutine(GameResult r)
+        {
+            var col = Hex("#ff9a3c");
+            StartCoroutine(EdgeGlow(col, 1.6f, false));
+            yield return DefeatRoutine();
+            _audio.RoleChance();
+            yield return SlamTitle($"中ボス撃破！   {_engagedName}", col, 1.7f, 50);
+            yield return SlamTitle($"EXP +{r.enemyExp}    ソウル +{r.soulsGained:N0}    エンバー +{_m.EmberCfg.perBoss:N0}", ColGold, 1.5f, 32);
+            if (r.itemDrops != null && r.itemDrops.Count > 0)
+            {
+                var parts = new System.Collections.Generic.List<string>();
+                foreach (var d in r.itemDrops) parts.Add($"{d.name} +{d.amount:N0}");
+                StartCoroutine(BossLootSounds(r));
+                UiFx.Burst(_charRt, UiFx.Preset.Coins, new Vector2(0, 30));
+                // 帯は 96 px。3 つまでは 1 行、多ければ 3 つずつ 2 行に分けて帯からはみ出さないようにする
+                string loot = parts.Count <= 3
+                    ? "戦利品   " + string.Join("  ・  ", parts)
+                    : "戦利品\n" + string.Join("  ・  ", parts.GetRange(0, 3)) + "\n" + string.Join("  ・  ", parts.GetRange(3, parts.Count - 3));
+                yield return SlamTitle(loot, ColText, 2.2f, parts.Count <= 3 ? 26 : 20);
+            }
+            if (r.equipDropped != null) yield return DropRoutine(r);
+        }
+
+        /// <summary>戦利品の音を 1 つずつ少しずらして鳴らす（帯の間に）。</summary>
+        private IEnumerator BossLootSounds(GameResult r)
+        {
+            foreach (var d in r.itemDrops)
+            {
+                _audio.Pickup(d.kind);
+                yield return new WaitForSeconds(0.28f);
+            }
         }
 
         /// <summary>装備以外の落とし物を 1 つずつ、少しずらして主人公の上に出す。</summary>
