@@ -2,6 +2,12 @@
   "entries": [
     {
       "date": "2026-09-14",
+      "version": "dev 181",
+      "title": "AT の G 数加算の帯が「＋」と「G」の金文字の絵に",
+      "body": "・「+5G GET」の ＋ と G が assets/symbols/text の絵（tools/text_choice.json の words.plus / words.g → py -3 tools/text_build.py）。数字と同じ高さで並ぶ\n・ビューアの「数字と獲得の書体」に G と ＋ の候補の行を追加"
+    },
+    {
+      "date": "2026-09-14",
       "version": "dev 180",
       "title": "同じ G で複数得たものは「GET」の帯を縦に並べて一気に出す（大きさ・間隔・中心を調整できる）",
       "body": "・技術介入のソウル / EXP / エンバー / G 数、敵を倒した EXP / ソウル / エンバー などは順番でなく縦に並べて一気に（行ごとに 0.05 秒だけ遅れて）出る\n・2 本以上のときの中心（stackY）・行の間隔（stackGap）・帯の大きさ（stackScale 0.7）・収まらなければ縮める（stackFit）を reelFx.emberGain で調整\n・ビューアの「縦に全部」で技術介入成功の例（ソウル 45 / EXP 30 / エンバー 25 / 5G）を確認できる。帯は表示域の外で切れる（ゲームと同じ）"

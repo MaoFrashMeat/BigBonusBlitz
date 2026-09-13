@@ -20,6 +20,16 @@
     "kakutoku": {
       "src": "assets/symbols/text/kakutoku_{v}.png",
       "variant": 3
+    },
+    "g": {
+      "src": "assets/symbols/text/g_{v}.png",
+      "variant": 1,
+      "height": 128
+    },
+    "plus": {
+      "src": "assets/symbols/text/plus_{v}.png",
+      "variant": 1,
+      "height": 128
     }
   }
 }

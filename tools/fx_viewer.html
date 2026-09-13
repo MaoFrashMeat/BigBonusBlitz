@@ -74,11 +74,11 @@
   const bookIcon = img("../UnityProject/BigBonusBlitz/Assets/Resources/Art/UI/Icons/tome.png");      // exp → book → tome
   const GAIN_KINDS = { ember: { im: () => emberIcon }, soul: { im: () => soulIcon }, book: { im: () => bookIcon }, games: { im: () => null, unit: "G" } };
   const GAIN_SEQ = [["soul", 45], ["book", 30], ["ember", 25], ["games", 5]];   // 技術介入 hard_bar 成功の例（ソウル → EXP → エンバー → G）
-  const builtKakutoku = img("../UnityProject/BigBonusBlitz/Assets/Resources/Art/UI/Text/kakutoku.png");
+  const builtWord = { kakutoku: img("../UnityProject/BigBonusBlitz/Assets/Resources/Art/UI/Text/kakutoku.png"), g: img("../UnityProject/BigBonusBlitz/Assets/Resources/Art/UI/Text/g.png"), plus: img("../UnityProject/BigBonusBlitz/Assets/Resources/Art/UI/Text/plus.png") };
   const candWord = (name, v) => img("../assets/symbols/text/" + name + "_" + v + ".png");
   // 数字の絵: 候補（assets/symbols/number/num{d}_{v}.png、この PC にあるとき）→ 組んだもの（Resources/Art/UI/Text/num_{d}.png）→ 文字 の順で使う
   const NUM_KEY = "bbb_fx_numchoice";
-  let numChoice = Object.assign({ "0": 3, "1": 3, "2": 2, "3": 1, "4": 3, "5": 1, "6": 2, "7": 2, "8": 1, "9": 1, "kakutoku": 3 }, (window.BBB_FX_DEFAULTS || {}).textChoice || {});   // 初期値は text_choice.json（fx_sync.py が写す）
+  let numChoice = Object.assign({ "0": 3, "1": 3, "2": 2, "3": 1, "4": 3, "5": 1, "6": 2, "7": 2, "8": 1, "9": 1, "kakutoku": 3, "g": 1, "plus": 1 }, (window.BBB_FX_DEFAULTS || {}).textChoice || {});   // 初期値は text_choice.json（fx_sync.py が写す）
   try { const s = JSON.parse(localStorage.getItem(NUM_KEY) || "null"); if (s) Object.assign(numChoice, s); } catch (e) {}
   const builtNum = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(d => img("../UnityProject/BigBonusBlitz/Assets/Resources/Art/UI/Text/num_" + d + ".png"));
   const candNum = (d, v) => img("../assets/symbols/number/num" + d + "_" + v + ".png");
@@ -106,11 +106,11 @@
     const cg = c.getContext("2d"); cg.drawImage(im, 0, 0); cg.globalCompositeOperation = "source-in"; cg.fillStyle = color; cg.fillRect(0, 0, c.width, c.height);
     silCache.set(key, c); return c;
   }
-  function wordArt(name) {   // 言葉の絵（獲得）: 候補 → 組んだもの → null。数字と同じ順
+  function wordArt(name) {   // 言葉の絵（獲得 / G / ＋）: 候補 → 組んだもの → null。数字と同じ順
     const c = candWord(name, numChoice[name] || 1);
     if (c.complete && c.naturalWidth) { const b = bbox(c); if (b) return { im: c, b }; }
-    const bi = builtKakutoku;
-    if (bi.complete && bi.naturalWidth) return { im: bi, b: { x: 0, y: 0, w: bi.naturalWidth, h: bi.naturalHeight } };
+    const bi = builtWord[name];
+    if (bi && bi.complete && bi.naturalWidth) return { im: bi, b: { x: 0, y: 0, w: bi.naturalWidth, h: bi.naturalHeight } };
     return null;
   }
   function digitArt(d) {
@@ -251,8 +251,12 @@
         const artOk = picOk && digits.every(Boolean);
         const numH = p.numH || 56;
         const numW = artOk ? digits.reduce((w, a) => w + numH * a.b.w / a.b.h, 0) + dgap * (digits.length - 1) : g.measureText(String(amount)).width;
+        // 単位（G）は絵があれば絵、その帯は数字の前に「＋」の絵。どちらも数字と同じ高さで digitGap で並べる（ゲームと同じ）
+        const uArt = unit !== null && artOk ? wordArt(unit.toLowerCase()) : null, pArt = unit !== null && artOk ? wordArt("plus") : null;
+        const unitW = uArt ? numH * uArt.b.w / uArt.b.h : 0, plusW = pArt ? numH * pArt.b.w / pArt.b.h : 0;
         const showIcon = p.showIcon !== false || unit !== null;
-        const total = numW + (showIcon ? gap + iconW : 0) + picGap + picW;
+        const markW = uArt ? dgap + unitW : (showIcon ? gap + iconW : 0);
+        const total = (pArt ? plusW + dgap : 0) + numW + markW + picGap + picW;
         let x0 = cx - total / 2;
         // 桁ごとの「ポンと出る」「ゆらゆら」（GameController と同じ式。文字のときは数字 1 つが対象）
         const nMove = artOk ? digits.length : 1, kb = 1 + 0.25 * (nMove - 1);
@@ -269,6 +273,7 @@
         };
         const outlineCopies = draw => { const d = p.outlineSize; g.save(); g.globalAlpha *= p.outlineAlpha; [[d, d], [d, -d], [-d, d], [-d, -d]].forEach(([ox, oy]) => draw(ox, oy, "rgba(64,20,0,1)")); g.restore(); };
         const imgDraw = (im, sx, sy, sw, sh, dx, dy, dw, dh) => (ox, oy, tint) => { if (tint) g.drawImage(silhouette(im, tint), sx, sy, sw, sh, dx + ox, dy + oy, dw, dh); else g.drawImage(im, sx, sy, sw, sh, dx + ox, dy + oy, dw, dh); };
+        if (pArt) { piece(imgDraw(pArt.im, pArt.b.x, pArt.b.y, pArt.b.w, pArt.b.h, x0, cy - numH / 2, plusW, numH), x0 + plusW / 2, cy, 0, p.numRot); x0 += plusW + dgap; }
         if (artOk) {
           // 桁の枠は最終の枚数で決め、数え上げ中は右詰め（GameController.SetDigits と同じ）
           const ss = String(shown);
@@ -282,7 +287,12 @@
           piece((ox, oy, tint) => { g.font = "bold " + fs + "px sans-serif"; g.textBaseline = "middle"; g.lineWidth = 5; g.strokeStyle = tint || "rgba(102,31,0,1)"; g.lineJoin = "round"; g.strokeText(String(shown), tx + ox, cy + 1 + oy); g.fillStyle = tint || "#ffd23f"; g.fillText(String(shown), tx + ox, cy + 1 + oy); }, tx + numW / 2, cy, 0, p.numRot);
           x0 += numW;
         }
-        if (showIcon) {
+        if (uArt) {   // 単位の絵（G）は数字の続きとして並べる
+          x0 += dgap;
+          piece(imgDraw(uArt.im, uArt.b.x, uArt.b.y, uArt.b.w, uArt.b.h, x0, cy - numH / 2, unitW, numH), x0 + unitW / 2, cy, 99, p.numRot);
+          x0 += unitW;
+        }
+        else if (showIcon) {
         x0 += gap;
         if (unit !== null) {   // 単位の文字は絵用のずらし・傾きを受けない（ゲームと同じ）
           const ux = x0 + iconW / 2;
@@ -420,7 +430,9 @@
     if (cur.id === "emberGain") {
       const nums = {}; for (let d = 0; d <= 9; d++) nums[String(d)] = numChoice[String(d)] || 1;
       const choice = { numbers: { height: 128, src: "assets/symbols/number/num{d}_{v}.png", variant: nums },
-                       words: { height: 110, kakutoku: { src: "assets/symbols/text/kakutoku_{v}.png", variant: numChoice.kakutoku || 1 } } };
+                       words: { height: 110, kakutoku: { src: "assets/symbols/text/kakutoku_{v}.png", variant: numChoice.kakutoku || 1 },
+                                g: { src: "assets/symbols/text/g_{v}.png", variant: numChoice.g || 1, height: 128 },
+                                plus: { src: "assets/symbols/text/plus_{v}.png", variant: numChoice.plus || 1, height: 128 } } };
       text += "\n\ntools/text_choice.json（丸ごと貼って py -3 tools/text_build.py）\n" + JSON.stringify(choice, null, 1);
     }
     document.getElementById("out").textContent = text;
@@ -430,6 +442,8 @@
     const rows = [];
     for (let d = 0; d <= 9; d++) rows.push({ key: String(d), label: String(d), max: 5, src: v => candNum(d, v).src, file: v => "num" + d + "_" + v + ".png" });
     rows.push({ key: "kakutoku", label: "獲得", max: 10, src: v => candWord("kakutoku", v).src, file: v => "kakutoku_" + v + ".png" });
+    rows.push({ key: "g", label: "G", max: 5, src: v => candWord("g", v).src, file: v => "g_" + v + ".png" });
+    rows.push({ key: "plus", label: "＋", max: 5, src: v => candWord("plus", v).src, file: v => "plus_" + v + ".png" });
     rows.forEach(r => {
       const row = document.createElement("div"); row.className = "drow";
       const b = document.createElement("b"); b.textContent = r.label; row.appendChild(b);

@@ -4229,7 +4229,19 @@ namespace BBB.Runtime
                 float numW = fx.digitGap * (s.Length - 1); var dw = new float[s.Length];
                 for (int i = 0; i < s.Length; i++) { var sp = numArt[s[i] - '0']; dw[i] = fx.numH * sp.rect.width / sp.rect.height; numW += dw[i]; }
                 float picW = fx.picH * kakutoku.rect.width / kakutoku.rect.height;
-                float x = -(numW + (fx.showIcon || unit != null ? gap + iconW : 0f) + picGap + picW) * 0.5f;
+                // 単位（"G"）は絵があれば絵（Art/UI/Text/g）。その帯は数字の前に「＋」の絵（Art/UI/Text/plus）も付く。どちらも数字と同じ高さで digitGap で並べる
+                var unitArt = unit != null ? ArtLoader.Sprite("Art/UI/Text/" + unit.ToLowerInvariant()) : null;
+                var plusArt = unit != null ? ArtLoader.Sprite("Art/UI/Text/plus") : null;
+                float unitW = unitArt != null ? fx.numH * unitArt.rect.width / unitArt.rect.height : 0f;
+                float plusW = plusArt != null ? fx.numH * plusArt.rect.width / plusArt.rect.height : 0f;
+                float markW = unitArt != null ? fx.digitGap + unitW : (fx.showIcon || unit != null ? gap + iconW : 0f);
+                float x = -((plusArt != null ? plusW + fx.digitGap : 0f) + numW + markW + picGap + picW) * 0.5f;
+                if (plusArt != null)
+                {
+                    var plus = UiSkin.Img(row, "Plus", new Vector2(x + plusW * 0.5f, 0), new Vector2(plusW, fx.numH), plusArt, Color.white);
+                    plus.preserveAspect = true; plus.rectTransform.localRotation = Quaternion.Euler(0, 0, fx.numRot); pieces.Add(plus);
+                    x += plusW + fx.digitGap;
+                }
                 digitSlots = new Image[s.Length];
                 for (int i = 0; i < s.Length; i++)
                 {
@@ -4239,7 +4251,14 @@ namespace BBB.Runtime
                     pieces.Add(digitSlots[i]); movers.Add(digitSlots[i].rectTransform);
                 }
                 x -= fx.digitGap;
-                if (fx.showIcon || unit != null)   // 手前の絵（OFF なら数字のすぐ右に「獲得」）。単位（"G"）は絵の代わりに金の文字
+                if (unitArt != null)   // 単位の絵（G）は数字の続きとして並べる
+                {
+                    x += fx.digitGap;
+                    var ug = UiSkin.Img(row, "Unit", new Vector2(x + unitW * 0.5f, 0), new Vector2(unitW, fx.numH), unitArt, Color.white);
+                    ug.preserveAspect = true; ug.rectTransform.localRotation = Quaternion.Euler(0, 0, fx.numRot); pieces.Add(ug);
+                    x += unitW;
+                }
+                else if (fx.showIcon || unit != null)   // 手前の絵（OFF なら数字のすぐ右に「獲得」）。単位の絵が無ければ金の文字
                 {
                     x += gap;
                     if (unit != null)
