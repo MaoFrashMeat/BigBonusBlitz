@@ -143,6 +143,9 @@ namespace BBB.Runtime
         private Image _redGlow;
 
         private bool _autoMode;
+        /// <summary>AUTO を止める条件（SaveData.AutoStop*）。設定の窓で切り替える。</summary>
+        private int _autoStopMask = SaveData.AutoStopDefault;
+        private readonly Button[] _autoStopBtns = new Button[3];
         /// <summary>オートの速さ（1〜6）。待ち時間をこの値で割る。</summary>
         private int _autoSpeed = 1;
         /// <summary>ボタンで選んだ速さ。スペース長押しのオートが終わったらここに戻す。</summary>
@@ -763,22 +766,34 @@ namespace BBB.Runtime
             _techBanner.gameObject.SetActive(false);
 
             // ===== モーダル: 音量・設定 =====
-            _settingsBox = BuildModal("Settings", new Vector2(400, 300), "サウンド / 設定", ToggleSettings, out var sBody);
-            UiFactory.Label(sBody, "BgmLabel", new Vector2(-140, 54), new Vector2(60, 20), "BGM", 12, TextAnchor.MiddleLeft, ColTextSub);
-            _bgmSlider = UiFactory.Slider(sBody, "BgmSlider", new Vector2(30, 54), new Vector2(230, 20), _audio.BgmVolume, v => { _audio.BgmVolume = v; });
+            _autoStopMask = SaveData.LoadAutoStop();
+            _settingsBox = BuildModal("Settings", new Vector2(400, 380), "サウンド / 設定", ToggleSettings, out var sBody);
+            UiFactory.Label(sBody, "BgmLabel", new Vector2(-140, 96), new Vector2(60, 20), "BGM", 12, TextAnchor.MiddleLeft, ColTextSub);
+            _bgmSlider = UiFactory.Slider(sBody, "BgmSlider", new Vector2(30, 96), new Vector2(230, 20), _audio.BgmVolume, v => { _audio.BgmVolume = v; });
             SkinSlider(_bgmSlider);
             _bgmSlider.gameObject.AddComponent<SliderReleaseSound>().OnRelease = () => { _audio.UiPop(); SaveData.SaveAudio(_audio); };
-            UiFactory.Label(sBody, "SeLabel", new Vector2(-140, 22), new Vector2(60, 20), "SE", 12, TextAnchor.MiddleLeft, ColTextSub);
-            _seSlider = UiFactory.Slider(sBody, "SeSlider", new Vector2(30, 22), new Vector2(230, 20), _audio.SeVolume, v => { _audio.SeVolume = v; });
+            UiFactory.Label(sBody, "SeLabel", new Vector2(-140, 64), new Vector2(60, 20), "SE", 12, TextAnchor.MiddleLeft, ColTextSub);
+            _seSlider = UiFactory.Slider(sBody, "SeSlider", new Vector2(30, 64), new Vector2(230, 20), _audio.SeVolume, v => { _audio.SeVolume = v; });
             SkinSlider(_seSlider);
             _seSlider.gameObject.AddComponent<SliderReleaseSound>().OnRelease = () => { _audio.UiPop(); SaveData.SaveAudio(_audio); };
-            var bgmToggle = UiSkin.Button(sBody, "BgmToggle", new Vector2(-96, -20), new Vector2(150, 30), "BGM ON / OFF", () => { _audio.ToggleBgm(); _audio.UiPop(); SaveData.SaveAudio(_audio); }, ColBtn, 12, false, 8);
-            UiSkin.Button(sBody, "ResetSave", new Vector2(72, -20), new Vector2(150, 30), "セーブ削除", OnResetSavePressed, new Color(0.45f, 0.15f, 0.2f), 12, false, 8);
-            UiSkin.Button(sBody, "BackToTown", new Vector2(-96, -52), new Vector2(150, 30), "街へ戻る", OnBackToTown, Hex("#5b3fd0"), 12, false, 8);
-            _graphAlwaysBtn = UiSkin.Button(sBody, "GraphAlways", new Vector2(72, -52), new Vector2(150, 30), "", ToggleGraphAlways, ColBtn, 12, false, 8);
-            _resetConfirm = UiFactory.Label(sBody, "ResetConfirm", new Vector2(0, -80), new Vector2(360, 16), "", 11, TextAnchor.MiddleCenter, ColGold);
+            var bgmToggle = UiSkin.Button(sBody, "BgmToggle", new Vector2(-96, 22), new Vector2(150, 30), "BGM ON / OFF", () => { _audio.ToggleBgm(); _audio.UiPop(); SaveData.SaveAudio(_audio); }, ColBtn, 12, false, 8);
+            UiSkin.Button(sBody, "ResetSave", new Vector2(72, 22), new Vector2(150, 30), "セーブ削除", OnResetSavePressed, new Color(0.45f, 0.15f, 0.2f), 12, false, 8);
+            UiSkin.Button(sBody, "BackToTown", new Vector2(-96, -10), new Vector2(150, 30), "街へ戻る", OnBackToTown, Hex("#5b3fd0"), 12, false, 8);
+            _graphAlwaysBtn = UiSkin.Button(sBody, "GraphAlways", new Vector2(72, -10), new Vector2(150, 30), "", ToggleGraphAlways, ColBtn, 12, false, 8);
+            // AUTO を止める条件（押すたび ON/OFF。ON は AUTO と同じ緑）
+            UiFactory.Label(sBody, "AutoStopLabel", new Vector2(0, -44), new Vector2(360, 16), "AUTO を止める", 11, TextAnchor.MiddleCenter, ColTextSub);
+            string[] stopNames = { "実績解除", "アビス以上の装備", "中ボス出現" };
+            int[] stopBits = { SaveData.AutoStopAchievement, SaveData.AutoStopRareEquip, SaveData.AutoStopBoss };
+            for (int i = 0; i < 3; i++)
+            {
+                int bit = stopBits[i];
+                _autoStopBtns[i] = UiSkin.Button(sBody, "AutoStop" + i, new Vector2(-120 + i * 120, -70), new Vector2(114, 28), stopNames[i],
+                    () => { _autoStopMask ^= bit; SaveData.SaveAutoStop(_autoStopMask); _audio.UiPop(); RefreshAutoStopButtons(); }, ColBtn, 10, false, 8);
+            }
+            RefreshAutoStopButtons();
+            _resetConfirm = UiFactory.Label(sBody, "ResetConfirm", new Vector2(0, -98), new Vector2(360, 16), "", 11, TextAnchor.MiddleCenter, ColGold);
             // キー案内は 2 行（1 行だと板の幅 400 を超える）
-            var keys = UiFactory.Label(sBody, "Keys", new Vector2(0, -108), new Vector2(356, 28),
+            var keys = UiFactory.Label(sBody, "Keys", new Vector2(0, -128), new Vector2(356, 28),
                 _isTouch ? "画面をタップ: BET / 順に停止\nリールをタップ: そのリールを停止" : "B: BGM   G: グラフ   M: マップ   E: 装備\nR: セーブ削除   F1〜F6: 設定   D: デバッグ   Esc: 閉じる", 10, TextAnchor.MiddleCenter, UiSkin.TextDim);
             keys.horizontalOverflow = HorizontalWrapMode.Wrap;
             RefreshGraphAlwaysLabel();
@@ -2263,7 +2278,17 @@ namespace BBB.Runtime
             _lastPayout = r.win.payout;
             _lastWasReplay = r.win.isReplay;
             // 実績: 数えものを進め、解除したら知らせる
-            foreach (var a in AchievementDirector.Track(_m.Achievements, _m.Ach, r, _m)) ShowAchievement(a);
+            var unlockedNow = AchievementDirector.Track(_m.Achievements, _m.Ach, r, _m);
+            foreach (var a in unlockedNow) ShowAchievement(a);
+            // AUTO を止める条件（設定の窓で選ぶ）。見逃したくない出来事の G で止める
+            if (_autoMode)
+            {
+                string stop = null;
+                if ((_autoStopMask & SaveData.AutoStopAchievement) != 0 && unlockedNow.Count > 0) stop = "実績解除";
+                else if ((_autoStopMask & SaveData.AutoStopRareEquip) != 0 && r.equipDropped != null && r.equipDropped.rarity >= AbyssRarityIndex()) stop = $"{EquipDirector.RarityOf(_m.Config.equipment, r.equipDropped).name} の装備";
+                else if ((_autoStopMask & SaveData.AutoStopBoss) != 0 && r.enemySpawned && r.enemyTable != null && r.enemyTable.IsBoss) stop = "中ボス出現";
+                if (stop != null) { SetAuto(false, _autoSpeed); UiFx.PopText(_btnAuto.transform as RectTransform, $"AUTO 停止  {stop}", ColGold, 14, new Vector2(0, 30)); }
+            }
             if (_m.PrecursorRemaining == 0) _hint.text = "";
             PlayCharacter("walk");
 
@@ -3764,6 +3789,26 @@ namespace BBB.Runtime
             else if (_autoSpeedPref < AutoSpeedMax) { _autoSpeedPref++; SetAuto(true, _autoSpeedPref); }
             else { _autoSpeedPref = 1; SetAuto(false, 1); }
             SaveData.SaveOptions(_autoSpeedPref);
+        }
+
+        /// <summary>設定の「AUTO を止める」3 つの見た目（ON は AUTO と同じ緑）。</summary>
+        private void RefreshAutoStopButtons()
+        {
+            int[] bits = { SaveData.AutoStopAchievement, SaveData.AutoStopRareEquip, SaveData.AutoStopBoss };
+            for (int i = 0; i < _autoStopBtns.Length; i++)
+            {
+                if (_autoStopBtns[i] == null) continue;
+                bool on = (_autoStopMask & bits[i]) != 0;
+                UiSkin.SetButtonColor(_autoStopBtns[i], on ? ColGreen : ColBtn, on ? ColBg : UiSkin.TextDim);
+            }
+        }
+
+        /// <summary>「アビス」以上を珍しい装備とみなす（無ければ 7 段目）。</summary>
+        private int AbyssRarityIndex()
+        {
+            var rs = _m.Config.equipment?.rarities;
+            if (rs != null) for (int i = 0; i < rs.Count; i++) if (rs[i].id == "abyss") return i;
+            return 6;
         }
 
         /// <summary>オートの ON/OFF と速さをまとめて切り替える。</summary>

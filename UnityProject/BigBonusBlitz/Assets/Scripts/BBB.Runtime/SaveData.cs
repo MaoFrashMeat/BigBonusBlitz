@@ -14,6 +14,7 @@ namespace BBB.Runtime
         private const string KeyBgmOn = "bbb_opt_bgm_on";
         private const string KeyAutoSpeed = "bbb_opt_auto_speed";
         private const string KeyGraphAlways = "bbb_graph_always";
+        private const string KeyAutoStop = "bbb_opt_auto_stop";
 
         public int credit;
         public int heldBonusFlag;
@@ -252,6 +253,11 @@ namespace BBB.Runtime
 
         /// <summary>保存されたオート速度（無ければ 1）。</summary>
         public static int LoadAutoSpeed() => Mathf.Clamp(PlayerPrefs.GetInt(KeyAutoSpeed, 1), 1, 6);
+
+        /// <summary>AUTO を止める条件（ビット: 1=実績解除 2=アビス以上の装備 4=中ボス出現）。既定は全部 ON。</summary>
+        public const int AutoStopAchievement = 1, AutoStopRareEquip = 2, AutoStopBoss = 4, AutoStopDefault = 7;
+        public static void SaveAutoStop(int mask) { PlayerPrefs.SetInt(KeyAutoStop, mask & 7); PlayerPrefs.Save(); }
+        public static int LoadAutoStop() => PlayerPrefs.GetInt(KeyAutoStop, AutoStopDefault) & 7;
 
         /// <summary>音量だけを別キーに保存する（セーブデータを消しても残る）。</summary>
         public static void SaveAudio(AudioManager audio)
