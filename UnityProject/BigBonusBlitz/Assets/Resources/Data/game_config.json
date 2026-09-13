@@ -1282,7 +1282,13 @@
       }
     ],
     "setSpins": 50,
-    "continueRate": 73
+    "continueRate": 73,
+    "judgeSpins": 8,
+    "judgeHintRate": 55,
+    "judgeHints": {
+      "continue": { "white": 25, "blue": 22, "yellow": 18, "green": 14, "red": 12, "gold": 6, "rainbow": 3 },
+      "end": { "white": 45, "blue": 28, "yellow": 15, "green": 9, "red": 3, "gold": 0, "rainbow": 0 }
+    }
   },
   "bonusPullInSlip": 20,
   "ceilingBonus": {

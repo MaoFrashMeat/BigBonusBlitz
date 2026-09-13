@@ -581,5 +581,86 @@ namespace BBB.Tests
             Assert.IsTrue(m.CurrentFlag.IsBonus());
             Assert.IsTrue(m.HeldBonusFlag.IsBonus());
         }
+
+        /// <summary>AT を始めて、セットのGを使い切るところまで回す（ボーナスを引いたらその機は捨てる）。</summary>
+        private static bool RunToJudge(SlotMachine m, SystemRandom push, out GameResult startResult)
+        {
+            startResult = null;
+            m.Credit = 50_000_000;
+            m.PendingAt = true;
+            for (int g = 0; g < 4000; g++)
+            {
+                var r = PlayOne(m, push);
+                if (m.BonusMode != BonusMode.NORMAL) return false;
+                if (r.judgeStarted) { startResult = r; return true; }
+                if (!m.InAt) return false;
+            }
+            return false;
+        }
+
+        [Test]
+        public void セットを使い切ると継続ジャッジに入り_示唆のあと最終Gに結果が出る()
+        {
+            int checkedRuns = 0, continued = 0;
+            for (int seed = 0; seed < 30 && checkedRuns < 12; seed++)
+            {
+                var m = NewMachine(seed);
+                m.Config.tech.enabled = false;              // 上乗せで結果が変わらないように
+                m.Config.at.judgeSpins = 8;
+                var push = new SystemRandom(seed + 100);
+                if (!RunToJudge(m, push, out var start)) continue;
+                checkedRuns++;
+                Assert.IsTrue(m.InJudge, "ジャッジに入っていない");
+                Assert.AreEqual(8, m.JudgeRemaining);
+                Assert.AreEqual(0, m.AtSpinsRemaining, "ジャッジ中は残りGが 0");
+                int hints = 0, games = 0;
+                GameResult last = null;
+                for (int g = 0; g < 8; g++)
+                {
+                    var r = PlayOne(m, push);
+                    if (m.BonusMode != BonusMode.NORMAL) { last = null; break; }   // ボーナスが割り込んだ機は見ない
+                    games++;
+                    Assert.IsNull(r.zoneStarted, "ジャッジ中にゾーンに入った");
+                    Assert.IsFalse(r.battleStarted, "ジャッジ中に狩猟が始まった");
+                    if (r.judgeHint != null)
+                    {
+                        hints++;
+                        Assert.Contains(r.judgeHint, AtDirectorEx.JudgeColors, "知らない色: " + r.judgeHint);
+                        Assert.Less(g, 7, "最終Gに示唆が出ている");
+                    }
+                    last = r;
+                }
+                if (last == null) continue;
+                Assert.AreEqual(8, games);
+                Assert.IsTrue(last.judgeResolved, "8G 目に結果が出ていない");
+                Assert.IsFalse(m.InJudge, "結果のあともジャッジ中");
+                Assert.IsTrue(last.setContinued ^ last.atEnded, "継続か終了のどちらか 1 つ");
+                if (last.setContinued) { continued++; Assert.IsTrue(m.InAt); Assert.AreEqual(m.Config.at.setSpins, m.AtSpinsRemaining, "次セットのGが入っていない"); }
+                else Assert.IsFalse(m.InAt, "終了なのに AT 中");
+            }
+            Assert.GreaterOrEqual(checkedRuns, 6, "ジャッジまで回せた機が少なすぎる");
+        }
+
+        [Test]
+        public void ジャッジの示唆は終了のとき金と虹が出ず_継続率100なら必ず継続する()
+        {
+            var cfg = GameDataLoader.LoadGameConfig();
+            var rng = new SystemRandom(5);
+            for (int i = 0; i < 2000; i++)
+            {
+                string h = AtDirectorEx.RollJudgeHint(cfg.at, false, rng);
+                if (h != null) Assert.IsTrue(h != "gold" && h != "rainbow", "終了なのに " + h);
+            }
+            bool sawGold = false;
+            for (int i = 0; i < 2000; i++) { string h = AtDirectorEx.RollJudgeHint(cfg.at, true, rng); if (h == "gold" || h == "rainbow") sawGold = true; }
+            Assert.IsTrue(sawGold, "継続なのに金・虹が一度も出ない");
+
+            var m = NewMachine(21);
+            m.Config.tech.enabled = false;
+            m.Config.at.continueRate = 100;
+            var push = new SystemRandom(9);
+            Assume.That(RunToJudge(m, push, out _), "ジャッジまで回せなかった");
+            Assert.IsTrue(m.JudgeWillContinue, "継続率 100 なのに終了が決まっている");
+        }
     }
 }

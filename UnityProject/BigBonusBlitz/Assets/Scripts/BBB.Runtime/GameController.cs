@@ -1229,12 +1229,14 @@ namespace BBB.Runtime
             {
                 if (_m.AtZone != null)
                     _atChip.text = $"{_m.AtZone.name} 残り {_m.AtZoneRemaining}G   AT {_m.AtSpinsRemaining}G   +{_m.AtPayout}";
+                else if (_m.InJudge)
+                    _atChip.text = $"継続ジャッジ 残り {_m.JudgeRemaining}G   +{_m.AtPayout}";
                 else
                     _atChip.text = _m.InBattle ? $"{_m.AtSet}set 残り {_m.AtSpinsRemaining}G （狩猟中）  +{_m.AtPayout}" : $"{_m.AtSet}set 残り {_m.AtSpinsRemaining}G   +{_m.AtPayout}";
                 if (_atChipBg != null)
                     _atChipBg.color = _m.AtZone != null && !string.IsNullOrEmpty(_m.AtZone.color)
                         ? Hex(_m.AtZone.color) * 0.55f : Hex("#2b1e5a");
-                _atChipBg.color = _m.InBattle ? new Color(0.55f, 0.2f, 0.08f) : Hex("#2b1e5a");
+                _atChipBg.color = _m.InBattle ? new Color(0.55f, 0.2f, 0.08f) : _m.InJudge ? new Color(0.5f, 0.1f, 0.3f) : Hex("#2b1e5a");
             }
             if (_m.InAt) _caveTint.color = new Color(0.06f, 0.04f, 0.16f, 0.45f);
             else if (_m.AtEntryRemaining <= 0) _caveTint.color = new Color(0.06f, 0.04f, 0.16f, 0f);
@@ -2917,6 +2919,10 @@ namespace BBB.Runtime
         /// <summary>AT のイベント演出（洞窟発見・バトル・討伐・終了）を一本にまとめて出す。</summary>
         private void AtFx(GameResult r)
         {
+            // 継続ジャッジ: 突入の帯 → 1G ごとの示唆（色） → 最終Gに「判定」と結果
+            if (r.judgeStarted) StartCoroutine(JudgeStartRoutine());
+            if (!string.IsNullOrEmpty(r.judgeHint)) StartCoroutine(JudgeHintRoutine(r.judgeHint));
+            if (r.judgeResolved) { StartCoroutine(JudgeResultRoutine(r)); return; }
             if (r.setContinued) StartCoroutine(SetContinueRoutine(r.continueSet));
             if (r.zoneStarted != null) StartCoroutine(ZoneStartRoutine(r.zoneStarted));
             else if (r.zoneEnded) SetMessage("ゾーン終了", true, ColTextSub);
@@ -2969,6 +2975,8 @@ namespace BBB.Runtime
             if (r.bonusStarted) lines.Add($"{(_m.BonusMode == BonusMode.BB ? "BIG" : "REG")} ボーナス！ {_m.BonusGamesTotal}G の間、ナビ通りに押すとベルが {_m.Config.bonusBell.naviCorrectPayout} 枚");
             if (r.bonusEnded) lines.Add("ボーナスが終わった。通常時に戻る");
             if (r.atStarted) lines.Add($"洞窟（AT）に入った。{_m.AtSpinsRemaining}G の間、モンスターを倒して G を上乗せ");
+            if (r.judgeStarted) lines.Add($"セットを使い切った。{_m.JudgeTotal}G の継続ジャッジ（示唆の色が濃いほど継続に近い）");
+            if (r.setContinued) lines.Add($"継続！ {r.continueSet} セット目。+{_m.Config.at?.setSpins ?? 0}G");
             if (r.atEnded) lines.Add("洞窟を抜けた。上乗せしたぶんのエンバーが入った");
             if (r.battleResolved == true && r.atSpinsAdded > 0) lines.Add($"{r.battleMonster?.name ?? "モンスター"}を討伐。AT +{r.atSpinsAdded}G");
             if (r.routeDecided != null && !r.stageChanged && cfg != null)
@@ -3350,7 +3358,7 @@ namespace BBB.Runtime
         /// <summary>
         /// 帯を横切らせて大きな文字を叩きつける（ENEMY ENGAGE と同じ形）。色と文言だけ差し替えて使い回す。
         /// </summary>
-        private IEnumerator SlamTitle(string text, Color color, float hold = 1.5f, int fontSize = 58)
+        private IEnumerator SlamTitle(string text, Color color, float hold = 1.5f, int fontSize = 58, bool rainbow = false)
         {
             var band = UiSkin.Rect(_area, "SlamBand", Vector2.zero, new Vector2(AreaW * 1.2f, 96));
             UiSkin.Img(band, "Bg", Vector2.zero, new Vector2(AreaW * 1.2f, 96), null, new Color(0, 0, 0, 0.78f));
@@ -3362,8 +3370,9 @@ namespace BBB.Runtime
 
             // 文字は IconText で並べる（"{soul}+30" のような印はアイコンになる）。拡縮と透明度は置き場ごと動かす
             var title = UiSkin.Rect(_area, "SlamTitle", new Vector2(0, 2), new Vector2(AreaW, 96));
-            IconText.Render(title, text, fontSize, Color.white, FontStyle.Bold, fontSize * 1.05f, 1f, 4f, true,
+            var titleRow = IconText.Render(title, text, fontSize, Color.white, FontStyle.Bold, fontSize * 1.05f, 1f, 4f, true,
                             new Color(color.r * 0.35f, color.g * 0.35f, color.b * 0.35f, 1f), new Vector2(0, -3));
+            if (rainbow) foreach (var tx in titleRow.texts) RainbowTint.Apply(tx, 1f, 0.75f);   // 継続確定の虹
             var titleCg = title.gameObject.AddComponent<CanvasGroup>();
             titleCg.alpha = 0f; titleCg.blocksRaycasts = false;
             var glow = UiSkin.Img(_area, "SlamGlow", new Vector2(0, 2), new Vector2(520, 180), UiSkin.Glow(96), new Color(color.r, color.g, color.b, 0f));
@@ -3399,6 +3408,50 @@ namespace BBB.Runtime
         /// <summary>AT 当選: ボーナス終了Gに「洞窟を見つけた」。次Gから AT が始まる。</summary>
         /// <summary>特化ゾーンに入ったときの叩きつけ。ゾーンごとに色と文言を変える。</summary>
         /// <summary>セット継続。何セット目かを見せる（続くほど濃い色に）。</summary>
+        // ------------------------------------------------------------ 継続ジャッジ
+        /// <summary>示唆の色 → 表示色と文言。白＜青＜黄＜緑＜赤＜金＜虹（実機の継続ジャッジと同じ並び）。</summary>
+        private static (Color color, string text, int heat) JudgeHintLook(string hint)
+        {
+            switch (hint)
+            {
+                case "blue": return (UiSkin.Blue, "……まだ終わらない？", 1);
+                case "yellow": return (UiSkin.Gold, "期 待", 1);
+                case "green": return (UiSkin.Green, "チャンス！", 2);
+                case "red": return (UiSkin.Accent, "激アツ！！", 2);
+                case "gold": return (UiSkin.Hex("#f4cd7c"), "継続濃厚", 3);
+                case "rainbow": return (UiSkin.Hex("#ff8ae2"), "継続確定！", 3);
+                default: return (UiSkin.Text, "………", 0);
+            }
+        }
+
+        /// <summary>セットを使い切った: 「継続ジャッジ」の帯と、残りGの案内。</summary>
+        private IEnumerator JudgeStartRoutine()
+        {
+            _audio.Precog(2);
+            StartCoroutine(EdgeGlow(new Color(0.9f, 0.3f, 0.7f), 1.2f, false));
+            yield return SlamTitle("継 続 ジ ャ ッ ジ", new Color(0.95f, 0.45f, 0.8f), 1.7f, 56);
+        }
+
+        /// <summary>ジャッジ中の示唆 1 回。色が濃いほど継続に近い。金と虹は継続のときだけ出る。</summary>
+        private IEnumerator JudgeHintRoutine(string hint)
+        {
+            var look = JudgeHintLook(hint);
+            if (look.heat >= 3) { _audio.RoleChance(); UiFx.Burst(_charRt, hint == "rainbow" ? UiFx.Preset.RainbowStars : UiFx.Preset.SuccessStars, new Vector2(0, 46)); }
+            else if (look.heat == 2) _audio.Precog(2);
+            else _audio.Precog(1);
+            StartCoroutine(EdgeGlow(look.color, 0.8f, hint == "rainbow"));
+            yield return SlamTitle(look.text, look.color, look.heat >= 3 ? 1.3f : 0.9f, look.heat >= 2 ? 48 : 40, hint == "rainbow");
+        }
+
+        /// <summary>ジャッジの最終G: 「判定」と出してから、継続か終了かの見せ方へ。</summary>
+        private IEnumerator JudgeResultRoutine(GameResult r)
+        {
+            _audio.Precog(2);
+            yield return SlamTitle("判   定", ColText, 1.0f, 60);
+            if (r.setContinued) yield return SetContinueRoutine(r.continueSet);
+            else if (r.atEnded) yield return AtEndRoutine(_m.AtPayout, _m.AtSpinCount);
+        }
+
         private IEnumerator SetContinueRoutine(int set)
         {
             _audio.Win();

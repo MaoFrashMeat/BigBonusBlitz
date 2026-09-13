@@ -82,6 +82,19 @@ namespace BBB.Core
         public int setSpins = 50;
         /// <summary>セット終了時に次のセットへ進む率 %。平均G数 = setSpins / (1 - continueRate/100)。</summary>
         public int continueRate = 72;
+        /// <summary>セットを使い切ったあとの継続ジャッジのG数（0 なら即決）。結果は突入時に決まり、最終Gに発表する。</summary>
+        public int judgeSpins = 8;
+        /// <summary>ジャッジ中に示唆が出る率 %（1G ごと。最終Gは示唆でなく結果）。</summary>
+        public int judgeHintRate = 55;
+        /// <summary>
+        /// 示唆の色の重み。"continue"（継続する）と "end"（終わる）それぞれ、色 → 重み。
+        /// 色は白＜青＜黄＜緑＜赤＜金＜虹の順に継続に近い（金と虹は継続のときだけ出す）。
+        /// </summary>
+        public Dictionary<string, Dictionary<string, int>> judgeHints = new Dictionary<string, Dictionary<string, int>>
+        {
+            ["continue"] = new Dictionary<string, int> { ["white"] = 25, ["blue"] = 22, ["yellow"] = 18, ["green"] = 14, ["red"] = 12, ["gold"] = 6, ["rainbow"] = 3 },
+            ["end"] = new Dictionary<string, int> { ["white"] = 45, ["blue"] = 28, ["yellow"] = 15, ["green"] = 9, ["red"] = 3, ["gold"] = 0, ["rainbow"] = 0 },
+        };
         /// <summary>押し順ナビが出る率 %。出ないベルは「共通ベル」として commonBellPayout を払う。</summary>
         public int naviRate = 70;
         /// <summary>共通ベル（ナビの出ないベル）の払い出し。</summary>
@@ -149,6 +162,33 @@ namespace BBB.Core
             string key = PrecogDirector.RoleKey(flag);
             if (!cfg.battleRate.TryGetValue(key, out var rate) || rate <= 0) return false;
             return rng.NextDouble() * 100 < rate;
+        }
+
+        /// <summary>継続ジャッジの示唆の色（弱い順）。</summary>
+        public static readonly string[] JudgeColors = { "white", "blue", "yellow", "green", "red", "gold", "rainbow" };
+
+        /// <summary>
+        /// ジャッジ中の 1G の示唆。judgeHintRate で出るかを決め、結果（継続 / 終了）に応じた重みで色を選ぶ。
+        /// 出ないときは null。表に無い色は出さない。
+        /// </summary>
+        public static string RollJudgeHint(AtConfig cfg, bool willContinue, IRandom rng)
+        {
+            cfg = cfg ?? new AtConfig();
+            if (rng.NextDouble() * 100 >= Math.Max(0, cfg.judgeHintRate)) return null;
+            Dictionary<string, int> table = null;
+            cfg.judgeHints?.TryGetValue(willContinue ? "continue" : "end", out table);
+            if (table == null || table.Count == 0) return null;
+            int total = 0;
+            foreach (var c in JudgeColors) if (table.TryGetValue(c, out var w)) total += Math.Max(0, w);
+            if (total <= 0) return null;
+            int r = rng.Next(total);
+            foreach (var c in JudgeColors)
+            {
+                if (!table.TryGetValue(c, out var w) || w <= 0) continue;
+                if (r < w) return c;
+                r -= w;
+            }
+            return null;
         }
 
         /// <summary>出現するモンスターを重みで選ぶ。</summary>

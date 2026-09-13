@@ -63,6 +63,12 @@ namespace BBB.Core
         public bool atWon;
         /// <summary>このGで AT が始まった / 終わった。</summary>
         public bool atStarted, atEnded;
+        /// <summary>このGで継続ジャッジに入った（セットを使い切った）。</summary>
+        public bool judgeStarted;
+        /// <summary>ジャッジ中の示唆の色（white/blue/yellow/green/red/gold/rainbow）。出ないGは null。</summary>
+        public string judgeHint;
+        /// <summary>このGがジャッジの最終Gで、結果（setContinued / setFailed）が出た。</summary>
+        public bool judgeResolved;
         /// <summary>このGでセットが継続した（次のセットへ）。continueSet がそのセット番号。</summary>
         public bool setContinued;
         public int continueSet;
@@ -184,6 +190,31 @@ namespace BBB.Core
         public int AtSpinCount, AtPayout;
         /// <summary>いま何セット目か（1 始まり）。</summary>
         public int AtSet = 1;
+        /// <summary>継続ジャッジ中か。セットを使い切ったあと judgeSpins G の間、示唆を出して最終Gに結果を発表する。</summary>
+        public bool InJudge;
+        /// <summary>ジャッジの残りGと総G数。</summary>
+        public int JudgeRemaining, JudgeTotal;
+        /// <summary>ジャッジの結果（突入時に決まる）。ジャッジ中に上乗せがあれば結果に関わらず継続する。</summary>
+        public bool JudgeWillContinue;
+
+        /// <summary>次のセットへ（セット番号を進めて setSpins を足す）。</summary>
+        private void ContinueSet(AtConfig atc, GameResult result)
+        {
+            AtSet++;
+            AtSpinsRemaining += Math.Max(1, atc.setSpins);
+            result.setContinued = true;
+            result.continueSet = AtSet;
+        }
+
+        /// <summary>AT を終える（洞窟を抜ける）。</summary>
+        private void EndAt(GameResult result)
+        {
+            InAt = false;
+            AtZone = null; AtZoneRemaining = 0;
+            InJudge = false; JudgeRemaining = 0;
+            result.setFailed = true;
+            result.atEnded = true;
+        }
         /// <summary>道中の押し順ナビ（Active=false なら無し）。</summary>
         public AtNavi Navi2;
         /// <summary>バトル（狩猟）中か。</summary>
@@ -520,6 +551,7 @@ namespace BBB.Core
                 AtSpinsRemaining += _atStockUsed;
                 Adv.stockAtSpins = 0;
                 AtSpinCount = 0; AtPayout = 0; AtSet = 1;
+                InJudge = false; JudgeRemaining = 0; JudgeTotal = 0; JudgeWillContinue = false;
                 InBattle = false; BattleMonster = null; BattleHp = 0; BattleHpMax = 0; BattleSpinsRemaining = 0;
                 AtZone = null; AtZoneRemaining = 0;
                 // 洞窟に入ったら通常時のエンゲージは持ち込まない（択ナビと押し順ナビが重なるため）
@@ -914,7 +946,7 @@ namespace BBB.Core
                         result.zoneEnded = true;
                     }
                 }
-                else
+                else if (!InJudge)   // ジャッジ中はゾーンに入らない（示唆を見せる場なので）
                 {
                     // ゾーンの当選（役ごと）
                     var z = AtDirectorEx.RollZone(atc, CurrentFlag, _rng);
@@ -957,9 +989,9 @@ namespace BBB.Core
                         InBattle = false;
                     }
                 }
-                else if (AtZone != null && AtZone.battleRate > 0
+                else if (!InJudge && (AtZone != null && AtZone.battleRate > 0
                          ? _rng.NextDouble() * 100 < AtZone.battleRate
-                         : AtDirectorEx.RollBattle(atc, CurrentFlag, _rng))
+                         : AtDirectorEx.RollBattle(atc, CurrentFlag, _rng)))   // ジャッジ中は狩猟も起きない
                 {
                     BattleMonster = AtDirectorEx.PickMonster(atc, _rng, AtZone?.monsterId);
                     BattleHpMax = Math.Max(1, BattleMonster.hp);
@@ -969,24 +1001,33 @@ namespace BBB.Core
                     result.battleStarted = true;
                     result.battleMonster = BattleMonster;
                 }
-                // セットを使い切ったら継続を抽選する。ゾーン中と狩猟中は持ち越して先に消化する
-                if (!InBattle && AtSpinsRemaining <= 0 && AtZone == null)
+                // 継続ジャッジ: 1G ごとに示唆を出し、最終Gに結果を発表する
+                if (InJudge)
                 {
-                    int cont = Math.Max(0, Math.Min(100, atc.continueRate));
-                    if (_rng.NextDouble() * 100 < cont)
-                    {
-                        AtSet++;
-                        AtSpinsRemaining += Math.Max(1, atc.setSpins);
-                        result.setContinued = true;
-                        result.continueSet = AtSet;
-                    }
+                    if (JudgeRemaining > 0) JudgeRemaining--;
+                    if (JudgeRemaining > 0) result.judgeHint = AtDirectorEx.RollJudgeHint(atc, JudgeWillContinue, _rng);
                     else
                     {
-                        InAt = false;
-                        AtZone = null; AtZoneRemaining = 0;
-                        result.setFailed = true;
-                        result.atEnded = true;
+                        InJudge = false;
+                        result.judgeResolved = true;
+                        // ジャッジ中に上乗せ（技術介入など）があれば結果に関わらず継続する
+                        if (JudgeWillContinue || AtSpinsRemaining > 0) ContinueSet(atc, result);
+                        else EndAt(result);
                     }
+                }
+                // セットを使い切ったらジャッジへ（judgeSpins が 0 なら即決）。ゾーン中と狩猟中は持ち越して先に消化する
+                else if (!InBattle && AtSpinsRemaining <= 0 && AtZone == null)
+                {
+                    int cont = Math.Max(0, Math.Min(100, atc.continueRate));
+                    bool willContinue = _rng.NextDouble() * 100 < cont;
+                    int judge = Math.Max(0, atc.judgeSpins);
+                    if (judge > 0)
+                    {
+                        InJudge = true; JudgeRemaining = judge; JudgeTotal = judge; JudgeWillContinue = willContinue;
+                        result.judgeStarted = true;
+                    }
+                    else if (willContinue) ContinueSet(atc, result);
+                    else EndAt(result);
                 }
             }
 
