@@ -71,80 +71,8 @@ namespace BBB.Runtime
             var items = cfg?.items ?? new List<ShopItem>();
             var rows = new List<System.Action>();
 
-            // ===== ステータスタブ: ライフ / テクニック / ラック =====
-            if (hasStats)
-            {
-                var head = Label(statsRoot, "StatHead", new Vector2(0, 102), new Vector2(W - 60, 20), "", 14, TextAnchor.MiddleCenter, UiSkin.Text);
-                head.fontStyle = FontStyle.Bold;
-
-                const float colW = 272f;
-                var addButtons = new List<Button>();
-                var valueTexts = new List<Text>();
-                var effectTexts = new List<Text>();
-                var nextTexts = new List<Text>();
-                var colors = new[] { UiSkin.Hex("#3ddc84"), UiSkin.Hex("#ff7a45"), UiSkin.Hex("#ffcf3f") };
-
-                for (int i = 0; i < StatsDirector.Keys.Length; i++)
-                {
-                    string key = StatsDirector.Keys[i];
-                    var col = colors[i];
-                    float cx = (i - 1) * (colW + 12f);
-                    var box = Card(statsRoot, "Stat_" + key, new Vector2(cx, -43), new Vector2(colW, 258), 12, Surface);
-                    UiSkin.Img(box, "Bar", new Vector2(0, 122), new Vector2(colW - 2, 5), UiSkin.Rounded(2), col);
-                    var nm = Label(box, "Name", new Vector2(0, 99), new Vector2(colW - 20, 24), StatsDirector.DisplayName(key), 19, TextAnchor.MiddleCenter, UiSkin.Text);
-                    nm.fontStyle = FontStyle.Bold;
-                    Label(box, "Sum", new Vector2(0, 71), new Vector2(colW - 32, 30), StatsDirector.Summary(key), 13, TextAnchor.UpperCenter, Muted);
-                    var val = UiSkin.Number(box, "Val", new Vector2(0, 34), new Vector2(colW - 20, 34), "0", 30, col);
-                    val.alignment = TextAnchor.MiddleCenter;
-                valueTexts.Add(val);
-                    var eff = Label(box, "Eff", new Vector2(0, -16), new Vector2(colW - 32, 56), "", 13, TextAnchor.UpperLeft, UiSkin.Text);
-                    effectTexts.Add(eff);
-                    var nxt = Label(box, "Next", new Vector2(0, -63), new Vector2(colW - 32, 28), "", 12, TextAnchor.UpperCenter, Muted);
-                    nextTexts.Add(nxt);
-                    string k = key;
-                    var add = Button(box, "Add", new Vector2(0, -102), new Vector2(colW - 32, 44), "＋ 1 振る", () =>
-                    {
-                        if (!StatsDirector.Spend(statsCfg, m.Stats, k)) { note.text = "振れるポイントがありません"; note.color = UiSkin.Accent; RefreshAll(); return; }
-                        audio?.UiPop();
-                        SaveData.Save(m, audio);
-                        note.text = $"{StatsDirector.DisplayName(k)} を上げました";
-                        note.color = UiSkin.Green;
-                        RefreshAll();
-                    }, col, 14, false, 8, "btn_blue");
-                    addButtons.Add(add);
-                }
-
-                var respec = Button(statsRoot, "Respec", new Vector2(0, -190), new Vector2(280, 36), "", () =>
-                {
-                    int cost = m.Adv.chapter > 1 && statsCfg.freeRespecOnChapterClear ? 0 : Mathf.Max(0, statsCfg.respecCost);
-                    if (m.Wallet.Souls < cost) { note.text = "ソウルが足りません"; note.color = UiSkin.Accent; RefreshAll(); return; }
-                    m.Wallet.Souls -= cost;
-                    int back = StatsDirector.Respec(m.Stats);
-                    audio?.UiPop();
-                    SaveData.Save(m, audio);
-                    note.text = $"{back} ポイントを戻しました";
-                    note.color = UiSkin.Green;
-                    RefreshAll();
-                }, Surface, 15, false, 8, "pill_navy_sm");
-
-                rows.Add(() =>
-                {
-                    head.text = $"Lv {m.PlayerLevel}   振れるポイント {m.Stats.Unspent}";
-                    head.color = m.Stats.Unspent > 0 ? Gold : Muted;
-                    for (int i = 0; i < StatsDirector.Keys.Length; i++)
-                    {
-                        string key = StatsDirector.Keys[i];
-                        int cur = m.Stats.Get(key);
-                        valueTexts[i].text = $"{cur} / {statsCfg.maxPerStat}";
-                        effectTexts[i].text = StatsDirector.Effects(statsCfg, m.Stats, key);
-                        nextTexts[i].text = cur < statsCfg.maxPerStat ? StatsDirector.Describe(statsCfg, key, cur) : "これ以上は上げられない";
-                        addButtons[i].interactable = m.Stats.Unspent > 0 && cur < statsCfg.maxPerStat;
-                    }
-                    int cost = m.Adv.chapter > 1 && statsCfg.freeRespecOnChapterClear ? 0 : Mathf.Max(0, statsCfg.respecCost);
-                    UiSkin.SetButtonText(respec, cost == 0 ? "振り直す（無料）" : $"振り直す   {cost:N0} ソウル");
-                    respec.interactable = m.Stats.Total > 0 && m.Wallet.Souls >= cost;
-                });
-            }
+            // ===== ステータスタブ: ライフ / テクニック / ラック（冒険中の窓と同じ板。StatsScreen）=====
+            if (hasStats) rows.Add(StatsScreen.BuildPanel(statsRoot, m, audio, note, () => RefreshAll()));
 
             // ===== 補給タブ: 回復薬とエンバー =====
             if (hasSupply)

@@ -23,7 +23,7 @@ namespace BBB.Runtime
         private static readonly Color ColUp = UiSkin.Hex("#7ee0a0"), ColDown = UiSkin.Hex("#ff7a7a");
 
         public static GameObject Build(Transform stage, SlotMachine m, AudioManager audio,
-                                       System.Action onChanged, System.Action onClose)
+                                       System.Action onChanged, System.Action onClose, System.Action onStats = null)
         {
             const float W = 1020f, H = 510f, edge = 22f;
             var cfg = m.Config.equipment;
@@ -43,6 +43,16 @@ namespace BBB.Runtime
             var title = UiFactory.Label(tab.transform, "Title", new Vector2(0, 1), new Vector2(tabW, tabH), "装備", 15, TextAnchor.MiddleCenter, UiSkin.Text);
             title.fontStyle = FontStyle.Bold;
             UiSkin.IconButton(card, "Close", new Vector2(W * 0.5f - edge, H * 0.5f - 4), 30, "×", () => onClose?.Invoke(), UiSkin.Btn, 16);
+            // 題の右: ステータスを振る窓へ（冒険中でもレベルが上がったら振れる）。振れるポイントがあれば数を出す
+            if (onStats != null && m.Config.stats != null && m.Config.stats.enabled)
+            {
+                const float stW = 200f;
+                int unspent = m.Stats.Unspent;
+                string stText = unspent > 0 ? $"ステータス（{unspent} 振れる）" : "ステータス";
+                var stBtn = UiSkin.Button(card, "BtnStats", new Vector2(-W * 0.5f + edge + tabW + 10 + stW * 0.5f, H * 0.5f - 4), new Vector2(stW, 34), stText,
+                    () => onStats(), UiSkin.Btn, 13, false, 8, "pill_navy_sm");
+                if (unspent > 0) { var stLabel = stBtn.GetComponentInChildren<Text>(); if (stLabel != null) stLabel.color = UiSkin.Gold; }
+            }
 
             EquipItem selected = null;
             var rows = new List<System.Action>();

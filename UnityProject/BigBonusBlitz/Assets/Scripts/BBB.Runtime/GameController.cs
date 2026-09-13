@@ -184,7 +184,7 @@ namespace BBB.Runtime
         private readonly Text[] _routeText = new Text[3];
         private readonly Image[] _routeBar = new Image[3];
         private GameObject _mapBox;
-        private GameObject _equipBox, _curseBox;
+        private GameObject _equipBox, _curseBox, _statsBox;
         private GameObject _trophyBox;                            // 実績と図鑑（TrophyScreen）。開いている間だけある
         private RectTransform _mapBody, _mapView, _condList;
         /// <summary>冒険マップの窓の高さ。地図 320 + 分岐条件 96 が縦に収まる大きさ。</summary>
@@ -1031,7 +1031,7 @@ namespace BBB.Runtime
             _audio.UiPop();
         }
         /// <summary>レバーオン・Esc でモーダルを閉じる（game-design §16.9: 遊技を止めさせない）。</summary>
-        private void CloseModals() { if (_settingsBox != null) _settingsBox.SetActive(false); if (_debugBox != null) _debugBox.SetActive(false); if (_graphBox != null) _graphBox.SetActive(false); if (_mapBox != null) _mapBox.SetActive(false); if (_trophyBox != null) { Destroy(_trophyBox); _trophyBox = null; } if (_equipBox != null) { Destroy(_equipBox); _equipBox = null; } }
+        private void CloseModals() { if (_settingsBox != null) _settingsBox.SetActive(false); if (_debugBox != null) _debugBox.SetActive(false); if (_graphBox != null) _graphBox.SetActive(false); if (_mapBox != null) _mapBox.SetActive(false); if (_trophyBox != null) { Destroy(_trophyBox); _trophyBox = null; } if (_statsBox != null) { Destroy(_statsBox); _statsBox = null; } if (_equipBox != null) { Destroy(_equipBox); _equipBox = null; } }
 
         /// <summary>実績と図鑑の窓の開け閉め（★ ボタン）。開くたびに作り直す（解除と進み具合が変わるため）。</summary>
         private void ToggleTrophy()
@@ -2504,12 +2504,25 @@ namespace BBB.Runtime
         /// <summary>装備画面の開け閉め（E キー）。</summary>
         private void ToggleEquip()
         {
-            if (_equipBox != null) { Destroy(_equipBox); _equipBox = null; _audio.UiPop(); return; }
+            if (_equipBox != null) { CloseModals(); _audio.UiPop(); return; }   // 上に乗ったステータスの窓も一緒に閉じる
             if (_m.Config.equipment == null || !_m.Config.equipment.enabled) return;
             CloseModals();
             _audio.UiPop();
             _equipBox = EquipScreen.Build(_stage, _m, _audio, () => SaveData.Save(_m, _audio),
-                                          () => { Destroy(_equipBox); _equipBox = null; });
+                                          () => { Destroy(_equipBox); _equipBox = null; }, OpenStats);
+        }
+
+        /// <summary>ステータスを振る窓（装備画面の「ステータス」から）。閉じたら装備画面を作り直して表示を合わせる。</summary>
+        private void OpenStats()
+        {
+            if (_statsBox != null) return;
+            if (_m.Config.stats == null || !_m.Config.stats.enabled) return;
+            _audio.UiPop();
+            _statsBox = StatsScreen.Build(_stage, _m, _audio, RefreshUi, () =>
+            {
+                Destroy(_statsBox); _statsBox = null;
+                if (_equipBox != null) { Destroy(_equipBox); _equipBox = null; ToggleEquip(); }
+            });
         }
 
         // ------------------------------------------------------------ 冒険
