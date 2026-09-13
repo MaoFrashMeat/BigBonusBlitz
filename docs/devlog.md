@@ -355,6 +355,8 @@ UI は成功・失敗の演出と ○/× を全リール停止後に出す。
 元絵は assets/symbols（git には入れていない。1 枚 1〜2MB）。`tools/symbol_build.py` が JSON どおりに 320×146 の透過 PNG を
 Resources/Art/Symbols へ書く。大きさは 7 と BAR が 100%、他は 92%。BAR・リプレイ・ブランクは旧絵（tools/symbol_src）の背景を
 透明にして使う。選び直しは `tools/symbol_viewer.html`（実配列で回して見比べ、JSON を吐く）。
+→ 更新（同日）: 本人がビューアで決めた組み合わせに差し替え。red7 90% / white7_5 85% / bar_12 96% / bell_7 74% / watermelon_3 70% /
+cherry_1 66% / replay_6 81% / blank_6 73%。旧絵（symbol_src）は使わなくなった。
 
 ---
 
