@@ -2,6 +2,12 @@
   "entries": [
     {
       "date": "2026-09-14",
+      "version": "dev 173",
+      "title": "「獲得」を金文字の絵に",
+      "body": "・ベルの「n EMB 獲得！」の帯の「獲得」が、assets/symbols/text の金文字の絵になった（Resources/Art/UI/Text/kakutoku）"
+    },
+    {
+      "date": "2026-09-14",
       "version": "dev 172",
       "title": "ベルでエンバーを獲得すると「8 EMB 獲得！」が横切る",
       "body": "・ベルの払い出しのたびに、枚数とエンバーの絵の帯が右から滑り込んで少し止まり、左へ抜ける\n・今までの「BELL」のカットインはこれに置き換え"

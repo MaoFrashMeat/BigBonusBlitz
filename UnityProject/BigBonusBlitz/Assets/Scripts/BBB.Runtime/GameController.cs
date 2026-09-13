@@ -4089,8 +4089,20 @@ namespace BBB.Runtime
             UiSkin.Img(band, "Edge", new Vector2(0, bandH * 0.5f - 1), new Vector2(bandW - 20, 2), null, new Color(1f, 0.6f, 0.2f, 0.95f));
             UiSkin.Img(band, "Edge2", new Vector2(0, -bandH * 0.5f + 1), new Vector2(bandW - 20, 2), null, new Color(1f, 0.6f, 0.2f, 0.95f));
             UiSkin.Img(band, "Glow", Vector2.zero, new Vector2(bandW + 80, bandH + 80), UiSkin.Glow(96), new Color(1f, 0.55f, 0.15f, 0.35f));
+            // 「獲得」は絵（assets/symbols/text の金文字。無ければ文字）。数と炎の絵の右に並べる
+            var kakutoku = ArtLoader.Sprite("Art/UI/Text/kakutoku");
             var row = UiSkin.Rect(band, "Row", new Vector2(0, 1), new Vector2(bandW, bandH));
-            IconText.Render(row, $"{amount} {{ember}} 獲得！", 40, Hex("#ffd23f"), FontStyle.Bold, 44f, 1f, 6f, true, new Color(0.4f, 0.12f, 0f, 1f), new Vector2(2, -3));
+            var parts = IconText.Render(row, kakutoku != null ? $"{amount} {{ember}}" : $"{amount} {{ember}} 獲得！", 40, Hex("#ffd23f"), FontStyle.Bold, 44f, 1f, 6f, true, new Color(0.4f, 0.12f, 0f, 1f), new Vector2(2, -3));
+            if (kakutoku != null)
+            {
+                const float picH = 52f, picGap = 10f;
+                float picW = picH * kakutoku.rect.width / kakutoku.rect.height;
+                float total = parts.width + picGap + picW;
+                // 数字と炎を左へ寄せ、その右に「獲得」の絵
+                foreach (Transform c in row) ((RectTransform)c).anchoredPosition += new Vector2(-(picGap + picW) * 0.5f, 0);
+                var pic = UiSkin.Img(band, "Kakutoku", new Vector2(total * 0.5f - picW * 0.5f, 1), new Vector2(picW, picH), kakutoku, Color.white);
+                pic.preserveAspect = true;
+            }
             var cg = band.gameObject.AddComponent<CanvasGroup>(); cg.blocksRaycasts = false;
             float xIn = AreaW * 0.5f + bandW * 0.6f, xOut = -AreaW * 0.5f - bandW * 0.6f;
             // 滑り込み（減速）→ 保持 → 左へ加速して抜ける
