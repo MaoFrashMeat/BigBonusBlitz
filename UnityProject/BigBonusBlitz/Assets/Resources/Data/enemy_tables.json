@@ -1,4 +1,4 @@
-{
+﻿{
   "tables": [
     {
       "id": "table_slime_1",
@@ -75,6 +75,7 @@
         "CHANCE_C": 500,
         "CHANCE_D": 500
       },
+      "variant": "B",
       "group": "normal"
     },
     {
@@ -113,6 +114,7 @@
         "CHANCE_C": 500,
         "CHANCE_D": 500
       },
+      "variant": "C",
       "group": "normal"
     },
     {
