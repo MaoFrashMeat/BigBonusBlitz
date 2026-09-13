@@ -2,6 +2,12 @@
   "entries": [
     {
       "date": "2026-09-14",
+      "version": "dev 174",
+      "title": "「n EMB 獲得！」の動きを 11 種から選べる。枠なども個別に ON/OFF",
+      "body": "・型: 右→左 / 左→右 / 中央でポン / 上から落ちて弾む / 下からふわっと / 急拡大 / 縦に開く / 叩きつけ / 数字が増えていく / 回りながら収まる / 明滅\n・黒い帯・上下の線・後ろの光・震え・火花をそれぞれ ON/OFF（既定は帯と線が OFF）\n・tools/fx_viewer.html で試して JSON を貼れば反映（reelFx.emberGain）"
+    },
+    {
+      "date": "2026-09-14",
       "version": "dev 173",
       "title": "「獲得」を金文字の絵に",
       "body": "・ベルの「n EMB 獲得！」の帯の「獲得」が、assets/symbols/text の金文字の絵になった（Resources/Art/UI/Text/kakutoku）"

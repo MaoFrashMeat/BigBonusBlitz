@@ -5045,7 +5045,8 @@
     "blinkPeriod": 0.13,
     "blinkDim": 0.28,
     "blinkSeconds": 1.4,
-    "emberGain": { "inSeconds": 0.24, "holdSeconds": 0.55, "outSeconds": 0.26, "y": -8, "bandW": 360, "bandH": 64, "fontSize": 40, "picH": 52 }
+    "emberGain": { "inSeconds": 0.24, "holdSeconds": 0.55, "outSeconds": 0.26, "y": -8, "bandW": 360, "bandH": 64, "fontSize": 40, "picH": 52,
+                   "showBand": false, "showEdges": false, "showGlow": true, "shake": true, "sparks": true, "style": "slideRL" }
   },
   "curse": {
     "enabled": true,

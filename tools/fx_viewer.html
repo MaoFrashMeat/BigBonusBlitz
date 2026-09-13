@@ -57,6 +57,7 @@
       id: "emberGain", name: "n EMB 獲得！（ベル）", key: "reelFx.emberGain",
       note: "右から滑り込み（減速）→ 止まって小さく震える → 左へ加速して抜ける。「獲得」は assets/symbols/text の絵。",
       params: [
+        { key: "style", label: "型", type: "select", def: "slideRL", options: [["slideRL", "右→左スライド"], ["slideLR", "左→右スライド"], ["pop", "中央でポン"], ["drop", "上から落ちて弾む"], ["rise", "下からふわっと"], ["zoom", "急拡大して消える"], ["flip", "縦に開く"], ["slam", "叩きつけ"], ["count", "数字が増えていく"], ["spiral", "回りながら収まる"], ["pulse", "明滅"]] },
         { key: "inSeconds", label: "入る秒", min: 0.05, max: 1, step: 0.01, def: 0.24 },
         { key: "holdSeconds", label: "止まる秒", min: 0, max: 2, step: 0.05, def: 0.55 },
         { key: "outSeconds", label: "抜ける秒", min: 0.05, max: 1, step: 0.01, def: 0.26 },
@@ -66,33 +67,44 @@
         { key: "fontSize", label: "文字", min: 20, max: 80, step: 1, def: 40 },
         { key: "picH", label: "獲得の絵", min: 24, max: 100, step: 1, def: 52 },
         { key: "amount", label: "枚数（例）", min: 1, max: 15, step: 1, def: 8, local: true },
+        { key: "showBand", label: "黒い帯", type: "bool", def: false },
+        { key: "showEdges", label: "上下の線", type: "bool", def: false },
+        { key: "showGlow", label: "後ろの光", type: "bool", def: true },
+        { key: "shake", label: "震え", type: "bool", def: true },
+        { key: "sparks", label: "火花", type: "bool", def: true },
       ],
       total: p => p.inSeconds + p.holdSeconds + p.outSeconds,
       draw(t, p) {
-        const xIn = AreaW / 2 + p.bandW * 0.6, xOut = -AreaW / 2 - p.bandW * 0.6;
-        let x, alpha = 1;
-        if (t < p.inSeconds) { const u = 1 - Math.pow(1 - t / p.inSeconds, 3); x = xIn + (0 - xIn) * u; }
-        else if (t < p.inSeconds + p.holdSeconds) { const th = t - p.inSeconds; x = 3 * Math.sin(th * 30) * (1 - th / Math.max(0.001, p.holdSeconds)); }
-        else if (t < p.inSeconds + p.holdSeconds + p.outSeconds) { const u = Math.pow((t - p.inSeconds - p.holdSeconds) / p.outSeconds, 2.2); x = 0 + (xOut - 0) * u; alpha = 1 - u * 0.4; }
-        else return false;
-        const cx = AreaCx + x, cy = AreaCy - p.y;
-        g.save(); g.globalAlpha = alpha;
-        // 光
-        const grd = g.createRadialGradient(cx, cy, 10, cx, cy, p.bandW * 0.6);
-        grd.addColorStop(0, "rgba(255,140,40,0.35)"); grd.addColorStop(1, "rgba(255,140,40,0)");
-        g.fillStyle = grd; g.fillRect(cx - p.bandW, cy - p.bandH * 1.5, p.bandW * 2, p.bandH * 3);
-        // 帯
-        roundRect(cx - p.bandW / 2, cy - p.bandH / 2, p.bandW, p.bandH, 14); g.fillStyle = "rgba(13,8,5,0.82)"; g.fill();
-        g.fillStyle = "rgba(255,153,51,0.95)"; g.fillRect(cx - p.bandW / 2 + 10, cy - p.bandH / 2, p.bandW - 20, 2); g.fillRect(cx - p.bandW / 2 + 10, cy + p.bandH / 2 - 2, p.bandW - 20, 2);
+        const xIn = AreaW / 2 + p.bandW * 0.6;
+        const q = emberGainPose(p.style || "slideRL", t, p, xIn);
+        if (!q) return false;
+        const cx = AreaCx + q.x, cy = AreaCy - p.y - q.y;
+        g.save(); g.globalAlpha = q.alpha;
+        g.translate(cx, cy); g.rotate(-q.rot * Math.PI / 180); g.scale(q.sx, q.sy); g.translate(-cx, -cy);
+        // 光（ON のとき）
+        if (p.showGlow) {
+          const grd = g.createRadialGradient(cx, cy, 10, cx, cy, p.bandW * 0.6);
+          grd.addColorStop(0, "rgba(255,140,40,0.35)"); grd.addColorStop(1, "rgba(255,140,40,0)");
+          g.fillStyle = grd; g.fillRect(cx - p.bandW, cy - p.bandH * 1.5, p.bandW * 2, p.bandH * 3);
+        }
+        // 帯・上下の線（ON のとき）
+        if (p.showBand) { roundRect(cx - p.bandW / 2, cy - p.bandH / 2, p.bandW, p.bandH, 14); g.fillStyle = "rgba(13,8,5,0.82)"; g.fill(); }
+        if (p.showEdges) { g.fillStyle = "rgba(255,153,51,0.95)"; g.fillRect(cx - p.bandW / 2 + 10, cy - p.bandH / 2, p.bandW - 20, 2); g.fillRect(cx - p.bandW / 2 + 10, cy + p.bandH / 2 - 2, p.bandW - 20, 2); }
+        // 火花（止まった瞬間から 0.4 秒。簡易）
+        if (p.sparks && t >= p.inSeconds && t < p.inSeconds + 0.4) {
+          const u = (t - p.inSeconds) / 0.4;
+          for (let i = 0; i < 14; i++) { const a = i / 14 * Math.PI * 2 + 0.3, r = 20 + u * 90; g.fillStyle = "rgba(255,210,90," + (1 - u) + ")"; g.fillRect(cx + Math.cos(a) * r - 2, cy + Math.sin(a) * r * 0.6 - 2, 4, 4); }
+        }
         // 文字: 「n」「炎」「獲得の絵」を測って中央に
         const fs = p.fontSize; g.font = "bold " + fs + "px sans-serif"; g.textBaseline = "middle";
+        const shown = q.countU < 1 ? Math.round(p.amount * q.countU) : p.amount;
         const numW = g.measureText(String(p.amount)).width, iconW = fs * 1.1, gap = 6, picGap = 10;
         const picOk = kakutoku.complete && kakutoku.naturalWidth > 0;
         const picW = picOk ? p.picH * kakutoku.naturalWidth / kakutoku.naturalHeight : g.measureText("獲得！").width;
         const total = numW + gap + iconW + picGap + picW;
         let x0 = cx - total / 2;
-        g.lineWidth = 5; g.strokeStyle = "rgba(102,31,0,1)"; g.lineJoin = "round"; g.strokeText(String(p.amount), x0, cy + 1);
-        g.fillStyle = "#ffd23f"; g.fillText(String(p.amount), x0, cy + 1); x0 += numW + gap;
+        g.lineWidth = 5; g.strokeStyle = "rgba(102,31,0,1)"; g.lineJoin = "round"; g.strokeText(String(shown), x0, cy + 1);
+        g.fillStyle = "#ffd23f"; g.fillText(String(shown), x0, cy + 1); x0 += numW + gap;
         if (emberIcon.complete && emberIcon.naturalWidth) g.drawImage(emberIcon, x0, cy - iconW / 2, iconW, iconW); x0 += iconW + picGap;
         if (picOk) g.drawImage(kakutoku, x0, cy - p.picH / 2, picW, p.picH);
         else { g.strokeText("獲得！", x0, cy + 1); g.fillText("獲得！", x0, cy + 1); }
@@ -101,6 +113,34 @@
       }
     }
   ];
+  // ---- 型ごとの姿勢（GameController.EmberGainPose と同じ式）
+  const easeOutCubic = u => 1 - Math.pow(1 - Math.min(1, Math.max(0, u)), 3);
+  const easeOutBack = u => { u = Math.min(1, Math.max(0, u)); const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(u - 1, 3) + c1 * Math.pow(u - 1, 2); };
+  const easeOutBounce = u => { u = Math.min(1, Math.max(0, u)); const n1 = 7.5625, d1 = 2.75; if (u < 1 / d1) return n1 * u * u; if (u < 2 / d1) { u -= 1.5 / d1; return n1 * u * u + 0.75; } if (u < 2.5 / d1) { u -= 2.25 / d1; return n1 * u * u + 0.9375; } u -= 2.625 / d1; return n1 * u * u + 0.984375; };
+  const lerp = (a, b, u) => a + (b - a) * u;
+  function emberGainPose(style, t, p, xIn) {
+    const tIn = Math.max(0.01, p.inSeconds), tHold = Math.max(0, p.holdSeconds), tOut = Math.max(0.01, p.outSeconds);
+    const q = { x: 0, y: 0, sx: 1, sy: 1, rot: 0, alpha: 1, countU: 1 };
+    const phase = t < tIn ? 0 : t < tIn + tHold ? 1 : t < tIn + tHold + tOut ? 2 : 3;
+    if (phase === 3) return null;
+    const u = phase === 0 ? t / tIn : phase === 1 ? (tHold > 0 ? (t - tIn) / tHold : 1) : (t - tIn - tHold) / tOut;
+    const shake = p.shake && phase === 1 ? 3 * Math.sin((t - tIn) * 30) * (1 - u) : 0;
+    const S = v => { q.sx = v; q.sy = v; };
+    switch (style) {
+      case "slideLR": if (phase === 0) q.x = lerp(-xIn, 0, easeOutCubic(u)); else if (phase === 1) q.x = shake; else { const v = Math.pow(u, 2.2); q.x = lerp(0, xIn, v); q.alpha = 1 - v * 0.4; } break;
+      case "pop": if (phase === 0) S(lerp(0.2, 1, easeOutBack(u))); else if (phase === 1) q.x = shake; else { S(lerp(1, 1.3, u)); q.alpha = 1 - u; } break;
+      case "drop": if (phase === 0) q.y = lerp(220, 0, easeOutBounce(u)); else if (phase === 1) q.x = shake; else { const v = u * u; q.y = lerp(0, -240, v); q.alpha = 1 - v; } break;
+      case "rise": if (phase === 0) { q.y = lerp(-80, 0, easeOutCubic(u)); q.alpha = u; } else if (phase === 1) q.x = shake; else { q.y = lerp(0, 60, u); q.alpha = 1 - u; } break;
+      case "zoom": if (phase === 0) S(lerp(0.1, 1, u >= 1 ? 1 : 1 - Math.pow(2, -10 * u))); else if (phase === 1) q.x = shake; else { const v = u * u; S(lerp(1, 2.2, v)); q.alpha = 1 - v; } break;
+      case "flip": if (phase === 0) { q.sy = Math.max(0.01, easeOutBack(u)); } else if (phase === 1) q.x = shake; else { q.sy = Math.max(0.01, 1 - u); q.alpha = 1 - u * 0.5; } break;
+      case "slam": if (phase === 0) { S(lerp(1.8, 1, u * u)); q.alpha = Math.min(1, u * 3); } else if (phase === 1) { const a = 8 * (1 - u); q.x = a * Math.sin((t - tIn) * 40); q.y = a * 0.6 * Math.cos((t - tIn) * 37); } else q.alpha = 1 - u; break;
+      case "count": if (phase === 0) { q.countU = u; S(1 + 0.12 * Math.abs(Math.sin(t * 22))); } else if (phase === 1) { q.x = shake; S(u < 0.15 ? 1 + 0.25 * (1 - u / 0.15) : 1); } else q.alpha = 1 - u; break;
+      case "spiral": if (phase === 0) { const e = easeOutCubic(u); q.rot = lerp(360, 0, e); S(lerp(0.2, 1, e)); } else if (phase === 1) q.x = shake; else { q.rot = lerp(0, -180, u); S(lerp(1, 0.2, u)); q.alpha = 1 - u; } break;
+      case "pulse": if (phase === 0) q.alpha = u; else if (phase === 1) S(1 + 0.08 * Math.sin((t - tIn) * 18)); else q.alpha = 1 - u; break;
+      default: if (phase === 0) q.x = lerp(xIn, 0, easeOutCubic(u)); else if (phase === 1) q.x = shake; else { const v = Math.pow(u, 2.2); q.x = lerp(0, -xIn, v); q.alpha = 1 - v * 0.4; } break;
+    }
+    return q;
+  }
   function roundRect(x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
 
   let cur = FX[0], params = {}, playing = -1, loop = false;
@@ -120,6 +160,20 @@
     cur.params.forEach(p => {
       const row = document.createElement("div"); row.className = "row";
       const lb = document.createElement("label"); lb.textContent = p.label;
+      if (p.type === "select") {
+        const sel = document.createElement("select"); sel.style.flex = "1";
+        p.options.forEach(([val, name]) => { const o = document.createElement("option"); o.value = val; o.textContent = name; if (params[p.key] === val) o.selected = true; sel.appendChild(o); });
+        sel.addEventListener("change", e => { params[p.key] = e.target.value; store(); output(); play(); });
+        row.appendChild(lb); row.appendChild(sel); host.appendChild(row);
+        return;
+      }
+      if (p.type === "bool") {
+        const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = !!params[p.key];
+        const v = document.createElement("span"); v.textContent = params[p.key] ? "ON" : "OFF";
+        cb.addEventListener("change", e => { params[p.key] = e.target.checked; v.textContent = e.target.checked ? "ON" : "OFF"; store(); output(); play(); });
+        row.appendChild(lb); row.appendChild(cb); row.appendChild(v); host.appendChild(row);
+        return;
+      }
       const rg = document.createElement("input"); rg.type = "range"; rg.min = p.min; rg.max = p.max; rg.step = p.step; rg.value = params[p.key];
       const v = document.createElement("span"); v.textContent = params[p.key];
       rg.addEventListener("input", e => { params[p.key] = parseFloat(e.target.value); v.textContent = e.target.value; store(); output(); });

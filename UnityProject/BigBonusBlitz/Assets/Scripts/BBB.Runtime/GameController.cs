@@ -4086,10 +4086,14 @@ namespace BBB.Runtime
             var fx = _m.Config.reelFx?.emberGain ?? new EmberGainFxConfig();
             float bandW = fx.bandW, bandH = fx.bandH, y0 = fx.y;
             var band = UiSkin.Rect(_area, "EmberGain", new Vector2(AreaW * 0.5f + bandW * 0.6f, y0), new Vector2(bandW, bandH));
-            UiSkin.Img(band, "Bg", Vector2.zero, new Vector2(bandW, bandH), UiSkin.Rounded(14), new Color(0.05f, 0.03f, 0.02f, 0.82f));
-            UiSkin.Img(band, "Edge", new Vector2(0, bandH * 0.5f - 1), new Vector2(bandW - 20, 2), null, new Color(1f, 0.6f, 0.2f, 0.95f));
-            UiSkin.Img(band, "Edge2", new Vector2(0, -bandH * 0.5f + 1), new Vector2(bandW - 20, 2), null, new Color(1f, 0.6f, 0.2f, 0.95f));
-            UiSkin.Img(band, "Glow", Vector2.zero, new Vector2(bandW + 80, bandH + 80), UiSkin.Glow(96), new Color(1f, 0.55f, 0.15f, 0.35f));
+            // 部品は設定で ON/OFF（2026-09-14 本人: 枠は要らない。細かく切り替えたい）
+            if (fx.showBand) UiSkin.Img(band, "Bg", Vector2.zero, new Vector2(bandW, bandH), UiSkin.Rounded(14), new Color(0.05f, 0.03f, 0.02f, 0.82f));
+            if (fx.showEdges)
+            {
+                UiSkin.Img(band, "Edge", new Vector2(0, bandH * 0.5f - 1), new Vector2(bandW - 20, 2), null, new Color(1f, 0.6f, 0.2f, 0.95f));
+                UiSkin.Img(band, "Edge2", new Vector2(0, -bandH * 0.5f + 1), new Vector2(bandW - 20, 2), null, new Color(1f, 0.6f, 0.2f, 0.95f));
+            }
+            if (fx.showGlow) UiSkin.Img(band, "Glow", Vector2.zero, new Vector2(bandW + 80, bandH + 80), UiSkin.Glow(96), new Color(1f, 0.55f, 0.15f, 0.35f));
             // 「獲得」は絵（assets/symbols/text の金文字。無ければ文字）。数と炎の絵の右に並べる
             var kakutoku = ArtLoader.Sprite("Art/UI/Text/kakutoku");
             var row = UiSkin.Rect(band, "Row", new Vector2(0, 1), new Vector2(bandW, bandH));
@@ -4105,18 +4109,109 @@ namespace BBB.Runtime
                 pic.preserveAspect = true;
             }
             var cg = band.gameObject.AddComponent<CanvasGroup>(); cg.blocksRaycasts = false;
-            float xIn = AreaW * 0.5f + bandW * 0.6f, xOut = -AreaW * 0.5f - bandW * 0.6f;
-            float tIn = Mathf.Max(0.01f, fx.inSeconds), tHold = Mathf.Max(0f, fx.holdSeconds), tOut = Mathf.Max(0.01f, fx.outSeconds);
-            // 滑り込み（減速）→ 保持（小さく震える）→ 左へ加速して抜ける。数値は tools/fx_viewer.html と同じ式
-            float t = 0;
-            while (t < tIn) { t += Time.deltaTime; float u = 1f - Mathf.Pow(1f - Mathf.Clamp01(t / tIn), 3f); band.anchoredPosition = new Vector2(Mathf.Lerp(xIn, 0f, u), y0); yield return null; }
-            band.anchoredPosition = new Vector2(0, y0);
-            UiFx.Burst(_area, UiFx.Preset.Sparks, new Vector2(0, y0));
-            t = 0;
-            while (t < tHold) { t += Time.deltaTime; band.anchoredPosition = new Vector2(3f * Mathf.Sin(t * 30f) * (1f - t / tHold), y0); yield return null; }
-            t = 0;
-            while (t < tOut) { t += Time.deltaTime; float u = Mathf.Pow(Mathf.Clamp01(t / tOut), 2.2f); band.anchoredPosition = new Vector2(Mathf.Lerp(0f, xOut, u), y0); cg.alpha = 1f - u * 0.4f; yield return null; }
+            float xIn = AreaW * 0.5f + bandW * 0.6f;
+            // 型ごとの動き（tools/fx_viewer.html と同じ式）。入る → 止まる → 抜ける
+            var numText = parts.texts.Count > 0 ? parts.texts[0] : null;
+            float t = 0; bool sparked = false;
+            while (true)
+            {
+                t += Time.deltaTime;
+                if (!EmberGainPose(fx.style ?? "slideRL", t, fx, xIn, out var pos, out var sc, out float rot, out float alpha, out float countU)) break;
+                band.anchoredPosition = new Vector2(pos.x, y0 + pos.y);
+                band.localScale = new Vector3(sc.x, sc.y, 1f);
+                band.localRotation = Quaternion.Euler(0, 0, rot);
+                cg.alpha = alpha;
+                if (numText != null && countU < 1f) numText.text = Mathf.RoundToInt(amount * Mathf.Clamp01(countU)).ToString();
+                else if (numText != null && numText.text != amount.ToString()) numText.text = amount.ToString();
+                if (!sparked && t >= Mathf.Max(0.01f, fx.inSeconds)) { sparked = true; if (fx.sparks) UiFx.Burst(_area, UiFx.Preset.Sparks, new Vector2(0, y0)); }
+                yield return null;
+            }
             Destroy(band.gameObject);
+        }
+
+        private static float EaseOutCubic(float u) => 1f - Mathf.Pow(1f - Mathf.Clamp01(u), 3f);
+        private static float EaseOutBack(float u) { u = Mathf.Clamp01(u); const float c1 = 1.70158f, c3 = c1 + 1f; return 1f + c3 * Mathf.Pow(u - 1f, 3f) + c1 * Mathf.Pow(u - 1f, 2f); }
+        private static float EaseOutBounce(float u)
+        {
+            u = Mathf.Clamp01(u); const float n1 = 7.5625f, d1 = 2.75f;
+            if (u < 1f / d1) return n1 * u * u;
+            if (u < 2f / d1) { u -= 1.5f / d1; return n1 * u * u + 0.75f; }
+            if (u < 2.5f / d1) { u -= 2.25f / d1; return n1 * u * u + 0.9375f; }
+            u -= 2.625f / d1; return n1 * u * u + 0.984375f;
+        }
+
+        /// <summary>
+        /// 「n EMB 獲得！」の型ごとの姿勢。t 秒時点の 位置のずれ / 拡縮 / 回転 / 透明度 / 数字の進み（count 用。1 で確定）。
+        /// 終わったら false。tools/fx_viewer.html の同名の関数と同じ式にしておく（見た目を合わせるため）。
+        /// </summary>
+        private static bool EmberGainPose(string style, float t, EmberGainFxConfig fx, float xIn,
+                                          out Vector2 pos, out Vector2 scale, out float rot, out float alpha, out float countU)
+        {
+            float tIn = Mathf.Max(0.01f, fx.inSeconds), tHold = Mathf.Max(0f, fx.holdSeconds), tOut = Mathf.Max(0.01f, fx.outSeconds);
+            pos = Vector2.zero; scale = Vector2.one; rot = 0f; alpha = 1f; countU = 1f;
+            int phase = t < tIn ? 0 : t < tIn + tHold ? 1 : t < tIn + tHold + tOut ? 2 : 3;
+            if (phase == 3) return false;
+            float u = phase == 0 ? t / tIn : phase == 1 ? (tHold > 0 ? (t - tIn) / tHold : 1f) : (t - tIn - tHold) / tOut;
+            float shake = fx.shake && phase == 1 ? 3f * Mathf.Sin((t - tIn) * 30f) * (1f - u) : 0f;
+            switch (style)
+            {
+                case "slideLR":
+                    if (phase == 0) pos.x = Mathf.Lerp(-xIn, 0f, EaseOutCubic(u));
+                    else if (phase == 1) pos.x = shake;
+                    else { float v = Mathf.Pow(u, 2.2f); pos.x = Mathf.Lerp(0f, xIn, v); alpha = 1f - v * 0.4f; }
+                    break;
+                case "pop":
+                    if (phase == 0) scale = Vector2.one * Mathf.Lerp(0.2f, 1f, EaseOutBack(u));
+                    else if (phase == 1) pos.x = shake;
+                    else { scale = Vector2.one * Mathf.Lerp(1f, 1.3f, u); alpha = 1f - u; }
+                    break;
+                case "drop":
+                    if (phase == 0) pos.y = Mathf.Lerp(220f, 0f, EaseOutBounce(u));
+                    else if (phase == 1) pos.x = shake;
+                    else { float v = u * u; pos.y = Mathf.Lerp(0f, -240f, v); alpha = 1f - v; }
+                    break;
+                case "rise":
+                    if (phase == 0) { pos.y = Mathf.Lerp(-80f, 0f, EaseOutCubic(u)); alpha = u; }
+                    else if (phase == 1) pos.x = shake;
+                    else { pos.y = Mathf.Lerp(0f, 60f, u); alpha = 1f - u; }
+                    break;
+                case "zoom":
+                    if (phase == 0) scale = Vector2.one * Mathf.Lerp(0.1f, 1f, u >= 1f ? 1f : 1f - Mathf.Pow(2f, -10f * u));
+                    else if (phase == 1) pos.x = shake;
+                    else { float v = u * u; scale = Vector2.one * Mathf.Lerp(1f, 2.2f, v); alpha = 1f - v; }
+                    break;
+                case "flip":
+                    if (phase == 0) scale = new Vector2(1f, Mathf.Max(0.01f, EaseOutBack(u)));
+                    else if (phase == 1) pos.x = shake;
+                    else { scale = new Vector2(1f, Mathf.Max(0.01f, 1f - u)); alpha = 1f - u * 0.5f; }
+                    break;
+                case "slam":
+                    if (phase == 0) { scale = Vector2.one * Mathf.Lerp(1.8f, 1f, u * u); alpha = Mathf.Min(1f, u * 3f); }
+                    else if (phase == 1) { float a = 8f * (1f - u); pos = new Vector2(a * Mathf.Sin((t - tIn) * 40f), a * 0.6f * Mathf.Cos((t - tIn) * 37f)); }
+                    else alpha = 1f - u;
+                    break;
+                case "count":
+                    if (phase == 0) { countU = u; scale = Vector2.one * (1f + 0.12f * Mathf.Abs(Mathf.Sin(t * 22f))); }
+                    else if (phase == 1) { pos.x = shake; scale = Vector2.one * (u < 0.15f ? 1f + 0.25f * (1f - u / 0.15f) : 1f); }
+                    else alpha = 1f - u;
+                    break;
+                case "spiral":
+                    if (phase == 0) { float e = EaseOutCubic(u); rot = Mathf.Lerp(360f, 0f, e); scale = Vector2.one * Mathf.Lerp(0.2f, 1f, e); }
+                    else if (phase == 1) pos.x = shake;
+                    else { rot = Mathf.Lerp(0f, -180f, u); scale = Vector2.one * Mathf.Lerp(1f, 0.2f, u); alpha = 1f - u; }
+                    break;
+                case "pulse":
+                    if (phase == 0) alpha = u;
+                    else if (phase == 1) scale = Vector2.one * (1f + 0.08f * Mathf.Sin((t - tIn) * 18f));
+                    else alpha = 1f - u;
+                    break;
+                default:   // slideRL
+                    if (phase == 0) pos.x = Mathf.Lerp(xIn, 0f, EaseOutCubic(u));
+                    else if (phase == 1) pos.x = shake;
+                    else { float v = Mathf.Pow(u, 2.2f); pos.x = Mathf.Lerp(0f, -xIn, v); alpha = 1f - v * 0.4f; }
+                    break;
+            }
+            return true;
         }
 
         /// <summary>

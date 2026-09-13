@@ -250,6 +250,13 @@ namespace BBB.Core
         /// <summary>文字の大きさと、「獲得」の絵の高さ。</summary>
         public int fontSize = 40;
         public float picH = 52f;
+        /// <summary>部品ごとの ON/OFF: 黒い帯 / 上下の線 / 後ろの光 / 止まっている間の震え / 止まった瞬間の火花。</summary>
+        public bool showBand = false, showEdges = false, showGlow = true, shake = true, sparks = true;
+        /// <summary>
+        /// 動きの型。slideRL（右→左）/ slideLR（左→右）/ pop（中央でポン）/ drop（上から落ちて弾む）/ rise（下からふわっと）/
+        /// zoom（急拡大して消える）/ flip（縦に開く）/ slam（叩きつけ）/ count（数字が増えていく）/ spiral（回りながら収まる）/ pulse（明滅）
+        /// </summary>
+        public string style = "slideRL";
     }
 
     public sealed class ReelFxConfig
