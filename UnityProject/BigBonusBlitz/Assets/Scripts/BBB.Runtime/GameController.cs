@@ -4093,25 +4093,71 @@ namespace BBB.Runtime
                 UiSkin.Img(band, "Edge", new Vector2(0, bandH * 0.5f - 1), new Vector2(bandW - 20, 2), null, new Color(1f, 0.6f, 0.2f, 0.95f));
                 UiSkin.Img(band, "Edge2", new Vector2(0, -bandH * 0.5f + 1), new Vector2(bandW - 20, 2), null, new Color(1f, 0.6f, 0.2f, 0.95f));
             }
-            if (fx.showGlow) UiSkin.Img(band, "Glow", Vector2.zero, new Vector2(bandW + 80, bandH + 80), UiSkin.Glow(96), new Color(1f, 0.55f, 0.15f, 0.35f));
-            // 「獲得」は絵（assets/symbols/text の金文字。無ければ文字）。数と炎の絵の右に並べる
-            var kakutoku = ArtLoader.Sprite("Art/UI/Text/kakutoku");
-            var row = UiSkin.Rect(band, "Row", new Vector2(0, 1), new Vector2(bandW, bandH));
-            var parts = IconText.Render(row, kakutoku != null ? $"{amount} {{ember}}" : $"{amount} {{ember}} 獲得！", fx.fontSize, Hex("#ffd23f"), FontStyle.Bold, fx.fontSize * 1.1f, 1f, 6f, true, new Color(0.4f, 0.12f, 0f, 1f), new Vector2(2, -3));
-            if (kakutoku != null)
+            Image glow = fx.showGlow ? UiSkin.Img(band, "Glow", Vector2.zero, new Vector2(bandW + 80, bandH + 80), UiSkin.Glow(96), new Color(1f, 0.55f, 0.15f, 0.35f)) : null;
+            // 文字の後ろに大きな炎（ON のとき。文字より先に作るので後ろに描かれる。傾けたり回したりできる）
+            Image back = null;
+            if (fx.backIcon)
             {
-                float picH = fx.picH; const float picGap = 10f;
-                float picW = picH * kakutoku.rect.width / kakutoku.rect.height;
-                float total = parts.width + picGap + picW;
-                // 数字と炎を左へ寄せ、その右に「獲得」の絵
-                foreach (Transform c in row) ((RectTransform)c).anchoredPosition += new Vector2(-(picGap + picW) * 0.5f, 0);
-                var pic = UiSkin.Img(band, "Kakutoku", new Vector2(total * 0.5f - picW * 0.5f, 1), new Vector2(picW, picH), kakutoku, Color.white);
-                pic.preserveAspect = true;
+                back = UiSkin.Img(band, "BackIcon", new Vector2(fx.backIconX, fx.backIconY), new Vector2(fx.backIconSize, fx.backIconSize), UiSkin.Icon("ember", 64), new Color(1f, 1f, 1f, Mathf.Clamp01(fx.backIconAlpha)));
+                back.preserveAspect = true;
+                back.rectTransform.localRotation = Quaternion.Euler(0, 0, fx.backIconRot);
+            }
+            // 数字と「獲得」は絵（assets/symbols の金文字を tools/number_build.py で組んだもの。無ければ文字）。数 → 炎 → 獲得 の順
+            var kakutoku = ArtLoader.Sprite("Art/UI/Text/kakutoku");
+            var numArt = NumberArt();
+            var row = UiSkin.Rect(band, "Row", new Vector2(0, 1), new Vector2(bandW, bandH));
+            Text numText = null; Image[] digitSlots = null;
+            var pieces = new System.Collections.Generic.List<Graphic>();          // 落ち影・縁取りを付ける部品（数字 / 炎 / 獲得）
+            var movers = new System.Collections.Generic.List<RectTransform>();    // ポンと出る・揺れる対象（桁ごと。文字のときは数字の文字 1 つ）
+            if (numArt != null && kakutoku != null)
+            {
+                string s = amount.ToString();
+                float iconW = fx.fontSize * 1.1f; const float gap = 6f, picGap = 10f;
+                float numW = 0; var dw = new float[s.Length];
+                for (int i = 0; i < s.Length; i++) { var sp = numArt[s[i] - '0']; dw[i] = fx.numH * sp.rect.width / sp.rect.height; numW += dw[i]; }
+                float picW = fx.picH * kakutoku.rect.width / kakutoku.rect.height;
+                float x = -(numW + gap + iconW + picGap + picW) * 0.5f;
+                digitSlots = new Image[s.Length];
+                for (int i = 0; i < s.Length; i++)
+                {
+                    digitSlots[i] = UiSkin.Img(row, "Num" + i, new Vector2(x + dw[i] * 0.5f, 0), new Vector2(dw[i], fx.numH), numArt[s[i] - '0'], Color.white);
+                    digitSlots[i].preserveAspect = true; x += dw[i];
+                    pieces.Add(digitSlots[i]); movers.Add(digitSlots[i].rectTransform);
+                }
+                x += gap;
+                pieces.Add(UiSkin.Img(row, "Icon", new Vector2(x + iconW * 0.5f + fx.iconX, fx.iconY), new Vector2(iconW, iconW), UiSkin.Icon("ember", 64), Color.white));
+                x += iconW + picGap;
+                var pic = UiSkin.Img(row, "Kakutoku", new Vector2(x + picW * 0.5f + fx.picX, fx.picY), new Vector2(picW, fx.picH), kakutoku, Color.white);
+                pic.preserveAspect = true; pieces.Add(pic);
+            }
+            else
+            {
+                var parts = IconText.Render(row, kakutoku != null ? $"{amount} {{ember}}" : $"{amount} {{ember}} 獲得！", fx.fontSize, Hex("#ffd23f"), FontStyle.Bold, fx.fontSize * 1.1f, 1f, 6f, true, new Color(0.4f, 0.12f, 0f, 1f), new Vector2(2, -3));
+                foreach (var ic in parts.icons) if (ic != null) ic.rectTransform.anchoredPosition += new Vector2(fx.iconX, fx.iconY);   // 炎の絵だけずらせる
+                numText = parts.texts.Count > 0 ? parts.texts[0] : null;
+                foreach (var tx in parts.texts) if (tx != null) pieces.Add(tx);
+                foreach (var ic in parts.icons) if (ic != null) pieces.Add(ic);
+                if (numText != null) movers.Add(numText.rectTransform);
+                if (kakutoku != null)
+                {
+                    float picH = fx.picH; const float picGap = 10f;
+                    float picW = picH * kakutoku.rect.width / kakutoku.rect.height;
+                    float total = parts.width + picGap + picW;
+                    // 数字と炎を左へ寄せ、その右に「獲得」の絵
+                    foreach (Transform c in row) ((RectTransform)c).anchoredPosition += new Vector2(-(picGap + picW) * 0.5f, 0);
+                    var pic = UiSkin.Img(band, "Kakutoku", new Vector2(total * 0.5f - picW * 0.5f + fx.picX, 1 + fx.picY), new Vector2(picW, picH), kakutoku, Color.white);
+                    pic.preserveAspect = true; pieces.Add(pic);
+                }
+            }
+            // 縁取り → 落ち影 の順に付ける（影は縁取りごと落ちる）
+            foreach (var g in pieces)
+            {
+                if (fx.outline) { var ol = g.gameObject.AddComponent<Outline>(); ol.effectColor = new Color(0.25f, 0.08f, 0f, Mathf.Clamp01(fx.outlineAlpha)); ol.effectDistance = new Vector2(fx.outlineSize, fx.outlineSize); ol.useGraphicAlpha = true; }
+                if (fx.shadow) { var sh = g.gameObject.AddComponent<Shadow>(); sh.effectColor = new Color(0f, 0f, 0f, Mathf.Clamp01(fx.shadowAlpha)); sh.effectDistance = new Vector2(fx.shadowX, fx.shadowY); sh.useGraphicAlpha = true; }
             }
             var cg = band.gameObject.AddComponent<CanvasGroup>(); cg.blocksRaycasts = false;
             float xIn = AreaW * 0.5f + bandW * 0.6f;
             // 型ごとの動き（tools/fx_viewer.html と同じ式）。入る → 止まる → 抜ける
-            var numText = parts.texts.Count > 0 ? parts.texts[0] : null;
             float t = 0; bool sparked = false;
             while (true)
             {
@@ -4121,16 +4167,62 @@ namespace BBB.Runtime
                 band.localScale = new Vector3(sc.x, sc.y, 1f);
                 band.localRotation = Quaternion.Euler(0, 0, rot);
                 cg.alpha = alpha;
-                if (numText != null && countU < 1f) numText.text = Mathf.RoundToInt(amount * Mathf.Clamp01(countU)).ToString();
-                else if (numText != null && numText.text != amount.ToString()) numText.text = amount.ToString();
+                if (back != null && fx.backIconSpin != 0f) back.rectTransform.localRotation = Quaternion.Euler(0, 0, fx.backIconRot + fx.backIconSpin * t);
+                // 足せる効果（tools/fx_viewer.html と同じ式）
+                EmberGainPhase(t, fx, out int ph, out float pu, out float th);
+                if (fx.digitBounce)
+                {
+                    int n = movers.Count; float k = 1f + 0.25f * (n - 1);
+                    for (int i = 0; i < n; i++) { float b = ph == 0 ? Mathf.Max(0.01f, EaseOutBack(Mathf.Clamp01(pu * k - 0.25f * i))) : 1f; movers[i].localScale = new Vector3(b, b, 1f); }
+                }
+                if (fx.wobble) for (int i = 0; i < movers.Count; i++) movers[i].localRotation = Quaternion.Euler(0, 0, ph == 1 ? fx.wobbleDeg * Mathf.Sin(t * fx.wobbleSpeed + i * 0.9f) : 0f);
+                if (fx.glowPulse && glow != null)
+                {
+                    float w = ph >= 1 ? Mathf.Sin(th * 14f) : 0f;
+                    glow.color = new Color(1f, 0.55f, 0.15f, 0.35f * (0.75f + 0.25f * w));
+                    glow.rectTransform.localScale = Vector3.one * (1f + 0.06f * w);
+                }
+                int shown = countU < 1f ? Mathf.RoundToInt(amount * Mathf.Clamp01(countU)) : amount;
+                if (numText != null) { string ss = shown.ToString(); if (numText.text != ss) numText.text = ss; }
+                else if (digitSlots != null) SetDigits(digitSlots, numArt, shown);
                 if (!sparked && t >= Mathf.Max(0.01f, fx.inSeconds)) { sparked = true; if (fx.sparks) UiFx.Burst(_area, UiFx.Preset.Sparks, new Vector2(0, y0)); }
                 yield return null;
             }
             Destroy(band.gameObject);
         }
 
+        /// <summary>帯の数字の絵（Resources/Art/UI/Text/num_0..9）。1 つでも無ければ null（文字で出す）。</summary>
+        private static Sprite[] NumberArt()
+        {
+            var arr = new Sprite[10];
+            for (int d = 0; d < 10; d++) { arr[d] = ArtLoader.Sprite("Art/UI/Text/num_" + d); if (arr[d] == null) return null; }
+            return arr;
+        }
+
+        /// <summary>桁の枠に右詰めで数字の絵を入れる（数え上げ中は桁が少ないので左の枠を空ける）。</summary>
+        private static void SetDigits(Image[] slots, Sprite[] art, int value)
+        {
+            string s = value.ToString();
+            for (int i = 0; i < slots.Length; i++)
+            {
+                int j = i - (slots.Length - s.Length);
+                bool on = j >= 0;
+                if (slots[i].enabled != on) slots[i].enabled = on;
+                if (on) { var sp = art[s[j] - '0']; if (slots[i].sprite != sp) slots[i].sprite = sp; }
+            }
+        }
+
         private static float EaseOutCubic(float u) => 1f - Mathf.Pow(1f - Mathf.Clamp01(u), 3f);
         private static float EaseOutBack(float u) { u = Mathf.Clamp01(u); const float c1 = 1.70158f, c3 = c1 + 1f; return 1f + c3 * Mathf.Pow(u - 1f, 3f) + c1 * Mathf.Pow(u - 1f, 2f); }
+
+        /// <summary>帯の段階（0 入る / 1 止まる / 2 抜ける / 3 終わり）と、その中の進み u（0〜1）、止まってからの秒 th。</summary>
+        private static void EmberGainPhase(float t, EmberGainFxConfig fx, out int phase, out float u, out float th)
+        {
+            float tIn = Mathf.Max(0.01f, fx.inSeconds), tHold = Mathf.Max(0f, fx.holdSeconds), tOut = Mathf.Max(0.01f, fx.outSeconds);
+            phase = t < tIn ? 0 : t < tIn + tHold ? 1 : t < tIn + tHold + tOut ? 2 : 3;
+            u = phase == 0 ? t / tIn : phase == 1 ? (tHold > 0 ? (t - tIn) / tHold : 1f) : phase == 2 ? (t - tIn - tHold) / tOut : 1f;
+            th = Mathf.Max(0f, t - tIn);
+        }
         private static float EaseOutBounce(float u)
         {
             u = Mathf.Clamp01(u); const float n1 = 7.5625f, d1 = 2.75f;
@@ -4152,6 +4244,7 @@ namespace BBB.Runtime
             int phase = t < tIn ? 0 : t < tIn + tHold ? 1 : t < tIn + tHold + tOut ? 2 : 3;
             if (phase == 3) return false;
             float u = phase == 0 ? t / tIn : phase == 1 ? (tHold > 0 ? (t - tIn) / tHold : 1f) : (t - tIn - tHold) / tOut;
+            if (fx.countUp && phase == 0) countU = u;   // 数え上げは追加の効果（どの型にも重なる）
             float shake = fx.shake && phase == 1 ? 3f * Mathf.Sin((t - tIn) * 30f) * (1f - u) : 0f;
             switch (style)
             {
@@ -4188,11 +4281,6 @@ namespace BBB.Runtime
                 case "slam":
                     if (phase == 0) { scale = Vector2.one * Mathf.Lerp(1.8f, 1f, u * u); alpha = Mathf.Min(1f, u * 3f); }
                     else if (phase == 1) { float a = 8f * (1f - u); pos = new Vector2(a * Mathf.Sin((t - tIn) * 40f), a * 0.6f * Mathf.Cos((t - tIn) * 37f)); }
-                    else alpha = 1f - u;
-                    break;
-                case "count":
-                    if (phase == 0) { countU = u; scale = Vector2.one * (1f + 0.12f * Mathf.Abs(Mathf.Sin(t * 22f))); }
-                    else if (phase == 1) { pos.x = shake; scale = Vector2.one * (u < 0.15f ? 1f + 0.25f * (1f - u / 0.15f) : 1f); }
                     else alpha = 1f - u;
                     break;
                 case "spiral":

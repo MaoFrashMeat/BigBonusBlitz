@@ -360,6 +360,16 @@ cherry_1 66% / replay_6 81% / blank_6 73%。旧絵（symbol_src）は使わな�
 
 ---
 
+### 決定: 「n EMB 獲得！」の数字は金文字の絵。効果は「型 × 足せる効果」の 2 層で持つ
+本人（2026-09-14）「数字が増えていくのは追加のエフェクトにして ON/OFF」「ドロップシャドウやいろんなエフェクト足せれるように」。
+動きの型（slideRL など 10 種）は 1 つ選ぶもの、数え上げ・落ち影・縁取り・桁のポン/ゆらゆら・光の脈・後ろの炎は型に重ねる bool。
+すべて `reelFx.emberGain`（game_config.json）にあり、`tools/fx_viewer.html` が同じ式で再生する（ゲーム側 `EmberGainPose` / `EmberGainPhase`）。
+数字の絵は assets/symbols/number（gold 0〜9 各 5 候補。silver は 0〜2 のみで未使用）→ `tools/number_choice.json` → `tools/number_build.py`
+→ Resources/Art/UI/Text/num_0..9（高さ 128、余白カット）。絵が 1 つでも無ければ文字に戻る。
+候補の選び直しはビューアの「数字の書体」。既定はどの数字も候補 1。
+
+---
+
 ## 検証の記録
 
 数字は「いつ・どの条件で測ったか」とセットで残す。条件が違うと比較できない。

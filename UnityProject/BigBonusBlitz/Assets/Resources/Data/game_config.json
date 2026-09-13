@@ -5045,8 +5045,11 @@
     "blinkPeriod": 0.13,
     "blinkDim": 0.28,
     "blinkSeconds": 1.4,
-    "emberGain": { "inSeconds": 0.24, "holdSeconds": 0.55, "outSeconds": 0.26, "y": -8, "bandW": 360, "bandH": 64, "fontSize": 40, "picH": 52,
-                   "showBand": false, "showEdges": false, "showGlow": true, "shake": true, "sparks": true, "style": "slideRL" }
+    "emberGain": { "inSeconds": 0.24, "holdSeconds": 0.55, "outSeconds": 0.26, "y": -8, "bandW": 360, "bandH": 64, "fontSize": 40, "picH": 52, "numH": 56, "iconX": 0, "iconY": 0, "picX": 0, "picY": 0,
+                   "backIcon": false, "backIconSize": 120, "backIconAlpha": 0.45, "backIconX": 0, "backIconY": 0, "backIconRot": 0, "backIconSpin": 0,
+                   "showBand": false, "showEdges": false, "showGlow": true, "shake": true, "sparks": true, "countUp": false,
+                   "shadow": false, "shadowX": 3, "shadowY": -3, "shadowAlpha": 0.6, "outline": false, "outlineSize": 2, "outlineAlpha": 0.8,
+                   "digitBounce": false, "wobble": false, "wobbleDeg": 6, "wobbleSpeed": 8, "glowPulse": false, "style": "slideRL" }
   },
   "curse": {
     "enabled": true,

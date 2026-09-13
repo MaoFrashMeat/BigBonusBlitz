@@ -6,16 +6,19 @@
 <style>
   :root { --bg:#0f1b2d; --panel:#17263a; --panel2:#1d2f47; --line:#2f4460; --ink:#f4f6fa; --muted:#98a3b8; --gold:#f4cd7c; }
   body { margin:0; background:var(--bg); color:var(--ink); font-family:"Yu Gothic","Hiragino Sans",sans-serif; font-size:14px; }
-  .wrap { display:grid; grid-template-columns: 220px 1fr 340px; gap:14px; padding:14px; max-width:1700px; margin:0 auto; }
+  .wrap { display:grid; grid-template-columns: 220px 1fr 360px; grid-template-rows: auto auto minmax(0, 1fr); gap:14px; padding:14px; max-width:1700px; margin:0 auto; height:100vh; box-sizing:border-box; }
   h1 { font-size:18px; margin:0 0 6px; grid-column:1 / -1; }
   .sub { color:var(--muted); font-size:12px; grid-column:1 / -1; margin-top:-4px; }
-  .list { background:var(--panel); border-radius:8px; padding:8px; }
+  .list { background:var(--panel); border-radius:8px; padding:8px; align-self:start; }
   .list button { display:block; width:100%; text-align:left; font:inherit; background:transparent; color:var(--ink); border:0; border-radius:6px; padding:8px 10px; cursor:pointer; }
   .list button.sel { background:var(--panel2); color:var(--gold); font-weight:bold; }
   .stagebox { background:#000; border-radius:8px; padding:6px; }
   canvas { display:block; width:100%; height:auto; border-radius:6px; }
-  .ctrl { background:var(--panel); border-radius:8px; padding:10px 12px; }
+  .ctrl { background:var(--panel); border-radius:8px; padding:10px 12px; overflow-y:auto; min-height:0; }
   .ctrl h2 { font-size:14px; margin:0 0 8px; }
+  .ctrl details { border-top:1px solid var(--line); padding:4px 0; }
+  .ctrl summary { cursor:pointer; color:var(--gold); font-size:13px; padding:4px 0; user-select:none; }
+  .stagecol { min-height:0; display:flex; flex-direction:column; }
   .row { display:flex; align-items:center; gap:8px; margin:6px 0; font-size:12px; color:var(--muted); }
   .row label { flex:0 0 96px; }
   .row input[type=range] { flex:1; }
@@ -24,6 +27,10 @@
   button.plain { font:inherit; background:var(--panel2); color:var(--ink); border:1px solid var(--line); border-radius:6px; padding:6px 12px; cursor:pointer; }
   pre { background:var(--bg); padding:8px; border-radius:6px; font-size:12px; white-space:pre-wrap; user-select:all; margin:8px 0 0; }
   .note { color:var(--muted); font-size:12px; line-height:1.6; }
+  .picker .drow { display:flex; align-items:center; gap:6px; margin:4px 0; }
+  .picker .drow b { flex:0 0 18px; color:var(--gold); text-align:center; }
+  .picker img { height:40px; width:auto; background:#222; border:2px solid transparent; border-radius:4px; cursor:pointer; }
+  .picker img.sel { border-color:var(--gold); }
 </style>
 </head>
 <body>
@@ -31,12 +38,12 @@
   <h1>演出ビューア</h1>
   <div class="sub">ゲームの舞台（1170×540）の上で演出だけを再生する。数値を動かして「再生」。下の JSON を貼れば game_config.json に入る（ゲーム側も同じ式で動く）。Space でも再生。</div>
   <div class="list" id="list"></div>
-  <div class="stagebox"><canvas id="stage" width="1170" height="540"></canvas></div>
+  <div class="stagecol"><div class="stagebox"><canvas id="stage" width="1170" height="540"></canvas></div><div class="note" id="fxNote" style="margin-top:8px"></div></div>
   <div class="ctrl">
     <h2 id="fxName"></h2>
+    <div class="row"><button class="primary" id="play">再生</button><button class="plain" id="loop">繰り返し: OFF</button><button class="plain" id="reset">既定に戻す</button></div>
     <div id="params"></div>
-    <div class="row" style="margin-top:10px"><button class="primary" id="play">再生</button><button class="plain" id="loop">繰り返し: OFF</button><button class="plain" id="reset">既定に戻す</button></div>
-    <div class="note" id="fxNote"></div>
+    <details class="picker"><summary>数字の書体（クリックで選ぶ。候補は assets/symbols/number にあるときだけ）</summary><div id="picker"></div></details>
     <pre id="out"></pre>
   </div>
 </div>
@@ -49,7 +56,41 @@
   function img(src) { if (assets[src]) return assets[src]; const im = new Image(); im.src = src; assets[src] = im; return im; }
   const bg = img("fx_bg.jpg");
   const emberIcon = img("../UnityProject/BigBonusBlitz/Assets/Resources/Art/UI/Icons/ember.png");
-  const kakutoku = img("../assets/symbols/text/kakutoku_1.png");
+  const kakutoku = img("../UnityProject/BigBonusBlitz/Assets/Resources/Art/UI/Text/kakutoku.png");
+  // 数字の絵: 候補（assets/symbols/number/num{d}_{v}.png、この PC にあるとき）→ 組んだもの（Resources/Art/UI/Text/num_{d}.png）→ 文字 の順で使う
+  const NUM_KEY = "bbb_fx_numchoice";
+  let numChoice = { "0": 1, "1": 1, "2": 1, "3": 1, "4": 1, "5": 1, "6": 1, "7": 1, "8": 1, "9": 1 };
+  try { const s = JSON.parse(localStorage.getItem(NUM_KEY) || "null"); if (s) Object.assign(numChoice, s); } catch (e) {}
+  const builtNum = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(d => img("../UnityProject/BigBonusBlitz/Assets/Resources/Art/UI/Text/num_" + d + ".png"));
+  const candNum = (d, v) => img("../assets/symbols/number/num" + d + "_" + v + ".png");
+  const bboxCache = new Map();
+  function bbox(im) {   // 透明な余白を切った範囲（tools/number_build.py と同じ: α>16）。1 回だけ調べる
+    if (bboxCache.has(im)) return bboxCache.get(im);
+    if (!(im.complete && im.naturalWidth)) return null;
+    const sc = Math.min(1, 256 / im.naturalWidth), c = document.createElement("canvas");
+    c.width = Math.max(1, Math.round(im.naturalWidth * sc)); c.height = Math.max(1, Math.round(im.naturalHeight * sc));
+    const cg = c.getContext("2d"); cg.drawImage(im, 0, 0, c.width, c.height);
+    let d; try { d = cg.getImageData(0, 0, c.width, c.height).data; } catch (e) { bboxCache.set(im, null); return null; }
+    let x0 = c.width, y0 = c.height, x1 = -1, y1 = -1;
+    for (let y = 0; y < c.height; y++) for (let x = 0; x < c.width; x++) if (d[(y * c.width + x) * 4 + 3] > 16) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    const r = x1 < 0 ? { x: 0, y: 0, w: im.naturalWidth, h: im.naturalHeight } : { x: x0 / sc, y: y0 / sc, w: (x1 - x0 + 1) / sc, h: (y1 - y0 + 1) / sc };
+    bboxCache.set(im, r); return r;
+  }
+  const silCache = new Map();
+  function silhouette(im, color) {   // 絵の形のまま 1 色に塗った版（縁取り用）。絵ごとに 1 回だけ作る
+    const key = im.src + "|" + color;
+    if (silCache.has(key)) return silCache.get(key);
+    const c = document.createElement("canvas"); c.width = im.naturalWidth; c.height = im.naturalHeight;
+    const cg = c.getContext("2d"); cg.drawImage(im, 0, 0); cg.globalCompositeOperation = "source-in"; cg.fillStyle = color; cg.fillRect(0, 0, c.width, c.height);
+    silCache.set(key, c); return c;
+  }
+  function digitArt(d) {
+    const c = candNum(d, numChoice[String(d)] || 1);
+    if (c.complete && c.naturalWidth) { const b = bbox(c); if (b) return { im: c, b }; }
+    const bi = builtNum[d];
+    if (bi.complete && bi.naturalWidth) return { im: bi, b: { x: 0, y: 0, w: bi.naturalWidth, h: bi.naturalHeight } };
+    return null;
+  }
 
   // 演出の一覧。params は game_config.json のキーと同じ名前にする。draw(t, p) は t 秒時点を描き、終わったら false
   const FX = [
@@ -57,21 +98,46 @@
       id: "emberGain", name: "n EMB 獲得！（ベル）", key: "reelFx.emberGain",
       note: "右から滑り込み（減速）→ 止まって小さく震える → 左へ加速して抜ける。「獲得」は assets/symbols/text の絵。",
       params: [
-        { key: "style", label: "型", type: "select", def: "slideRL", options: [["slideRL", "右→左スライド"], ["slideLR", "左→右スライド"], ["pop", "中央でポン"], ["drop", "上から落ちて弾む"], ["rise", "下からふわっと"], ["zoom", "急拡大して消える"], ["flip", "縦に開く"], ["slam", "叩きつけ"], ["count", "数字が増えていく"], ["spiral", "回りながら収まる"], ["pulse", "明滅"]] },
-        { key: "inSeconds", label: "入る秒", min: 0.05, max: 1, step: 0.01, def: 0.24 },
-        { key: "holdSeconds", label: "止まる秒", min: 0, max: 2, step: 0.05, def: 0.55 },
-        { key: "outSeconds", label: "抜ける秒", min: 0.05, max: 1, step: 0.01, def: 0.26 },
-        { key: "y", label: "高さ", min: -140, max: 140, step: 1, def: -8 },
-        { key: "bandW", label: "帯の幅", min: 200, max: 700, step: 2, def: 360 },
-        { key: "bandH", label: "帯の高さ", min: 40, max: 120, step: 1, def: 64 },
-        { key: "fontSize", label: "文字", min: 20, max: 80, step: 1, def: 40 },
-        { key: "picH", label: "獲得の絵", min: 24, max: 100, step: 1, def: 52 },
-        { key: "amount", label: "枚数（例）", min: 1, max: 15, step: 1, def: 8, local: true },
-        { key: "showBand", label: "黒い帯", type: "bool", def: false },
-        { key: "showEdges", label: "上下の線", type: "bool", def: false },
-        { key: "showGlow", label: "後ろの光", type: "bool", def: true },
-        { key: "shake", label: "震え", type: "bool", def: true },
-        { key: "sparks", label: "火花", type: "bool", def: true },
+        { group: "動き", key: "style", label: "型", type: "select", def: "slideRL", options: [["slideRL", "右→左スライド"], ["slideLR", "左→右スライド"], ["pop", "中央でポン"], ["drop", "上から落ちて弾む"], ["rise", "下からふわっと"], ["zoom", "急拡大して消える"], ["flip", "縦に開く"], ["slam", "叩きつけ"], ["spiral", "回りながら収まる"], ["pulse", "明滅"]] },
+        { group: "動き", key: "inSeconds", label: "入る秒", min: 0.05, max: 1, step: 0.01, def: 0.24 },
+        { group: "動き", key: "holdSeconds", label: "止まる秒", min: 0, max: 2, step: 0.05, def: 0.55 },
+        { group: "動き", key: "outSeconds", label: "抜ける秒", min: 0.05, max: 1, step: 0.01, def: 0.26 },
+        { group: "動き", key: "y", label: "高さ", min: -140, max: 140, step: 1, def: -8 },
+        { group: "大きさ・位置", key: "bandW", label: "帯の幅", min: 200, max: 700, step: 2, def: 360 },
+        { group: "大きさ・位置", key: "bandH", label: "帯の高さ", min: 40, max: 120, step: 1, def: 64 },
+        { group: "大きさ・位置", key: "fontSize", label: "文字", min: 20, max: 80, step: 1, def: 40 },
+        { group: "大きさ・位置", key: "numH", label: "数字の絵", min: 24, max: 120, step: 1, def: 56 },
+        { group: "大きさ・位置", key: "picH", label: "獲得の絵", min: 24, max: 100, step: 1, def: 52 },
+        { group: "大きさ・位置", key: "iconX", label: "炎の左右", min: -40, max: 40, step: 1, def: 0 },
+        { group: "大きさ・位置", key: "iconY", label: "炎の上下", min: -40, max: 40, step: 1, def: 0 },
+        { group: "大きさ・位置", key: "picX", label: "獲得の左右", min: -60, max: 60, step: 1, def: 0 },
+        { group: "大きさ・位置", key: "picY", label: "獲得の上下", min: -40, max: 40, step: 1, def: 0 },
+        { group: "後ろの炎", key: "backIcon", label: "後ろに炎", type: "bool", def: false },
+        { group: "後ろの炎", key: "backIconSize", label: "後ろの炎の大きさ", min: 40, max: 300, step: 2, def: 120 },
+        { group: "後ろの炎", key: "backIconAlpha", label: "後ろの炎の濃さ", min: 0, max: 1, step: 0.05, def: 0.45 },
+        { group: "後ろの炎", key: "backIconX", label: "後ろの炎の左右", min: -200, max: 200, step: 1, def: 0 },
+        { group: "後ろの炎", key: "backIconY", label: "後ろの炎の上下", min: -100, max: 100, step: 1, def: 0 },
+        { group: "後ろの炎", key: "backIconRot", label: "後ろの炎の傾き", min: -180, max: 180, step: 1, def: 0 },
+        { group: "後ろの炎", key: "backIconSpin", label: "後ろの炎の回転", min: -720, max: 720, step: 10, def: 0 },
+        { group: "動き", key: "amount", label: "枚数（例）", min: 1, max: 15, step: 1, def: 8, local: true },
+        { group: "部品", key: "showBand", label: "黒い帯", type: "bool", def: false },
+        { group: "部品", key: "showEdges", label: "上下の線", type: "bool", def: false },
+        { group: "部品", key: "showGlow", label: "後ろの光", type: "bool", def: true },
+        { group: "部品", key: "shake", label: "震え", type: "bool", def: true },
+        { group: "部品", key: "sparks", label: "火花", type: "bool", def: true },
+        { group: "足す効果", key: "countUp", label: "数字が増える", type: "bool", def: false },
+        { group: "足す効果", key: "shadow", label: "落ち影", type: "bool", def: false },
+        { group: "足す効果", key: "shadowX", label: "影の左右", min: -12, max: 12, step: 1, def: 3 },
+        { group: "足す効果", key: "shadowY", label: "影の上下", min: -12, max: 12, step: 1, def: -3 },
+        { group: "足す効果", key: "shadowAlpha", label: "影の濃さ", min: 0, max: 1, step: 0.05, def: 0.6 },
+        { group: "足す効果", key: "outline", label: "縁取り", type: "bool", def: false },
+        { group: "足す効果", key: "outlineSize", label: "縁の太さ", min: 1, max: 6, step: 0.5, def: 2 },
+        { group: "足す効果", key: "outlineAlpha", label: "縁の濃さ", min: 0, max: 1, step: 0.05, def: 0.8 },
+        { group: "足す効果", key: "digitBounce", label: "桁が順にポン", type: "bool", def: false },
+        { group: "足す効果", key: "wobble", label: "桁がゆらゆら", type: "bool", def: false },
+        { group: "足す効果", key: "wobbleDeg", label: "揺れの角度", min: 0, max: 20, step: 1, def: 6 },
+        { group: "足す効果", key: "wobbleSpeed", label: "揺れの速さ", min: 1, max: 30, step: 1, def: 8 },
+        { group: "足す効果", key: "glowPulse", label: "光が脈打つ", type: "bool", def: false },
       ],
       total: p => p.inSeconds + p.holdSeconds + p.outSeconds,
       draw(t, p) {
@@ -81,33 +147,77 @@
         const cx = AreaCx + q.x, cy = AreaCy - p.y - q.y;
         g.save(); g.globalAlpha = q.alpha;
         g.translate(cx, cy); g.rotate(-q.rot * Math.PI / 180); g.scale(q.sx, q.sy); g.translate(-cx, -cy);
-        // 光（ON のとき）
+        // 段階（0 入る / 1 止まる / 2 抜ける）と、止まってからの秒。足せる効果に使う（GameController.EmberGainPhase と同じ）
+        const tIn = Math.max(0.01, p.inSeconds), tHold = Math.max(0, p.holdSeconds);
+        const ph = t < tIn ? 0 : t < tIn + tHold ? 1 : 2, pu = ph === 0 ? t / tIn : ph === 1 ? (tHold > 0 ? (t - tIn) / tHold : 1) : 1, th = Math.max(0, t - tIn);
+        // 光（ON のとき。脈打つ ON なら止まってから明滅）
         if (p.showGlow) {
-          const grd = g.createRadialGradient(cx, cy, 10, cx, cy, p.bandW * 0.6);
-          grd.addColorStop(0, "rgba(255,140,40,0.35)"); grd.addColorStop(1, "rgba(255,140,40,0)");
+          const w = p.glowPulse && ph >= 1 ? Math.sin(th * 14) : 0;
+          const grd = g.createRadialGradient(cx, cy, 10, cx, cy, p.bandW * 0.6 * (1 + 0.06 * w));
+          grd.addColorStop(0, "rgba(255,140,40," + (0.35 * (0.75 + 0.25 * w)) + ")"); grd.addColorStop(1, "rgba(255,140,40,0)");
           g.fillStyle = grd; g.fillRect(cx - p.bandW, cy - p.bandH * 1.5, p.bandW * 2, p.bandH * 3);
         }
         // 帯・上下の線（ON のとき）
         if (p.showBand) { roundRect(cx - p.bandW / 2, cy - p.bandH / 2, p.bandW, p.bandH, 14); g.fillStyle = "rgba(13,8,5,0.82)"; g.fill(); }
         if (p.showEdges) { g.fillStyle = "rgba(255,153,51,0.95)"; g.fillRect(cx - p.bandW / 2 + 10, cy - p.bandH / 2, p.bandW - 20, 2); g.fillRect(cx - p.bandW / 2 + 10, cy + p.bandH / 2 - 2, p.bandW - 20, 2); }
+        // 後ろの大きな炎（ON のとき。文字より先に描く）
+        if (p.backIcon && emberIcon.complete && emberIcon.naturalWidth) {
+          const s = p.backIconSize, bx = cx + (p.backIconX || 0), by = cy - (p.backIconY || 0);
+          const rot = ((p.backIconRot || 0) + (p.backIconSpin || 0) * t) * Math.PI / 180;   // 度。反時計回りが +（ゲームと同じ）
+          g.globalAlpha = q.alpha * Math.min(1, Math.max(0, p.backIconAlpha));
+          g.save(); g.translate(bx, by); g.rotate(-rot); g.drawImage(emberIcon, -s / 2, -s / 2, s, s); g.restore();
+          g.globalAlpha = q.alpha;
+        }
         // 火花（止まった瞬間から 0.4 秒。簡易）
         if (p.sparks && t >= p.inSeconds && t < p.inSeconds + 0.4) {
           const u = (t - p.inSeconds) / 0.4;
           for (let i = 0; i < 14; i++) { const a = i / 14 * Math.PI * 2 + 0.3, r = 20 + u * 90; g.fillStyle = "rgba(255,210,90," + (1 - u) + ")"; g.fillRect(cx + Math.cos(a) * r - 2, cy + Math.sin(a) * r * 0.6 - 2, 4, 4); }
         }
-        // 文字: 「n」「炎」「獲得の絵」を測って中央に
+        // 「n」「炎」「獲得の絵」を測って中央に。数字は絵があれば絵（無ければ文字）
         const fs = p.fontSize; g.font = "bold " + fs + "px sans-serif"; g.textBaseline = "middle";
         const shown = q.countU < 1 ? Math.round(p.amount * q.countU) : p.amount;
-        const numW = g.measureText(String(p.amount)).width, iconW = fs * 1.1, gap = 6, picGap = 10;
+        const iconW = fs * 1.1, gap = 6, picGap = 10, picX = p.picX || 0, picY = p.picY || 0;
         const picOk = kakutoku.complete && kakutoku.naturalWidth > 0;
         const picW = picOk ? p.picH * kakutoku.naturalWidth / kakutoku.naturalHeight : g.measureText("獲得！").width;
+        const digits = String(p.amount).split("").map(ch => digitArt(+ch));
+        const artOk = picOk && digits.every(Boolean);
+        const numH = p.numH || 56;
+        const numW = artOk ? digits.reduce((w, a) => w + numH * a.b.w / a.b.h, 0) : g.measureText(String(p.amount)).width;
         const total = numW + gap + iconW + picGap + picW;
         let x0 = cx - total / 2;
-        g.lineWidth = 5; g.strokeStyle = "rgba(102,31,0,1)"; g.lineJoin = "round"; g.strokeText(String(shown), x0, cy + 1);
-        g.fillStyle = "#ffd23f"; g.fillText(String(shown), x0, cy + 1); x0 += numW + gap;
-        if (emberIcon.complete && emberIcon.naturalWidth) g.drawImage(emberIcon, x0, cy - iconW / 2, iconW, iconW); x0 += iconW + picGap;
-        if (picOk) g.drawImage(kakutoku, x0, cy - p.picH / 2, picW, p.picH);
-        else { g.strokeText("獲得！", x0, cy + 1); g.fillText("獲得！", x0, cy + 1); }
+        // 桁ごとの「ポンと出る」「ゆらゆら」（GameController と同じ式。文字のときは数字 1 つが対象）
+        const nMove = artOk ? digits.length : 1, kb = 1 + 0.25 * (nMove - 1);
+        const bounceOf = i => p.digitBounce ? (ph === 0 ? Math.max(0.01, easeOutBack(Math.min(1, Math.max(0, pu * kb - 0.25 * i)))) : 1) : 1;
+        const wobbleOf = i => p.wobble && ph === 1 ? p.wobbleDeg * Math.sin(t * p.wobbleSpeed + i * 0.9) : 0;
+        // 部品を 1 つ描く: 縁取り（4 方向の色付き影）→ 落ち影 → 本体。中心 (mx, my) で拡縮・回転
+        const piece = (draw, mx, my, i) => {
+          const b = bounceOf(i), r = wobbleOf(i) * Math.PI / 180;
+          g.save(); g.translate(mx, my); g.rotate(-r); g.scale(b, b); g.translate(-mx, -my);
+          if (p.shadow) { g.save(); g.shadowColor = "rgba(0,0,0," + p.shadowAlpha + ")"; g.shadowOffsetX = p.shadowX; g.shadowOffsetY = -p.shadowY; if (p.outline) outlineCopies(draw); draw(0, 0); g.restore(); }
+          if (p.outline) outlineCopies(draw);
+          draw(0, 0);
+          g.restore();
+        };
+        const outlineCopies = draw => { const d = p.outlineSize; g.save(); g.globalAlpha *= p.outlineAlpha; [[d, d], [d, -d], [-d, d], [-d, -d]].forEach(([ox, oy]) => draw(ox, oy, "rgba(64,20,0,1)")); g.restore(); };
+        const imgDraw = (im, sx, sy, sw, sh, dx, dy, dw, dh) => (ox, oy, tint) => { if (tint) g.drawImage(silhouette(im, tint), sx, sy, sw, sh, dx + ox, dy + oy, dw, dh); else g.drawImage(im, sx, sy, sw, sh, dx + ox, dy + oy, dw, dh); };
+        if (artOk) {
+          // 桁の枠は最終の枚数で決め、数え上げ中は右詰め（GameController.SetDigits と同じ）
+          const ss = String(shown);
+          digits.forEach((a, i) => {
+            const w = numH * a.b.w / a.b.h, j = i - (digits.length - ss.length);
+            if (j >= 0) { const da = digitArt(+ss[j]); if (da) { const dw = Math.min(w, numH * da.b.w / da.b.h), dh = dw * da.b.h / da.b.w; piece(imgDraw(da.im, da.b.x, da.b.y, da.b.w, da.b.h, x0 + (w - dw) / 2, cy - dh / 2, dw, dh), x0 + w / 2, cy, i); } }
+            x0 += w;
+          });
+        } else {
+          const tx = x0;
+          piece((ox, oy, tint) => { g.font = "bold " + fs + "px sans-serif"; g.textBaseline = "middle"; g.lineWidth = 5; g.strokeStyle = tint || "rgba(102,31,0,1)"; g.lineJoin = "round"; g.strokeText(String(shown), tx + ox, cy + 1 + oy); g.fillStyle = tint || "#ffd23f"; g.fillText(String(shown), tx + ox, cy + 1 + oy); }, tx + numW / 2, cy, 0);
+          x0 += numW;
+        }
+        x0 += gap;
+        if (emberIcon.complete && emberIcon.naturalWidth) piece(imgDraw(emberIcon, 0, 0, emberIcon.naturalWidth, emberIcon.naturalHeight, x0 + (p.iconX || 0), cy - iconW / 2 - (p.iconY || 0), iconW, iconW), x0 + iconW / 2, cy, 99);
+        x0 += iconW + picGap;
+        if (picOk) piece(imgDraw(kakutoku, 0, 0, kakutoku.naturalWidth, kakutoku.naturalHeight, x0 + picX, cy - p.picH / 2 - picY, picW, p.picH), x0 + picW / 2, cy, 99);
+        else { const tx = x0 + picX; piece((ox, oy, tint) => { g.font = "bold " + fs + "px sans-serif"; g.textBaseline = "middle"; g.lineWidth = 5; g.strokeStyle = tint || "rgba(102,31,0,1)"; g.fillStyle = tint || "#ffd23f"; g.strokeText("獲得！", tx + ox, cy + 1 - picY + oy); g.fillText("獲得！", tx + ox, cy + 1 - picY + oy); }, tx + picW / 2, cy, 99); }
         g.restore();
         return true;
       }
@@ -125,6 +235,7 @@
     if (phase === 3) return null;
     const u = phase === 0 ? t / tIn : phase === 1 ? (tHold > 0 ? (t - tIn) / tHold : 1) : (t - tIn - tHold) / tOut;
     const shake = p.shake && phase === 1 ? 3 * Math.sin((t - tIn) * 30) * (1 - u) : 0;
+    if (p.countUp && phase === 0) q.countU = u;   // 数え上げは追加の効果（どの型にも重なる）
     const S = v => { q.sx = v; q.sy = v; };
     switch (style) {
       case "slideLR": if (phase === 0) q.x = lerp(-xIn, 0, easeOutCubic(u)); else if (phase === 1) q.x = shake; else { const v = Math.pow(u, 2.2); q.x = lerp(0, xIn, v); q.alpha = 1 - v * 0.4; } break;
@@ -134,7 +245,6 @@
       case "zoom": if (phase === 0) S(lerp(0.1, 1, u >= 1 ? 1 : 1 - Math.pow(2, -10 * u))); else if (phase === 1) q.x = shake; else { const v = u * u; S(lerp(1, 2.2, v)); q.alpha = 1 - v; } break;
       case "flip": if (phase === 0) { q.sy = Math.max(0.01, easeOutBack(u)); } else if (phase === 1) q.x = shake; else { q.sy = Math.max(0.01, 1 - u); q.alpha = 1 - u * 0.5; } break;
       case "slam": if (phase === 0) { S(lerp(1.8, 1, u * u)); q.alpha = Math.min(1, u * 3); } else if (phase === 1) { const a = 8 * (1 - u); q.x = a * Math.sin((t - tIn) * 40); q.y = a * 0.6 * Math.cos((t - tIn) * 37); } else q.alpha = 1 - u; break;
-      case "count": if (phase === 0) { q.countU = u; S(1 + 0.12 * Math.abs(Math.sin(t * 22))); } else if (phase === 1) { q.x = shake; S(u < 0.15 ? 1 + 0.25 * (1 - u / 0.15) : 1); } else q.alpha = 1 - u; break;
       case "spiral": if (phase === 0) { const e = easeOutCubic(u); q.rot = lerp(360, 0, e); S(lerp(0.2, 1, e)); } else if (phase === 1) q.x = shake; else { q.rot = lerp(0, -180, u); S(lerp(1, 0.2, u)); q.alpha = 1 - u; } break;
       case "pulse": if (phase === 0) q.alpha = u; else if (phase === 1) S(1 + 0.08 * Math.sin((t - tIn) * 18)); else q.alpha = 1 - u; break;
       default: if (phase === 0) q.x = lerp(xIn, 0, easeOutCubic(u)); else if (phase === 1) q.x = shake; else { const v = Math.pow(u, 2.2); q.x = lerp(0, -xIn, v); q.alpha = 1 - v * 0.4; } break;
@@ -157,7 +267,16 @@
     document.getElementById("fxName").textContent = cur.name;
     document.getElementById("fxNote").textContent = cur.note || "";
     const host = document.getElementById("params"); host.innerHTML = "";
+    const sections = {};
+    const sectionOf = name => {
+      if (!name) return host;
+      if (sections[name]) return sections[name];
+      const d = document.createElement("details"); d.open = true;
+      const sm = document.createElement("summary"); sm.textContent = name; d.appendChild(sm);
+      host.appendChild(d); sections[name] = d; return d;
+    };
     cur.params.forEach(p => {
+      const host = sectionOf(p.group);
       const row = document.createElement("div"); row.className = "row";
       const lb = document.createElement("label"); lb.textContent = p.label;
       if (p.type === "select") {
@@ -183,7 +302,24 @@
   }
   function output() {
     const o = {}; cur.params.forEach(p => { if (!p.local) o[p.key] = params[p.key]; });
-    document.getElementById("out").textContent = '"' + cur.key.split(".").pop() + '": ' + JSON.stringify(o) + "\n（game_config.json の " + cur.key + "）";
+    let text = '"' + cur.key.split(".").pop() + '": ' + JSON.stringify(o) + "\n（game_config.json の " + cur.key + "）";
+    if (cur.id === "emberGain") text += "\n\n\"variant\": " + JSON.stringify(numChoice) + "\n（tools/number_choice.json に貼って py -3 tools/number_build.py）";
+    document.getElementById("out").textContent = text;
+  }
+  function buildPicker() {
+    const host = document.getElementById("picker");
+    for (let d = 0; d <= 9; d++) {
+      const row = document.createElement("div"); row.className = "drow";
+      const b = document.createElement("b"); b.textContent = String(d); row.appendChild(b);
+      for (let v = 1; v <= 5; v++) {
+        const im = document.createElement("img"); im.src = candNum(d, v).src; im.title = "num" + d + "_" + v + ".png";
+        im.className = (numChoice[String(d)] || 1) === v ? "sel" : "";
+        im.addEventListener("error", () => { im.style.display = "none"; });
+        im.addEventListener("click", () => { numChoice[String(d)] = v; try { localStorage.setItem(NUM_KEY, JSON.stringify(numChoice)); } catch (e) {} [...row.querySelectorAll("img")].forEach((x, i) => x.className = i + 1 === v ? "sel" : ""); output(); play(); });
+        row.appendChild(im);
+      }
+      host.appendChild(row);
+    }
   }
   function play() { playing = performance.now(); }
   function frame(now) {
@@ -202,7 +338,7 @@
   document.getElementById("loop").addEventListener("click", e => { loop = !loop; e.target.textContent = "繰り返し: " + (loop ? "ON" : "OFF"); if (loop) play(); });
   document.getElementById("reset").addEventListener("click", () => { cur.params.forEach(p => params[p.key] = p.def); store(); buildParams(); play(); });
   document.addEventListener("keydown", e => { if (e.key === " " && !(e.target && e.target.tagName === "INPUT")) { e.preventDefault(); play(); } });
-  loadParams(); buildList(); buildParams(); requestAnimationFrame(frame); setTimeout(play, 600);
+  loadParams(); buildList(); buildParams(); buildPicker(); requestAnimationFrame(frame); setTimeout(play, 600);
 })();
 </script>
 </body>

@@ -247,14 +247,31 @@ namespace BBB.Core
         public float inSeconds = 0.24f, holdSeconds = 0.55f, outSeconds = 0.26f;
         /// <summary>帯の位置（表示域の中央からの高さ）と大きさ。</summary>
         public float y = -8f, bandW = 360f, bandH = 64f;
-        /// <summary>文字の大きさと、「獲得」の絵の高さ。</summary>
+        /// <summary>文字の大きさ（数字の絵が無いときの文字と、炎の絵の基準）と、「獲得」の絵の高さ、数字の絵の高さ。</summary>
         public int fontSize = 40;
-        public float picH = 52f;
+        public float picH = 52f, numH = 56f;
+        /// <summary>炎の絵と「獲得」の絵のずらし（px。右が +、上が +）。数字との並びや詰まり具合を合わせる用。</summary>
+        public float iconX = 0f, iconY = 0f, picX = 0f, picY = 0f;
+        /// <summary>文字の後ろに大きな炎の絵を敷く。大きさ（px）/ 濃さ（0〜1）/ ずらし（右+ 上+）/ 傾き（度、反時計回り+）/ 回る速さ（度/秒、0 で止まる）。</summary>
+        public bool backIcon = false;
+        public float backIconSize = 120f, backIconAlpha = 0.45f, backIconX = 0f, backIconY = 0f, backIconRot = 0f, backIconSpin = 0f;
         /// <summary>部品ごとの ON/OFF: 黒い帯 / 上下の線 / 後ろの光 / 止まっている間の震え / 止まった瞬間の火花。</summary>
         public bool showBand = false, showEdges = false, showGlow = true, shake = true, sparks = true;
+        /// <summary>数字が 0 から増えていく（入る間に数え上げる）。どの型にも足せる追加の効果。</summary>
+        public bool countUp = false;
+        /// <summary>
+        /// 足せる効果（どの型にも重なる）: 落ち影（ずれ x/y px、濃さ 0〜1）/ 縁取り（太さ px、濃さ）/
+        /// 桁が順にポンと出る / 止まっている間、桁がゆらゆら揺れる（角度、速さ）/ 後ろの光が脈打つ。
+        /// </summary>
+        public bool shadow = false;
+        public float shadowX = 3f, shadowY = -3f, shadowAlpha = 0.6f;
+        public bool outline = false;
+        public float outlineSize = 2f, outlineAlpha = 0.8f;
+        public bool digitBounce = false, wobble = false, glowPulse = false;
+        public float wobbleDeg = 6f, wobbleSpeed = 8f;
         /// <summary>
         /// 動きの型。slideRL（右→左）/ slideLR（左→右）/ pop（中央でポン）/ drop（上から落ちて弾む）/ rise（下からふわっと）/
-        /// zoom（急拡大して消える）/ flip（縦に開く）/ slam（叩きつけ）/ count（数字が増えていく）/ spiral（回りながら収まる）/ pulse（明滅）
+        /// zoom（急拡大して消える）/ flip（縦に開く）/ slam（叩きつけ）/ spiral（回りながら収まる）/ pulse（明滅）
         /// </summary>
         public string style = "slideRL";
     }
