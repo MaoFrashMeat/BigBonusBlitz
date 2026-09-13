@@ -1370,8 +1370,7 @@
     "successGuaranteesDefeat": true,
     "successExp": 25,
     "failPenalty": 0,
-    "correctLeftRate": 50,
-    "missSlip": 8
+    "correctLeftRate": 50
   },
   "atExpect": {
     "startPercent": 0,

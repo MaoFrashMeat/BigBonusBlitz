@@ -75,35 +75,6 @@ namespace BBB.Core
             return new Result { slip = bestSlip, stopIndex = finalIdx, symbols = Window(strips[reelIndex], finalIdx) };
         }
 
-        /// <summary>
-        /// 候補を絞れる版。allow が false を返す停止位置は選ばない（例: 「あとでこぼせる位置だけ」）。
-        /// 許される候補が 1 つも無ければ、絞らない通常の制御に戻す。
-        /// </summary>
-        public static Result Stop(Symbol[][] strips, int reelIndex, int baseIdx, Flag flag, Flag heldBonus,
-                                  int[] stoppedIdx, int maxSlip, Func<int[], bool> allow)
-        {
-            if (allow == null) return Stop(strips, reelIndex, baseIdx, flag, heldBonus, stoppedIdx, maxSlip);
-            var ctx = Context.Get(strips, flag, heldBonus, maxSlip);
-            int len = strips[reelIndex].Length;
-            int bestSlip = -1;
-            long bestScore = long.MinValue;
-            var st = (int[])stoppedIdx.Clone();
-            for (int k = 0; k <= maxSlip; k++)
-            {
-                st[reelIndex] = ((baseIdx - k) % len + len) % len;
-                if (!allow((int[])st.Clone())) continue;
-                long score = ctx.Score(st);
-                if (score > bestScore) { bestScore = score; bestSlip = k; }
-            }
-            if (bestSlip < 0) return Stop(strips, reelIndex, baseIdx, flag, heldBonus, stoppedIdx, maxSlip);
-            int finalIdx = ((baseIdx - bestSlip) % len + len) % len;
-            return new Result { slip = bestSlip, stopIndex = finalIdx, symbols = Window(strips[reelIndex], finalIdx) };
-        }
-
-        /// <summary>この停止状態から、残りのリールをどこで押しても flag どおり（HAZE なら「揃えない」）に止められるか。</summary>
-        public static bool IsFeasibleFrom(Symbol[][] strips, Flag flag, Flag heldBonus, int[] stoppedIdx, int maxSlip = DefaultMaxSlip)
-            => Context.Get(strips, flag, heldBonus, maxSlip).IsFeasible(stoppedIdx);
-
         /// <summary>停止図柄（Symbol[][]、未停止 null）指定版。図柄が同じなら判定も同じなので先頭一致のコマ番号に写す。</summary>
         public static Result Stop(Symbol[][] strips, int reelIndex, int baseIdx, Flag flag, Flag heldBonus,
                                   Symbol[][] stopped, int maxSlip = DefaultMaxSlip)

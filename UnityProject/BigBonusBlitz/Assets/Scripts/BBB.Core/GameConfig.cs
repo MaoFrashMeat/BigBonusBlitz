@@ -148,8 +148,6 @@ namespace BBB.Core
         public int failPenalty = 0;
         /// <summary>択の正解が「左」になる確率 %（残りは右）。</summary>
         public int correctLeftRate = 50;
-        /// <summary>外したGの第三停止でベルをこぼすときの最大滑りコマ数（正解は第三停止まで見せないため、第二停止にはベルが乗る）。</summary>
-        public int missSlip = 8;
     }
 
     public sealed class Payouts

@@ -582,41 +582,6 @@ namespace BBB.Tests
             Assert.IsTrue(m.HeldBonusFlag.IsBonus());
         }
 
-        [Test]
-        public void ベル択を外しても第二停止までは正解と見分けがつかず_第三停止でこぼれる()
-        {
-            var m = NewMachine(3);
-            m.Config.adventure.enabled = false;
-            m.Credit = 50_000_000;
-            var push = new SystemRandom(9);
-            int games = 0, bellOnSecondWrong = 0, bellOnSecondOk = 0, wrongGames = 0, okGames = 0;
-            for (int g = 0; g < 200_000 && games < 400; g++)
-            {
-                if (!m.IsTier2 && !m.EnemyActive && m.PrecursorRemaining == 0) m.DebugForceEnemy = true;
-                Assert.IsTrue(m.MaxBet()); m.Lever();
-                if (m.Navi.Active && m.CurrentFlag.IsBell())
-                {
-                    games++;
-                    bool wrong = games % 2 == 0;
-                    int first = m.Navi.first;
-                    m.Stop(first, push.Next(20));
-                    int second = wrong ? (m.Navi.correctReel == 0 ? 2 : 0) : m.Navi.correctReel;
-                    var r2 = m.Stop(second, push.Next(20));
-                    bool bell = System.Array.IndexOf(r2.symbols, Symbol.STAR) >= 0;
-                    if (wrong) { wrongGames++; if (bell) bellOnSecondWrong++; } else { okGames++; if (bell) bellOnSecondOk++; }
-                    m.Stop(3 - first - second, push.Next(20));
-                    var r = m.Evaluate();
-                    if (wrong) Assert.AreEqual(0, r.win.payout, "外したのにベルが揃った");
-                    else Assert.Greater(r.win.payout, 0, "正解なのにベルがこぼれた");
-                }
-                else { for (int i = 0; i < 3; i++) m.Stop(i, push.Next(20)); m.Evaluate(); }
-            }
-            Assert.GreaterOrEqual(games, 200, "ナビのGが少なすぎる");
-            // 第二停止にベルが見える率が、外しと正解でほぼ同じ（差 15 ポイント以内）
-            float wr = (float)bellOnSecondWrong / wrongGames, ok = (float)bellOnSecondOk / okGames;
-            Assert.Less(System.Math.Abs(wr - ok), 0.15f, $"第二停止で見分けがつく: 外し {wr:P0} / 正解 {ok:P0}");
-        }
-
         /// <summary>AT を始めて、セットのGを使い切るところまで回す（ボーナスを引いたらその機は捨てる）。</summary>
         private static bool RunToJudge(SlotMachine m, SystemRandom push, out GameResult startResult)
         {
