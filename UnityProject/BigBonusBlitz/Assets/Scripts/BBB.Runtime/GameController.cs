@@ -104,6 +104,13 @@ namespace BBB.Runtime
         private Text _dialogName, _dialogText;
         private Image _dialogNameBg;
         private Coroutine _dialogRoutine;
+        /// <summary>吹き出しの本文にアイコンを混ぜるときの置き場（文字の Text と同じ位置）。</summary>
+        private RectTransform _dialogRow;
+        /// <summary>出来事の説明を流している最中か（物語や旅人の会話は割り込まない）。</summary>
+        private bool _explainActive;
+        /// <summary>上の帯のメッセージにアイコンを混ぜるときの置き場と、その文字（点滅で色を合わせる）。</summary>
+        private RectTransform _messageRow;
+        private IconText.Row _messageRowParts;
         // 役演出: 揃ったコマを光らせる（3リール × 3段 = 9セル。index = reel * 3 + row, row 0=上段）
         private CanvasGroup _paylineFlash;
         private readonly Image[] _cellFx = new Image[9];
@@ -537,6 +544,9 @@ namespace BBB.Runtime
             _message = UiFactory.Label(band, "Message", new Vector2(36, 0), new Vector2(376, BandH), "", 16, TextAnchor.MiddleCenter, ColText);
             _message.fontStyle = FontStyle.Bold;
             TextShadow(_message, 0.6f);
+            // SOUL / EMB は文字でなくアイコンで出す（"{soul}+90" のように書いたときはこちらに並べる）
+            _messageRow = UiSkin.Rect(band, "MessageRow", new Vector2(36, 0), new Vector2(376, BandH));
+            _messageRow.gameObject.SetActive(false);
             UiFactory.Label(band, "GLabel", new Vector2(bandW * 0.5f - 8 - 92 - 20, 0), new Vector2(40, 20), "GAME", 10, TextAnchor.MiddleRight, UiSkin.TextDim);
             _gCount = UiSkin.Number(band, "G", new Vector2(bandW * 0.5f - 8 - 44, 0), new Vector2(88, BandH), "0 G", 15, ColGold);
 
@@ -549,6 +559,8 @@ namespace BBB.Runtime
             _dialogName = UiFactory.Label(_dialogNameBg.rectTransform, "Name", new Vector2(0, 0), new Vector2(92, 20), "", 11, TextAnchor.MiddleCenter, ColBg);
             _dialogName.fontStyle = FontStyle.Bold;
             _dialogText = UiFactory.Label(dlg, "Text", new Vector2(8, -3), new Vector2(584, 44), "", 15, TextAnchor.MiddleLeft, ColText);
+            _dialogRow = UiSkin.Rect(dlg, "TextRow", new Vector2(8, -3), new Vector2(584, 44));
+            _dialogRow.gameObject.SetActive(false);
             _dialogBox = dlg.gameObject;
             _dialogBox.SetActive(false);
 
@@ -1254,8 +1266,19 @@ namespace BBB.Runtime
         }
         private void SetMessage(string text, bool flash = false, Color? color = null)
         {
-            _message.text = text;
-            _message.color = color ?? ColText;
+            var col = color ?? ColText;
+            if (_messageRow != null && IconText.HasIcons(text))
+            {
+                _message.text = "";
+                _messageRowParts = IconText.Render(_messageRow, text, 16, col, FontStyle.Bold, 18f, 0.6f);
+                _messageRow.gameObject.SetActive(true);
+            }
+            else
+            {
+                if (_messageRow != null && _messageRow.gameObject.activeSelf) { _messageRow.gameObject.SetActive(false); _messageRowParts = null; }
+                _message.text = text;
+            }
+            _message.color = col;
             _messageFlashUntil = flash ? Time.time + _m.Config.timings.nextWin / 1000f : 0f;
         }
 
@@ -1271,8 +1294,8 @@ namespace BBB.Runtime
                     UiFx.Burst(_reels[r.tech.reel].GetComponent<RectTransform>(), UiFx.Preset.SuccessStars);
                     UiFx.Ring(_reels[r.tech.reel].GetComponent<RectTransform>(), new Color(1f, 0.9f, 0.4f, 0.9f), 40, 260, 0.5f);
                     var parts = new System.Collections.Generic.List<string>();
-                    if (r.techSouls > 0) parts.Add($"SOUL +{r.techSouls}");
-                    if (r.techEmbers > 0) parts.Add($"EMB +{r.techEmbers}");
+                    if (r.techSouls > 0) parts.Add($"{{soul}}+{r.techSouls}");
+                    if (r.techEmbers > 0) parts.Add($"{{ember}}+{r.techEmbers}");
                     if (r.techExp > 0) parts.Add($"EXP +{r.techExp}");
                     if (r.techAtGames > 0) parts.Add($"+{r.techAtGames}G");
                     SetMessage("技術介入 成功！  " + string.Join("  ", parts), true, ColGold);
@@ -2101,6 +2124,7 @@ namespace BBB.Runtime
                 float t = Mathf.PingPong(Time.time * 6f, 1f);
                 _message.color = Color.Lerp(ColText, ColGold, t);
                 if (Time.time > _messageFlashUntil) { _messageFlashUntil = 0f; _message.color = ColText; }
+                _messageRowParts?.SetColor(_message.color);
             }
         }
 
@@ -2457,6 +2481,7 @@ namespace BBB.Runtime
             if (_graphBox != null && _graphBox.activeSelf) _graph.Redraw();
             RedrawMini();
             ShowTechResult(r);
+            ExplainEvents(r, unlockedNow);   // 起きたことを吹き出しで説明（旅人や独り言より先に取る）
             RollTraveler();
             RollHeroMonologue(r);
             SaveData.Save(_m, _audio);
@@ -2691,7 +2716,7 @@ namespace BBB.Runtime
                 case "atSpins": what = $"次の洞窟  +{t.amount} G"; break;
                 case "atExpect": what = $"次のボーナス  AT期待度 +{t.amount}%"; break;
                 case "exp": what = $"EXP +{t.amount}"; break;
-                default: what = $"+{t.amount} SOUL"; break;
+                default: what = $"{{soul}}+{t.amount}"; break;
             }
             yield return SlamTitle($"宝箱発見！  {t.name}", ColGold, 1.3f, 44);
             SetMessage($"{t.name}   {what}", true, ColGold);
@@ -2706,7 +2731,7 @@ namespace BBB.Runtime
                 _audio.EnemyAppearLand();
                 UiFx.Ring(_charRt, new Color(color.r, color.g, color.b, 0.8f), 40, 300, 0.5f);
                 yield return SlamTitle($"{node.id}   {node.name}", color, 1.6f, 50);
-                if (firstSouls > 0) yield return SlamTitle($"はじめての地   +{firstSouls} SOUL", ColGold, 1.2f, 36);
+                if (firstSouls > 0) yield return SlamTitle($"はじめての地   {{soul}}+{firstSouls}", ColGold, 1.2f, 36);
             }
             else
             {
@@ -2765,7 +2790,7 @@ namespace BBB.Runtime
             if (_autoMode) SetAuto(false, _autoSpeed);
             _audio.Win();
             UiFx.Burst(_charRt, UiFx.Preset.SuccessStars, new Vector2(0, 40));
-            yield return SlamTitle($"第{Mathf.Max(1, _m.Adv.chapter - 1)}章  踏破！   +{r.chapterSouls} SOUL", ColGold, 2.4f, 50);
+            yield return SlamTitle($"第{Mathf.Max(1, _m.Adv.chapter - 1)}章  踏破！   {{soul}}+{r.chapterSouls}", ColGold, 2.4f, 50);
             if (r.chapterSetbacks > 0) yield return SlamTitle($"引き返した回数 {r.chapterSetbacks}   報酬はその分だけ減った", ColTextSub, 1.4f, 28);
             if (PlayStory(StoryDirector.OnClear(_m.Config.story, Mathf.Max(1, _m.Adv.chapter - 1)))) yield return new WaitForSeconds(3.2f);
             _runEndReason = "clear";
@@ -2880,6 +2905,143 @@ namespace BBB.Runtime
             if (r.atEnded) StartCoroutine(AtEndRoutine(_m.AtPayout, _m.AtSpinCount));
         }
 
+        // ------------------------------------------------------------ 出来事の説明
+        /// <summary>
+        /// このGで起きたことを、セリフの枠と同じ吹き出しで 1 つずつ説明する（2026-09-13 本人の依頼）。
+        /// 敵・報酬・拾い物・進行・その他の順に集め、多いときは先頭 3 つまで。物語や旅人の会話が流れている間は出さない。
+        /// </summary>
+        private void ExplainEvents(GameResult r, System.Collections.Generic.List<AchievementDef> unlocked)
+        {
+            if (r.chapterCleared || r.returnedToTown) return;   // 大きな演出と物語に任せる
+            var lines = new System.Collections.Generic.List<string>();
+            var cfg = _m.Config.adventure;
+            if (r.precursorStarted) lines.Add(r.enemyTable != null && r.enemyTable.IsBoss ? "嫌な気配…… 強い敵が近づいてくる" : "気配がする…… 敵が近づいてくる");
+            if (r.enemySpawned && r.enemyTable != null)
+                lines.Add(r.enemyTable.IsBoss ? $"中ボス {r.enemyTable.name}。{_m.EngageMaxSpins}G のうちに役を引けば倒せる"
+                                              : $"{r.enemyTable.name}が現れた。{_m.EngageMaxSpins}G の間に役を引けば討伐（ベルはナビ通りに）");
+            if (r.enemyResolved == true) lines.Add($"{_engagedName}を倒した。EXP +{r.enemyExp}、{{soul}}+{r.soulsGained}");
+            else if (r.enemyResolved == false) lines.Add($"{_engagedName}に逃げられた。次はエンゲージ中に役を引こう");
+            if (r.levelUp) lines.Add($"Lv {_m.PlayerLevel} に上がった。振れるポイント +{_m.Config.stats?.pointsPerLevel ?? 0}（装備画面のステータス）");
+            if (r.hpHealed > 0) lines.Add(r.win.isReplay ? $"リプレイでライフが {r.hpHealed} 回復した" : $"ベルでライフが {r.hpHealed} 回復した");
+            if (r.equipDropped != null)
+            {
+                var rar = EquipDirector.RarityOf(_m.Config.equipment, r.equipDropped);
+                if (r.equipBagFull) lines.Add($"{r.equipDropped.name} を見送った（鞄がいっぱい。装備画面で売れる）");
+                else if (r.equipAutoWorn) lines.Add($"{rar.name}の {r.equipDropped.name} を拾って、そのまま着けた");
+                else lines.Add($"{rar.name}の {r.equipDropped.name} を拾った。装備画面で着け替えられる");
+            }
+            if (r.itemDrops != null && r.itemDrops.Count > 0)
+            {
+                var parts = new System.Collections.Generic.List<string>();
+                foreach (var d in r.itemDrops)
+                    parts.Add(d.kind == "souls" ? $"{{soul}}+{d.amount:N0}" : d.kind == "embers" ? $"{{ember}}+{d.amount:N0}" : $"{d.name} +{d.amount:N0}");
+                lines.Add("拾った: " + string.Join("  ", parts));
+            }
+            if (r.treasure != null) lines.Add($"宝箱の {r.treasure.name}: {TreasureText(r.treasure)}");
+            else if (r.torchRefilled) lines.Add($"回復薬 +1（1 つでライフ {_m.TorchSpinsPerUnit} 回転ぶん）");
+            if (r.bonusStarted) lines.Add($"{(_m.BonusMode == BonusMode.BB ? "BIG" : "REG")} ボーナス！ {_m.BonusGamesTotal}G の間、ナビ通りに押すとベルが {_m.Config.bonusBell.naviCorrectPayout} 枚");
+            if (r.bonusEnded) lines.Add("ボーナスが終わった。通常時に戻る");
+            if (r.atStarted) lines.Add($"洞窟（AT）に入った。{_m.AtSpinsRemaining}G の間、モンスターを倒して G を上乗せ");
+            if (r.atEnded) lines.Add("洞窟を抜けた。上乗せしたぶんのエンバーが入った");
+            if (r.battleResolved == true && r.atSpinsAdded > 0) lines.Add($"{r.battleMonster?.name ?? "モンスター"}を討伐。AT +{r.atSpinsAdded}G");
+            if (r.routeDecided != null && !r.stageChanged && cfg != null)
+            {
+                var n = cfg.Find(r.routeDecided);
+                lines.Add(r.routeCondition != null ? $"{AdventureDirector.DescribeCondition(r.routeCondition)} を達成。次は {n?.name ?? r.routeDecided} へ"
+                                                   : $"次は {n?.name ?? r.routeDecided} へ進む");
+            }
+            if (r.stageChanged && cfg != null)
+            {
+                var n = cfg.Find(r.stageTo);
+                if (n != null) lines.Add($"{n.name} に着いた。{_m.Adv.spinsLeft}G 回すと次のルートが決まる");
+            }
+            if (r.curseOffer != null) lines.Add("呪いの申し出。受けると呪いと祝福が 1 つずつ付く（街へ戻るまで）");
+            if (r.tech.Active)
+            {
+                if (r.techSuccess)
+                {
+                    var parts = new System.Collections.Generic.List<string>();
+                    if (r.techSouls > 0) parts.Add($"{{soul}}+{r.techSouls}");
+                    if (r.techEmbers > 0) parts.Add($"{{ember}}+{r.techEmbers}");
+                    if (r.techExp > 0) parts.Add($"EXP +{r.techExp}");
+                    if (r.techAtGames > 0) parts.Add($"AT +{r.techAtGames}G");
+                    lines.Add("技術介入 成功！ " + string.Join("  ", parts));
+                }
+                else lines.Add("技術介入は失敗。損はしないので、次に狙おう");
+            }
+            if (r.missionCleared != null) lines.Add($"任務「{r.missionCleared.name}」を達成");
+            else if (r.missionStarted != null) lines.Add($"任務を受けた: {r.missionStarted.name}");
+            if (unlocked != null) foreach (var a in unlocked) lines.Add(a.rewardSouls > 0 ? $"実績「{a.name}」を解除。{{soul}}+{a.rewardSouls}" : $"実績「{a.name}」を解除");
+            if (lines.Count == 0) return;
+            if (lines.Count > 3) lines.RemoveRange(3, lines.Count - 3);
+            if (_dialogRoutine != null && !_explainActive) return;   // 物語・旅人の会話の途中
+            if (_dialogRoutine != null) StopCoroutine(_dialogRoutine);
+            _explainActive = true;
+            _dialogRoutine = StartCoroutine(ExplainRoutine(lines));
+        }
+
+        private static string TreasureText(TreasureDef t)
+        {
+            switch (t.kind)
+            {
+                case "souls": return $"{{soul}}+{t.amount:N0}";
+                case "atSpins": return $"次の洞窟（AT）に +{t.amount}G";
+                case "atExpect": return $"次のボーナスの AT 期待度 +{t.amount}%";
+                case "exp": return $"EXP +{t.amount:N0}";
+                case "torch": return $"回復薬 +{t.amount}";
+                case "embers": return $"{{ember}}+{t.amount:N0}";
+                default: return t.kind;
+            }
+        }
+
+        /// <summary>説明を 1 行ずつ、吹き出しで流す（青いタグ「説明」）。長い行は少し長く見せる。</summary>
+        private IEnumerator ExplainRoutine(System.Collections.Generic.List<string> lines)
+        {
+            foreach (var line in lines)
+            {
+                float seconds = line.Length > 26 ? 3.0f : 2.4f;
+                float t = 0;
+                const float cps = 28f;
+                while (t < seconds)
+                {
+                    t += Time.deltaTime;
+                    PutExplainLine(line, Mathf.Clamp01(t * cps / Mathf.Max(1, line.Length)));
+                    yield return null;
+                }
+                PutExplainLine(line, 1f);
+            }
+            _explainActive = false;
+            HideDialogue();
+            _dialogRoutine = null;
+        }
+
+        /// <summary>
+        /// 吹き出しに説明を 1 行置く。progress は文字の出た割合（0〜1、タイプライタ）。
+        /// アイコン入りの行はタイプできないので、そのまま並べる。
+        /// </summary>
+        private void PutExplainLine(string line, float progress)
+        {
+            if (_dialogBox == null) return;
+            _dialogBox.SetActive(true);
+            _dialogName.text = "説明";
+            _dialogNameBg.color = UiSkin.Blue;
+            _dialogName.color = ColBg;
+            bool icons = IconText.HasIcons(line);
+            if (_dialogRow != null) _dialogRow.gameObject.SetActive(icons);
+            _dialogText.gameObject.SetActive(!icons);
+            _dialogText.color = ColText;
+            if (icons)
+            {
+                if (_dialogRow.childCount == 0 || progress >= 1f && _dialogRow.childCount == 0)
+                    IconText.Render(_dialogRow, line, 15, ColText, FontStyle.Normal, 17f, 0f, 3f, false);
+            }
+            else
+            {
+                int n = Mathf.Clamp(Mathf.FloorToInt(line.Length * progress), 0, line.Length);
+                _dialogText.text = line.Substring(0, n);
+            }
+        }
+
         private void RollHeroMonologue(GameResult r)
         {
             if (_m.BonusMode != BonusMode.NORMAL || _m.EnemyActive || _m.PrecursorRemaining > 0 || _m.IsTier2 || _m.PendingTier2 || _m.InAt || _m.AtEntryRemaining > 0) return;
@@ -2989,7 +3151,14 @@ namespace BBB.Runtime
         private void HideDialogue()
         {
             if (_dialogRoutine != null) { StopCoroutine(_dialogRoutine); _dialogRoutine = null; }
+            _explainActive = false;
             if (_dialogBox != null) _dialogBox.SetActive(false);
+            if (_dialogRow != null)
+            {
+                for (int i = _dialogRow.childCount - 1; i >= 0; i--) Destroy(_dialogRow.GetChild(i).gameObject);
+                _dialogRow.gameObject.SetActive(false);
+            }
+            if (_dialogText != null) _dialogText.gameObject.SetActive(true);
         }
 
         // ------------------------------------------- ボーナス中の 15 枚ベル演出
@@ -3164,11 +3333,10 @@ namespace BBB.Runtime
             var bandCg = band.gameObject.AddComponent<CanvasGroup>();
             bandCg.blocksRaycasts = false;
 
-            var title = UiFactory.Label(_area, "SlamTitle", new Vector2(0, 2), new Vector2(AreaW, 96), text, fontSize, TextAnchor.MiddleCenter, Color.white);
-            title.fontStyle = FontStyle.Bold;
-            var sh = title.gameObject.AddComponent<Shadow>();
-            sh.effectColor = new Color(color.r * 0.35f, color.g * 0.35f, color.b * 0.35f, 1f);
-            sh.effectDistance = new Vector2(0, -3);
+            // 文字は IconText で並べる（"{soul}+30" のような印はアイコンになる）。拡縮と透明度は置き場ごと動かす
+            var title = UiSkin.Rect(_area, "SlamTitle", new Vector2(0, 2), new Vector2(AreaW, 96));
+            IconText.Render(title, text, fontSize, Color.white, FontStyle.Bold, fontSize * 1.05f, 1f, 4f, true,
+                            new Color(color.r * 0.35f, color.g * 0.35f, color.b * 0.35f, 1f), new Vector2(0, -3));
             var titleCg = title.gameObject.AddComponent<CanvasGroup>();
             titleCg.alpha = 0f; titleCg.blocksRaycasts = false;
             var glow = UiSkin.Img(_area, "SlamGlow", new Vector2(0, 2), new Vector2(520, 180), UiSkin.Glow(96), new Color(color.r, color.g, color.b, 0f));
@@ -3182,10 +3350,10 @@ namespace BBB.Runtime
             while (t < 0.16f)
             {
                 t += Time.deltaTime;
-                title.rectTransform.localScale = Vector3.one * Mathf.Lerp(1.5f, 1f, 1f - Mathf.Pow(1f - Mathf.Clamp01(t / 0.16f), 2f));
+                title.localScale = Vector3.one * Mathf.Lerp(1.5f, 1f, 1f - Mathf.Pow(1f - Mathf.Clamp01(t / 0.16f), 2f));
                 yield return null;
             }
-            title.rectTransform.localScale = Vector3.one;
+            title.localScale = Vector3.one;
             StartCoroutine(Effects.Shake(_stage, 0.3f, 6f));
             StartCoroutine(EdgeGlow(color, 0.5f, false));
             t = 0;
