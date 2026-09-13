@@ -23,7 +23,7 @@ namespace BBB.Runtime
         private static readonly Color ColUp = UiSkin.Hex("#7ee0a0"), ColDown = UiSkin.Hex("#ff7a7a");
 
         public static GameObject Build(Transform stage, SlotMachine m, AudioManager audio,
-                                       System.Action onChanged, System.Action onClose, System.Action onStats = null)
+                                       System.Action onChanged, System.Action onClose, System.Action onStats = null, System.Action onCurses = null)
         {
             const float W = 1020f, H = 510f, edge = 22f;
             var cfg = m.Config.equipment;
@@ -52,6 +52,16 @@ namespace BBB.Runtime
                 var stBtn = UiSkin.Button(card, "BtnStats", new Vector2(-W * 0.5f + edge + tabW + 10 + stW * 0.5f, H * 0.5f - 4), new Vector2(stW, 34), stText,
                     () => onStats(), UiSkin.Btn, 13, false, 8, "pill_navy_sm");
                 if (unspent > 0) { var stLabel = stBtn.GetComponentInChildren<Text>(); if (stLabel != null) stLabel.color = UiSkin.Gold; }
+            }
+            // その右: 受けている呪いと祝福の一覧。受けていれば数を紫で出す
+            if (onCurses != null && m.Config.curse != null && m.Config.curse.enabled)
+            {
+                const float cuW = 190f;
+                int n = m.Curse.Taken.Count;
+                float cuX = -W * 0.5f + edge + tabW + 10 + (onStats != null ? 200 + 10 : 0) + cuW * 0.5f;
+                var cuBtn = UiSkin.Button(card, "BtnCurses", new Vector2(cuX, H * 0.5f - 4), new Vector2(cuW, 34), n > 0 ? $"呪いと祝福（{n}）" : "呪いと祝福",
+                    () => onCurses(), UiSkin.Btn, 13, false, 8, "pill_navy_sm");
+                if (n > 0) { var cuLabel = cuBtn.GetComponentInChildren<Text>(); if (cuLabel != null) cuLabel.color = UiSkin.Hex("#d9a6ff"); }
             }
 
             EquipItem selected = null;

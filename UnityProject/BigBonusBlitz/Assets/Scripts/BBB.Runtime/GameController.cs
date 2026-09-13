@@ -184,7 +184,7 @@ namespace BBB.Runtime
         private readonly Text[] _routeText = new Text[3];
         private readonly Image[] _routeBar = new Image[3];
         private GameObject _mapBox;
-        private GameObject _equipBox, _curseBox, _statsBox;
+        private GameObject _equipBox, _curseBox, _statsBox, _curseListBox;
         private GameObject _trophyBox;                            // 実績と図鑑（TrophyScreen）。開いている間だけある
         private RectTransform _mapBody, _mapView, _condList;
         /// <summary>冒険マップの窓の高さ。地図 320 + 分岐条件 96 が縦に収まる大きさ。</summary>
@@ -1031,7 +1031,7 @@ namespace BBB.Runtime
             _audio.UiPop();
         }
         /// <summary>レバーオン・Esc でモーダルを閉じる（game-design §16.9: 遊技を止めさせない）。</summary>
-        private void CloseModals() { if (_settingsBox != null) _settingsBox.SetActive(false); if (_debugBox != null) _debugBox.SetActive(false); if (_graphBox != null) _graphBox.SetActive(false); if (_mapBox != null) _mapBox.SetActive(false); if (_trophyBox != null) { Destroy(_trophyBox); _trophyBox = null; } if (_statsBox != null) { Destroy(_statsBox); _statsBox = null; } if (_equipBox != null) { Destroy(_equipBox); _equipBox = null; } }
+        private void CloseModals() { if (_settingsBox != null) _settingsBox.SetActive(false); if (_debugBox != null) _debugBox.SetActive(false); if (_graphBox != null) _graphBox.SetActive(false); if (_mapBox != null) _mapBox.SetActive(false); if (_trophyBox != null) { Destroy(_trophyBox); _trophyBox = null; } if (_statsBox != null) { Destroy(_statsBox); _statsBox = null; } if (_curseListBox != null) { Destroy(_curseListBox); _curseListBox = null; } if (_equipBox != null) { Destroy(_equipBox); _equipBox = null; } }
 
         /// <summary>実績と図鑑の窓の開け閉め（★ ボタン）。開くたびに作り直す（解除と進み具合が変わるため）。</summary>
         private void ToggleTrophy()
@@ -2457,13 +2457,13 @@ namespace BBB.Runtime
             UiSkin.Img(cCard, "Bar", new Vector2(0, 50), new Vector2(W * 0.5f - 26, 4), UiSkin.Rounded(2), ColAccent);
             UiFactory.Label(cCard, "T", new Vector2(0, 30), new Vector2(W * 0.5f - 40, 20), "呪い", 12, TextAnchor.MiddleCenter, ColAccent).fontStyle = FontStyle.Bold;
             UiFactory.Label(cCard, "N", new Vector2(0, 8), new Vector2(W * 0.5f - 40, 22), off.curseName, 16, TextAnchor.MiddleCenter, ColText).fontStyle = FontStyle.Bold;
-            UiFactory.Label(cCard, "D", new Vector2(0, -22), new Vector2(W * 0.5f - 40, 34), CurseText(off.curseEffect, off.curseValue, true), 11, TextAnchor.UpperCenter, ColTextSub);
+            UiFactory.Label(cCard, "D", new Vector2(0, -22), new Vector2(W * 0.5f - 40, 34), CurseScreen.Text(off.curseEffect, off.curseValue, true), 11, TextAnchor.UpperCenter, ColTextSub);
 
             var bCard = UiSkin.Card(card, "Bless", new Vector2(W * 0.25f - 4, 12), new Vector2(W * 0.5f - 24, 108), 10, UiSkin.PanelHi, true, false, false);
             UiSkin.Img(bCard, "Bar", new Vector2(0, 50), new Vector2(W * 0.5f - 26, 4), UiSkin.Rounded(2), ColGold);
             UiFactory.Label(bCard, "T", new Vector2(0, 30), new Vector2(W * 0.5f - 40, 20), "祝福", 12, TextAnchor.MiddleCenter, ColGold).fontStyle = FontStyle.Bold;
             UiFactory.Label(bCard, "N", new Vector2(0, 8), new Vector2(W * 0.5f - 40, 22), off.blessName, 16, TextAnchor.MiddleCenter, ColText).fontStyle = FontStyle.Bold;
-            UiFactory.Label(bCard, "D", new Vector2(0, -22), new Vector2(W * 0.5f - 40, 34), CurseText(off.blessEffect, off.blessValue, false), 11, TextAnchor.UpperCenter, ColTextSub);
+            UiFactory.Label(bCard, "D", new Vector2(0, -22), new Vector2(W * 0.5f - 40, 34), CurseScreen.Text(off.blessEffect, off.blessValue, false), 11, TextAnchor.UpperCenter, ColTextSub);
 
             void Close()
             {
@@ -2487,19 +2487,6 @@ namespace BBB.Runtime
             _curseBox = overlay.gameObject;
         }
 
-        private static string CurseText(string effect, int value, bool isCurse)
-        {
-            string v = value.ToString();
-            switch (effect)
-            {
-                case CurseEffects.TorchDrain: return $"ライフの減りが {v}% 速くなる";
-                case CurseEffects.ConditionHarder: return $"ルートの必要回数が +{v}";
-                case CurseEffects.PayoutCut: return $"払い出しが {v}% 減る";
-                case CurseEffects.BetExtra: return $"1 回転あたり {v} 多く灯を使う";
-                default:
-                    return $"{EquipDirector.EffectName(effect)} {(isCurse ? "-" : "+")}{v}{EquipDirector.EffectUnit(effect)}";
-            }
-        }
 
         /// <summary>装備画面の開け閉め（E キー）。</summary>
         private void ToggleEquip()
@@ -2509,7 +2496,15 @@ namespace BBB.Runtime
             CloseModals();
             _audio.UiPop();
             _equipBox = EquipScreen.Build(_stage, _m, _audio, () => SaveData.Save(_m, _audio),
-                                          () => { Destroy(_equipBox); _equipBox = null; }, OpenStats);
+                                          () => { Destroy(_equipBox); _equipBox = null; }, OpenStats, OpenCurseList);
+        }
+
+        /// <summary>受けている呪いと祝福の一覧（装備画面の「呪いと祝福」から）。</summary>
+        private void OpenCurseList()
+        {
+            if (_curseListBox != null) return;
+            _audio.UiPop();
+            _curseListBox = CurseScreen.Build(_stage, _m, _audio, () => { Destroy(_curseListBox); _curseListBox = null; });
         }
 
         /// <summary>ステータスを振る窓（装備画面の「ステータス」から）。閉じたら装備画面を作り直して表示を合わせる。</summary>
