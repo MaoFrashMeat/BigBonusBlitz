@@ -4097,7 +4097,8 @@ namespace BBB.Runtime
             var color = RoleColor(p.role);
             bool rainbow = p.role == "CHANCE";
             _audio.Precog(p.stage);
-            PaylineFlash(color, p.stage == 1 ? 1 : 2, rainbow, AllCells);
+            // 予告はラインの光だけ。図柄の点滅（symbols）は揃った役にしか出さない（2026-09-14 本人「揃ってもないのに発生」）
+            PaylineFlash(color, p.stage == 1 ? 1 : 2, rainbow, AllCells, false);
             UiFx.PopText(_charRt, p.stage == 1 ? "…" : "！", color, p.stage == 1 ? 26 : 36, new Vector2(20, 100));
             if (p.stage < 2) return;
             StartCoroutine(EdgeGlow(color, 0.6f, rainbow));
@@ -4490,51 +4491,83 @@ namespace BBB.Runtime
         }
 
         /// <summary>
-        /// 揃ったコマ（cellMask のビット。index = リール*3 + 段, 段 0=上段）を役の色で pulses 回点滅させる。
+        /// 揃ったコマ（cellMask のビット。index = リール*3 + 段, 段 0=上段）を役の色で pulses 回光らせる。
         /// rainbow=true は色相を回す。cellMask が 0 のときは何も出さない。
+        /// symbols=true のときだけ図柄そのものにも演出（game_config の reelFx.style）を掛ける。
+        /// レバーオンの予告（RollPrecog）は false で呼ぶ。役が揃っていないのに図柄が点滅していた（2026-09-14）。
         /// </summary>
-        private void PaylineFlash(Color color, int pulses, bool rainbow, int cellMask)
+        private void PaylineFlash(Color color, int pulses, bool rainbow, int cellMask, bool symbols = true)
         {
             if (_paylineRoutine != null) StopCoroutine(_paylineRoutine);
             if (cellMask == 0) { _paylineFlash.alpha = 0f; return; }
-            _paylineRoutine = StartCoroutine(PaylineFlashRoutine(color, pulses, rainbow, cellMask));
+            _paylineRoutine = StartCoroutine(PaylineFlashRoutine(color, pulses, rainbow, cellMask, symbols));
         }
 
-        private IEnumerator PaylineFlashRoutine(Color color, int pulses, bool rainbow, int cellMask)
+        private IEnumerator PaylineFlashRoutine(Color color, int pulses, bool rainbow, int cellMask, bool symbols)
         {
             for (int i = 0; i < _cellFx.Length; i++)
                 if (_cellFx[i] != null) _cellFx[i].gameObject.SetActive((cellMask & (1 << i)) != 0);
 
-            // 光の脈は役ごとの回数、図柄そのものの点滅は実機のように続ける（周期・暗さ・長さは game_config の reelFx）
+            // 光の脈は役ごとの回数、図柄の演出は実機のように続ける（種類・周期・暗さ・長さ・強さは game_config の reelFx）
             var fx = _m.Config.reelFx ?? new ReelFxConfig();
             const float period = 0.22f;
-            float blinkPeriod = Mathf.Max(0.03f, fx.blinkPeriod), blinkTotal = Mathf.Max(0f, fx.blinkSeconds), dim = Mathf.Clamp01(fx.blinkDim);
+            string style = string.IsNullOrEmpty(fx.style) ? "blink" : fx.style.ToLowerInvariant();
+            float bp = Mathf.Max(0.03f, fx.blinkPeriod), fxTotal = symbols ? Mathf.Max(0f, fx.blinkSeconds) : 0f, dim = Mathf.Clamp01(fx.blinkDim), k = Mathf.Clamp01(fx.strength);
             float glowTotal = period * pulses;
-            float total = Mathf.Max(glowTotal, blinkTotal);
+            float total = Mathf.Max(glowTotal, fxTotal);
             float t = 0;
             while (t < total)
             {
                 t += Time.deltaTime;
+                var c = rainbow ? Color.HSVToRGB((t * 1.5f) % 1f, 0.7f, 1f) : color;
+                // ラインの光（役ごとの回数）
+                float lineA = 0f;
                 if (t < glowTotal)
                 {
                     float u = (t % period) / period;
-                    float a = u < 0.35f ? u / 0.35f : 1f - (u - 0.35f) / 0.65f;
-                    _paylineFlash.alpha = Mathf.Clamp01(a);
-                    var c = rainbow ? Color.HSVToRGB((t * 1.5f) % 1f, 0.7f, 1f) : color;
-                    for (int i = 0; i < _cellFx.Length; i++)
-                        if (_cellFx[i] != null && _cellFx[i].gameObject.activeSelf) _cellFx[i].color = new Color(c.r, c.g, c.b, 0.55f);
+                    lineA = Mathf.Clamp01(u < 0.35f ? u / 0.35f : 1f - (u - 0.35f) / 0.65f);
                 }
-                else _paylineFlash.alpha = 0f;
-                // 揃ったコマの図柄を暗↔明で点滅（それ以外のコマは触らない）
-                bool on = t >= blinkTotal || ((int)(t / blinkPeriod)) % 2 == 0;
-                for (int reel = 0; reel < 3; reel++)
-                    for (int row = 0; row < 3; row++)
-                        if ((cellMask & (1 << (reel * 3 + row))) != 0) _reels[reel].SetRowBrightness(row, on ? 1f : dim);
+                // 図柄の演出
+                float glowA = 0f; var glowC = c;
+                if (symbols && t < fxTotal)
+                {
+                    bool on = ((int)(t / bp)) % 2 == 0;
+                    float wave = 0.5f + 0.5f * Mathf.Sin(t / bp * Mathf.PI);          // 1 周期で 0→1→0
+                    float wave2 = Mathf.Sin(t / bp * Mathf.PI * 2f);                     // -1〜1
+                    for (int reel = 0; reel < 3; reel++)
+                        for (int row = 0; row < 3; row++)
+                        {
+                            bool hit = (cellMask & (1 << (reel * 3 + row))) != 0;
+                            if (!hit) { if (fx.dimOthers) _reels[reel].SetRowBrightness(row, dim); continue; }
+                            Color tint = Color.white; float scale = 1f; Vector2 off = Vector2.zero; float rot = 0f;
+                            switch (style)
+                            {
+                                case "pulse": scale = 1f + 0.18f * k * wave; break;
+                                case "bounce": off.y = 10f * k * wave; break;
+                                case "wobble": rot = 12f * k * wave2; break;
+                                case "shake": off.x = 4f * k * Mathf.Sin(t * 60f); break;
+                                case "glow": glowA = (0.35f + 0.5f * k) * wave; break;
+                                case "flash": glowC = Color.white; glowA = on ? 0.6f + 0.35f * k : 0f; if (!on) tint = new Color(1f - (1f - dim) * 0.3f, 1f - (1f - dim) * 0.3f, 1f - (1f - dim) * 0.3f, 1f); break;
+                                case "rainbow": tint = Color.HSVToRGB((t * 1.2f) % 1f, 0.55f * k, 1f); break;
+                                case "pop": scale = 1f + 0.4f * k * Mathf.Max(0f, 1f - t / 0.28f); if (t >= 0.28f && !on) tint = new Color(dim, dim, dim, 1f); break;
+                                default: if (!on) tint = new Color(dim, dim, dim, 1f); break;      // blink
+                            }
+                            _reels[reel].SetRowFx(row, tint, scale, off, rot);
+                        }
+                }
+                float a = Mathf.Max(lineA, glowA);
+                _paylineFlash.alpha = a;
+                if (a > 0f)
+                {
+                    var cc = glowA > lineA ? glowC : c;
+                    for (int i = 0; i < _cellFx.Length; i++)
+                        if (_cellFx[i] != null && _cellFx[i].gameObject.activeSelf) _cellFx[i].color = new Color(cc.r, cc.g, cc.b, 0.55f);
+                }
                 yield return null;
             }
             _paylineFlash.alpha = 0f;
             for (int i = 0; i < _cellFx.Length; i++) if (_cellFx[i] != null) _cellFx[i].gameObject.SetActive(false);
-            foreach (var rv in _reels) rv.ResetBrightness();
+            if (symbols) foreach (var rv in _reels) rv.ResetBrightness();
             _paylineRoutine = null;
         }
 

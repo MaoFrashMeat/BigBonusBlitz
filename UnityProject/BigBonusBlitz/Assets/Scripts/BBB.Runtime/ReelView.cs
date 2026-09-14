@@ -129,19 +129,30 @@ namespace BBB.Runtime
             _pullInTotal = dist;
         }
 
+        // 窓の段（0=上 1=中 2=下）ごとの演出。役が決まったコマに掛ける（GameController.PaylineFlashRoutine）
+        private readonly Color[] _fxTint = { Color.white, Color.white, Color.white };
+        private readonly float[] _fxScale = { 1f, 1f, 1f };
+        private readonly Vector2[] _fxOffset = new Vector2[3];
+        private readonly float[] _fxRot = new float[3];
+
         /// <summary>窓の段（0=上 1=中 2=下）の図柄の明るさ（1 で通常）。役が決まったコマの点滅に使う。</summary>
-        public void SetRowBrightness(int windowRow, float k)
+        public void SetRowBrightness(int windowRow, float k) => SetRowFx(windowRow, new Color(k, k, k, 1f), 1f, Vector2.zero, 0f);
+
+        /// <summary>段の図柄に 色（明るさ・色味）・拡大率・ずらし（px）・傾き（度）を掛ける。回転中は掛けない。</summary>
+        public void SetRowFx(int windowRow, Color tint, float scale, Vector2 offset, float rot)
         {
             if (_rows == null || windowRow < 0 || windowRow > 2) return;
-            var img = _rows[windowRow + 1];
-            if (img != null) img.color = new Color(k, k, k, 1f);
+            _fxTint[windowRow] = tint; _fxScale[windowRow] = scale; _fxOffset[windowRow] = offset; _fxRot[windowRow] = rot;
+            if (!IsSpinning) Redraw();
         }
 
-        /// <summary>全段の明るさを戻す（次の回転の前に）。</summary>
+        /// <summary>全段の演出を戻す（次の回転の前に）。</summary>
         public void ResetBrightness()
         {
             if (_rows == null) return;
-            foreach (var img in _rows) if (img != null) img.color = Color.white;
+            for (int r = 0; r < 3; r++) { _fxTint[r] = Color.white; _fxScale[r] = 1f; _fxOffset[r] = Vector2.zero; _fxRot[r] = 0f; }
+            foreach (var img in _rows) if (img != null) { img.color = Color.white; img.rectTransform.localScale = Vector3.one; img.rectTransform.localRotation = Quaternion.identity; }
+            Redraw();
         }
 
         private void Update()
@@ -201,7 +212,12 @@ namespace BBB.Runtime
                 if (_useSprites)
                 {
                     _rows[i].sprite = ArtLoader.SymbolSprite(s);
-                    _rows[i].rectTransform.anchoredPosition = new Vector2(0, y);
+                    // 窓の 3 段（i=1..3）には役の演出（明るさ・拡大・ずらし・傾き）を掛ける。回転中は掛けない
+                    int wr = i - 1; bool fx = !IsSpinning && wr >= 0 && wr <= 2;
+                    _rows[i].rectTransform.anchoredPosition = fx ? new Vector2(_fxOffset[wr].x, y + _fxOffset[wr].y) : new Vector2(0, y);
+                    _rows[i].rectTransform.localScale = fx ? new Vector3(_fxScale[wr], _fxScale[wr], 1f) : Vector3.one;
+                    _rows[i].rectTransform.localRotation = fx ? Quaternion.Euler(0, 0, _fxRot[wr]) : Quaternion.identity;
+                    _rows[i].color = fx ? _fxTint[wr] : Color.white;
                 }
                 else
                 {

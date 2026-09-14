@@ -62,7 +62,12 @@
       </div>
       <div class="note">配列は game_config.json の reelStrips そのまま。速さの既定 80 rpm はゲームの回転と同じ（20 コマで 1 周 0.75 秒）。止めると次のコマ境界で止まる。各リールの下のバーで位置をコマ単位（0.05 刻み）にずらせる（回転中に動かすと止まる）。</div>
       <div class="ctrl" style="border-top:1px solid var(--line);padding-top:10px">
-        <b style="font-size:13px">役の点滅</b>
+        <b style="font-size:13px">役の演出</b>
+        <select id="blinkStyle" title="種類">
+          <option value="blink">点滅（暗↔明）</option><option value="pulse">拡大縮小</option><option value="bounce">跳ねる</option><option value="wobble">左右に傾く</option>
+          <option value="shake">小刻みに揺れる</option><option value="glow">役色の光が脈打つ</option><option value="flash">白く光る</option><option value="rainbow">色相を回す</option><option value="pop">膨らんでから点滅</option>
+        </select>
+        <select id="blinkColor" title="役の色（光・縁）"><option value="#ffcf3f">金（ベル）</option><option value="#4da3ff">青（リプレイ）</option><option value="#ff73a6">桃（チェリー）</option><option value="#66f280">緑（スイカ）</option><option value="rainbow">虹（チャンス目）</option></select>
         <select id="blinkLine"><option value="mid">中段そろい</option><option value="top">上段そろい</option><option value="diag">斜め（右下がり）</option><option value="cherry">チェリー（左の中段）</option></select>
         <button class="primary" id="blinkTest">点滅を試す</button>
         <label><input type="checkbox" id="blinkLoop"> 繰り返す</label>
@@ -71,8 +76,10 @@
         <label>周期 <input type="range" id="blinkPeriod" min="0.05" max="0.4" step="0.01" value="0.13"> <span id="blinkPeriodV">0.13</span> 秒</label>
         <label>暗さ <input type="range" id="blinkDim" min="0" max="0.9" step="0.02" value="0.28"> <span id="blinkDimV">0.28</span></label>
         <label>長さ <input type="range" id="blinkSeconds" min="0.4" max="3" step="0.1" value="1.4"> <span id="blinkSecondsV">1.4</span> 秒</label>
+        <label>強さ <input type="range" id="blinkStrength" min="0" max="1" step="0.05" value="1"> <span id="blinkStrengthV">1.00</span></label>
+        <label><input type="checkbox" id="blinkDimOthers"> 揃っていないコマを暗く</label>
       </div>
-      <div class="note">ゲームでは揃ったコマの図柄が「暗さ」の明るさと通常を「周期」で行き来し、「長さ」だけ続く（game_config.json の reelFx）。</div>
+      <div class="note">ゲームでは揃ったコマの図柄に「種類」の動きを「周期」で繰り返し、「長さ」だけ続ける（game_config.json の reelFx: style / strength / dimOthers / blinkPeriod / blinkDim / blinkSeconds）。予告（レバーオン）は図柄を触らず、ラインの光だけ。</div>
     </div>
     <div class="out">
       <b>選んだもの</b>
@@ -181,13 +188,31 @@
   const CELL_W = 123, CELL_H = 56, ROWS = 3;
   const reels = [0, 1, 2].map(i => ({ pos: (i * 7) % 20, spinning: false, stopping: false, bounce: 0, lastMove: 0 }));
   // 役の点滅: 対象の段（リールごとの窓の段 0〜2、-1 で無し）と、始めた時刻
-  const blink = { rows: [-1, -1, -1], start: -1, params: { period: 0.13, dim: 0.28, seconds: 1.4 } };
-  try { const bp = JSON.parse(localStorage.getItem("bbb_blink_v1") || "null"); if (bp) blink.params = bp; } catch (e) {}
-  function blinkBrightness(r, k, now) {
-    if (blink.start < 0 || blink.rows[r] !== k) return 1;
-    const t = (now - blink.start) / 1000;
-    if (t >= blink.params.seconds) return 1;
-    return Math.floor(t / blink.params.period) % 2 === 0 ? 1 : blink.params.dim;
+  const blink = { rows: [-1, -1, -1], start: -1, params: { style: "blink", strength: 1, dimOthers: false, color: "#ffcf3f", period: 0.13, dim: 0.28, seconds: 1.4 } };
+  try { const bp = JSON.parse(localStorage.getItem("bbb_blink_v2") || "null"); if (bp) Object.assign(blink.params, bp); } catch (e) {}
+  // 段 k（0〜2）の演出。GameController.PaylineFlashRoutine と同じ式。返り値: 明るさ・拡大・ずらし・傾き・光の量と色・色相
+  function cellFx(r, k, now) {
+    const none = { bright: 1, scale: 1, dx: 0, dy: 0, rot: 0, glowA: 0, glowC: null, hue: null, flash: 0 };
+    if (blink.start < 0) return none;
+    const t = (now - blink.start) / 1000, P = blink.params, bp = Math.max(0.03, P.period), K = P.strength;
+    if (t >= P.seconds) return none;
+    const hit = blink.rows[r] === k;
+    if (!hit) return P.dimOthers ? Object.assign({}, none, { bright: P.dim }) : none;
+    const on = Math.floor(t / bp) % 2 === 0, wave = 0.5 + 0.5 * Math.sin(t / bp * Math.PI), wave2 = Math.sin(t / bp * Math.PI * 2);
+    const col = P.color === "rainbow" ? "hsl(" + Math.floor((t * 1.5 % 1) * 360) + " 80% 60%)" : P.color;
+    const o = Object.assign({}, none);
+    switch (P.style) {
+      case "pulse": o.scale = 1 + 0.18 * K * wave; break;
+      case "bounce": o.dy = -10 * K * wave; break;
+      case "wobble": o.rot = 12 * K * wave2; break;
+      case "shake": o.dx = 4 * K * Math.sin(t * 60); break;
+      case "glow": o.glowA = (0.35 + 0.5 * K) * wave; o.glowC = col; break;
+      case "flash": o.flash = on ? 0.6 + 0.35 * K : 0; if (!on) o.bright = 1 - (1 - P.dim) * 0.3; break;
+      case "rainbow": o.hue = (t * 1.2 % 1) * 360; o.sat = 0.55 * K; break;
+      case "pop": o.scale = 1 + 0.4 * K * Math.max(0, 1 - t / 0.28); if (t >= 0.28 && !on) o.bright = P.dim; break;
+      default: if (!on) o.bright = P.dim;
+    }
+    return o;
   }
   let lastT = 0;
   function zoom() { return parseFloat(document.getElementById("zoom").value); }
@@ -231,8 +256,21 @@
       const rc = trim ? trimRect(im, src) : { x: 0, y: 0, w: im.naturalWidth, h: im.naturalHeight };
       const kk = Math.min(cv.width * scale / rc.w, cellH * scale / rc.h), w = rc.w * kk, h = rc.h * kk;
       g.imageSmoothingQuality = "high";
-      const bright = reels[r].spinning ? 1 : blinkBrightness(r, k, performance.now());
-      if (bright < 1) g.filter = "brightness(" + bright + ")";
+      const fx = (reels[r].spinning || k < 0 || k >= ROWS) ? null : cellFx(r, k, performance.now());
+      const bright = fx ? fx.bright : 1;
+      if (fx && fx.glowA > 0) {   // 役色の光（図柄の後ろ、コマいっぱい）
+        g.save(); g.globalAlpha = Math.min(1, fx.glowA); g.fillStyle = fx.glowC; g.shadowColor = fx.glowC; g.shadowBlur = 18 * z;
+        g.beginPath(); g.roundRect(3 * z, y + 3 * z, cv.width - 6 * z, cellH - 6 * z, 6 * z); g.fill(); g.restore();
+      }
+      const filters = [];
+      if (bright !== 1) filters.push("brightness(" + bright + ")");
+      if (fx && fx.flash > 0) filters.push("brightness(" + (1 + fx.flash) + ") saturate(" + (1 - fx.flash * 0.6) + ")");
+      if (fx && fx.hue !== null) filters.push("hue-rotate(" + fx.hue + "deg) saturate(" + (1 + fx.sat) + ")");
+      if (filters.length) g.filter = filters.join(" ");
+      if (fx && (fx.scale !== 1 || fx.dx || fx.dy || fx.rot)) {   // コマの中心を軸に 拡大・ずらし・傾き
+        g.save(); g.translate(cv.width / 2 + fx.dx * z, y + cellH / 2 + fx.dy * z); g.rotate(fx.rot * Math.PI / 180); g.scale(fx.scale, fx.scale);
+        g.drawImage(im, rc.x, rc.y, rc.w, rc.h, -w / 2, -h / 2, w, h); g.restore(); g.filter = "none"; continue;
+      }
       if (blur) {
         const spread = reels[r].lastMove * z;   // 1 フレームで動いた px
         g.globalAlpha = 0.34;
@@ -325,8 +363,8 @@
       if (oldArt) o.key_bg = true;
       json[s.out] = o;
     });
-    const fx = { blinkPeriod: blink.params.period, blinkDim: blink.params.dim, blinkSeconds: blink.params.seconds };
-    document.getElementById("result").textContent = parts.join("、") + "、点滅 周期 " + fx.blinkPeriod + " / 暗さ " + fx.blinkDim + " / 長さ " + fx.blinkSeconds
+    const fx = { style: blink.params.style, strength: blink.params.strength, dimOthers: blink.params.dimOthers, blinkPeriod: blink.params.period, blinkDim: blink.params.dim, blinkSeconds: blink.params.seconds };
+    document.getElementById("result").textContent = parts.join("、") + "、役の演出 " + fx.style + " 強さ " + fx.strength + " / 周期 " + fx.blinkPeriod + " / 暗さ " + fx.blinkDim + " / 長さ " + fx.blinkSeconds + (fx.dimOthers ? " / 他を暗く" : "")
       + "\n\n" + JSON.stringify(json, null, 2) + "\n\n\"reelFx\": " + JSON.stringify(fx, null, 2);
   }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(choice)); } catch (e) {} }
@@ -337,16 +375,21 @@
     blink.start = performance.now();
   }
   function readBlinkParams() {
-    blink.params = { period: parseFloat(document.getElementById("blinkPeriod").value), dim: parseFloat(document.getElementById("blinkDim").value), seconds: parseFloat(document.getElementById("blinkSeconds").value) };
+    blink.params = { style: document.getElementById("blinkStyle").value, color: document.getElementById("blinkColor").value, strength: parseFloat(document.getElementById("blinkStrength").value), dimOthers: document.getElementById("blinkDimOthers").checked,
+      period: parseFloat(document.getElementById("blinkPeriod").value), dim: parseFloat(document.getElementById("blinkDim").value), seconds: parseFloat(document.getElementById("blinkSeconds").value) };
+    document.getElementById("blinkStrengthV").textContent = blink.params.strength.toFixed(2);
     document.getElementById("blinkPeriodV").textContent = blink.params.period.toFixed(2);
     document.getElementById("blinkDimV").textContent = blink.params.dim.toFixed(2);
     document.getElementById("blinkSecondsV").textContent = blink.params.seconds.toFixed(1);
-    try { localStorage.setItem("bbb_blink_v1", JSON.stringify(blink.params)); } catch (e) {}
+    try { localStorage.setItem("bbb_blink_v2", JSON.stringify(blink.params)); } catch (e) {}
     result();
   }
   document.getElementById("blinkTest").addEventListener("click", startBlink);
-  ["blinkPeriod", "blinkDim", "blinkSeconds"].forEach(id => document.getElementById(id).addEventListener("input", readBlinkParams));
+  ["blinkPeriod", "blinkDim", "blinkSeconds", "blinkStrength"].forEach(id => document.getElementById(id).addEventListener("input", readBlinkParams));
+  ["blinkStyle", "blinkColor", "blinkDimOthers"].forEach(id => document.getElementById(id).addEventListener("change", () => { readBlinkParams(); startBlink(); }));
   (function initBlink() {
+    document.getElementById("blinkStyle").value = blink.params.style || "blink"; document.getElementById("blinkColor").value = blink.params.color || "#ffcf3f";
+    document.getElementById("blinkStrength").value = blink.params.strength ?? 1; document.getElementById("blinkDimOthers").checked = !!blink.params.dimOthers;
     document.getElementById("blinkPeriod").value = blink.params.period; document.getElementById("blinkDim").value = blink.params.dim; document.getElementById("blinkSeconds").value = blink.params.seconds;
     readBlinkParams();
   })();

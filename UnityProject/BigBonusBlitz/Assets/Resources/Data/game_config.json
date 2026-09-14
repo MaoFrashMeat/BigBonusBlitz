@@ -5042,6 +5042,9 @@
     ]
   },
   "reelFx": {
+    "style": "blink",
+    "strength": 1,
+    "dimOthers": false,
     "blinkPeriod": 0.13,
     "blinkDim": 0.28,
     "blinkSeconds": 1.4,

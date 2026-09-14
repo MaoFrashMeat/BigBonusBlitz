@@ -294,6 +294,16 @@ namespace BBB.Core
 
     public sealed class ReelFxConfig
     {
+        /// <summary>
+        /// 揃ったコマの見せ方。blink（暗↔明）/ pulse（拡大縮小）/ bounce（跳ねる）/ wobble（左右に傾く）/ shake（小刻み）/
+        /// glow（役色の光を脈打たせる）/ flash（白く光る）/ rainbow（色相を回す）/ pop（最初に大きく膨らんでから点滅）。
+        /// tools/symbol_viewer.html の「役の点滅」で試して決める。
+        /// </summary>
+        public string style = "blink";
+        /// <summary>動きの強さ（0〜1。拡大・跳ね・傾き・光の量に掛かる）。</summary>
+        public float strength = 1f;
+        /// <summary>揃っていないコマを blinkDim まで暗くして、揃ったコマを際立たせる。</summary>
+        public bool dimOthers = false;
         /// <summary>点滅の周期（秒。暗→明で 1 周期）。</summary>
         public float blinkPeriod = 0.13f;
         /// <summary>暗いときの明るさ（0〜1）。</summary>

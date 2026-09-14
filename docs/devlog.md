@@ -407,6 +407,12 @@ Good +30 / Cool +20 / 1コマ +10 / 2コマ 0。上乗せは成功報酬（souls
 参照は tools（cut_sheets / adopt_frames / gen_* / salia-viewer / comfy）と docs の 22 か所を書き換え。
 `assets/symbols` は LFS の対象なので動かさない。目次は `assets/README.md`。
 
+### 決定: 図柄の演出は揃った役からだけ。種類は reelFx.style で選ぶ（9 種）
+役の点滅を共通ルーチンに足したら、レバーオンの予告でも 9 コマが点滅した（ui_rules 14）。予告はラインの光だけにし、
+図柄を触るのは RoleFx だけにした。種類（blink / pulse / bounce / wobble / shake / glow / flash / rainbow / pop）と
+強さ・他を暗く は `tools/symbol_viewer.html` の「役の演出」で試し、本人が選んだ値を game_config の reelFx に写す。
+既定は blink のまま（本人未決）。
+
 ---
 
 ## 検証の記録
