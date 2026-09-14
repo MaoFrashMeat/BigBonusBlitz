@@ -153,7 +153,14 @@ namespace BBB.Runtime
                             CodexLine(row.transform, "Eff", eff, 10, UiSkin.Text, 200, w - 120, 8);
                             CodexLine(row.transform, "Desc", EquipDirector.EffectDesc(b.effect), 9, UiSkin.TextSub, 200, w - 120, -9);
                         }
-                        else CodexLine(row.transform, "Eff", $"深さ {b.minDepth} から出る", 10, UiSkin.TextSub, 200, w - 120, 0);
+                        else
+                        {
+                            // 未入手: 出どころ（落ちる率）と、出はじめる深さ（ボスは深さに上乗せがあるぶん早い）。狙って拾いに行けるように（棚 c02）
+                            var d = m.Config.drops ?? new DropConfig();
+                            int bossFrom = Mathf.Max(1, b.minDepth - (d.boss?.equipDepthBonus ?? 0));
+                            CodexLine(row.transform, "Eff", $"雑魚 {d.mob?.equipRate ?? 0}%   ボス {d.boss?.equipRate ?? 0}%   宝箱 {d.treasure?.equipRate ?? 0}%   狩猟 {d.hunt?.equipRate ?? 0}%", 10, UiSkin.TextSub, 200, w - 120, 8);
+                            CodexLine(row.transform, "Desc", bossFrom < b.minDepth ? $"深さ {b.minDepth} から出る（ボスは深さ {bossFrom} から）" : $"深さ {b.minDepth} から出る", 9, UiSkin.TextSub, 200, w - 120, -9);
+                        }
                         var cnt = UiFactory.Label(row.transform, "Count", Vector2.zero, Vector2.zero, seen ? $"×{n:N0}" : "", 11, TextAnchor.MiddleRight, UiSkin.Gold);
                         Side(cnt.rectTransform, w - 110, w - 12);
                     }
