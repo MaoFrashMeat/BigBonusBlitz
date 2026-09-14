@@ -208,6 +208,9 @@ namespace BBB.Runtime
         private Text[] _judgeLabels;
         /// <summary>いま出ている敵が中ボスか（討伐の見せ方を変える）。出現時に覚える。</summary>
         private bool _engagedBoss;
+        /// <summary>中ボスの体力バー（棚 c04）: 討伐への近さ。当たりの討伐率ぶんだけ減る見せ方（Core の抽選結果そのものは 3G 目まで出さない）。</summary>
+        private float _bossHp = 1f;
+        private Coroutine _bossBarAnim;
         private string _engagedName = "";
         private GameObject _trophyBox;                            // 実績と図鑑（TrophyScreen）。開いている間だけある
         private RectTransform _mapBody, _mapView, _condList;
@@ -1250,14 +1253,20 @@ namespace BBB.Runtime
             if (_m.InAt) _caveTint.color = new Color(0.06f, 0.04f, 0.16f, 0.45f);
             else if (_m.AtEntryRemaining <= 0) _caveTint.color = new Color(0.06f, 0.04f, 0.16f, 0f);
 
-            // 狩猟中のモンスター HP
-            _hpBox.SetActive(_m.InBattle && _m.BattleMonster != null);
+            // 狩猟中のモンスター HP。中ボスのエンゲージ中は同じ箱で体力バー（討伐への近さ。棚 c04）
+            bool bossBar = _engagedBoss && _m.EnemyActive && _m.IsTier2 && !_m.InBattle;
+            _hpBox.SetActive((_m.InBattle && _m.BattleMonster != null) || bossBar || _bossBarAnim != null);
             if (_m.InBattle && _m.BattleMonster != null)
             {
                 _hpLabel.text = $"{_m.BattleMonster.name}    残り {_m.BattleSpinsRemaining} G";
                 float ratio = _m.BattleHpMax > 0 ? Mathf.Clamp01((float)_m.BattleHp / _m.BattleHpMax) : 0f;
                 _hpFill.rectTransform.sizeDelta = new Vector2(_hpTrack.sizeDelta.x * ratio, _hpTrack.sizeDelta.y);
                 _hpFill.color = ratio > 0.5f ? ColGreen : ratio > 0.25f ? ColGold : ColAccent;
+            }
+            else if (bossBar)
+            {
+                _hpLabel.text = $"中ボス {_engagedName}    残り {Mathf.Max(0, _m.EngageMaxSpins - _m.Tier2SpinCount)} G";
+                SetBossBar(_bossHp);
             }
             if (_resetConfirm.text.Length > 0 && Time.time > _resetConfirmUntil) _resetConfirm.text = "";
 
@@ -2013,7 +2022,30 @@ namespace BBB.Runtime
             // 中ボスは名乗りを上げる（通常の雑魚とはっきり区別する）
             _engagedBoss = table != null && table.IsBoss;
             _engagedName = table?.name ?? "";
+            _bossHp = 1f;
+            if (_bossBarAnim != null) { StopCoroutine(_bossBarAnim); _bossBarAnim = null; }
             if (_engagedBoss) StartCoroutine(SlamTitle($"中ボス  {table.name}", Hex("#ff9a3c"), 1.5f, 46));
+        }
+
+        private void SetBossBar(float ratio)
+        {
+            ratio = Mathf.Clamp01(ratio);
+            _hpFill.rectTransform.sizeDelta = new Vector2(_hpTrack.sizeDelta.x * ratio, _hpTrack.sizeDelta.y);
+            _hpFill.color = ratio > 0.5f ? ColGreen : ratio > 0.25f ? ColGold : ColAccent;
+        }
+
+        /// <summary>中ボスの決着: 倒したら残りを一気に削って 0、逃げられたら満タンに戻る。そのあと箱を閉じる。</summary>
+        private IEnumerator BossBarResolve(bool won)
+        {
+            _hpBox.SetActive(true);
+            _hpLabel.text = won ? $"中ボス {_engagedName}    撃破！" : $"中ボス {_engagedName}    逃げられた…";
+            float from = _bossHp, to = won ? 0f : 1f, t = 0f;
+            while (t < 0.6f) { t += Time.deltaTime; SetBossBar(Mathf.Lerp(from, to, Mathf.SmoothStep(0f, 1f, t / 0.6f))); yield return null; }
+            SetBossBar(to);
+            yield return new WaitForSeconds(0.8f);
+            _bossBarAnim = null;
+            _bossHp = 1f;
+            RefreshUi();
         }
 
         private IEnumerator SpawnEnemyRoutine()
@@ -2567,6 +2599,18 @@ namespace BBB.Runtime
             }
 
             if (r.bonusEnded) SetMessage("BONUS END!", true, Color.yellow);
+
+            // 中ボスの体力バー: 当たりごとに、その役の討伐率ぶん「生き残る確率」を掛けて減らす。決着までは 6% を下回らない（3G 目まで結果は言わない）
+            if (_engagedBoss && r.win.winType != WinType.NONE && (_m.IsTier2 || r.enemyResolved.HasValue) && _m.ActiveEnemyTable != null)
+            {
+                int p = _m.ActiveEnemyTable.defeatProbabilities != null && _m.ActiveEnemyTable.defeatProbabilities.TryGetValue(r.win.winType.ToString(), out var pp) ? pp : 0;
+                if (p > 0)
+                {
+                    _bossHp = Mathf.Max(0.06f, _bossHp * (1f - Mathf.Clamp01(p / 100f)));
+                    UiFx.PopText(_enemyRt, $"−{p}%", Hex("#ff9a3c"), 18, new Vector2(0, 70));
+                }
+            }
+            if (r.enemyResolved.HasValue && _engagedBoss) _bossBarAnim = StartCoroutine(BossBarResolve(r.enemyResolved == true));
 
             if (r.enemyResolved == true)
             {
