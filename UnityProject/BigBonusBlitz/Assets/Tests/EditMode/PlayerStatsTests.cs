@@ -281,5 +281,27 @@ namespace BBB.Tests
             Assert.IsFalse(m.Equip.Bag.Contains(top), "売った品が鞄に残っている");
             Assert.AreEqual(0, EquipDirector.Sell(cfg, m.Equip, m.Wallet, top), "二度売れる");
         }
+
+        [Test]
+        public void まとめて売るはレア度以下だけで_着けている物は残る()
+        {
+            var m = NewMachine(8);
+            var cfg = m.Config.equipment;
+            EquipItem Item(int rarity, int depth) => new EquipItem { baseId = "t", name = "品", slot = EquipSlot.Weapon, rarity = rarity, level = depth,
+                effectKeys = new List<string> { ShopEffects.StatLife }, effectValues = new List<int> { 1 } };
+            var a = Item(0, 1); var b = Item(0, 5); var c = Item(1, 2); var d = Item(2, 1); var worn = Item(0, 3);
+            foreach (var it in new[] { a, b, c, d, worn }) m.Equip.Bag.Add(it);
+            EquipDirector.Equip(m.Equip, worn);
+            Assert.AreEqual(2, EquipDirector.SellableBelow(m.Equip, 0).Count, "並以下で着けていないのは 2 つ");
+            Assert.AreEqual(3, EquipDirector.SellableBelow(m.Equip, 1).Count);
+            int before = m.Wallet.Souls;
+            int expect = EquipDirector.SellValue(cfg, a) + EquipDirector.SellValue(cfg, b);
+            int got = EquipDirector.SellBelow(cfg, m.Equip, m.Wallet, 0, out int n);
+            Assert.AreEqual(2, n); Assert.AreEqual(expect, got);
+            Assert.AreEqual(before + got, m.Wallet.Souls);
+            Assert.IsTrue(m.Equip.IsWorn(worn), "着けている物を売った");   // 着けている物は鞄でなく Worn にある
+            Assert.IsTrue(m.Equip.Bag.Contains(c) && m.Equip.Bag.Contains(d), "上のレア度を売った");
+            Assert.AreEqual(0, EquipDirector.SellBelow(cfg, m.Equip, m.Wallet, 0, out n)); Assert.AreEqual(0, n);
+        }
     }
 }

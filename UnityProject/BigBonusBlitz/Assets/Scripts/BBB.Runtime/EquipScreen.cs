@@ -170,6 +170,34 @@ namespace BBB.Runtime
             // 装備の合計（鞄の下）
             summary = UiFactory.Label(card, "Sum", new Vector2(bagCx, 150f - bagRows * bagPitch - 8f), new Vector2(240, 44), "", 10, TextAnchor.UpperCenter, UiSkin.TextSub);
             summary.horizontalOverflow = HorizontalWrapMode.Wrap;
+            // まとめて売る（棚 c03）: 選んだレア度以下を全部。着けている物は売らない。右の小さなボタンでレア度を回す
+            int bulkRarity = 0;
+            float bulkY = 150f - bagRows * bagPitch - 8f - 44f - 18f;
+            Button btnBulk = null;
+            btnBulk = UiSkin.Button(card, "BulkSell", new Vector2(bagCx - 120 + 88, bulkY), new Vector2(176, 28), "", () =>
+            {
+                int got = EquipDirector.SellBelow(cfg, m.Equip, m.Wallet, bulkRarity, out int n);
+                if (n == 0) return;
+                if (selected != null && !m.Equip.Bag.Contains(selected)) selected = null;
+                audio?.UiPop();
+                UiFx.PopText(card, $"{n} 個 売った  +{got:N0} ソウル（所持 {m.Wallet.Souls:N0}）", UiSkin.Gold, 16, new Vector2(0, -H * 0.5f + 40));
+                Refresh();
+            }, new Color(0.45f, 0.18f, 0.22f), 11, false, 8);
+            UiSkin.Button(card, "BulkNext", new Vector2(bagCx + 120 - 28, bulkY), new Vector2(56, 28), "▸", () =>
+            {
+                int nr = cfg?.rarities?.Count ?? 1;
+                bulkRarity = (bulkRarity + 1) % Mathf.Max(1, nr);
+                audio?.UiPop();
+                Refresh();
+            }, UiSkin.Btn, 12, false, 8);
+            rows.Add(() =>
+            {
+                var rr = cfg?.rarities != null && bulkRarity < cfg.rarities.Count ? cfg.rarities[bulkRarity] : new EquipRarity();
+                var sellable = EquipDirector.SellableBelow(m.Equip, bulkRarity);
+                int sum = 0; foreach (var it in sellable) sum += EquipDirector.SellValue(cfg, it);
+                UiSkin.SetButtonText(btnBulk, sellable.Count > 0 ? $"{rr.name}以下を売る  {sellable.Count} 個 +{sum:N0}" : $"{rr.name}以下を売る  なし");
+                btnBulk.interactable = sellable.Count > 0;
+            });
 
             // ===== 右: 詳細と「着け替えると」 =====
             const float dW = 300f, dH = 400f;

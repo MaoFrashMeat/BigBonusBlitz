@@ -415,6 +415,23 @@ namespace BBB.Core
             return (int)Math.Round(basePrice * (1.0 + Math.Max(0, cfg.sellDepthPercent) / 100.0 * (depth - 1)));
         }
 
+        /// <summary>レア度が maxRarity 以下で、着けていない品（鞄の中）。まとめて売る対象。</summary>
+        public static List<EquipItem> SellableBelow(EquipInventory inv, int maxRarity)
+        {
+            var r = new List<EquipItem>();
+            if (inv == null) return r;
+            foreach (var it in inv.Bag) if (it != null && it.rarity <= maxRarity && !inv.IsWorn(it)) r.Add(it);
+            return r;
+        }
+
+        /// <summary>レア度が maxRarity 以下の品をまとめて売る（着けている物は売らない）。戻り値は入ったソウルの合計、count は売った数。</summary>
+        public static int SellBelow(EquipConfig cfg, EquipInventory inv, PlayerWallet wallet, int maxRarity, out int count)
+        {
+            int total = 0; count = 0;
+            foreach (var it in SellableBelow(inv, maxRarity)) { total += Sell(cfg, inv, wallet, it); count++; }
+            return total;
+        }
+
         /// <summary>売る: 着けていれば外し、鞄から消してソウルを足す。戻り値は入ったソウル。</summary>
         public static int Sell(EquipConfig cfg, EquipInventory inv, PlayerWallet wallet, EquipItem item)
         {
