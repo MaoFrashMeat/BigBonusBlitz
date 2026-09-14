@@ -1,0 +1,2 @@
+# 図柄・文字の元絵（assets/symbols）は LFS。1 枚 1〜2MB。
+assets/symbols/**/*.png filter=lfs diff=lfs merge=lfs -text
