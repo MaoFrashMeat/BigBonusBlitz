@@ -674,6 +674,8 @@ namespace BBB.Runtime
                 var mk = UiSkin.Img(cabinet, "LineMark", new Vector2(sx * (cabW * 0.5f - 11), 0), new Vector2(9, 9), UiSkin.Rounded(2), ColGold);
                 mk.rectTransform.localRotation = Quaternion.Euler(0, 0, 45);
             }
+            // 図柄の中のランプ（赤 7・白 7。game_config の reelFx.lamp）
+            foreach (var rv in _reels) rv.SetLamp(_m.Config.reelFx?.lamp);
             // 役演出: 揃ったコマだけを役の色で光らせる（斜めライン・チェリーの段もそのまま出せる）
             var pl = UiSkin.Rect(cabinet, "PaylineFlash", Vector2.zero, new Vector2(cabW, Lcb.h));
             _paylineFlash = pl.gameObject.AddComponent<CanvasGroup>();
@@ -4513,6 +4515,14 @@ namespace BBB.Runtime
             const float period = 0.22f;
             string style = string.IsNullOrEmpty(fx.style) ? "blink" : fx.style.ToLowerInvariant();
             float bp = Mathf.Max(0.03f, fx.blinkPeriod), fxTotal = symbols ? Mathf.Max(0f, fx.blinkSeconds) : 0f, dim = Mathf.Clamp01(fx.blinkDim), k = Mathf.Clamp01(fx.strength);
+            // 「消えている側」の見え方: dark = 黒へ / tint = 色で染める / light = 色を加算して明るく
+            string blinkMode = string.IsNullOrEmpty(fx.blinkMode) ? "dark" : fx.blinkMode.ToLowerInvariant();
+            var blinkColor = ReelView.ParseColor(fx.blinkColor, Color.white);
+            var offTint = blinkMode == "tint" ? Color.Lerp(Color.white, blinkColor, 1f - dim) : new Color(dim, dim, dim, 1f);
+            var offTintSoft = blinkMode == "tint" ? Color.Lerp(Color.white, blinkColor, (1f - dim) * 0.3f) : new Color(1f - (1f - dim) * 0.3f, 1f - (1f - dim) * 0.3f, 1f - (1f - dim) * 0.3f, 1f);
+            // 図柄の形に重ねる層（add / screen / multiply）
+            string layerMode = string.IsNullOrEmpty(fx.layerMode) ? "none" : fx.layerMode.ToLowerInvariant();
+            var layerColor = ReelView.ParseColor(fx.layerColor, ColGold);
             float glowTotal = period * pulses;
             float total = Mathf.Max(glowTotal, fxTotal);
             float t = 0;
@@ -4540,6 +4550,7 @@ namespace BBB.Runtime
                             bool hit = (cellMask & (1 << (reel * 3 + row))) != 0;
                             if (!hit) { if (fx.dimOthers) _reels[reel].SetRowBrightness(row, dim); continue; }
                             Color tint = Color.white; float scale = 1f; Vector2 off = Vector2.zero; float rot = 0f;
+                            bool offPhase = false;      // 点滅の「消えている側」か
                             switch (style)
                             {
                                 case "pulse": scale = 1f + 0.18f * k * wave; break;
@@ -4547,12 +4558,18 @@ namespace BBB.Runtime
                                 case "wobble": rot = 12f * k * wave2; break;
                                 case "shake": off.x = 4f * k * Mathf.Sin(t * 60f); break;
                                 case "glow": glowA = (0.35f + 0.5f * k) * wave; break;
-                                case "flash": glowC = Color.white; glowA = on ? 0.6f + 0.35f * k : 0f; if (!on) tint = new Color(1f - (1f - dim) * 0.3f, 1f - (1f - dim) * 0.3f, 1f - (1f - dim) * 0.3f, 1f); break;
+                                case "flash": glowC = Color.white; glowA = on ? 0.6f + 0.35f * k : 0f; if (!on) tint = offTintSoft; break;
                                 case "rainbow": tint = Color.HSVToRGB((t * 1.2f) % 1f, 0.55f * k, 1f); break;
-                                case "pop": scale = 1f + 0.4f * k * Mathf.Max(0f, 1f - t / 0.28f); if (t >= 0.28f && !on) tint = new Color(dim, dim, dim, 1f); break;
-                                default: if (!on) tint = new Color(dim, dim, dim, 1f); break;      // blink
+                                case "pop": scale = 1f + 0.4f * k * Mathf.Max(0f, 1f - t / 0.28f); offPhase = t >= 0.28f && !on; break;
+                                default: offPhase = !on; break;      // blink
                             }
+                            // 消えている側: dark / tint は図柄の色を掛ける。light は層で明るくする（図柄はそのまま）
+                            var layer = new Color(0, 0, 0, 0); string lmode = layerMode;
+                            if (offPhase && blinkMode != "light") tint = offTint;
+                            if (offPhase && blinkMode == "light") { layer = new Color(blinkColor.r, blinkColor.g, blinkColor.b, (1f - dim) * Mathf.Max(0.2f, k)); lmode = "add"; }
+                            else if (layerMode != "none") layer = new Color(layerColor.r, layerColor.g, layerColor.b, Mathf.Clamp01(fx.layerAlpha) * (fx.layerPulse ? wave : 1f));
                             _reels[reel].SetRowFx(row, tint, scale, off, rot);
+                            _reels[reel].SetRowLayer(row, lmode, layer);
                         }
                 }
                 float a = Mathf.Max(lineA, glowA);

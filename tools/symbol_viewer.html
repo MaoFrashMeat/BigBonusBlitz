@@ -79,7 +79,30 @@
         <label>強さ <input type="range" id="blinkStrength" min="0" max="1" step="0.05" value="1"> <span id="blinkStrengthV">1.00</span></label>
         <label><input type="checkbox" id="blinkDimOthers"> 揃っていないコマを暗く</label>
       </div>
-      <div class="note">ゲームでは揃ったコマの図柄に「種類」の動きを「周期」で繰り返し、「長さ」だけ続ける（game_config.json の reelFx: style / strength / dimOthers / blinkPeriod / blinkDim / blinkSeconds）。予告（レバーオン）は図柄を触らず、ラインの光だけ。</div>
+      <div class="ctrl">
+        <b style="font-size:13px">消える側の見え方</b>
+        <select id="blinkMode"><option value="dark">黒へ暗くする</option><option value="tint">色で染める</option><option value="light">色を足して明るく</option></select>
+        <input type="color" id="blinkTint" value="#ffffff" title="染める / 足す色">
+        <b style="font-size:13px;margin-left:12px">重ねる層</b>
+        <select id="layerMode"><option value="none">なし</option><option value="add">加算</option><option value="screen">スクリーン</option><option value="multiply">乗算</option></select>
+        <input type="color" id="layerColor" value="#ffcf3f" title="層の色">
+        <label>強さ <input type="range" id="layerAlpha" min="0" max="1" step="0.05" value="0.6"> <span id="layerAlphaV">0.60</span></label>
+        <label><input type="checkbox" id="layerPulse" checked> 周期で強弱</label>
+      </div>
+      <div class="ctrl">
+        <b style="font-size:13px">図柄の中のランプ</b>
+        <label><input type="checkbox" id="lampOn" checked> 点ける</label>
+        <label><input type="checkbox" id="lampRed7" checked> 赤7 <input type="color" id="lampRed7C" value="#ff4a4a"></label>
+        <label><input type="checkbox" id="lampBlue7" checked> 白7 <input type="color" id="lampBlue7C" value="#9fd8ff"></label>
+        <label><input type="checkbox" id="lampBar"> BAR <input type="color" id="lampBarC" value="#ffd27a"></label>
+        <label>後ろの光 <input type="range" id="lampIntensity" min="0" max="1" step="0.05" value="0.7"> <span id="lampIntensityV">0.70</span></label>
+        <label>中の光 <input type="range" id="lampInner" min="0" max="1" step="0.05" value="0.5"> <span id="lampInnerV">0.50</span></label>
+        <label>広がり <input type="range" id="lampSize" min="0.8" max="2.2" step="0.05" value="1.4"> <span id="lampSizeV">1.40</span></label>
+        <label>速さ <input type="range" id="lampPulse" min="0" max="4" step="0.1" value="1.2"> <span id="lampPulseV">1.2</span> Hz</label>
+        <label>脈の深さ <input type="range" id="lampDepth" min="0" max="1" step="0.05" value="0.4"> <span id="lampDepthV">0.40</span></label>
+        <label><input type="checkbox" id="lampSpin"> 回転中も</label>
+      </div>
+      <div class="note">ゲームでは揃ったコマの図柄に「種類」の動きを「周期」で繰り返し、「長さ」だけ続ける（game_config.json の reelFx: style / strength / dimOthers / blinkMode / blinkColor / layerMode / layerColor / layerAlpha / layerPulse / lamp / blinkPeriod / blinkDim / blinkSeconds）。予告（レバーオン）は図柄を触らず、ラインの光だけ。</div>
     </div>
     <div class="out">
       <b>選んだもの</b>
@@ -202,11 +225,31 @@
   const CELL_W = 123, CELL_H = 56, ROWS = 3;
   const reels = [0, 1, 2].map(i => ({ pos: (i * 7) % 20, spinning: false, stopping: false, bounce: 0, lastMove: 0 }));
   // 役の点滅: 対象の段（リールごとの窓の段 0〜2、-1 で無し）と、始めた時刻
-  const blink = { rows: [-1, -1, -1], start: -1, params: { style: "blink", strength: 1, dimOthers: false, color: "#ffcf3f", period: 0.13, dim: 0.28, seconds: 1.4 } };
-  try { const bp = JSON.parse(localStorage.getItem("bbb_blink_v2") || "null"); if (bp) Object.assign(blink.params, bp); } catch (e) {}
+  const blink = { rows: [-1, -1, -1], start: -1, params: { style: "blink", strength: 1, dimOthers: false, color: "#ffcf3f", period: 0.13, dim: 0.28, seconds: 1.4,
+    blinkMode: "dark", blinkColor: "#ffffff", layerMode: "none", layerColor: "#ffcf3f", layerAlpha: 0.6, layerPulse: true,
+    lamp: { enabled: true, symbols: ["RED7", "BLUE7"], colors: { RED7: "#ff4a4a", BLUE7: "#9fd8ff", BAR: "#ffd27a" }, intensity: 0.7, inner: 0.5, size: 1.4, pulse: 1.2, pulseDepth: 0.4, whileSpinning: false } } };
+  try { const bp = JSON.parse(localStorage.getItem("bbb_blink_v3") || "null"); if (bp) { const lamp = Object.assign({}, blink.params.lamp, bp.lamp || {}); Object.assign(blink.params, bp); blink.params.lamp = lamp; } } catch (e) {}
+  // 図柄の形だけを色で塗った絵（層・ランプの内側の光に使う）。src + 色で覚える
+  const silhouettes = {};
+  function silhouette(im, src, rc, color) {
+    const key = src + "|" + color + "|" + rc.x + "," + rc.y + "," + rc.w + "," + rc.h;
+    let c = silhouettes[key];
+    if (!c) {
+      c = document.createElement("canvas"); c.width = rc.w; c.height = rc.h;
+      const g = c.getContext("2d"); g.drawImage(im, rc.x, rc.y, rc.w, rc.h, 0, 0, rc.w, rc.h);
+      g.globalCompositeOperation = "source-in"; g.fillStyle = color; g.fillRect(0, 0, rc.w, rc.h);
+      silhouettes[key] = c;
+    }
+    return c;
+  }
+  const LAMP_SYM = { RED7: "lampRed7", BLUE7: "lampBlue7", BAR: "lampBar" };
+  function lampFor(name) {
+    const L = blink.params.lamp; if (!L.enabled || !L.symbols.includes(name)) return null;
+    return L.colors[name] || "#ffffff";
+  }
   // 段 k（0〜2）の演出。GameController.PaylineFlashRoutine と同じ式。返り値: 明るさ・拡大・ずらし・傾き・光の量と色・色相
   function cellFx(r, k, now) {
-    const none = { bright: 1, scale: 1, dx: 0, dy: 0, rot: 0, glowA: 0, glowC: null, hue: null, flash: 0 };
+    const none = { bright: 1, scale: 1, dx: 0, dy: 0, rot: 0, glowA: 0, glowC: null, hue: null, flash: 0, tint: null, layer: null };
     if (blink.start < 0) return none;
     const t = (now - blink.start) / 1000, P = blink.params, bp = Math.max(0.03, P.period), K = P.strength;
     if (t >= P.seconds) return none;
@@ -215,17 +258,25 @@
     const on = Math.floor(t / bp) % 2 === 0, wave = 0.5 + 0.5 * Math.sin(t / bp * Math.PI), wave2 = Math.sin(t / bp * Math.PI * 2);
     const col = P.color === "rainbow" ? "hsl(" + Math.floor((t * 1.5 % 1) * 360) + " 80% 60%)" : P.color;
     const o = Object.assign({}, none);
+    let offPhase = false;
     switch (P.style) {
       case "pulse": o.scale = 1 + 0.18 * K * wave; break;
       case "bounce": o.dy = -10 * K * wave; break;
       case "wobble": o.rot = 12 * K * wave2; break;
       case "shake": o.dx = 4 * K * Math.sin(t * 60); break;
       case "glow": o.glowA = (0.35 + 0.5 * K) * wave; o.glowC = col; break;
-      case "flash": o.flash = on ? 0.6 + 0.35 * K : 0; if (!on) o.bright = 1 - (1 - P.dim) * 0.3; break;
+      case "flash": o.flash = on ? 0.6 + 0.35 * K : 0; if (!on) { if (P.blinkMode === "tint") o.tint = { color: P.blinkColor, k: (1 - P.dim) * 0.3 }; else o.bright = 1 - (1 - P.dim) * 0.3; } break;
       case "rainbow": o.hue = (t * 1.2 % 1) * 360; o.sat = 0.55 * K; break;
-      case "pop": o.scale = 1 + 0.4 * K * Math.max(0, 1 - t / 0.28); if (t >= 0.28 && !on) o.bright = P.dim; break;
-      default: if (!on) o.bright = P.dim;
+      case "pop": o.scale = 1 + 0.4 * K * Math.max(0, 1 - t / 0.28); offPhase = t >= 0.28 && !on; break;
+      default: offPhase = !on;
     }
+    // 消える側: dark = 黒へ / tint = 色で染める（掛け算）/ light = 色を足す（層）
+    if (offPhase) {
+      if (P.blinkMode === "tint") o.tint = { color: P.blinkColor, k: 1 - P.dim };
+      else if (P.blinkMode === "light") o.layer = { mode: "lighter", color: P.blinkColor, a: (1 - P.dim) * Math.max(0.2, K) };
+      else o.bright = P.dim;
+    }
+    if (!o.layer && P.layerMode !== "none") o.layer = { mode: P.layerMode === "add" ? "lighter" : P.layerMode, color: P.layerColor, a: P.layerAlpha * (P.layerPulse ? wave : 1) };
     return o;
   }
   let lastT = 0;
@@ -270,21 +321,36 @@
       const rc = trim ? trimRect(im, src) : { x: 0, y: 0, w: im.naturalWidth, h: im.naturalHeight };
       const kk = Math.min(cv.width * scale / rc.w, cellH * scale / rc.h), w = rc.w * kk, h = rc.h * kk;
       g.imageSmoothingQuality = "high";
-      const fx = (reels[r].spinning || k < 0 || k >= ROWS) ? null : cellFx(r, k, performance.now());
+      const now = performance.now();
+      const fx = (reels[r].spinning || k < 0 || k >= ROWS) ? null : cellFx(r, k, now);
       const bright = fx ? fx.bright : 1;
       if (fx && fx.glowA > 0) {   // 役色の光（図柄の後ろ、コマいっぱい）
         g.save(); g.globalAlpha = Math.min(1, fx.glowA); g.fillStyle = fx.glowC; g.shadowColor = fx.glowC; g.shadowBlur = 18 * z;
         g.beginPath(); g.roundRect(3 * z, y + 3 * z, cv.width - 6 * z, cellH - 6 * z, 6 * z); g.fill(); g.restore();
       }
+      // 図柄の中のランプ（赤 7・白 7）。停止中はずっと、回転中は設定次第。段ごとに位相をずらす
+      const L = blink.params.lamp, lampC = (k >= 0 && k < ROWS && (!reels[r].spinning || L.whileSpinning)) ? lampFor(strip[idx]) : null;
+      const pulse = lampC ? (L.pulse > 0 ? 1 - L.pulseDepth * (0.5 + 0.5 * Math.sin(now / 1000 * L.pulse * Math.PI * 2 + k * 0.9)) : 1) : 0;
+      if (lampC) {   // 後ろの光（放射状）
+        const cx = cv.width / 2, cy = y + cellH / 2, rad = cv.width * L.size / 2;
+        const grad = g.createRadialGradient(cx, cy, 0, cx, cy, rad); grad.addColorStop(0, lampC); grad.addColorStop(1, "rgba(0,0,0,0)");
+        g.save(); g.globalCompositeOperation = "lighter"; g.globalAlpha = L.intensity * pulse; g.fillStyle = grad; g.fillRect(0, y, cv.width, cellH); g.restore();
+      }
       const filters = [];
       if (bright !== 1) filters.push("brightness(" + bright + ")");
       if (fx && fx.flash > 0) filters.push("brightness(" + (1 + fx.flash) + ") saturate(" + (1 - fx.flash * 0.6) + ")");
       if (fx && fx.hue !== null) filters.push("hue-rotate(" + fx.hue + "deg) saturate(" + (1 + fx.sat) + ")");
-      if (filters.length) g.filter = filters.join(" ");
-      if (fx && (fx.scale !== 1 || fx.dx || fx.dy || fx.rot)) {   // コマの中心を軸に 拡大・ずらし・傾き
-        g.save(); g.translate(cv.width / 2 + fx.dx * z, y + cellH / 2 + fx.dy * z); g.rotate(fx.rot * Math.PI / 180); g.scale(fx.scale, fx.scale);
-        g.drawImage(im, rc.x, rc.y, rc.w, rc.h, -w / 2, -h / 2, w, h); g.restore(); g.filter = "none"; continue;
+      if (fx || lampC) {   // コマの中心を軸に 拡大・ずらし・傾き。その上に 染め・層・ランプの内側の光 を図柄の形で重ねる
+        const T = fx || { scale: 1, dx: 0, dy: 0, rot: 0, tint: null, layer: null };
+        g.save(); g.translate(cv.width / 2 + T.dx * z, y + cellH / 2 + T.dy * z); g.rotate(T.rot * Math.PI / 180); g.scale(T.scale, T.scale);
+        if (filters.length) g.filter = filters.join(" ");
+        g.drawImage(im, rc.x, rc.y, rc.w, rc.h, -w / 2, -h / 2, w, h); g.filter = "none";
+        if (T.tint) { g.globalCompositeOperation = "multiply"; g.globalAlpha = T.tint.k; g.drawImage(silhouette(im, src, rc, T.tint.color), -w / 2, -h / 2, w, h); g.globalCompositeOperation = "destination-in"; g.globalAlpha = 1; g.drawImage(silhouette(im, src, rc, "#fff"), -w / 2, -h / 2, w, h); g.globalCompositeOperation = "source-over"; }
+        if (lampC) { g.globalCompositeOperation = "lighter"; g.globalAlpha = L.inner * pulse; g.filter = "blur(" + (3 * z) + "px)"; g.drawImage(silhouette(im, src, rc, lampC), -w / 2, -h / 2, w, h); g.filter = "none"; g.globalAlpha = L.inner * pulse * 0.5; g.drawImage(silhouette(im, src, rc, lampC), -w / 2, -h / 2, w, h); g.globalAlpha = 1; g.globalCompositeOperation = "source-over"; }
+        if (T.layer) { g.globalCompositeOperation = T.layer.mode; g.globalAlpha = Math.min(1, T.layer.a); g.drawImage(silhouette(im, src, rc, T.layer.color), -w / 2, -h / 2, w, h); g.globalAlpha = 1; g.globalCompositeOperation = "source-over"; }
+        g.restore(); continue;
       }
+      if (filters.length) g.filter = filters.join(" ");
       if (blur) {
         const spread = reels[r].lastMove * z;   // 1 フレームで動いた px
         g.globalAlpha = 0.34;
@@ -377,8 +443,11 @@
       if (oldArt) o.key_bg = true;
       json[s.out] = o;
     });
-    const fx = { style: blink.params.style, strength: blink.params.strength, dimOthers: blink.params.dimOthers, blinkPeriod: blink.params.period, blinkDim: blink.params.dim, blinkSeconds: blink.params.seconds };
-    document.getElementById("result").textContent = parts.join("、") + "、役の演出 " + fx.style + " 強さ " + fx.strength + " / 周期 " + fx.blinkPeriod + " / 暗さ " + fx.blinkDim + " / 長さ " + fx.blinkSeconds + (fx.dimOthers ? " / 他を暗く" : "")
+    const P = blink.params;
+    const fx = { style: P.style, strength: P.strength, dimOthers: P.dimOthers, blinkMode: P.blinkMode, blinkColor: P.blinkColor, layerMode: P.layerMode, layerColor: P.layerColor, layerAlpha: P.layerAlpha, layerPulse: P.layerPulse,
+      lamp: { enabled: P.lamp.enabled, symbols: P.lamp.symbols.slice(), colors: Object.fromEntries(P.lamp.symbols.map(n => [n, P.lamp.colors[n]])), intensity: P.lamp.intensity, inner: P.lamp.inner, size: P.lamp.size, pulse: P.lamp.pulse, pulseDepth: P.lamp.pulseDepth, whileSpinning: P.lamp.whileSpinning },
+      blinkPeriod: P.period, blinkDim: P.dim, blinkSeconds: P.seconds };
+    document.getElementById("result").textContent = parts.join("、") + "、役の演出 " + fx.style + " 強さ " + fx.strength + " / 周期 " + fx.blinkPeriod + " / 暗さ " + fx.blinkDim + " / 長さ " + fx.blinkSeconds + (fx.dimOthers ? " / 他を暗く" : "") + " / 消える側 " + fx.blinkMode + " / 層 " + fx.layerMode + " / ランプ " + (fx.lamp.enabled ? fx.lamp.symbols.join("+") : "なし")
       + "\n\n" + JSON.stringify(json, null, 2) + "\n\n\"reelFx\": " + JSON.stringify(fx, null, 2);
   }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(choice)); } catch (e) {} }
@@ -389,21 +458,36 @@
     blink.start = performance.now();
   }
   function readBlinkParams() {
-    blink.params = { style: document.getElementById("blinkStyle").value, color: document.getElementById("blinkColor").value, strength: parseFloat(document.getElementById("blinkStrength").value), dimOthers: document.getElementById("blinkDimOthers").checked,
-      period: parseFloat(document.getElementById("blinkPeriod").value), dim: parseFloat(document.getElementById("blinkDim").value), seconds: parseFloat(document.getElementById("blinkSeconds").value) };
+    const v = id => document.getElementById(id).value, n = id => parseFloat(v(id)), ck = id => document.getElementById(id).checked;
+    const symbols = Object.keys(LAMP_SYM).filter(k => ck(LAMP_SYM[k]));
+    blink.params = { style: v("blinkStyle"), color: v("blinkColor"), strength: n("blinkStrength"), dimOthers: ck("blinkDimOthers"),
+      period: n("blinkPeriod"), dim: n("blinkDim"), seconds: n("blinkSeconds"),
+      blinkMode: v("blinkMode"), blinkColor: v("blinkTint"), layerMode: v("layerMode"), layerColor: v("layerColor"), layerAlpha: n("layerAlpha"), layerPulse: ck("layerPulse"),
+      lamp: { enabled: ck("lampOn"), symbols, colors: { RED7: v("lampRed7C"), BLUE7: v("lampBlue7C"), BAR: v("lampBarC") }, intensity: n("lampIntensity"), inner: n("lampInner"), size: n("lampSize"), pulse: n("lampPulse"), pulseDepth: n("lampDepth"), whileSpinning: ck("lampSpin") } };
+    document.getElementById("layerAlphaV").textContent = blink.params.layerAlpha.toFixed(2);
+    document.getElementById("lampIntensityV").textContent = blink.params.lamp.intensity.toFixed(2);
+    document.getElementById("lampInnerV").textContent = blink.params.lamp.inner.toFixed(2);
+    document.getElementById("lampSizeV").textContent = blink.params.lamp.size.toFixed(2);
+    document.getElementById("lampPulseV").textContent = blink.params.lamp.pulse.toFixed(1);
+    document.getElementById("lampDepthV").textContent = blink.params.lamp.pulseDepth.toFixed(2);
     document.getElementById("blinkStrengthV").textContent = blink.params.strength.toFixed(2);
     document.getElementById("blinkPeriodV").textContent = blink.params.period.toFixed(2);
     document.getElementById("blinkDimV").textContent = blink.params.dim.toFixed(2);
     document.getElementById("blinkSecondsV").textContent = blink.params.seconds.toFixed(1);
-    try { localStorage.setItem("bbb_blink_v2", JSON.stringify(blink.params)); } catch (e) {}
+    try { localStorage.setItem("bbb_blink_v3", JSON.stringify(blink.params)); } catch (e) {}
     result();
   }
   document.getElementById("blinkTest").addEventListener("click", startBlink);
-  ["blinkPeriod", "blinkDim", "blinkSeconds", "blinkStrength"].forEach(id => document.getElementById(id).addEventListener("input", readBlinkParams));
-  ["blinkStyle", "blinkColor", "blinkDimOthers"].forEach(id => document.getElementById(id).addEventListener("change", () => { readBlinkParams(); startBlink(); }));
+  ["blinkPeriod", "blinkDim", "blinkSeconds", "blinkStrength", "layerAlpha", "lampIntensity", "lampInner", "lampSize", "lampPulse", "lampDepth", "blinkTint", "layerColor", "lampRed7C", "lampBlue7C", "lampBarC"].forEach(id => document.getElementById(id).addEventListener("input", readBlinkParams));
+  ["blinkStyle", "blinkColor", "blinkDimOthers", "blinkMode", "layerMode", "layerPulse"].forEach(id => document.getElementById(id).addEventListener("change", () => { readBlinkParams(); startBlink(); }));
+  ["lampOn", "lampRed7", "lampBlue7", "lampBar", "lampSpin"].forEach(id => document.getElementById(id).addEventListener("change", readBlinkParams));
   (function initBlink() {
-    document.getElementById("blinkStyle").value = blink.params.style || "blink"; document.getElementById("blinkColor").value = blink.params.color || "#ffcf3f";
-    document.getElementById("blinkStrength").value = blink.params.strength ?? 1; document.getElementById("blinkDimOthers").checked = !!blink.params.dimOthers;
+    const P = blink.params, set = (id, val) => { document.getElementById(id).value = val; }, chk = (id, val) => { document.getElementById(id).checked = !!val; };
+    set("blinkStyle", P.style || "blink"); set("blinkColor", P.color || "#ffcf3f"); set("blinkStrength", P.strength ?? 1); chk("blinkDimOthers", P.dimOthers);
+    set("blinkMode", P.blinkMode || "dark"); set("blinkTint", P.blinkColor || "#ffffff"); set("layerMode", P.layerMode || "none"); set("layerColor", P.layerColor || "#ffcf3f"); set("layerAlpha", P.layerAlpha ?? 0.6); chk("layerPulse", P.layerPulse !== false);
+    chk("lampOn", P.lamp.enabled); chk("lampRed7", P.lamp.symbols.includes("RED7")); chk("lampBlue7", P.lamp.symbols.includes("BLUE7")); chk("lampBar", P.lamp.symbols.includes("BAR"));
+    set("lampRed7C", P.lamp.colors.RED7 || "#ff4a4a"); set("lampBlue7C", P.lamp.colors.BLUE7 || "#9fd8ff"); set("lampBarC", P.lamp.colors.BAR || "#ffd27a");
+    set("lampIntensity", P.lamp.intensity); set("lampInner", P.lamp.inner); set("lampSize", P.lamp.size); set("lampPulse", P.lamp.pulse); set("lampDepth", P.lamp.pulseDepth); chk("lampSpin", P.lamp.whileSpinning);
     document.getElementById("blinkPeriod").value = blink.params.period; document.getElementById("blinkDim").value = blink.params.dim; document.getElementById("blinkSeconds").value = blink.params.seconds;
     readBlinkParams();
   })();

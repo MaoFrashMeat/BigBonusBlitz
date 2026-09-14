@@ -30,6 +30,51 @@ namespace BBB.Runtime
         private float _pos;
         private float _remainingSlip = -1f;
         private Image[] _rows;
+        // 図柄の後ろの光（ランプ）と、図柄の形に重ねる層（ランプの内側の光 / 役の演出の層）。合成は UIBlend.shader
+        private Image[] _lampBack, _lampInner, _fxLayer;
+        private SymbolLampConfig _lamp;
+        private static Shader _blendShader;
+        private static readonly System.Collections.Generic.Dictionary<string, Material> _blendMats = new System.Collections.Generic.Dictionary<string, Material>();
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)] private static void ResetMats() { _blendMats.Clear(); _blendShader = null; }
+
+        /// <summary>合成の種類ごとの Material（add / screen / multiply）。無ければ null（通常の合成で描く）。</summary>
+        public static Material BlendMaterial(string mode)
+        {
+            mode = string.IsNullOrEmpty(mode) ? "add" : mode.ToLowerInvariant();
+            if (_blendMats.TryGetValue(mode, out var m) && m != null) return m;
+            if (_blendShader == null) _blendShader = Resources.Load<Shader>("Art/Symbols/UIBlend");
+            if (_blendShader == null) return null;
+            m = new Material(_blendShader) { name = "UIBlend/" + mode };
+            switch (mode)
+            {
+                case "screen": m.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.One); m.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcColor); m.SetFloat("_Mode", 2); break;
+                case "multiply": m.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.DstColor); m.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.Zero); m.SetFloat("_Mode", 3); break;
+                default: m.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.One); m.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.One); m.SetFloat("_Mode", 1); break;
+            }
+            _blendMats[mode] = m;
+            return m;
+        }
+
+        public static Color ParseColor(string hex, Color fallback)
+        {
+            return !string.IsNullOrEmpty(hex) && ColorUtility.TryParseHtmlString(hex, out var c) ? c : fallback;
+        }
+
+        /// <summary>ランプの設定（game_config の reelFx.lamp）。null で消す。</summary>
+        public void SetLamp(SymbolLampConfig lamp)
+        {
+            _lamp = lamp != null && lamp.enabled ? lamp : null;
+            Redraw();
+        }
+
+        private bool LampFor(Symbol s, out Color color)
+        {
+            color = Color.white;
+            if (_lamp == null || _lamp.symbols == null || !_lamp.symbols.Contains(s.ToString())) return false;
+            string hex = null; _lamp.colors?.TryGetValue(s.ToString(), out hex);
+            color = ParseColor(hex, s == Symbol.RED7 ? new Color(1f, .29f, .29f) : s == Symbol.BLUE7 ? new Color(.62f, .85f, 1f) : Color.white);
+            return true;
+        }
         private Text[] _rowLabels;
         private Image _frame;
         private bool _useSprites;
@@ -62,6 +107,18 @@ namespace BBB.Runtime
             frac = pos - fl;
         }
 
+        private static Image Overlay(RectTransform parent, string name)
+        {
+            var go = new GameObject(name, typeof(RectTransform), typeof(Image));
+            var r = go.GetComponent<RectTransform>();
+            r.SetParent(parent, false);
+            r.anchorMin = Vector2.zero; r.anchorMax = Vector2.one; r.offsetMin = r.offsetMax = Vector2.zero;
+            var im = go.GetComponent<Image>();
+            im.preserveAspect = true; im.raycastTarget = false; im.enabled = false;
+            im.material = BlendMaterial("add");
+            return im;
+        }
+
         public static ReelView Create(Transform parent, Symbol[] strip, Vector2 pos)
         {
             var rt = UiFactory.Panel(parent, "Reel", pos, new Vector2(ReelWidth, SymbolHeight * 3), new Color(0.95f, 0.95f, 0.95f));
@@ -70,6 +127,7 @@ namespace BBB.Runtime
             view.Strip = strip;
             view._frame = rt.GetComponent<Image>();
             view._rows = new Image[Rows];
+            view._lampBack = new Image[Rows]; view._lampInner = new Image[Rows]; view._fxLayer = new Image[Rows];
             view._rowLabels = new Text[Rows];
             view._useSprites = ArtLoader.SymbolSprite(Symbol.RED7) != null;
             for (int i = 0; i < Rows; i++)
@@ -86,6 +144,13 @@ namespace BBB.Runtime
                 img.raycastTarget = false;
                 img.enabled = view._useSprites;
                 view._rows[i] = img;
+                // ランプの後ろの光（図柄の下に置くので、行の Image より先の兄弟にする）
+                var back = UiSkin.Img(rt, "Lamp" + i, new Vector2(0, y), new Vector2(ReelWidth * 1.4f, SymbolHeight * 2.2f), UiSkin.Glow(96), new Color(1, 1, 1, 0));
+                back.material = BlendMaterial("add"); back.enabled = false; back.transform.SetSiblingIndex(r.GetSiblingIndex());
+                view._lampBack[i] = back;
+                // 図柄の形に重ねる層 2 枚（ランプの内側の光 / 役の演出の層）。親と同じ矩形・同じ絵
+                view._lampInner[i] = Overlay(r, "Inner");
+                view._fxLayer[i] = Overlay(r, "Layer");
                 view._rowLabels[i] = UiFactory.Label(rt, "Label" + i, new Vector2(0, y), new Vector2(ReelWidth, SymbolHeight), "", 28);
                 view._rowLabels[i].enabled = !view._useSprites;
             }
@@ -134,6 +199,16 @@ namespace BBB.Runtime
         private readonly float[] _fxScale = { 1f, 1f, 1f };
         private readonly Vector2[] _fxOffset = new Vector2[3];
         private readonly float[] _fxRot = new float[3];
+        private readonly string[] _fxLayerMode = new string[3];
+        private readonly Color[] _fxLayerColor = new Color[3];       // a = 0 で層なし
+
+        /// <summary>段の図柄に重ねる層（mode: add / screen / multiply、color の a が強さ）。a=0 で消す。</summary>
+        public void SetRowLayer(int windowRow, string mode, Color color)
+        {
+            if (windowRow < 0 || windowRow > 2) return;
+            _fxLayerMode[windowRow] = mode; _fxLayerColor[windowRow] = color;
+            if (!IsSpinning) Redraw();
+        }
 
         /// <summary>窓の段（0=上 1=中 2=下）の図柄の明るさ（1 で通常）。役が決まったコマの点滅に使う。</summary>
         public void SetRowBrightness(int windowRow, float k) => SetRowFx(windowRow, new Color(k, k, k, 1f), 1f, Vector2.zero, 0f);
@@ -150,7 +225,7 @@ namespace BBB.Runtime
         public void ResetBrightness()
         {
             if (_rows == null) return;
-            for (int r = 0; r < 3; r++) { _fxTint[r] = Color.white; _fxScale[r] = 1f; _fxOffset[r] = Vector2.zero; _fxRot[r] = 0f; }
+            for (int r = 0; r < 3; r++) { _fxTint[r] = Color.white; _fxScale[r] = 1f; _fxOffset[r] = Vector2.zero; _fxRot[r] = 0f; _fxLayerColor[r] = new Color(0, 0, 0, 0); }
             foreach (var img in _rows) if (img != null) { img.color = Color.white; img.rectTransform.localScale = Vector3.one; img.rectTransform.localRotation = Quaternion.identity; }
             Redraw();
         }
@@ -159,6 +234,8 @@ namespace BBB.Runtime
         {
             if (!IsSpinning)
             {
+                // ランプの脈（停止中も毎フレーム描き直す）
+                if (_lamp != null && _lamp.pulse > 0f && _bounceT < 0f) Redraw();
                 // 引き込み停止後の跳ね（1〜2 フレームの余韻）
                 if (_bounceT >= 0f)
                 {
@@ -218,6 +295,28 @@ namespace BBB.Runtime
                     _rows[i].rectTransform.localScale = fx ? new Vector3(_fxScale[wr], _fxScale[wr], 1f) : Vector3.one;
                     _rows[i].rectTransform.localRotation = fx ? Quaternion.Euler(0, 0, _fxRot[wr]) : Quaternion.identity;
                     _rows[i].color = fx ? _fxTint[wr] : Color.white;
+                    // 役の演出の層（揃ったコマだけ）
+                    var layer = _fxLayer[i];
+                    bool hasLayer = fx && _fxLayerColor[wr].a > 0.001f;
+                    if (layer != null && (layer.enabled = hasLayer))
+                    {
+                        layer.sprite = _rows[i].sprite; layer.color = _fxLayerColor[wr];
+                        var lm = BlendMaterial(_fxLayerMode[wr]); if (layer.material != lm && lm != null) layer.material = lm;
+                    }
+                    // ランプ（赤 7・白 7 など）。停止中はずっと、回転中は設定次第
+                    Color lampColor = Color.white;
+                    bool lampOn = _lamp != null && (!IsSpinning || _lamp.whileSpinning) && LampFor(s, out lampColor);
+                    if (_lampBack[i] != null) _lampBack[i].enabled = lampOn;
+                    if (_lampInner[i] != null) _lampInner[i].enabled = lampOn;
+                    if (lampOn)
+                    {
+                        float pulse = _lamp.pulse > 0f ? 1f - Mathf.Clamp01(_lamp.pulseDepth) * (0.5f + 0.5f * Mathf.Sin(Time.time * _lamp.pulse * Mathf.PI * 2f + i * 0.9f)) : 1f;
+                        _lampBack[i].rectTransform.anchoredPosition = new Vector2(0, y);
+                        _lampBack[i].rectTransform.sizeDelta = new Vector2(ReelWidth * _lamp.size, SymbolHeight * _lamp.size * 1.6f);
+                        _lampBack[i].color = new Color(lampColor.r, lampColor.g, lampColor.b, Mathf.Clamp01(_lamp.intensity) * pulse);
+                        _lampInner[i].sprite = _rows[i].sprite;
+                        _lampInner[i].color = new Color(lampColor.r, lampColor.g, lampColor.b, Mathf.Clamp01(_lamp.inner) * pulse);
+                    }
                 }
                 else
                 {

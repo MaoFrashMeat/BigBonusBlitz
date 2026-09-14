@@ -2,6 +2,12 @@
   "entries": [
     {
       "date": "2026-09-14",
+      "version": "dev 213",
+      "title": "図柄の点滅の色と重ねる層を選べるように。赤 7・白 7 の中にランプ",
+      "body": "・点滅で消える側を 黒へ暗く / 色で染める / 色を足して明るく から選べる（今までは黒へ暗くする 1 つだけ）\n・揃った図柄に 加算 / スクリーン / 乗算 の層を重ねられる（色・強さ・脈打ち）\n・赤 7・白 7 の中にランプが点いているように（後ろの光 + 図柄の形の光、ゆっくり脈打つ）。色・強さ・広がり・速さは reelFx.lamp\n・どれも tools/symbol_viewer.html の「役の演出」で試せる"
+    },
+    {
+      "date": "2026-09-14",
       "version": "dev 212",
       "title": "図柄ビューアの既定をゲームの今の選択に（他 PC でも同じ絵・同じ大きさで開く）",
       "body": "・tools/symbol_viewer.html は tools/symbol_defaults.js（fx_sync.py が symbol_choice.json から写す）を既定にする。「選び直す」もその値に戻る\n・元絵 assets/symbols も LFS で入れたので、候補は他 PC でも見える（git lfs pull）"

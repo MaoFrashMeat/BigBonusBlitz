@@ -304,6 +304,23 @@ namespace BBB.Core
         public float strength = 1f;
         /// <summary>揃っていないコマを blinkDim まで暗くして、揃ったコマを際立たせる。</summary>
         public bool dimOthers = false;
+        /// <summary>
+        /// 点滅の「消えている側」の見え方。dark = 黒へ暗くする（blinkDim）/ tint = blinkColor で染める（掛け算）/
+        /// light = blinkColor を加算して明るく光らせる（実機のバックライトのよう）。
+        /// </summary>
+        public string blinkMode = "dark";
+        /// <summary>tint / light の色（#rrggbb）。</summary>
+        public string blinkColor = "#ffffff";
+        /// <summary>
+        /// 揃った図柄に重ねる層。none / add（加算）/ screen（スクリーン）/ multiply（乗算）。
+        /// 図柄の形そのままに layerColor を layerAlpha で重ね、layerPulse なら周期で強弱を付ける。
+        /// </summary>
+        public string layerMode = "none";
+        public string layerColor = "#ffcf3f";
+        public float layerAlpha = 0.6f;
+        public bool layerPulse = true;
+        /// <summary>図柄の中のランプ（赤 7・白 7 など。停止中ずっと点いている）。</summary>
+        public SymbolLampConfig lamp = new SymbolLampConfig();
         /// <summary>点滅の周期（秒。暗→明で 1 周期）。</summary>
         public float blinkPeriod = 0.13f;
         /// <summary>暗いときの明るさ（0〜1）。</summary>
@@ -312,6 +329,29 @@ namespace BBB.Core
         public float blinkSeconds = 1.4f;
         /// <summary>ベルの「n EMB 獲得！」の帯。</summary>
         public EmberGainFxConfig emberGain = new EmberGainFxConfig();
+    }
+
+    /// <summary>
+    /// 図柄の中にランプが入っているような見え方（実機のバックライト）。図柄の後ろに色の光、図柄の形に加算の光を重ね、
+    /// pulse（Hz）でゆっくり脈打つ。symbols に入れた図柄だけに出す。colors は図柄名 → #rrggbb。
+    /// </summary>
+    public sealed class SymbolLampConfig
+    {
+        public bool enabled = true;
+        public List<string> symbols = new List<string> { "RED7", "BLUE7" };
+        public Dictionary<string, string> colors = new Dictionary<string, string> { { "RED7", "#ff4a4a" }, { "BLUE7", "#9fd8ff" } };
+        /// <summary>後ろの光の強さ（0〜1）。</summary>
+        public float intensity = 0.7f;
+        /// <summary>図柄の形に重ねる加算の光の強さ（0〜1）。</summary>
+        public float inner = 0.5f;
+        /// <summary>後ろの光の広がり（コマの幅に対する倍率）。</summary>
+        public float size = 1.4f;
+        /// <summary>脈打つ速さ（Hz）。0 で一定。</summary>
+        public float pulse = 1.2f;
+        /// <summary>脈の深さ（0〜1。0.4 なら 60%〜100% を行き来）。</summary>
+        public float pulseDepth = 0.4f;
+        /// <summary>回転中も点ける。</summary>
+        public bool whileSpinning = false;
     }
 
     public sealed class EmberConfig

@@ -413,6 +413,15 @@ Good +30 / Cool +20 / 1コマ +10 / 2コマ 0。上乗せは成功報酬（souls
 強さ・他を暗く は `tools/symbol_viewer.html` の「役の演出」で試し、本人が選んだ値を game_config の reelFx に写す。
 既定は blink のまま（本人未決）。
 
+### 決定: 点滅は「黒へ暗くする」だけでなく、色で染める / 色を足す を選べる。層（加算・スクリーン・乗算）は専用シェーダで
+本人「点滅がくろなのはなぜ？」→ uGUI の Image.color は掛け算なので暗くしかできない。加算・スクリーン・乗算は
+`Resources/Art/Symbols/UIBlend.shader`（UI/Default に _SrcBlend / _DstBlend を足したもの、RectMask2D 対応）で描く。
+図柄の行の子に「層」の Image を 2 枚（ランプの内側 / 役の演出）持ち、同じ絵を合成の種類を変えて重ねる。
+
+### 決定: 赤 7・白 7 は「中にランプが点いている」見え方（reelFx.lamp）
+実機のバックライトのように、図柄の後ろに色の光（Glow）+ 図柄の形の加算の光を重ね、1.2 Hz でゆっくり脈打つ。
+対象は symbols で選ぶ（既定 RED7 / BLUE7）。停止中はずっと、回転中は whileSpinning で選ぶ。値は本人がビューアで決める。
+
 ---
 
 ## 検証の記録
