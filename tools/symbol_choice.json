@@ -9,6 +9,6 @@
     "watermelon": { "src": "assets/symbols/watermelon_3.png", "scale": 0.7 },
     "cherry":     { "src": "assets/symbols/cherry_1.png",     "scale": 0.66 },
     "replay":     { "src": "assets/symbols/replay_6.png",     "scale": 0.81 },
-    "remix":      { "src": "assets/symbols/blank_6.png",      "scale": 0.73 }
+    "remix":      { "src": "assets/symbols/blank_1.png",      "scale": 0.73 }
   }
 }
