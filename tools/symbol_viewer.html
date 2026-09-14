@@ -98,11 +98,13 @@
       <div class="ctrl">
         <b style="font-size:13px">図柄の中のランプ</b>
         <label><input type="checkbox" id="lampOn" checked> 点ける</label>
-        <label><input type="checkbox" id="lampRed7" checked> 赤7 <input type="color" id="lampRed7C" value="#ff4a4a"></label>
-        <label><input type="checkbox" id="lampBlue7" checked> 白7 <input type="color" id="lampBlue7C" value="#9fd8ff"></label>
-        <label><input type="checkbox" id="lampBar"> BAR <input type="color" id="lampBarC" value="#ffd27a"></label>
         <label>後ろの光 <input type="range" id="lampIntensity" min="0" max="1" step="0.05" value="0.7"> <span id="lampIntensityV">0.70</span></label>
-        <label>中の光 <input type="range" id="lampInner" min="0" max="1" step="0.05" value="0.5"> <span id="lampInnerV">0.50</span></label>
+        <label>中の光（共通） <input type="range" id="lampInner" min="0" max="1" step="0.05" value="0.5"> <span id="lampInnerV">0.50</span></label>
+      </div>
+      <div class="ctrl" style="padding-left:12px">
+        <label><input type="checkbox" id="lampRed7" checked> 赤7 <input type="color" id="lampRed7C" value="#ff4a4a"> 中 <input type="range" id="lampRed7I" min="0" max="1" step="0.05" value="0.5" style="width:90px"> <span id="lampRed7IV">0.50</span></label>
+        <label><input type="checkbox" id="lampBlue7" checked> 白7 <input type="color" id="lampBlue7C" value="#9fd8ff"> 中 <input type="range" id="lampBlue7I" min="0" max="1" step="0.05" value="0.5" style="width:90px"> <span id="lampBlue7IV">0.50</span></label>
+        <label><input type="checkbox" id="lampBar"> BAR <input type="color" id="lampBarC" value="#ffd27a"> 中 <input type="range" id="lampBarI" min="0" max="1" step="0.05" value="0.3" style="width:90px"> <span id="lampBarIV">0.30</span></label>
         <label>広がり <input type="range" id="lampSize" min="0.8" max="2.2" step="0.05" value="1.4"> <span id="lampSizeV">1.40</span></label>
         <label>速さ <input type="range" id="lampPulse" min="0" max="4" step="0.1" value="1.2"> <span id="lampPulseV">1.2</span> Hz</label>
         <label>脈の深さ <input type="range" id="lampDepth" min="0" max="1" step="0.05" value="0.4"> <span id="lampDepthV">0.40</span></label>
@@ -231,7 +233,7 @@
   // 役の点滅: 対象の段（リールごとの窓の段 0〜2、-1 で無し）と、始めた時刻
   const blink = { rows: [-1, -1, -1], start: -1, params: { style: "blink", strength: 1, dimOthers: false, color: "#ffcf3f", period: 0.13, dim: 0.28, seconds: 1.4,
     blinkMode: "dark", blinkColor: "#ffffff", layerMode: "none", layerColor: "#ffcf3f", layerAlpha: 0.6, layerPulse: true,
-    lamp: { enabled: true, symbols: ["RED7", "BLUE7"], colors: { RED7: "#ff4a4a", BLUE7: "#9fd8ff", BAR: "#ffd27a" }, intensity: 0.7, inner: 0.5, size: 1.4, pulse: 1.2, pulseDepth: 0.4, whileSpinning: false } } };
+    lamp: { enabled: true, symbols: ["RED7", "BLUE7"], colors: { RED7: "#ff4a4a", BLUE7: "#9fd8ff", BAR: "#ffd27a" }, intensity: 0.7, inner: 0.5, innerBySymbol: { RED7: 0.5, BLUE7: 0.5, BAR: 0.3 }, size: 1.4, pulse: 1.2, pulseDepth: 0.4, whileSpinning: false } } };
   try { const bp = JSON.parse(localStorage.getItem("bbb_blink_v3") || "null"); if (bp) { const lamp = Object.assign({}, blink.params.lamp, bp.lamp || {}); Object.assign(blink.params, bp); blink.params.lamp = lamp; } } catch (e) {}
   // 図柄の形だけを色で塗った絵（層・ランプの内側の光に使う）。src + 色で覚える
   const silhouettes = {};
@@ -251,6 +253,8 @@
     const L = blink.params.lamp; if (!L.enabled || !L.symbols.includes(name)) return null;
     return L.colors[name] || "#ffffff";
   }
+  // 図柄ごとの中の光。無ければ共通の値
+  function lampInner(name) { const L = blink.params.lamp; const v = L.innerBySymbol && L.innerBySymbol[name]; return typeof v === "number" ? v : L.inner; }
   // 段 k（0〜2）の演出。GameController.PaylineFlashRoutine と同じ式。返り値: 明るさ・拡大・ずらし・傾き・光の量と色・色相
   function cellFx(r, k, now) {
     const none = { bright: 1, scale: 1, dx: 0, dy: 0, rot: 0, glowA: 0, glowC: null, hue: null, flash: 0, tint: null, layer: null };
@@ -350,7 +354,7 @@
         if (filters.length) g.filter = filters.join(" ");
         g.drawImage(im, rc.x, rc.y, rc.w, rc.h, -w / 2, -h / 2, w, h); g.filter = "none";
         if (T.tint) { g.globalCompositeOperation = "multiply"; g.globalAlpha = T.tint.k; g.drawImage(silhouette(im, src, rc, T.tint.color), -w / 2, -h / 2, w, h); g.globalCompositeOperation = "destination-in"; g.globalAlpha = 1; g.drawImage(silhouette(im, src, rc, "#fff"), -w / 2, -h / 2, w, h); g.globalCompositeOperation = "source-over"; }
-        if (lampC) { g.globalCompositeOperation = "lighter"; g.globalAlpha = L.inner * pulse; g.filter = "blur(" + (3 * z) + "px)"; g.drawImage(silhouette(im, src, rc, lampC), -w / 2, -h / 2, w, h); g.filter = "none"; g.globalAlpha = L.inner * pulse * 0.5; g.drawImage(silhouette(im, src, rc, lampC), -w / 2, -h / 2, w, h); g.globalAlpha = 1; g.globalCompositeOperation = "source-over"; }
+        if (lampC) { const inner = lampInner(strip[idx]); g.globalCompositeOperation = "lighter"; g.globalAlpha = inner * pulse; g.filter = "blur(" + (3 * z) + "px)"; g.drawImage(silhouette(im, src, rc, lampC), -w / 2, -h / 2, w, h); g.filter = "none"; g.globalAlpha = inner * pulse * 0.5; g.drawImage(silhouette(im, src, rc, lampC), -w / 2, -h / 2, w, h); g.globalAlpha = 1; g.globalCompositeOperation = "source-over"; }
         if (T.layer) { g.globalCompositeOperation = T.layer.mode; g.globalAlpha = Math.min(1, T.layer.a); g.drawImage(silhouette(im, src, rc, T.layer.color), -w / 2, -h / 2, w, h); g.globalAlpha = 1; g.globalCompositeOperation = "source-over"; }
         g.restore(); continue;
       }
@@ -449,7 +453,7 @@
     });
     const P = blink.params;
     const fx = { style: P.style, strength: P.strength, dimOthers: P.dimOthers, blinkMode: P.blinkMode, blinkColor: P.blinkColor, layerMode: P.layerMode, layerColor: P.layerColor, layerAlpha: P.layerAlpha, layerPulse: P.layerPulse,
-      lamp: { enabled: P.lamp.enabled, symbols: P.lamp.symbols.slice(), colors: Object.fromEntries(P.lamp.symbols.map(n => [n, P.lamp.colors[n]])), intensity: P.lamp.intensity, inner: P.lamp.inner, size: P.lamp.size, pulse: P.lamp.pulse, pulseDepth: P.lamp.pulseDepth, whileSpinning: P.lamp.whileSpinning },
+      lamp: { enabled: P.lamp.enabled, symbols: P.lamp.symbols.slice(), colors: Object.fromEntries(P.lamp.symbols.map(n => [n, P.lamp.colors[n]])), intensity: P.lamp.intensity, inner: P.lamp.inner, innerBySymbol: Object.fromEntries(P.lamp.symbols.map(n => [n, P.lamp.innerBySymbol[n]])), size: P.lamp.size, pulse: P.lamp.pulse, pulseDepth: P.lamp.pulseDepth, whileSpinning: P.lamp.whileSpinning },
       blinkPeriod: P.period, blinkDim: P.dim, blinkSeconds: P.seconds };
     document.getElementById("result").textContent = parts.join("、") + "、役の演出 " + fx.style + " 強さ " + fx.strength + " / 周期 " + fx.blinkPeriod + " / 暗さ " + fx.blinkDim + " / 長さ " + fx.blinkSeconds + (fx.dimOthers ? " / 他を暗く" : "") + " / 消える側 " + fx.blinkMode + " / 層 " + fx.layerMode + " / ランプ " + (fx.lamp.enabled ? fx.lamp.symbols.join("+") : "なし")
       + "\n\n" + JSON.stringify(json, null, 2) + "\n\n\"reelFx\": " + JSON.stringify(fx, null, 2);
@@ -478,7 +482,8 @@
     blink.params = { style: v("blinkStyle"), color: v("blinkColor"), strength: n("blinkStrength"), dimOthers: ck("blinkDimOthers"),
       period: n("blinkPeriod"), dim: n("blinkDim"), seconds: n("blinkSeconds"),
       blinkMode: v("blinkMode"), blinkColor: v("blinkTint"), layerMode: v("layerMode"), layerColor: v("layerColor"), layerAlpha: n("layerAlpha"), layerPulse: ck("layerPulse"),
-      lamp: { enabled: ck("lampOn"), symbols, colors: { RED7: v("lampRed7C"), BLUE7: v("lampBlue7C"), BAR: v("lampBarC") }, intensity: n("lampIntensity"), inner: n("lampInner"), size: n("lampSize"), pulse: n("lampPulse"), pulseDepth: n("lampDepth"), whileSpinning: ck("lampSpin") } };
+      lamp: { enabled: ck("lampOn"), symbols, colors: { RED7: v("lampRed7C"), BLUE7: v("lampBlue7C"), BAR: v("lampBarC") }, intensity: n("lampIntensity"), inner: n("lampInner"), innerBySymbol: { RED7: n("lampRed7I"), BLUE7: n("lampBlue7I"), BAR: n("lampBarI") }, size: n("lampSize"), pulse: n("lampPulse"), pulseDepth: n("lampDepth"), whileSpinning: ck("lampSpin") } };
+    for (const id of ["lampRed7I", "lampBlue7I", "lampBarI"]) document.getElementById(id + "V").textContent = n(id).toFixed(2);
     document.getElementById("layerAlphaV").textContent = blink.params.layerAlpha.toFixed(2);
     document.getElementById("lampIntensityV").textContent = blink.params.lamp.intensity.toFixed(2);
     document.getElementById("lampInnerV").textContent = blink.params.lamp.inner.toFixed(2);
@@ -493,7 +498,7 @@
     result();
   }
   document.getElementById("blinkTest").addEventListener("click", startBlink);
-  ["blinkPeriod", "blinkDim", "blinkSeconds", "blinkStrength", "layerAlpha", "lampIntensity", "lampInner", "lampSize", "lampPulse", "lampDepth", "blinkTint", "layerColor", "lampRed7C", "lampBlue7C", "lampBarC"].forEach(id => document.getElementById(id).addEventListener("input", readBlinkParams));
+  ["blinkPeriod", "blinkDim", "blinkSeconds", "blinkStrength", "layerAlpha", "lampIntensity", "lampInner", "lampSize", "lampPulse", "lampDepth", "blinkTint", "layerColor", "lampRed7C", "lampBlue7C", "lampBarC", "lampRed7I", "lampBlue7I", "lampBarI"].forEach(id => document.getElementById(id).addEventListener("input", readBlinkParams));
   ["blinkStyle", "blinkColor", "blinkDimOthers", "blinkMode", "layerMode", "layerPulse"].forEach(id => document.getElementById(id).addEventListener("change", () => { readBlinkParams(); startBlink(); }));
   ["lampOn", "lampRed7", "lampBlue7", "lampBar", "lampSpin"].forEach(id => document.getElementById(id).addEventListener("change", readBlinkParams));
   (function initBlink() {
@@ -502,6 +507,7 @@
     set("blinkMode", P.blinkMode || "dark"); set("blinkTint", P.blinkColor || "#ffffff"); set("layerMode", P.layerMode || "none"); set("layerColor", P.layerColor || "#ffcf3f"); set("layerAlpha", P.layerAlpha ?? 0.6); chk("layerPulse", P.layerPulse !== false);
     chk("lampOn", P.lamp.enabled); chk("lampRed7", P.lamp.symbols.includes("RED7")); chk("lampBlue7", P.lamp.symbols.includes("BLUE7")); chk("lampBar", P.lamp.symbols.includes("BAR"));
     set("lampRed7C", P.lamp.colors.RED7 || "#ff4a4a"); set("lampBlue7C", P.lamp.colors.BLUE7 || "#9fd8ff"); set("lampBarC", P.lamp.colors.BAR || "#ffd27a");
+    const ib = P.lamp.innerBySymbol || {}; set("lampRed7I", ib.RED7 ?? P.lamp.inner); set("lampBlue7I", ib.BLUE7 ?? P.lamp.inner); set("lampBarI", ib.BAR ?? 0.3);
     set("lampIntensity", P.lamp.intensity); set("lampInner", P.lamp.inner); set("lampSize", P.lamp.size); set("lampPulse", P.lamp.pulse); set("lampDepth", P.lamp.pulseDepth); chk("lampSpin", P.lamp.whileSpinning);
     document.getElementById("blinkPeriod").value = blink.params.period; document.getElementById("blinkDim").value = blink.params.dim; document.getElementById("blinkSeconds").value = blink.params.seconds;
     readBlinkParams();

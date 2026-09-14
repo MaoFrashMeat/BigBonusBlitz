@@ -315,7 +315,8 @@ namespace BBB.Runtime
                         _lampBack[i].rectTransform.sizeDelta = new Vector2(ReelWidth * _lamp.size, SymbolHeight * _lamp.size * 1.6f);
                         _lampBack[i].color = new Color(lampColor.r, lampColor.g, lampColor.b, Mathf.Clamp01(_lamp.intensity) * pulse);
                         _lampInner[i].sprite = _rows[i].sprite;
-                        _lampInner[i].color = new Color(lampColor.r, lampColor.g, lampColor.b, Mathf.Clamp01(_lamp.inner) * pulse);
+                        float inner = _lamp.innerBySymbol != null && _lamp.innerBySymbol.TryGetValue(s.ToString(), out var iv) ? iv : _lamp.inner;
+                        _lampInner[i].color = new Color(lampColor.r, lampColor.g, lampColor.b, Mathf.Clamp01(inner) * pulse);
                     }
                 }
                 else

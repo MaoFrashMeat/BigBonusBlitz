@@ -342,8 +342,9 @@ namespace BBB.Core
         public Dictionary<string, string> colors = new Dictionary<string, string> { { "RED7", "#ff4a4a" }, { "BLUE7", "#9fd8ff" } };
         /// <summary>後ろの光の強さ（0〜1）。</summary>
         public float intensity = 0.7f;
-        /// <summary>図柄の形に重ねる加算の光の強さ（0〜1）。</summary>
+        /// <summary>図柄の形に重ねる加算の光の強さ（0〜1）。図柄ごとに変えるときは innerBySymbol（無い図柄はこの値）。</summary>
         public float inner = 0.5f;
+        public Dictionary<string, float> innerBySymbol = new Dictionary<string, float>();
         /// <summary>後ろの光の広がり（コマの幅に対する倍率）。</summary>
         public float size = 1.4f;
         /// <summary>脈打つ速さ（Hz）。0 で一定。</summary>
