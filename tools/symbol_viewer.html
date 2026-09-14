@@ -456,9 +456,20 @@
   }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(choice)); } catch (e) {} }
   function spinAll() { reels.forEach(rl => { rl.spinning = true; rl.stopping = false; }); blink.start = -1; }
+  // 役の色 → 揃える図柄。金 = ベル / 青 = リプレイ / 桃 = チェリー（左だけ）/ 緑 = スイカ / 虹 = 赤 7
+  const ROLE_SYMBOL = { "#ffcf3f": "STAR", "#4da3ff": "REPLAY", "#ff73a6": "CHERRY", "#66f280": "WATERMELON", "rainbow": "RED7" };
   function startBlink() {
     const line = document.getElementById("blinkLine").value;
     blink.rows = line === "mid" ? [1, 1, 1] : line === "top" ? [0, 0, 0] : line === "diag" ? [0, 1, 2] : [1, -1, -1];
+    // 先にリールを揃える: 各リールで図柄のあるコマを、その段（窓の k 段目）に来る位置に止める
+    const sym = ROLE_SYMBOL[document.getElementById("blinkColor").value] || "STAR";
+    for (let r = 0; r < 3; r++) {
+      const k = blink.rows[r]; if (k < 0) continue;
+      const strip = STRIPS[r], len = strip.length;
+      const i = strip.indexOf(sym); if (i < 0) continue;
+      const rl = reels[r]; rl.spinning = false; rl.stopping = false; rl.bounce = 0; rl.pos = ((i - k) % len + len) % len;
+      const bar = document.querySelector('#reels input[data-r="' + r + '"]'); if (bar) bar.value = rl.pos;
+    }
     blink.start = performance.now();
   }
   function readBlinkParams() {
