@@ -93,6 +93,7 @@
     <div class="striprow" id="strips"></div>
   </div>
 </div>
+<script src="symbol_defaults.js"></script>
 <script>
 (function () {
   const A = "../assets/symbols/";
@@ -113,8 +114,21 @@
   ];
   function scaleOf(s) { const v = choice["scale_" + s.key]; return (typeof v === "number" ? v : s.defScale) / 100; }
   const KEY = "bbb_symbol_choice_v1";
-  let choice = {};
-  try { choice = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { choice = {}; }
+  // 既定はゲームの今の値（tools/symbol_defaults.js。py -3 tools/fx_sync.py が symbol_choice.json から写す）。
+  // 無ければ「今のまま」と defScale。ブラウザに残した選択（localStorage）があればそれを上に重ねる
+  function defaultChoice() {
+    const d = window.BBB_SYMBOL_DEFAULTS || {}, c = {};
+    SYMS.forEach(s => {
+      const v = d[s.out]; if (!v) return;
+      const file = String(v.src || "").split("/").pop();
+      const idx = s.cands.findIndex(x => x.split("/").pop() === file);
+      if (idx >= 0) c[s.key] = idx;
+      if (typeof v.scale === "number") c["scale_" + s.key] = Math.round(v.scale * 100);
+    });
+    return c;
+  }
+  let choice = defaultChoice();
+  try { const st = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; Object.assign(choice, st); } catch (e) {}
   const imgs = {};   // src → HTMLImageElement（読み込み済み）
   const trimCache = {};
   // 透明な余白を切った矩形（file:// では canvas の画素が読めないので、Python で測った値をここに置く。tools/symbol_trim.py）
@@ -416,7 +430,7 @@
     try { await navigator.clipboard.writeText(t); document.getElementById("copied").textContent = "コピーした"; }
     catch (e) { document.getElementById("copied").textContent = "コピーできなかった。文を選んで Ctrl+C"; }
   });
-  document.getElementById("reset").addEventListener("click", () => { choice = {}; save(); build(); });
+  document.getElementById("reset").addEventListener("click", () => { choice = defaultChoice(); save(); build(); });
   buildReels(); buildStrips(); build(); requestAnimationFrame(tick);
 })();
 </script>

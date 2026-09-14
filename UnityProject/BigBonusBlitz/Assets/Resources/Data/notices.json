@@ -2,6 +2,12 @@
   "entries": [
     {
       "date": "2026-09-14",
+      "version": "dev 212",
+      "title": "図柄ビューアの既定をゲームの今の選択に（他 PC でも同じ絵・同じ大きさで開く）",
+      "body": "・tools/symbol_viewer.html は tools/symbol_defaults.js（fx_sync.py が symbol_choice.json から写す）を既定にする。「選び直す」もその値に戻る\n・元絵 assets/symbols も LFS で入れたので、候補は他 PC でも見える（git lfs pull）"
+    },
+    {
+      "date": "2026-09-14",
       "version": "dev 211",
       "title": "図柄が揃っていないのに点滅していたのを直し、揃ったときの演出を 9 種類から選べるように",
       "body": "・レバーオンの予告で 9 コマが点滅していたのを直した（予告はラインの光だけ）\n・揃った図柄の演出を 点滅 / 拡大縮小 / 跳ねる / 傾く / 揺れる / 役色の光 / 白く光る / 色相 / 膨らむ の 9 種類に。強さと「他を暗く」も。tools/symbol_viewer.html の「役の演出」で試して game_config の reelFx に写す"
