@@ -837,7 +837,7 @@ namespace BBB.Runtime
 
             // ===== モーダル: デバッグ =====
             // 左に状態表示、右に 2 列のボタン、下に設定 1〜6 の一列。重ならないよう位置は計算で置く
-            const float dW = 660f, dH = 420f;
+            const float dW = 660f, dH = 460f;
             _debugBox = BuildModal("Debug", new Vector2(dW, dH), "DEBUG", ToggleDebug, out var dBody);
 
             const float infoW = 280f, infoH = 268f;
@@ -876,6 +876,20 @@ namespace BBB.Runtime
                 float x = -dW * 0.5f + 20 + 56 + 26 + i * 58f;
                 UiSkin.Button(dBody, "Dbg_Set" + s, new Vector2(x, -dH * 0.5f + 34), new Vector2(52, 28), s.ToString(),
                     () => { if (!_m.IsGameActive) _m.SetSetting(s); _audio.UiPop(); RefreshUi(); }, ColBtn, 13, false, 8);
+            }
+            // 効果音を 1 つずつ鳴らす（棚 c05）: 合成した音（実績 / ソウル / エンバー / 品 など）を耳で確かめる
+            UiFactory.Label(dBody, "SeLabel", new Vector2(-dW * 0.5f + 20 + 24, -dH * 0.5f + 66), new Vector2(48, 20), "効果音", 11, TextAnchor.MiddleLeft, ColTextSub);
+            var ses = new (string label, System.Action play)[]
+            {
+                ("実績", () => _audio.Achievement()), ("魂", () => _audio.Pickup("souls")), ("火", () => _audio.Pickup("embers")), ("品", () => _audio.Pickup("torch")),
+                ("正解", () => _audio.NaviSuccess()), ("不正解", () => _audio.NaviFail()), ("逃走", () => _audio.EnemyEscape()), ("討伐", () => _audio.EnemyDeath()),
+                ("予告1", () => _audio.Precog(1)), ("予告2", () => _audio.Precog(2)), ("出現", () => _audio.EnemyAppearLand()), ("払出", () => _audio.Payout(15)),
+            };
+            for (int i = 0; i < ses.Length; i++)
+            {
+                var se = ses[i];
+                float x = -dW * 0.5f + 20 + 56 + 26 + i * 46f;
+                UiSkin.Button(dBody, "Dbg_Se" + i, new Vector2(x, -dH * 0.5f + 66), new Vector2(42, 26), se.label, () => se.play(), ColBtn, 10, false, 6);
             }
             _debugBox.SetActive(false);
 
