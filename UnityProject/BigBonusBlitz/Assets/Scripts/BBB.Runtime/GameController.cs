@@ -2133,6 +2133,9 @@ namespace BBB.Runtime
         }
 
         // --------------------------------------------------------------- INPUT
+        /// <summary>窓（設定 / 地図 / グラフ / デバッグ / 装備 / ステータス / 呪い一覧 / 実績）が開いているか。開いている間は Esc 以外のキーを取らない（棚 c01）。</summary>
+        private bool AtelierModalOpen() => (_settingsBox != null && _settingsBox.activeSelf) || (_mapBox != null && _mapBox.activeSelf) || (_graphBox != null && _graphBox.activeSelf) || (_debugBox != null && _debugBox.activeSelf) || _equipBox != null || _statsBox != null || _curseListBox != null || _trophyBox != null;
+
         private void Update()
         {
             AnimateNavi();
@@ -2147,7 +2150,9 @@ namespace BBB.Runtime
                 _spaceHold = 0f;
                 kb = null;
             }
-            if (kb != null && !_inputLocked)
+            bool menuOpen = AtelierModalOpen();
+            if(kb != null && !_inputLocked && menuOpen && kb.escapeKey.wasPressedThisFrame) CloseModals();
+            if (kb != null && !_inputLocked && !menuOpen)
             {
                 if (kb.leftCtrlKey.wasPressedThisFrame || kb.rightCtrlKey.wasPressedThisFrame) OnBetClicked();
                 if (kb.spaceKey.wasPressedThisFrame) OnSpaceStep();
@@ -2173,7 +2178,7 @@ namespace BBB.Runtime
             UpdateAtFrame();
             UpdateHoldPulse();
             // 長押しの判定は入力ロック中も回す。ロック中に離してもオートが解除されるように
-            if (kb != null) UpdateSpaceHold(kb, !_inputLocked);
+            if (kb != null) UpdateSpaceHold(kb, !_inputLocked && !menuOpen);
             _fps = Mathf.Lerp(_fps, 1f / Mathf.Max(Time.unscaledDeltaTime, 1e-4f), 0.1f);
             if (Time.frameCount % 15 == 0 && _debug != null) RefreshUi();
             if (_messageFlashUntil > 0f)
