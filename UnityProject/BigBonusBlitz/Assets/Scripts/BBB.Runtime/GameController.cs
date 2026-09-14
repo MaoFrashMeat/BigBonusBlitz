@@ -720,6 +720,7 @@ namespace BBB.Runtime
             var Lmn = UiLayout.Get("mini", Lsd.x + sColR, Lsd.y + top - 82, sColW, 40);
             _miniBox = UiSkin.Rect(side, "MiniSlump", Lmn.Pos - Lsd.Pos, Lmn.Size);
             _mini = SlumpGraph.Create(_miniBox, new Vector2(-24, 0), new Vector2(Lmn.w - 48, Lmn.h), _m.Credit, true);
+            _mini.Restore(_m.Credit);   // 窓のグラフと同じ記録を読んで続きから（棚 c08。小型版は 160 点に間引く）
             _miniLabel = UiFactory.Label(_miniBox, "MiniDiff", new Vector2(Lmn.w * 0.5f - 22, 0), new Vector2(44, 16), "0", 11, TextAnchor.MiddleLeft, ColTextSub);
             _miniBox.gameObject.SetActive(SaveData.LoadGraphAlwaysOn());
 
