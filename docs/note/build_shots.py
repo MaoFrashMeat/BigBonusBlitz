@@ -117,6 +117,67 @@ def main():
     if ref is not None:
         save(ref, "27-character-reference.png")
 
+    # ---- ここから: AI 側が自分で描き出した QA 画像・見本（本人のスクショではない）----
+
+    # 12 を、より新しい描き出し（9/14 13:17 アトリエ風の地図）に差し替える
+    town = load(os.path.join(ROOT, "tools", "atelier-map-qa", "town-map-1280.png"))
+    if town is not None:
+        save(town, "12-stage-map.png")
+
+    # 28: 背景の画風、AI の最初の3案（不採用）
+    board = load(os.path.join(ROOT, "docs", "art", "backgrounds", "2026-09-14", "style-board-v1.png"))
+    if board is not None:
+        save(board, "28-style-board.png")
+
+    # 29: 参考3枚を渡したあとの見本 v2（確認待ち）
+    forest = load(os.path.join(ROOT, "docs", "art", "backgrounds", "2026-09-14", "forest-reference-v2.png"))
+    if forest is not None:
+        save(forest, "29-forest-v2.png")
+
+    # 30: まばたき（Unity で描き出した QA 画像の顔まわり）
+    qa = os.path.join(ROOT, "tools", "salia-viewer", "qa")
+    neutral = load(os.path.join(qa, "unity-neutral.png"))
+    blink = load(os.path.join(qa, "unity-blink.png"))
+    if neutral is not None and blink is not None:
+        box = (560, 120, 1000, 400)
+        cw, ch = box[2] - box[0], box[3] - box[1]
+        gap, pad, head = 24, 30, 60
+        im = Image.new("RGB", (cw * 2 + gap + pad * 2, ch + head + pad), (255, 255, 255))
+        im.paste(neutral.crop(box), (pad, head))
+        im.paste(blink.crop(box), (pad + cw + gap, head))
+        dr = ImageDraw.Draw(im)
+        dr.text((pad, 18), "開いた目のパーツを重ねた状態", font=font(24, True), fill=INK)
+        dr.text((pad + cw + gap, 18), "目のパーツを消した状態", font=font(24, True), fill=INK)
+        save(im, "30-title-blink.png")
+
+    # 32: 背景を3層に分けたもの（奥 / 中 / 手前）
+    ld = os.path.join(ROOT, "docs", "art", "backgrounds", "2026-09-14", "c1-layers")
+    def load_rgba_on_light(path):
+        if not os.path.exists(path):
+            skipped.append(os.path.basename(path)); return None
+        src = Image.open(path).convert("RGBA")
+        bg = Image.new("RGBA", src.size, (232, 236, 244, 255))   # 透過部分を薄い地で見せる
+        bg.alpha_composite(src)
+        return bg.convert("RGB")
+    layers = [(load_rgba_on_light(os.path.join(ld, n + ".png")), lab) for n, lab in
+              (("far", "奥（遠くの木と遺跡。薄い色）"), ("middle", "中（手前の木と遺跡）"), ("near", "手前（足元だけ。上は抜けている）"))]
+    if all(l[0] is not None for l in layers):
+        w = 1200
+        tiles = [(l.resize((w, int(l.height * w / l.width)), Image.LANCZOS), lab) for l, lab in layers]
+        pad, gap, head = 40, 40, 90
+        H = head + sum(t.height for t, _ in tiles) + gap * (len(tiles) - 1) + pad
+        im = Image.new("RGB", (w + pad * 2, H), (255, 255, 255))
+        dr = ImageDraw.Draw(im)
+        dr.text((pad, 30), "背景は3層に分けて、別々の速さで流す（薄い灰色は透過部分）", font=font(34, True), fill=INK)
+        y = head
+        for t, lab in tiles:
+            im.paste(t, (pad, y))
+            tw = dr.textbbox((0, 0), lab, font=font(22, True))[2]
+            dr.rectangle((pad, y, pad + tw + 28, y + 40), fill=(40, 40, 40))
+            dr.text((pad + 14, y + 7), lab, font=font(22, True), fill=(255, 255, 255))
+            y += t.height + gap
+        save(im, "32-bg-layers.png")
+
     print("\n作成 %d 件" % len(made))
     if skipped:
         print("スキップ:", ", ".join(skipped))

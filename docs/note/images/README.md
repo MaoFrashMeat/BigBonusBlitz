@@ -2,7 +2,7 @@
 
 `py -3 docs/note/build_images.py` で再生成できる。元素材が消えていてもスキップして続行する。
 
-## 1. いま入っているもの（19枚）
+## 1. いま入っているもの（23枚）
 
 | ファイル | 中身 | 出どころ | 記事のどこ |
 |---|---|---|---|
@@ -20,15 +20,19 @@
 | `20-title-rig-composite.png` | 15パーツを重ねた立ち絵 | 同上（model.json の順に合成） | 8章 |
 | `21-title-unity.png` | 新しいタイトル画面（Unity 実機・2026-09-11） | 本人のスクリーンショット。Unity のツールバーだけ切り落とした（1058×496） | 無料パート冒頭 |
 | `11-unity-game.png` | 冒険（スロット本編）の現在の画面 | `tools/adventure-ui-qa/adventure-v2-1280.png`（QA 描き出し・9/12） | 無料パート |
-| `12-stage-map.png` | 地図画面（アトリエ風・9/14） | Screenpresso 2026-09-14_12h49_08 | （22・23 で使用） |
+| `12-stage-map.png` | 地図画面（アトリエ風・9/14 13:17） | `tools/atelier-map-qa/town-map-1280.png`（AI の描き出し） | 予備 |
 | `22-hud-before-after.png` | 冒険画面 9/11 → 9/12 | Screenpresso 09-11_21h52_53 + adventure-v2 | 8章「画面の幅を、先に決める」 |
 | `23-map-before-after.png` | 地図 9/11 → 9/14 | Screenpresso 09-11_21h36_37 + 09-14_12h49_08 | 8章「地図を、3日で作り直した」 |
 | `25-title-before-after.png` | タイトル 9/11 19:28（惹句・赤枠）→ 21:35 | Screenpresso 09-11_19h28_10 + 21h35_15 | 8章「同じ日の2時間」 |
 | `26-reel-editor.png` | Reel Editor（全順:NG が並んでいた頃・9/8） | Screenpresso 2026-09-08_16h54_29 | 5章「1,104,000通りを、全部調べた」 |
 | `27-character-reference.png` | 設定資料から切り出した基準の1枚 | Screenpresso 2026-09-11_20h54_25 | 8章「設定資料を、先に作る」 |
+| `28-style-board.png` | 背景の画風、AI の3案（不採用） | `docs/art/backgrounds/2026-09-14/style-board-v1.png`（AI 生成） | 8章「背景のテイストは、まだ決まっていない」 |
+| `29-forest-v2.png` | 参考3枚を渡したあとの見本 v2 | 同 `forest-reference-v2.png`（AI 生成） | 同上 |
+| `30-title-blink.png` | まばたきの前後（顔まわり） | `tools/salia-viewer/qa/unity-neutral.png` + `unity-blink.png`（AI の描き出し） | 8章「タイトルの立ち絵は、別のAIに作らせた」 |
+| `32-bg-layers.png` | 背景の3層 | 同 `c1-layers/far,middle,near.png`（AI 生成） | 8章「背景のテイストは、まだ決まっていない」 |
 
 01〜03 は**ブラウザ版**の画面。記事のキャプションにもそう書いてある。
-19・20 は Unity のアセットから合成したもの。11・12・21〜27 は本人のスクリーンショットと QA 描き出し。`build_shots.py` で再生成できる。
+出どころは3種類。(a) 本人のスクリーンショット（Screenpresso）、(b) AI が Unity を裏で動かして描き出した QA 画像（`tools/*-qa/`、`tools/salia-viewer/qa/`）、(c) AI が生成した見本（`docs/art/`）。(b)(c) は AI 側で勝手に増えるので、`tools/` と `docs/art/` を見れば拾える。`build_shots.py` で再生成できる。
 
 ## 2. 足りないもの（Unity を開かないと撮れない）
 
