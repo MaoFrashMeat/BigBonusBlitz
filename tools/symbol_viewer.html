@@ -152,6 +152,8 @@
   }
   let choice = defaultChoice();
   try { const st = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; Object.assign(choice, st); } catch (e) {}
+  // ブラウザに残った番号が候補の数を超えていたら（候補を減らした・並べ替えたとき）既定に戻す。放っておくと下の result() で落ちて画面が真っ白になる
+  SYMS.forEach(s => { const c = choice[s.key]; if (typeof c === "number" && (c < 0 || c >= s.cands.length)) { const d = defaultChoice(); if (d[s.key] !== undefined) choice[s.key] = d[s.key]; else delete choice[s.key]; } });
   const imgs = {};   // src → HTMLImageElement（読み込み済み）
   const trimCache = {};
   // 透明な余白を切った矩形（file:// では canvas の画素が読めないので、Python で測った値をここに置く。tools/symbol_trim.py）
@@ -437,7 +439,7 @@
       const cur = (c === undefined || c === "cur");
       const oldArt = !s.cands.length || (cur && s.current.indexOf("_keyed") >= 0);   // 旧絵（背景を透明にして使う）
       if (oldArt) src = "tools/symbol_src/" + s.out + ".png";
-      else if (cur) src = "(今のまま)";
+      else if (cur || !s.cands[c]) src = "(今のまま)";
       else src = s.cands[c].replace("../", "");
       const o = { src: src, scale: Math.round(scaleOf(s) * 100) / 100 };
       if (oldArt) o.key_bg = true;
