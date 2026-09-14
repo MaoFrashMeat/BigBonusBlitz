@@ -367,8 +367,8 @@ namespace BBB.Core
         public float pulse = 1.2f;
         /// <summary>脈の深さ（0〜1。0.4 なら 60%〜100% を行き来）。</summary>
         public float pulseDepth = 0.4f;
-        /// <summary>回転中も点ける。</summary>
-        public bool whileSpinning = false;
+        /// <summary>回転中も点ける（本人の指示 2026-09-14: 回っていても回っていなくても常に点いている）。</summary>
+        public bool whileSpinning = true;
     }
 
     public sealed class EmberConfig

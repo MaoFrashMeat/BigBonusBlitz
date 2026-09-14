@@ -118,7 +118,7 @@
         <label>広がり <input type="range" id="lampSize" min="0.8" max="2.2" step="0.05" value="1.4"> <span id="lampSizeV">1.40</span></label>
         <label>速さ <input type="range" id="lampPulse" min="0" max="4" step="0.1" value="1.2"> <span id="lampPulseV">1.2</span> Hz</label>
         <label>脈の深さ <input type="range" id="lampDepth" min="0" max="1" step="0.05" value="0.4"> <span id="lampDepthV">0.40</span></label>
-        <label><input type="checkbox" id="lampSpin"> 回転中も</label>
+        <label><input type="checkbox" id="lampSpin" checked> 回転中も</label>
       </div>
       <div class="note">ゲームでは揃ったコマの図柄に「種類」の動きを「周期」で繰り返し、「長さ」だけ続ける（game_config.json の reelFx: style / strength / dimOthers / blinkMode / blinkColor / layerMode / layerColor / layerAlpha / layerPulse / lamp / blinkPeriod / blinkDim / blinkSeconds）。予告（レバーオン）は図柄を触らず、ラインの光だけ。</div>
     </div>
@@ -245,7 +245,7 @@
     roleColors: { BELL: "#ffcf3f", REPLAY: "#4da3ff", CHERRY: "#ff73a6", WATERMELON: "#66f280", CHANCE: "rainbow" },
     target: "symbol", frameStyle: "border", frameWidth: 3, frameAlpha: 0.9,
     blinkMode: "dark", blinkColor: "role", layerMode: "none", layerColor: "role", layerAlpha: 0.6, layerPulse: true,
-    lamp: { enabled: true, symbols: ["RED7", "BLUE7"], colors: { RED7: "#ff4a4a", BLUE7: "#9fd8ff", BAR: "#ffd27a" }, intensity: 0.7, inner: 0.5, innerBySymbol: { RED7: 0.5, BLUE7: 0.5, BAR: 0.3 }, size: 1.4, pulse: 1.2, pulseDepth: 0.4, whileSpinning: false } } };
+    lamp: { enabled: true, symbols: ["RED7", "BLUE7"], colors: { RED7: "#ff4a4a", BLUE7: "#9fd8ff", BAR: "#ffd27a" }, intensity: 0.7, inner: 0.5, innerBySymbol: { RED7: 0.5, BLUE7: 0.5, BAR: 0.3 }, size: 1.4, pulse: 1.2, pulseDepth: 0.4, whileSpinning: true } } };
   try { const bp = JSON.parse(localStorage.getItem("bbb_blink_v4") || "null"); if (bp) { const lamp = Object.assign({}, blink.params.lamp, bp.lamp || {}), rc = Object.assign({}, blink.params.roleColors, bp.roleColors || {}); Object.assign(blink.params, bp); blink.params.lamp = lamp; blink.params.roleColors = rc; } } catch (e) {}
   // いま試している役の色（虹は時間で回る）
   function roleColorNow(t) { const c = blink.params.roleColors[blink.params.role] || "#ffcf3f"; return c === "rainbow" ? "hsl(" + Math.floor((t * 1.5 % 1) * 360) + " 80% 60%)" : c; }
@@ -396,7 +396,7 @@
       g.fillStyle = "#e9edf2"; g.fillRect(0, y, cv.width, cellH);
       const fx = (reels[r].spinning || k < 0 || k >= ROWS) ? null : cellFx(r, k, now);
       // 図柄の中のランプ（赤 7・白 7）。停止中はずっと、回転中は設定次第
-      const lampC = (k >= 0 && k < ROWS && (!reels[r].spinning || L.whileSpinning)) ? lampFor(strip[idx]) : null;
+      const lampC = (!reels[r].spinning ? (k >= 0 && k < ROWS) : L.whileSpinning) ? lampFor(strip[idx]) : null;
       drawCell(g, 0, y, cv.width, cellH, z, strip[idx], fx, lampC, lampC ? lampPulse(now, k) : 0, blur ? reels[r].lastMove * z : 0);
     }
     // 段の境目

@@ -5066,7 +5066,7 @@
       "size": 1.4,
       "pulse": 1.2,
       "pulseDepth": 0.4,
-      "whileSpinning": false
+      "whileSpinning": true
     },
     "blinkPeriod": 0.13,
     "blinkDim": 0.28,
