@@ -6,22 +6,24 @@
 <style>
   :root { --bg:#0f1b2d; --panel:#17263a; --panel2:#1d2f47; --line:#2f4460; --ink:#f4f6fa; --muted:#98a3b8; --gold:#f4cd7c; --good:#7ee0a0; }
   body { margin:0; background:var(--bg); color:var(--ink); font-family:"Yu Gothic","Hiragino Sans",sans-serif; font-size:14px; }
-  .wrap { display:grid; grid-template-columns: 1fr 560px; gap:16px; padding:16px; max-width:1500px; margin:0 auto; }
-  .strips { grid-column: 1 / -1; background:var(--panel); border-radius:8px; padding:12px; }
-  .strips h2 { font-size:14px; margin:0 0 8px; display:flex; gap:12px; align-items:center; }
-  .striprow { display:flex; gap:24px; justify-content:center; align-items:flex-start; }
+  .wrap { display:grid; grid-template-columns: minmax(380px, 1fr) auto 560px; gap:16px; padding:16px; max-width:1900px; margin:0 auto; align-items:start; }
+  .strips { background:var(--panel); border-radius:8px; padding:12px; position:sticky; top:16px; }
+  .strips h2 { font-size:14px; margin:0 0 8px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  .striprow { display:flex; gap:12px; justify-content:center; align-items:flex-start; }
+  @media (max-width:1500px) { .wrap { grid-template-columns: minmax(340px, 1fr) 560px; } .strips { grid-column: 1 / -1; position:static; } }
   .strip { background:#f2f4f7; border-radius:6px; padding:6px; }
   .strip .cap { text-align:center; color:#556; font-size:12px; margin-bottom:4px; }
   h1 { font-size:18px; margin:0 0 6px; }
   .sub { color:var(--muted); font-size:12px; margin-bottom:10px; }
-  .sym { background:var(--panel); border-radius:8px; padding:10px 12px; margin-bottom:10px; }
-  .sym h2 { font-size:14px; margin:0 0 6px; display:flex; gap:10px; align-items:center; }
+  .sym { background:var(--panel); border-radius:8px; padding:8px 10px; margin-bottom:8px; }
+  .sym h2 { font-size:13px; margin:0 0 6px; display:flex; gap:10px; align-items:center; }
+  .sym h2 input[type=range] { width:100px; }
   .sym h2 small { color:var(--muted); font-weight:normal; }
-  .cands { display:flex; gap:8px; flex-wrap:wrap; }
-  .cand { width:150px; height:76px; background:#e9edf2; border:3px solid transparent; border-radius:6px; cursor:pointer; position:relative; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+  .cands { display:flex; gap:6px; flex-wrap:wrap; }
+  .cand { width:104px; height:52px; background:#e9edf2; border:3px solid transparent; border-radius:6px; cursor:pointer; position:relative; display:flex; align-items:center; justify-content:center; overflow:hidden; }
   .cand.sel { border-color:var(--gold); box-shadow:0 0 0 2px rgba(244,205,124,.35); }
   .cand canvas { display:block; }
-  .cand .n { position:absolute; left:4px; top:2px; font-size:11px; color:#333; background:rgba(255,255,255,.7); padding:0 5px; border-radius:8px; }
+  .cand .n { position:absolute; left:3px; top:1px; font-size:10px; color:#333; background:rgba(255,255,255,.7); padding:0 4px; border-radius:8px; }
   .cand.none { background:var(--panel2); color:var(--muted); font-size:12px; }
   .side { position:sticky; top:16px; align-self:start; }
   .reels { background:var(--panel); border-radius:8px; padding:12px; }
@@ -46,6 +48,10 @@
     <h1>図柄を決めるビューア</h1>
     <div class="sub">assets/symbols の候補を押して選ぶ。図柄ごとに大きさ（コマに対する %）を変えられる。右のリールは実際の配列で回せる（Space: 回す→順に止める、Z / X / C: 左中右）。選んだ内容は下に出る（このページを閉じても残る）。</div>
     <div id="list"></div>
+  </div>
+  <div class="strips">
+    <h2>配列全体（各リール 20 コマ）<label>表示 <select id="stripZoom"><option value="0.5">半分</option><option value="0.75" selected>3/4</option><option value="1">実寸</option></select></label><small style="color:var(--muted);font-weight:normal">上から 0 番。番号は game_config の reelStrips の順</small></h2>
+    <div class="striprow" id="strips"></div>
   </div>
   <div class="side">
     <div class="reels">
@@ -110,10 +116,6 @@
       <div class="ctrl"><button class="primary" id="copy">コピー</button><button id="reset">選び直す</button><span id="copied" class="note"></span></div>
       <div class="note">Claude にはこの文をそのまま貼れば足りる（下の JSON は tools/symbol_choice.json の symbols と同じ形。自分で書き換えて <code>py -3 tools/symbol_build.py</code> でも反映できる）。</div>
     </div>
-  </div>
-  <div class="strips">
-    <h2>配列全体（各リール 20 コマ）<label>表示 <select id="stripZoom"><option value="0.5">半分</option><option value="0.75" selected>3/4</option><option value="1">実寸</option></select></label><small style="color:var(--muted);font-weight:normal">上から 0 番。番号は game_config の reelStrips の順</small></h2>
-    <div class="striprow" id="strips"></div>
   </div>
 </div>
 <script src="symbol_defaults.js"></script>
@@ -210,7 +212,7 @@
       const row = document.createElement("div"); row.className = "cands";
       const mk = (src, idx, name) => {
         const el = document.createElement("div"); el.className = "cand" + (choice[s.key] === idx || (idx === "cur" && (choice[s.key] === undefined || choice[s.key] === "cur")) ? " sel" : "");
-        const cv = document.createElement("canvas"); cv.width = 144; cv.height = 68; el.appendChild(cv);
+        const cv = document.createElement("canvas"); cv.width = 98; cv.height = 46; el.appendChild(cv);
         const n = document.createElement("span"); n.className = "n"; n.textContent = name; el.appendChild(n);
         el.addEventListener("click", () => { choice[s.key] = idx; save(); build(); });
         el.dataset.src = src; el.dataset.key = s.key; row.appendChild(el);
