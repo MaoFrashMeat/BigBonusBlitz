@@ -309,14 +309,30 @@ namespace BBB.Core
         /// light = blinkColor を加算して明るく光らせる（実機のバックライトのよう）。
         /// </summary>
         public string blinkMode = "dark";
-        /// <summary>tint / light の色（#rrggbb）。</summary>
-        public string blinkColor = "#ffffff";
+        /// <summary>tint / light の色。#rrggbb か "role"（役の色 = roleColors）。</summary>
+        public string blinkColor = "role";
+        /// <summary>
+        /// 何を点滅させるか。symbol = 図柄そのもの / frame = コマの枠（縁・塗り・光）/ both = 両方。
+        /// frame のときはライン光の脈は出さず、枠が点滅の周期で明滅する。
+        /// </summary>
+        public string target = "symbol";
+        /// <summary>枠の見た目: border（縁）/ fill（塗り）/ glow（光）を "+" でつなぐ（例 "border+glow"）。</summary>
+        public string frameStyle = "border";
+        /// <summary>縁の太さ（px）と枠全体の濃さ（0〜1）。</summary>
+        public float frameWidth = 3f;
+        public float frameAlpha = 0.9f;
+        /// <summary>役ごとの色（#rrggbb。CHANCE は "rainbow" で色相を回す）。ライン光・枠・染め・層・カットインに使う。</summary>
+        public Dictionary<string, string> roleColors = new Dictionary<string, string>
+        {
+            { "BELL", "#ffcf3f" }, { "REPLAY", "#4da3ff" }, { "CHERRY", "#ff73a6" }, { "WATERMELON", "#66f280" }, { "CHANCE", "rainbow" },
+        };
         /// <summary>
         /// 揃った図柄に重ねる層。none / add（加算）/ screen（スクリーン）/ multiply（乗算）。
         /// 図柄の形そのままに layerColor を layerAlpha で重ね、layerPulse なら周期で強弱を付ける。
         /// </summary>
         public string layerMode = "none";
-        public string layerColor = "#ffcf3f";
+        /// <summary>層の色。#rrggbb か "role"。</summary>
+        public string layerColor = "role";
         public float layerAlpha = 0.6f;
         public bool layerPulse = true;
         /// <summary>図柄の中のランプ（赤 7・白 7 など。停止中ずっと点いている）。</summary>

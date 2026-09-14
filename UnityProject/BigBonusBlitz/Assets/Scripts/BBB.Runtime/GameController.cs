@@ -688,6 +688,9 @@ namespace BBB.Runtime
                     var cellPos = new Vector2((i - 1) * reelPitch, (1 - row) * ReelView.SymbolHeight);
                     var cellGlow = UiSkin.Img(pl, $"Cell{i}{row}", cellPos, cellSize * 1.5f, UiSkin.Glow(96), new Color(1, 1, 1, 0.55f));
                     UiSkin.Img(cellGlow.rectTransform, "Fill", Vector2.zero, cellSize, UiSkin.Rounded(6), new Color(1, 1, 1, 0.55f));
+                    // 枠の縁（reelFx.target = frame / both のとき）。太さは Ring の thickness で決まるので、太さを変えたら作り直す
+                    var border = UiSkin.Img(cellGlow.rectTransform, "Border", Vector2.zero, cellSize, UiSkin.Ring(64, Mathf.Clamp(Mathf.RoundToInt(_m.Config.reelFx?.frameWidth ?? 3f), 1, 5)), new Color(1, 1, 1, 0));
+                    border.enabled = false;
                     _cellFx[i * 3 + row] = cellGlow;
                     cellGlow.gameObject.SetActive(false);
                 }
@@ -4069,15 +4072,26 @@ namespace BBB.Runtime
 
         // ------------------------------------------------------------- PRECOG
         /// <summary>役キー → 演出色（揃ったときの役演出と同じ色。学習させるため固定）。</summary>
-        private static Color RoleColor(string role)
+        private Color RoleColor(string role) => RoleColor(role, out _);
+
+        /// <summary>役の色。game_config の reelFx.roleColors（"rainbow" なら白 + rainbow=true）。無ければ従来の固定色。</summary>
+        private Color RoleColor(string role, out bool rainbow)
         {
+            rainbow = false;
+            string key = role == "SUICA" ? "WATERMELON" : role;
+            var rc = _m?.Config?.reelFx?.roleColors;
+            if (rc != null && rc.TryGetValue(key, out var hex) && !string.IsNullOrEmpty(hex))
+            {
+                if (hex.ToLowerInvariant() == "rainbow") { rainbow = true; return Color.white; }
+                if (ColorUtility.TryParseHtmlString(hex, out var c)) return c;
+            }
             switch (role)
             {
                 case "BELL": return UiSkin.Gold;
                 case "REPLAY": return UiSkin.Blue;
                 case "CHERRY": return new Color(1f, 0.45f, 0.65f);
                 case "SUICA": return new Color(0.4f, 0.95f, 0.5f);
-                case "CHANCE": return Color.white;   // 虹（rainbow フラグで回す）
+                case "CHANCE": rainbow = true; return Color.white;
                 case "BONUS": return new Color(1f, 0.97f, 0.85f);
                 default: return UiSkin.TextSub;
             }
@@ -4096,8 +4110,7 @@ namespace BBB.Runtime
             if (_m.BonusAnnounceRemaining > 0 || _m.PseudoPlay) return;
             var p = PrecogDirector.Roll(_m.Config.precog, _m.CurrentFlag, _fxRng);
             if (p.stage <= 0) return;
-            var color = RoleColor(p.role);
-            bool rainbow = p.role == "CHANCE";
+            var color = RoleColor(p.role, out bool rainbow);
             _audio.Precog(p.stage);
             // 予告はラインの光だけ。図柄の点滅（symbols）は揃った役にしか出さない（2026-09-14 本人「揃ってもないのに発生」）
             PaylineFlash(color, p.stage == 1 ? 1 : 2, rainbow, AllCells, false);
@@ -4124,19 +4137,23 @@ namespace BBB.Runtime
         private void RoleFx(WinType type, int cellMask)
         {
             bool inBonus = _m.BonusMode != BonusMode.NORMAL;
-            var pink = new Color(1f, 0.45f, 0.65f);
-            var green = new Color(0.4f, 0.95f, 0.5f);
+            // 色は game_config の reelFx.roleColors（本人がビューアで決める）
+            var gold = RoleColor("BELL", out _);
+            var blue = RoleColor("REPLAY", out _);
+            var pink = RoleColor("CHERRY", out _);
+            var green = RoleColor("SUICA", out _);
+            var chance = RoleColor("CHANCE", out bool chanceRainbow);
             switch (type)
             {
                 case WinType.BELL:
                     // 音は獲得音（通常=控えめ / ボーナス=連打）に任せ、ここでは重ねない（ベルは頻出。重ねると「うるさい」）
-                    PaylineFlash(ColGold, 2, false, cellMask);
+                    PaylineFlash(gold, 2, false, cellMask);
                     // 「n EMB 獲得！」が右から入って左へ抜ける（2026-09-14 本人）。金額は Evaluate 側で渡す
                     break;
                 case WinType.REPLAY:
-                    PaylineFlash(UiSkin.Blue, 2, false, cellMask);
+                    PaylineFlash(blue, 2, false, cellMask);
                     UiFx.Burst(_charRt, UiFx.Preset.Sparkle, new Vector2(0, 70));
-                    if (!inBonus) UiFx.Cutin(_area, "REPLAY", UiSkin.Blue, ArtLoader.SymbolSprite(Symbol.REPLAY), 0.7f, 0.35f, false, new Vector2(0, -20));
+                    if (!inBonus) UiFx.Cutin(_area, "REPLAY", blue, ArtLoader.SymbolSprite(Symbol.REPLAY), 0.7f, 0.35f, false, new Vector2(0, -20));
                     break;
                 case WinType.CHERRY:
                     PaylineFlash(pink, 3, false, cellMask);
@@ -4152,7 +4169,7 @@ namespace BBB.Runtime
                     StartCoroutine(EdgeGlow(green, 1.0f, false));
                     break;
                 case WinType.CHANCE:
-                    PaylineFlash(Color.white, 4, true, cellMask);
+                    PaylineFlash(chance, 4, chanceRainbow, cellMask);
                     _audio.RoleChance();
                     UiFx.Cutin(_area, "チャンス目！", ColGold, null, 1.3f, 1.1f, true, new Vector2(0, 10));
                     UiFx.Burst(_area, UiFx.Preset.RainbowStars, new Vector2(0, 0));
@@ -4517,12 +4534,18 @@ namespace BBB.Runtime
             float bp = Mathf.Max(0.03f, fx.blinkPeriod), fxTotal = symbols ? Mathf.Max(0f, fx.blinkSeconds) : 0f, dim = Mathf.Clamp01(fx.blinkDim), k = Mathf.Clamp01(fx.strength);
             // 「消えている側」の見え方: dark = 黒へ / tint = 色で染める / light = 色を加算して明るく
             string blinkMode = string.IsNullOrEmpty(fx.blinkMode) ? "dark" : fx.blinkMode.ToLowerInvariant();
-            var blinkColor = ReelView.ParseColor(fx.blinkColor, Color.white);
-            var offTint = blinkMode == "tint" ? Color.Lerp(Color.white, blinkColor, 1f - dim) : new Color(dim, dim, dim, 1f);
-            var offTintSoft = blinkMode == "tint" ? Color.Lerp(Color.white, blinkColor, (1f - dim) * 0.3f) : new Color(1f - (1f - dim) * 0.3f, 1f - (1f - dim) * 0.3f, 1f - (1f - dim) * 0.3f, 1f);
-            // 図柄の形に重ねる層（add / screen / multiply）
+            // 色は "role" なら役の色（虹は毎フレーム回る）。それ以外は #rrggbb
+            bool blinkRole = string.IsNullOrEmpty(fx.blinkColor) || fx.blinkColor.ToLowerInvariant() == "role";
+            var blinkFixed = ReelView.ParseColor(fx.blinkColor, Color.white);
             string layerMode = string.IsNullOrEmpty(fx.layerMode) ? "none" : fx.layerMode.ToLowerInvariant();
-            var layerColor = ReelView.ParseColor(fx.layerColor, ColGold);
+            bool layerRole = string.IsNullOrEmpty(fx.layerColor) || fx.layerColor.ToLowerInvariant() == "role";
+            var layerFixed = ReelView.ParseColor(fx.layerColor, ColGold);
+            // 何を点滅させるか: symbol / frame / both。frame のときは枠（縁・塗り・光）を点滅の周期で明滅させ、ライン光の脈は出さない
+            string target = string.IsNullOrEmpty(fx.target) ? "symbol" : fx.target.ToLowerInvariant();
+            bool frameOn = symbols && target != "symbol", symbolOn = target != "frame";
+            string frameStyle = (fx.frameStyle ?? "border").ToLowerInvariant();
+            bool fBorder = frameStyle.Contains("border"), fFill = frameStyle.Contains("fill"), fGlow = frameStyle.Contains("glow");
+            float frameAlpha = Mathf.Clamp01(fx.frameAlpha);
             float glowTotal = period * pulses;
             float total = Mathf.Max(glowTotal, fxTotal);
             float t = 0;
@@ -4530,25 +4553,33 @@ namespace BBB.Runtime
             {
                 t += Time.deltaTime;
                 var c = rainbow ? Color.HSVToRGB((t * 1.5f) % 1f, 0.7f, 1f) : color;
-                // ラインの光（役ごとの回数）
+                var blinkColor = blinkRole ? c : blinkFixed;
+                var layerColor = layerRole ? c : layerFixed;
+                var offTint = blinkMode == "tint" ? Color.Lerp(Color.white, blinkColor, 1f - dim) : new Color(dim, dim, dim, 1f);
+                var offTintSoft = blinkMode == "tint" ? Color.Lerp(Color.white, blinkColor, (1f - dim) * 0.3f) : new Color(1f - (1f - dim) * 0.3f, 1f - (1f - dim) * 0.3f, 1f - (1f - dim) * 0.3f, 1f);
+                // ラインの光（役ごとの回数）。枠を点滅させるときは出さない（枠がその役目）
                 float lineA = 0f;
-                if (t < glowTotal)
+                if (t < glowTotal && !frameOn)
                 {
                     float u = (t % period) / period;
                     lineA = Mathf.Clamp01(u < 0.35f ? u / 0.35f : 1f - (u - 0.35f) / 0.65f);
                 }
                 // 図柄の演出
                 float glowA = 0f; var glowC = c;
+                float frameA = 0f;      // 枠の明滅（0〜1）
                 if (symbols && t < fxTotal)
                 {
                     bool on = ((int)(t / bp)) % 2 == 0;
                     float wave = 0.5f + 0.5f * Mathf.Sin(t / bp * Mathf.PI);          // 1 周期で 0→1→0
                     float wave2 = Mathf.Sin(t / bp * Mathf.PI * 2f);                     // -1〜1
+                    bool waveStyle = style == "pulse" || style == "bounce" || style == "wobble" || style == "shake" || style == "glow" || style == "rainbow";
+                    if (frameOn) frameA = waveStyle ? wave : (on ? 1f : 0f);
                     for (int reel = 0; reel < 3; reel++)
                         for (int row = 0; row < 3; row++)
                         {
                             bool hit = (cellMask & (1 << (reel * 3 + row))) != 0;
                             if (!hit) { if (fx.dimOthers) _reels[reel].SetRowBrightness(row, dim); continue; }
+                            if (!symbolOn) continue;    // 枠だけのときは図柄を触らない
                             Color tint = Color.white; float scale = 1f; Vector2 off = Vector2.zero; float rot = 0f;
                             bool offPhase = false;      // 点滅の「消えている側」か
                             switch (style)
@@ -4573,17 +4604,39 @@ namespace BBB.Runtime
                         }
                 }
                 float a = Mathf.Max(lineA, glowA);
-                _paylineFlash.alpha = a;
-                if (a > 0f)
+                if (frameOn)
                 {
-                    var cc = glowA > lineA ? glowC : c;
+                    // 枠: 縁 / 塗り / 光 を frameA で明滅。色は役の色
+                    _paylineFlash.alpha = frameA > 0.001f ? 1f : 0f;
                     for (int i = 0; i < _cellFx.Length; i++)
-                        if (_cellFx[i] != null && _cellFx[i].gameObject.activeSelf) _cellFx[i].color = new Color(cc.r, cc.g, cc.b, 0.55f);
+                    {
+                        var cell = _cellFx[i]; if (cell == null || !cell.gameObject.activeSelf) continue;
+                        cell.color = new Color(c.r, c.g, c.b, fGlow ? 0.6f * frameA * frameAlpha : 0f);
+                        var fill = cell.transform.Find("Fill")?.GetComponent<Image>(); if (fill != null) fill.color = new Color(c.r, c.g, c.b, fFill ? 0.35f * frameA * frameAlpha : 0f);
+                        var border = cell.transform.Find("Border")?.GetComponent<Image>(); if (border != null) { border.enabled = fBorder; border.color = new Color(c.r, c.g, c.b, frameA * frameAlpha); }
+                    }
+                }
+                else
+                {
+                    _paylineFlash.alpha = a;
+                    if (a > 0f)
+                    {
+                        var cc = glowA > lineA ? glowC : c;
+                        for (int i = 0; i < _cellFx.Length; i++)
+                            if (_cellFx[i] != null && _cellFx[i].gameObject.activeSelf) _cellFx[i].color = new Color(cc.r, cc.g, cc.b, 0.55f);
+                    }
                 }
                 yield return null;
             }
             _paylineFlash.alpha = 0f;
-            for (int i = 0; i < _cellFx.Length; i++) if (_cellFx[i] != null) _cellFx[i].gameObject.SetActive(false);
+            for (int i = 0; i < _cellFx.Length; i++)
+                if (_cellFx[i] != null)
+                {
+                    // 枠の色を戻す（次はライン光として使う）
+                    var fill = _cellFx[i].transform.Find("Fill")?.GetComponent<Image>(); if (fill != null) fill.color = new Color(1, 1, 1, 0.55f);
+                    var border = _cellFx[i].transform.Find("Border")?.GetComponent<Image>(); if (border != null) border.enabled = false;
+                    _cellFx[i].gameObject.SetActive(false);
+                }
             if (symbols) foreach (var rv in _reels) rv.ResetBrightness();
             _paylineRoutine = null;
         }
