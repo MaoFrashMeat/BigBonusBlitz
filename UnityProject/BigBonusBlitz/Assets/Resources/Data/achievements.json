@@ -233,6 +233,78 @@
       "target": 1,
       "rewardSouls": 50,
       "hidden": true
+    },
+    {
+      "id": "sell_10",
+      "name": "商人の目",
+      "desc": "装備を 10 個売る",
+      "counter": "sold",
+      "target": 10,
+      "rewardSouls": 100,
+      "hidden": false
+    },
+    {
+      "id": "sell_100",
+      "name": "大商人",
+      "desc": "装備を 100 個売る",
+      "counter": "sold",
+      "target": 100,
+      "rewardSouls": 300,
+      "hidden": false
+    },
+    {
+      "id": "codex_20",
+      "name": "目利き",
+      "desc": "図鑑の装備を 20 種見つける",
+      "counter": "codex",
+      "target": 20,
+      "rewardSouls": 200,
+      "hidden": false
+    },
+    {
+      "id": "codex_40",
+      "name": "図鑑コンプリート",
+      "desc": "図鑑の装備を 40 種すべて見つける",
+      "counter": "codex",
+      "target": 40,
+      "rewardSouls": 500,
+      "hidden": false
+    },
+    {
+      "id": "curse_3",
+      "name": "呪われ者",
+      "desc": "呪いを 3 つ受ける",
+      "counter": "curses",
+      "target": 3,
+      "rewardSouls": 100,
+      "hidden": false
+    },
+    {
+      "id": "cursed_chapter",
+      "name": "呪われた踏破",
+      "desc": "呪いを 3 つ以上抱えたまま章を踏破する",
+      "counter": "cursedChapters",
+      "target": 1,
+      "rewardSouls": 300,
+      "hidden": false
+    },
+    {
+      "id": "perfect_1",
+      "name": "Perfect!!",
+      "desc": "技術介入で Perfect!! を出す",
+      "counter": "techPerfect",
+      "target": 1,
+      "rewardSouls": 100,
+      "hidden": false
+    },
+    {
+      "id": "perfect_10",
+      "name": "神の指",
+      "desc": "技術介入で Perfect!! を 10 回出す",
+      "counter": "techPerfect",
+      "target": 10,
+      "rewardSouls": 300,
+      "hidden": false
     }
   ]
 }

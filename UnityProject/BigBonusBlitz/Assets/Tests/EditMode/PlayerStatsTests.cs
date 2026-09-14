@@ -195,6 +195,42 @@ namespace BBB.Tests
         }
 
         [Test]
+        public void 売った数と図鑑の種類数と呪い付きの踏破が数えられる()
+        {
+            var m = NewMachine(9);
+            var cfg = m.Config.equipment;
+            EquipItem Item(int rarity) => new EquipItem { baseId = "t", name = "品", slot = EquipSlot.Weapon, rarity = rarity, level = 1,
+                effectKeys = new List<string> { ShopEffects.StatLife }, effectValues = new List<int> { 1 } };
+            var a = Item(0); var b = Item(0); var c = Item(1);
+            foreach (var it in new[] { a, b, c }) m.Equip.Bag.Add(it);
+            m.SellEquip(a);
+            Assert.AreEqual(1, m.Ach.Get(AchievementCounters.Sold));
+            m.SellEquipBelow(0, out int n);
+            Assert.AreEqual(1, n); Assert.AreEqual(2, m.Ach.Get(AchievementCounters.Sold), "まとめ売りが数えられていない");
+            Assert.AreEqual(0, m.SellEquip(a), "売った物をもう一度売れる"); Assert.AreEqual(2, m.Ach.Get(AchievementCounters.Sold));
+
+            // 図鑑: 同じ種類を 2 回拾っても種類数は 1
+            var r1 = new GameResult { equipDropped = new EquipItem { baseId = "x1" } };
+            var r2 = new GameResult { equipDropped = new EquipItem { baseId = "x1" } };
+            var r3 = new GameResult { equipDropped = new EquipItem { baseId = "x2" } };
+            foreach (var r in new[] { r1, r2, r3 }) AchievementDirector.Track(null, m.Ach, r, m);
+            Assert.AreEqual(2, m.Ach.Get(AchievementCounters.Codex));
+            Assert.AreEqual(2, m.Ach.Get(AchievementCounters.SeenPrefix + "x1"));
+
+            // 呪いを 3 つ抱えて踏破
+            for (int i = 0; i < 3; i++) m.Curse.Taken.Add(new CurseInstance());
+            AchievementDirector.Track(null, m.Ach, new GameResult { chapterCleared = true }, m);
+            Assert.AreEqual(1, m.Ach.Get(AchievementCounters.CursedChapters));
+            m.Curse.Taken.RemoveAt(0);
+            AchievementDirector.Track(null, m.Ach, new GameResult { chapterCleared = true }, m);
+            Assert.AreEqual(1, m.Ach.Get(AchievementCounters.CursedChapters), "2 つでは数えない");
+            // Perfect!!
+            AchievementDirector.Track(null, m.Ach, new GameResult { techSuccess = true, techRank = new TechRankDef { id = "perfect" } }, m);
+            AchievementDirector.Track(null, m.Ach, new GameResult { techSuccess = true, techRank = new TechRankDef { id = "cool" } }, m);
+            Assert.AreEqual(1, m.Ach.Get(AchievementCounters.TechPerfect));
+        }
+
+        [Test]
         public void 落とし物は表の率で落ち_ソウルと回復薬が増える()
         {
             var m = NewMachine(8);

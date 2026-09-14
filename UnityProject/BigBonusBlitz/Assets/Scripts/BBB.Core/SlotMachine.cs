@@ -1357,6 +1357,23 @@ namespace BBB.Core
             return EnemyDefeatWon;
         }
 
+        /// <summary>装備を売る（実績の「売った数」も進める）。戻り値は入ったソウル。</summary>
+        public int SellEquip(EquipItem item)
+        {
+            bool had = item != null && (Equip.Bag.Contains(item) || Equip.IsWorn(item));
+            int got = EquipDirector.Sell(Config.equipment, Equip, Wallet, item);
+            if (had && !Equip.Bag.Contains(item) && !Equip.IsWorn(item)) Ach.Add(AchievementCounters.Sold, 1);   // 実際に手放したときだけ
+            return got;
+        }
+
+        /// <summary>レア度以下をまとめて売る（実績の「売った数」も進める）。</summary>
+        public int SellEquipBelow(int maxRarity, out int count)
+        {
+            int got = EquipDirector.SellBelow(Config.equipment, Equip, Wallet, maxRarity, out count);
+            if (count > 0) Ach.Add(AchievementCounters.Sold, count);
+            return got;
+        }
+
         /// <summary>潜行が終わったとき（街に着いたとき）に、拾い物と呪いを流す。</summary>
         public void EndRun()
         {

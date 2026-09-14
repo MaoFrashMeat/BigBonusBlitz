@@ -2831,6 +2831,7 @@ namespace BBB.Runtime
             {
                 if (_curseBox == null) return;
                 _m.Curse.Taken.Add(off);
+                _m.Ach.Add(AchievementCounters.Curses, 1);   // 実績「呪われ者」
                 _audio.RoleChance();
                 StartCoroutine(EdgeGlow(Hex("#c060ff"), 1.2f, false));
                 Close();

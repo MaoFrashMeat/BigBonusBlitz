@@ -48,6 +48,11 @@ namespace BBB.Core
         public const string SoulsTotal = "soulsTotal";   // ソウルの累計
         public const string Deaths = "deaths";           // 力尽きた回数
         public const string WornMax = "wornMax";         // 同時に着けた最多（最高値）
+        public const string Sold = "sold";               // 売った装備の数
+        public const string Codex = "codex";             // 図鑑: 拾ったことのある装備の種類数
+        public const string Curses = "curses";           // 受けた呪いの数
+        public const string CursedChapters = "cursedChapters";   // 呪いを 3 つ以上抱えたまま章を踏破した回数
+        public const string TechPerfect = "techPerfect"; // 技術介入で Perfect!!
         /// <summary>図鑑用: 拾った装備の種類ごとの回数（"seen:" + baseId）と、宝の種類ごとの回数（"treasure:" + id）。</summary>
         public const string SeenPrefix = "seen:";
         public const string TreasurePrefix = "treasure:";
@@ -91,7 +96,11 @@ namespace BBB.Core
             if (r.equipDropped != null && !r.equipBagFull)
             {
                 st.Add(AchievementCounters.Drops, 1);
-                if (!string.IsNullOrEmpty(r.equipDropped.baseId)) st.Add(AchievementCounters.SeenPrefix + r.equipDropped.baseId, 1);
+                if (!string.IsNullOrEmpty(r.equipDropped.baseId))
+                {
+                    if (st.Get(AchievementCounters.SeenPrefix + r.equipDropped.baseId) == 0) st.Add(AchievementCounters.Codex, 1);   // 図鑑の新しい種類
+                    st.Add(AchievementCounters.SeenPrefix + r.equipDropped.baseId, 1);
+                }
                 // 「伝説の一品」は黒（abyss）以上。無ければ一番上の段
                 var rar = m.Config.equipment?.rarities;
                 if (rar != null && rar.Count > 0)
@@ -103,6 +112,8 @@ namespace BBB.Core
             }
             if (r.naviCorrect == true) st.Add(AchievementCounters.NaviHits, 1);
             if (r.techSuccess) st.Add(AchievementCounters.TechWins, 1);
+            if (r.techSuccess && r.techRank != null && r.techRank.id == "perfect") st.Add(AchievementCounters.TechPerfect, 1);
+            if (r.chapterCleared && m.Curse != null && m.Curse.Taken.Count >= 3) st.Add(AchievementCounters.CursedChapters, 1);   // 呪いは街に着くまで残るので、踏破の判定時にはまだ数えられる
             if (r.soulsGained > 0) st.Add(AchievementCounters.SoulsTotal, r.soulsGained);
             if (r.returnedToTown && r.returnReason == "hp") st.Add(AchievementCounters.Deaths, 1);
             st.Max(AchievementCounters.LevelMax, m.PlayerLevel);

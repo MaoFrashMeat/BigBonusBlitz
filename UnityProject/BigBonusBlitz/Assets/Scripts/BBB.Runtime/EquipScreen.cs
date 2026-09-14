@@ -176,7 +176,7 @@ namespace BBB.Runtime
             Button btnBulk = null;
             btnBulk = UiSkin.Button(card, "BulkSell", new Vector2(bagCx - 120 + 88, bulkY), new Vector2(176, 28), "", () =>
             {
-                int got = EquipDirector.SellBelow(cfg, m.Equip, m.Wallet, bulkRarity, out int n);
+                int got = m.SellEquipBelow(bulkRarity, out int n);
                 if (n == 0) return;
                 if (selected != null && !m.Equip.Bag.Contains(selected)) selected = null;
                 audio?.UiPop();
@@ -245,7 +245,7 @@ namespace BBB.Runtime
             btnSell = UiSkin.Button(body2, "Sell", new Vector2(btnW * 0.5f + 6, -dH * 0.5f + 34), new Vector2(btnW, btnH), "売る", () =>
             {
                 if (selected == null) return;
-                int got = EquipDirector.Sell(cfg, m.Equip, m.Wallet, selected);
+                int got = m.SellEquip(selected);
                 selected = null;
                 audio?.UiPop();
                 UiFx.PopText(card, $"売った  +{got:N0} ソウル（所持 {m.Wallet.Souls:N0}）", UiSkin.Gold, 16, new Vector2(0, -H * 0.5f + 40));
