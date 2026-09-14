@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- BBB.Core（抽選・状態・設定の型。Unity に依存しないはずの層）をコンパイルする -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>BBB.Core</AssemblyName>
+    <RootNamespace>BBB.Core</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(UnityProj)Assets/Scripts/BBB.Core/**/*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="UnityEngine"><HintPath>$(UnityEditorDir)/Data/Managed/UnityEngine.dll</HintPath></Reference>
+    <Reference Include="Newtonsoft.Json"><HintPath>@(NewtonsoftDll)</HintPath></Reference>
+  </ItemGroup>
+</Project>

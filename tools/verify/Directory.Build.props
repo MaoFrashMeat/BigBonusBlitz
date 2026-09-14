@@ -1,0 +1,29 @@
+<Project>
+  <!--
+    tools/verify の共通設定。Unity を起動せずに C#（Core / Runtime / Tests）をコンパイルし、ハーネスを回す。
+    どの PC でも動くように、パスはこのファイルからの相対と Unity の既定の場所で決める。
+      py -3 tools/verify/run.py            … 全部（core → runtime → tests のコンパイル → ハーネス）
+      dotnet build tools/verify/core/core.csproj -p:UnityEditorDir="C:/Program Files/Unity/Hub/Editor/6000.3.15f1/Editor"
+    Unity のインストール先が違う PC は UnityEditorDir を渡す（run.py は Hub の既定の場所から ProjectVersion.txt の版を探す）。
+  -->
+  <PropertyGroup>
+    <RepoRoot>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)../../'))</RepoRoot>
+    <UnityProj>$(RepoRoot)UnityProject/BigBonusBlitz/</UnityProj>
+    <!-- Unity が作る Library（パッケージの DLL）。別の作業木のソースを本体の Library で検証するときはこれだけ本体を指す -->
+    <UnityLibDir Condition="'$(UnityLibDir)' == ''">$(UnityProj)Library/</UnityLibDir>
+    <UnityEditorDir Condition="'$(UnityEditorDir)' == ''">C:/Program Files/Unity/Hub/Editor/6000.3.15f1/Editor</UnityEditorDir>
+    <LangVersion>9</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <NoWarn>CS0618;CS0649;CS0414;CS0169;CS0108;CS0109;CS0162;CS0219;CS1998;CS8632</NoWarn>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Unity の Library にあるパッケージの DLL（フォルダ名のハッシュは版で決まるので * で拾う） -->
+    <NewtonsoftDll Include="$(UnityLibDir)PackageCache/com.unity.nuget.newtonsoft-json@*/Runtime/Newtonsoft.Json.dll" />
+    <NUnitDll Include="$(UnityLibDir)PackageCache/com.unity.ext.nunit@*/net40/unity-custom/nunit.framework.dll" />
+    <UnityModuleDll Include="$(UnityEditorDir)/Data/Managed/UnityEngine/UnityEngine*.dll" />
+  </ItemGroup>
+</Project>

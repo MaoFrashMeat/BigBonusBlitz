@@ -2,6 +2,12 @@
   "entries": [
     {
       "date": "2026-09-14",
+      "version": "dev 221",
+      "title": "やること棚をどのセッション・どの PC でも回せるように（/task-board、tools/verify）",
+      "body": "・手順の正本 docs/TASK_BOARD.md と、/task-board で動くプロジェクト skill。リポジトリの CLAUDE.md から案内\n・commit 前の検証を tools/verify/run.py に（Core / Runtime / Tests のコンパイル、100 万G のハーネス、--tests で EditMode）。scratch にしか無かった雛形をリポジトリに\n・画面を描き出すプローブを Assets/Editor/Probes に"
+    },
+    {
+      "date": "2026-09-14",
       "version": "dev 220",
       "title": "役ごとの色、コマの枠の点滅（縁 / 塗り / 光）",
       "body": "・点滅・層・ライン光・カットインの色を役ごとに変えられる（reelFx.roleColors。チャンス目は虹）\n・点滅の対象を 図柄 / コマの枠 / 両方 から選べる。枠は 縁・塗り・光 の組み合わせ、太さと濃さ\n・図柄ビューアは 3 列それぞれスクロール。役を選ぶとその役の図柄を揃えてから演出"

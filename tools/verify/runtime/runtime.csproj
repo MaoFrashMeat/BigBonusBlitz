@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- BBB.Runtime（画面・演出）をコンパイルする。Unity のモジュール DLL と、Library にある InputSystem / uGUI を参照 -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>BBB.Runtime</AssemblyName>
+    <RootNamespace>BBB.Runtime</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(UnityProj)Assets/Scripts/BBB.Runtime/**/*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../core/core.csproj" />
+    <Reference Include="@(UnityModuleDll)" />
+    <Reference Include="Unity.InputSystem"><HintPath>$(UnityLibDir)ScriptAssemblies/Unity.InputSystem.dll</HintPath></Reference>
+    <Reference Include="UnityEngine.UI"><HintPath>$(UnityLibDir)ScriptAssemblies/UnityEngine.UI.dll</HintPath></Reference>
+    <Reference Include="Newtonsoft.Json"><HintPath>@(NewtonsoftDll)</HintPath></Reference>
+  </ItemGroup>
+</Project>

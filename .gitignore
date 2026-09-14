@@ -14,3 +14,7 @@ tools/comfy/layers/
 # Editor が Play ごとに書く（コミット数とハッシュ）。追跡しない
 UnityProject/BigBonusBlitz/Assets/Resources/Data/build_info.json
 UnityProject/BigBonusBlitz/Assets/Resources/Data/build_info.json.meta
+
+# tools/verify（dotnet のビルド出力。DLL の写しと obj のキャッシュ）
+tools/verify/**/bin/
+tools/verify/**/obj/
