@@ -174,16 +174,17 @@ def pose_to_sprite():
 
 def timeline():
     im, dr = canvas(500)
-    y = title(dr, "105日のうち、約2ヶ月は止まっていた")
+    y = title(dr, "109日のうち、約2ヶ月は止まっていた")
     y += 24
 
     x0, x1 = 80, W - 80
     bar_y = y + 78
     bar_h = 56
-    segs = [(26, FILL_GRAY, LINE, "ブラウザ版をつくる", "26日 / 26コミット"),
+    segs = [(26, FILL_GRAY, LINE, "ブラウザ版", "26日 / 26コミット"),
             (54, FILL_BAD, BAD, "止まっていた", "約2ヶ月 / 1コミット"),
             (21, FILL_GRAY, LINE, "仕組みをつくる", "21日"),
-            (4, FILL_GOOD, GOOD, "Unityで作り直す", "9/7から4日 / 12,308行")]
+            (4, FILL_GOOD, GOOD, "Unityで作り直す", "4日 / 12,308行"),
+            (4, FILL_GOOD, GOOD, "そのまま続く", "4日 / 149コミット")]
     total = sum(x[0] for x in segs)
 
     x = x0
@@ -198,23 +199,24 @@ def timeline():
     marks = [(x0, "5/29", "作り始めた", 0),
              (x0 + int((x1 - x0) * 26 / total), "6/24", "止まった", 0),
              (x0 + int((x1 - x0) * 80 / total), "8/17", "再開", 0),
-             (x1, "9/10", "今日", 1)]
+             (x0 + int((x1 - x0) * 105 / total), "9/10", "記事を書き始めた", 0),
+             (x1, "9/14", "今", 1)]
     for mx, a, b, right in marks:
         dr.line((mx, bar_y - 30, mx, bar_y - 6), fill=SUB, width=2)
         for txt, f, col, dy in ((a, fm, INK, -70), (b, fs, SUB, -44)):
             tw = text_w(dr, txt, f)
-            px = mx - tw if right else mx - tw // 2
+            px = (W - tw - 8) if right else mx - tw // 2
             px = min(max(px, 8), W - tw - 8)
             dr.text((px, bar_y + dy), txt, font=f, fill=col)
 
     ly = bar_y + bar_h + 34
-    cw = (x1 - x0) // 4
+    cw = (x1 - x0) // 5
     for i, (_d, fill, border, head, sub) in enumerate(segs):
         lx = x0 + i * cw
         dr.rounded_rectangle((lx, ly + 4, lx + 18, ly + 22), radius=4,
                              fill=fill, outline=border, width=2)
-        dr.text((lx + 30, ly), head, font=font(22, True), fill=INK)
-        dr.text((lx + 30, ly + 30), sub, font=fs, fill=SUB)
+        dr.text((lx + 30, ly), head, font=font(20, True), fill=INK)
+        dr.text((lx + 30, ly + 30), sub, font=font(18), fill=SUB)
 
     caption(dr, "仕組みを入れる前の3ヶ月と、入れたあとの4日。使ったAIは同じ", ly + 76)
     save(im, "06-timeline.png")
@@ -340,20 +342,22 @@ def acceptance_flow():
 # ----------------------------------------------------------- 10 壊れ方の4つの型
 
 def failure_types():
-    im, dr = canvas(900)
-    y = title(dr, "19件を並べて見えた、5つの型")
+    im, dr = canvas(1046)
+    y = title(dr, "28件を並べて見えた、6つの型")
     y += 16
 
     rows = [("型A", "画面では気づけない",
-             "見た目は正常に動く。壊れているのは平均値・境界・例外", "11件", "測る（通しテストを回す）"),
-            ("型B", "指示どおりだが、人が見ると破綻する",
-             "半透明の板も、隣に置いたアイコンも、指示は正しく実行された", "2件", "「読めること」を完成条件に入れる"),
+             "見た目は正常に動く。壊れているのは平均値・境界・例外", "13件", "測る（通しテストを回す）"),
+            ("型B", "指示や検算は通っているのに、人が見ると破綻する",
+             "言われたことは実行された。人が見たときの判断だけが抜けた", "3件", "「読めること」を完成条件に。最後は目で見る"),
             ("型C", "文脈の外の制約を知らない",
-             "環境の癖、そのPCが誰の資産か。聞かれるまで考慮しない", "3件", "制約を先に渡す／転んだら記録"),
-            ("型D", "調べる場所を間違える",
-             "直前に触った場所から疑う。記録を読んで、実装を読まない", "2件", "「まず現物を見てから答えて」"),
+             "環境の癖、そのPCが誰の資産か。聞かれるまで考慮しない", "4件", "制約を先に渡す／転んだら記録"),
+            ("型D", "症状の場所と、原因の場所が違う",
+             "絵の不具合の原因がコード。下手に見える原因が仕込み", "6件", "「まず現物を見てから答えて」"),
             ("型E", "出典を混ぜる",
-             "引用と実測、他人の話と自分の話を、悪意なく混ぜる", "1件", "数字に「誰が測ったか」を書かせる")]
+             "引用と実測、他人の話と自分の話を、悪意なく混ぜる", "1件", "数字に「誰が測ったか」を書かせる"),
+            ("型F", "文章のルールは、書いた本人も守らない",
+             "自分で書いた再発防止ルールを、翌日に自分で破った", "1件", "機械が実行できる形（検算・テスト）にする")]
 
     rh, gap = 128, 18
     fl = font(26, True)
@@ -370,8 +374,8 @@ def failure_types():
         dr.text((188, ry + 92), "対処: " + fix, font=font(21, True),
                 fill=BAD if is_d else GOOD)
 
-    ly = y + 5 * (rh + gap) + 10
-    dr.text((60, ly), "型A〜D は直せば済む。型E だけは、公開したあとだと直せない",
+    ly = y + 6 * (rh + gap) + 10
+    dr.text((60, ly), "型E 以外は直せば済む。型E だけは、公開したあとだと直せない",
             font=font(24, True), fill=BAD)
     save(im, "10-failure-types.png")
 
