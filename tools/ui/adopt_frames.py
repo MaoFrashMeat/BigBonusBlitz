@@ -1,6 +1,6 @@
-# アップスケールした枠（assets/title/parts/frames_V2 など、v1 と同じ名前で置いたもの）を採用する。
+# アップスケールした枠（assets/ui/frames_V2 など、v1 と同じ名前で置いたもの）を採用する。
 #
-#   python tools/ui/adopt_frames.py assets/title/parts/frames_V2
+#   python tools/ui/adopt_frames.py assets/ui/frames_V2
 #   python tools/ui/cut_sheets.py --no-cut        # ← そのあと Unity へ入れる
 #
 # やること:
@@ -20,7 +20,7 @@ import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
-FRAMES = os.path.join(ROOT, 'assets', 'title', 'parts', 'frames')
+FRAMES = os.path.join(ROOT, 'assets', 'ui', 'frames')
 MANIFEST = os.path.join(FRAMES, 'frames_manifest.json')
 ALPHA_MIN = 40
 

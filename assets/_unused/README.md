@@ -13,5 +13,8 @@
 | psd | 3x3 グリッドの下絵 |
 | scripts | 一回きりの加工スクリプト |
 | 2026-09-11_chatgpt | 09-11 に ChatGPT で出した画像。用途未定 |
+| reel_v1 | ブラウザ版のリール図柄（160x73 のドット絵 8 枚）。Unity 版は `../symbols` の候補から組む |
+| parallax_v1 | ブラウザ版の背景パララックス（bg_layer2〜6・bg_ground・山）。Unity 版は Resources/Art/Adventure |
+| popora（追加分） | ルートに残っていたポポラの設定画・待機・歩き・勝利（knight_win）。2026-09-14 に移した |
 
 判定に使ったスクリプト: 追跡ファイルからファイル名を単語境界で検索（`scratch/` は生成側なので除外）。

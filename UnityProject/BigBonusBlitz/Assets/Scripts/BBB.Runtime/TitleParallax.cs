@@ -9,7 +9,7 @@ namespace BBB.Runtime
     /// タイトルの背景を奥行きのある層で組む。
     /// 層の並び・位置・大きさ・揺れ方は Resources/Data/title_layers.json（tools/title_viewer.html で作る）。
     /// 無ければ既定の 3 層（空と雲海 / 城と湖 / 手前のバルコニー）。
-    /// 画像は assets/title/BG から tools/ui/cut_sheets.py --no-cut が Resources/Art/UI/Title へ入れる。
+    /// 画像は assets/backgrounds/title から tools/ui/cut_sheets.py --no-cut が Resources/Art/UI/Title へ入れる。
     ///
     /// front = true の層は立ち絵より手前に出す。TitleScreen が立ち絵を置いたあと RaiseFront() を呼ぶ。
     /// 座標は板（元絵と同じ比）の中心を原点にした比（-0.5〜0.5）。揺れ幅は x が板の幅、y が板の高さに対する %。

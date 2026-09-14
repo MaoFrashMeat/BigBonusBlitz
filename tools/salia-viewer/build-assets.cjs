@@ -7,7 +7,7 @@ const req = dependencyRoot ? createRequire(path.join(dependencyRoot, '_salia.cjs
 const sharp = req('sharp');
 const {createCanvas} = req('@napi-rs/canvas');
 const root = path.resolve(__dirname, '../..');
-const out = path.join(root, 'assets/title/Character/salia-rig');
+const out = path.join(root, 'assets/characters/salia/salia-rig');
 const definitions = [
   {id:'body', name:'胴体・首・脚', color:'#8795bb'},
   {id:'hair-back-left',name:'後ろ髪・左',color:'#ef8daa',polygon:[[641,297],[706,328],[756,483],[810,580],[766,667],[649,715],[503,726],[397,558],[401,449],[496,371],[581,350]]},
@@ -44,7 +44,7 @@ function writePSD(layers,rgba,w,h,filename='salia-parts.psd'){
 }
 async function build(){
   fs.mkdirSync(path.join(out,'parts'),{recursive:true});
-  const {data:rgba,info}=await sharp(path.join(root,'assets/title/Character/salia_title_reach.png')).ensureAlpha().raw().toBuffer({resolveWithObject:true});
+  const {data:rgba,info}=await sharp(path.join(root,'assets/characters/salia/salia_title_reach.png')).ensureAlpha().raw().toBuffer({resolveWithObject:true});
   const w=info.width,h=info.height,n=w*h;
   const cv=createCanvas(w,h),ctx=cv.getContext('2d');
   const owners=new Uint8Array(n);

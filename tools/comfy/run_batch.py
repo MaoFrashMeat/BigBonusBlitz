@@ -27,7 +27,7 @@ CONFIG = os.path.join(HERE, 'config.json')
 STYLE = (
     "1girl, solo, full body, whole body visible from head to feet, "
     "front view, facing viewer, standing on the ground, "
-    # 設定資料（assets/Chr0001/001）のセリア。ここを崩すと別人になる
+    # 設定資料（assets/characters/salia/Chr0001_001）のセリア。ここを崩すと別人になる
     "long pink hair, white hair ribbon, ahoge, blue eyes, cheerful, "
     "white plate armor with gold trim, blue accents, "
     "white tassets with gold flame pattern, (blue pleated skirt:1.3), white frilled underskirt, "

@@ -36,7 +36,7 @@ def cfg():
 
 def main():
     c = cfg()
-    src = Image.open(os.path.join(HERE, '..', '..', 'assets', 'Title.png')).convert('RGB')
+    src = Image.open(os.path.join(HERE, '..', '..', 'assets', 'characters', 'salia', 'keyart_title.png')).convert('RGB')
     m = Image.open(os.path.join(OUT, 'mask.png')).convert('L')
     if m.size != src.size:
         m = m.resize(src.size, Image.LANCZOS)

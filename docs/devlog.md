@@ -401,6 +401,12 @@ Good +30 / Cool +20 / 1コマ +10 / 2コマ 0。上乗せは成功報酬（souls
 確かめ方は `Assets/Editor/AtelierMapQa.cs`（分離 batchmode・2 解像度・タッチ 44・下端 24・文字の重なり）で、
 結果は `tools/atelier-map-qa/`。HTML の近似は使っていない。
 
+### 決定: assets はジャンルの木に整理し、ルート直下には置かない（案 3）
+`characters/`（salia, enemies）`symbols/`（そのまま）`ui/`（sheets → frames / icons、V2、navi）`logo/` `backgrounds/`（title, textures）`fx/` `sounds/` `_unused/`。
+案 1（ルートだけ）/ 2（既存フォルダも揃える）/ 3（2 + 未使用を _unused へ）から本人が 3 を選んだ。
+参照は tools（cut_sheets / adopt_frames / gen_* / salia-viewer / comfy）と docs の 22 か所を書き換え。
+`assets/symbols` は LFS の対象なので動かさない。目次は `assets/README.md`。
+
 ---
 
 ## 検証の記録

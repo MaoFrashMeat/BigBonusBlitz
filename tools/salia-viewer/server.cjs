@@ -10,7 +10,7 @@ const server=http.createServer((req,res)=>{
   if(pathname==='/'){res.writeHead(302,{Location:'/tools/salia-viewer/'});res.end();return;}
   if(pathname.endsWith('/'))pathname+='index.html';
   const file=path.resolve(root,'.'+pathname);
-  const allowed=[path.join(root,'tools/salia-viewer')+path.sep,path.join(root,'assets/title/Character/salia-rig')+path.sep];
+  const allowed=[path.join(root,'tools/salia-viewer')+path.sep,path.join(root,'assets/characters/salia/salia-rig')+path.sep];
   if(!allowed.some(dir=>file.startsWith(dir))){res.writeHead(403);res.end();return;}
   fs.stat(file,(err,stat)=>{if(err||!stat.isFile()){res.writeHead(404);res.end('Not found');return;}res.writeHead(200,{'Content-Type':types[path.extname(file)]||'application/octet-stream','Content-Length':stat.size,'Cache-Control':'no-cache','X-Content-Type-Options':'nosniff'});if(req.method==='HEAD')res.end();else{const stream=fs.createReadStream(file);stream.on('error',()=>res.destroy());stream.pipe(res);}});
 });

@@ -10,7 +10,7 @@ start.ps1 を PowerShell で実行するか、リポジトリ直下で node tool
 
 ## 素材
 
-assets/title/Character/salia-rig/ に格納しています。
+assets/characters/salia/salia-rig/ に格納しています。
 
 - salia-layered.psd: 1672×941、30レイヤー。元絵15層、塗り足し13層、閉じ目差分2層（非表示）。
 - layers/: 補完込みの15枚の透過PNG。ランタイム用。

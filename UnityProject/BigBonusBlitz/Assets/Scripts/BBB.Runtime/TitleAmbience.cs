@@ -7,7 +7,7 @@ namespace BBB.Runtime
 {
     /// <summary>
     /// タイトルに漂わせる粒。光の玉（埃のように上へゆらゆら）と、桜の花びら（散る）。
-    /// 花びらは assets/title/BG/flower の絵（Resources/Art/UI/Title/petal_N と、ぼかした petal_N_b1..3）。
+    /// 花びらは assets/backgrounds/title/flower の絵（Resources/Art/UI/Title/petal_N と、ぼかした petal_N_b1..3）。
     /// 後ろに桃色の光を敷いて脈打たせる。絵が無ければ UiSkin の手続き描画に戻る。
     ///
     /// 数・大きさ・透け具合・ぼかし・光・速さ・立ち絵の上で薄くする範囲は

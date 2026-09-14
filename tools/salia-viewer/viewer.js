@@ -1,6 +1,6 @@
 'use strict';
 const $ = id => document.getElementById(id);
-const ASSETS = '../../assets/title/Character/salia-rig/';
+const ASSETS = '../../assets/characters/salia/salia-rig/';
 const state = {playing:!matchMedia('(prefers-reduced-motion: reduce)').matches, time:0, breath:.65, hair:.35, cloth:.65, range:1.35, speed:1, zoom:1, autoBlink:true, mesh:false, colors:false, part:'all'};
 let layerTextures=[];
 let gl, rig, motionGrid, program, vertexBuffer, indices, lineIndices, textures={}, partImages=[], assembled, activeTexture, blinkOverride=null;

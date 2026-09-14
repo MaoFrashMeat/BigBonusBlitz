@@ -1,6 +1,6 @@
-# assets/title のシート 2 枚（枠・アイコン）から部品を切り出し、Unity へ入れる。
+# assets/ui/sheets のシート 2 枚（枠・アイコン）から部品を切り出し、Unity へ入れる。
 #
-#   python tools/ui/cut_sheets.py            # assets/title/parts/ へ切り出すだけ
+#   python tools/ui/cut_sheets.py            # assets/ui/ へ切り出すだけ
 #   python tools/ui/cut_sheets.py --install  # Resources/Art/UI/Frames, Icons へもコピー
 #
 # 枠は 9 分割で伸ばす前提。伸ばしてよい範囲の境目（縁の幅）は下の FRAMES に書き、
@@ -16,8 +16,8 @@ import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
-SRC = os.path.join(ROOT, 'assets', 'title')
-OUT = os.path.join(SRC, 'parts')
+SRC = os.path.join(ROOT, 'assets', 'ui', 'sheets')
+OUT = os.path.join(ROOT, 'assets', 'ui')
 UNITY_UI = os.path.join(ROOT, 'UnityProject', 'BigBonusBlitz', 'Assets', 'Resources', 'Art', 'UI')
 
 ALPHA_MIN = 40
@@ -235,7 +235,7 @@ ICONS = {
 }
 
 
-NAVI_SRC = os.path.join(ROOT, 'assets', 'navi')     # navi_BG.png + navi_normal_*.png（同じ 1254px の紙に描いてある）
+NAVI_SRC = os.path.join(ROOT, 'assets', 'ui', 'navi')     # navi_BG.png + navi_normal_*.png（同じ 1254px の紙に描いてある）
 NAVI_SIZE = 256                                     # 画面では 90px。2 倍端末でも 256 あれば足りる
 NAVI_FILES = {
     'navi_BG.png': 'navi_bg',
@@ -266,7 +266,7 @@ def install_navi():
     print(f'  ナビ {n} 枚 → {dst}')
 
 
-TITLE_BG_SRC = os.path.join(ROOT, 'assets', 'title', 'BG')
+TITLE_BG_SRC = os.path.join(ROOT, 'assets', 'backgrounds', 'title')
 TITLE_BG_FILES = ['sky_mountains_cloudsea', 'sky_mountains', 'castle_mountains_lake', 'castle_mountains', 'castle_lake', 'town_lake', 'terrace_balcony', 'petals_overlay']   # TitleParallax が選べる層
 
 
@@ -285,7 +285,7 @@ def install_title_bg():
     print(f'  タイトル背景 {n} 枚 → {dst}')
 
 
-PETAL_SRC = os.path.join(ROOT, 'assets', 'title', 'BG', 'flower')   # 花びら（1 枚 1 ファイル。名前は問わない）
+PETAL_SRC = os.path.join(ROOT, 'assets', 'backgrounds', 'title', 'flower')   # 花びら（1 枚 1 ファイル。名前は問わない）
 PETAL_CANVAS = 256      # 画布。花びらはこの半分（128px）に収め、周りをぼかしの余白にする
 PETAL_FILL = 0.5        # 画布に対する花びらの大きさ。TitleAmbience / title_viewer はこの逆数を掛けて「見える大きさ」に合わせる
 # ぼかしの強さ（花びらの大きさに対する比）。ゲーム側の blur 1..3

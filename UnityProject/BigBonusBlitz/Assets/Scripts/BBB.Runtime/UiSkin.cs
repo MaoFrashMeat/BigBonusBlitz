@@ -44,7 +44,7 @@ namespace BBB.Runtime
         private static void ResetCache() { _cache.Clear(); _frames.Clear(); _frameSet.Clear(); _missing.Clear(); }
 
         // ------------------------------------------------- 画像の枠とアイコン
-        // assets/title の 2 枚のシートから tools/ui/cut_sheets.py が切り出したもの。
+        // assets/ui/sheets の 2 枚のシートから tools/ui/cut_sheets.py が切り出したもの。
         // 画像が無ければ null を返し、各ビルダーは従来の手続き描画に戻る（画像を消しても壊れない）。
         private static readonly Dictionary<string, Sprite> _frames = new Dictionary<string, Sprite>();
         private static readonly HashSet<Sprite> _frameSet = new HashSet<Sprite>();

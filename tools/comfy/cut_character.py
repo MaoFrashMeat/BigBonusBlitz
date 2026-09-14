@@ -18,7 +18,7 @@ import uuid
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, 'layers')
 CONFIG = os.path.join(HERE, 'config.json')
-SRC = os.path.join(HERE, '..', '..', 'assets', 'Title.png')
+SRC = os.path.join(HERE, '..', '..', 'assets', 'characters', 'salia', 'keyart_title.png')
 
 
 def cfg():

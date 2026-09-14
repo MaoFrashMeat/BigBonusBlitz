@@ -97,7 +97,7 @@ iPhone 横持ち（2556 x 1179）では約 **2.18 倍**になる。
 
 ## 2. 画像に置き換えるときの手順（2026-09-11 に実施）
 
-枠は `assets/title/ui_frames_sheet.png`、アイコンは `assets/title/icon_parts_sheet.png` から
+枠は `assets/ui/sheets/ui_frames_sheet.png`、アイコンは `assets/ui/sheets/icon_parts_sheet.png` から
 `tools/ui/cut_sheets.py` が切り出す。`.meta` の `spriteBorder` は使わず、
 `UiSkin.FrameBorders`（コード）に縁の幅を持ち、実行時に `Sprite.Create` で 9 分割にしている。
 Unity 側の取り込み設定に依存しないので、別 PC で pull しただけで同じ見え方になる。

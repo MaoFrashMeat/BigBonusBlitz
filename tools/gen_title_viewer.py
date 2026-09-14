@@ -13,7 +13,7 @@ from PIL import Image
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, '..'))
-BG = os.path.join(ROOT, 'assets', 'title', 'BG')
+BG = os.path.join(ROOT, 'assets', 'backgrounds', 'title')
 UI = os.path.join(ROOT, 'UnityProject', 'BigBonusBlitz', 'Assets', 'Resources', 'Art', 'UI')
 TITLE_JSON = os.path.join(ROOT, 'UnityProject', 'BigBonusBlitz', 'Assets', 'Resources', 'Data', 'title_layers.json')
 OUT = os.path.join(HERE, 'title_viewer.html')
@@ -50,7 +50,7 @@ for i in range(1, 17):
 saved = json.load(open(TITLE_JSON, encoding='utf-8')) if os.path.exists(TITLE_JSON) else None
 
 # UI 部品（舞台に置くもの）。ロゴと TAP TO START、枠（9 分割）、アイコン
-MANIFEST = os.path.join(ROOT, 'assets', 'title', 'parts', 'frames', 'frames_manifest.json')
+MANIFEST = os.path.join(ROOT, 'assets', 'ui', 'frames', 'frames_manifest.json')
 man = json.load(open(MANIFEST, encoding='utf-8')) if os.path.exists(MANIFEST) else {}
 UI_IMG, UI_ASPECT, FRAME_SLICE, FRAME_WIDTH = {}, {}, {}, {}
 
@@ -75,7 +75,7 @@ for n in ('pill_navy_sm', 'btn_blue', 'btn_pill_blue', 'plate_hex_sky', 'plate_h
         FRAME_SLICE[n] = [round(v * k) for v in man[n]['border']]
         FRAME_WIDTH[n] = [v / man[n].get('scale', 1.0) for v in man[n]['border']]
 ICON_NAMES = []
-icon_dirs = [os.path.join(UI, 'Icons'), os.path.join(ROOT, 'assets', 'title', 'parts', 'icon_v2')]
+icon_dirs = [os.path.join(UI, 'Icons'), os.path.join(ROOT, 'assets', 'ui', 'icon_v2')]
 seen = set()
 for d in icon_dirs:
     if not os.path.isdir(d): continue

@@ -66,7 +66,7 @@ SETS = [
 # ここに置いたものは「シートを開く」側に最初から並ぶ。
 # 大きい画像は長辺 MAX_SHEET px に縮めてから埋め込む（表示用。原寸で扱うなら D&D する）
 SHEET_DIRS = [
-    os.path.join(HERE, '..', 'assets', 'Chr0001', '001'),
+    os.path.join(HERE, '..', 'assets', 'characters', 'salia', 'Chr0001_001'),
 ]
 SHEET_GLOBS = ['ChatGPT*.png']
 MAX_SHEET = 900

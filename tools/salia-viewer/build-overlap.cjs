@@ -2,7 +2,7 @@
 const fs=require('node:fs'),path=require('node:path'),{createRequire}=require('node:module');
 const req=process.env.SALIA_NODE_MODULES?createRequire(path.join(process.env.SALIA_NODE_MODULES,'_salia.cjs')):require;
 const sharp=req('sharp'),{writePSD}=require('./build-assets.cjs');
-const root=path.resolve(__dirname,'../..'),dir=path.join(root,'assets/title/Character/salia-rig');
+const root=path.resolve(__dirname,'../..'),dir=path.join(root,'assets/characters/salia/salia-rig');
 const specs={
   body:{file:'body',target:[653,325,1160,941]},
   'hair-back-left':{file:'hair-back-left',target:[410,280,812,738]},

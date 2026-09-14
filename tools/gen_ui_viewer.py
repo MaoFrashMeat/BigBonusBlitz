@@ -15,7 +15,7 @@ ROOT = os.path.abspath(os.path.join(HERE, '..'))
 UI = os.path.join(ROOT, 'UnityProject', 'BigBonusBlitz', 'Assets', 'Resources', 'Art', 'UI')
 LAYOUT = os.path.join(ROOT, 'UnityProject', 'BigBonusBlitz', 'Assets', 'Resources', 'Data', 'ui_layout.json')
 OUT = os.path.join(HERE, 'ui_viewer.html')
-MANIFEST = os.path.join(ROOT, 'assets', 'title', 'parts', 'frames', 'frames_manifest.json')
+MANIFEST = os.path.join(ROOT, 'assets', 'ui', 'frames', 'frames_manifest.json')
 
 FRAMES = ['panel_navy', 'slot_navy', 'btn_blue', 'btn_blue_lg', 'btn_pink', 'btn_gray', 'btn_pill_blue', 'btn_pill_red', 'btn_pill_purple',
           'toast_green', 'toast_brown', 'pill_navy_sm', 'pill_coin', 'pill_gem', 'circle_navy', 'gauge_track', 'gauge_fill',
