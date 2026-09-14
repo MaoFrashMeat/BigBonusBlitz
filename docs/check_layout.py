@@ -263,6 +263,16 @@ for name, w, h in [('ゲーム中', 700.0, 340.0), ('街', 564.0, 258.0)]:
           f'縦{"OK" if ok_v else "NG"} 横{"OK" if ok_h else "NG"}  名前表示 {"あり" if g >= 44 else "なし"}')
 
 # ---------------------------------------------------------------- 結果
+row('Atelier shop header', [('title',-254,400), ('wallet',254,280), ('close',436,44)], left=-480, right=480)
+row('Atelier shop columns', [('categories',-397,166), ('products',-69,464), ('detail',329,302)], left=-480, right=480)
+stack('Atelier product text', [('name',22,48), ('price',-18,24), ('unit',-43,18)], top=57,bottom=-57)
+stack('Atelier shop detail', [('art',136,96), ('name',50,48), ('description',-20,86), ('owned',-80,24), ('total',-113,30), ('buy',-157,44)], top=191,bottom=-191)
+row('Atelier equip columns', [('portrait',-294,372), ('inventory',27,244), ('detail',310,292)], left=-480,right=480)
+stack('Atelier equip row', [('name',11,30), ('state',-18,18)], top=29,bottom=-29)
+stack('Atelier equip lower area', [('portrait',-30,300), ('stats',-208,44), ('footer',-247,24)], top=120,bottom=-270)
+row('Atelier map panels', [('map',-158,592), ('detail',313,282)], left=-480,right=480)
+row('Atelier map actions', [('shop',-376,156), ('equip',-226,120), ('trophy',-94,120), ('settings',38,120), ('back',197,174)], left=-480,right=480)
+row('Atelier settings columns', [('tabs',-378,148), ('controls',-36,450), ('preview',337,236)], left=-480,right=480)
 stack('V2 button text', [('label',7,26), ('hint',-14,14)], top=28, bottom=-28)
 stack('V2 tool content', [('icon',7,20), ('caption',-12,14)], top=22, bottom=-22)
 print()

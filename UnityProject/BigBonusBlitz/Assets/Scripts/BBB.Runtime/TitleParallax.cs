@@ -115,7 +115,7 @@ namespace BBB.Runtime
         {
             var size = _board.rect.size;
             if (size.x <= 0f) return;
-            float t = Time.time;
+            float t = AtelierPreferences.Motion ? 0f : Time.time;
             foreach (var l in _layers)
             {
                 var d = l.def;

@@ -25,7 +25,8 @@ namespace BBB.Runtime
             var r = GetPixelAdjustedRect();
             material.SetVector("_RectSize", new Vector4(r.width, r.height, 0, 0));
             // Crop a single global lattice; independently spaced grids split at curved boundaries.
-            const int gridX = 140, gridY = 80;
+            // Same lattice in the browser viewer. 29,025 vertices for the full backing.
+            const int gridX = 224, gridY = 128;
             int startX = Mathf.FloorToInt((float)_part.x / _width * gridX);
             int startY = Mathf.FloorToInt((float)_part.y / _height * gridY);
             int cols = Mathf.CeilToInt((float)(_part.x + _part.width) / _width * gridX) - startX;

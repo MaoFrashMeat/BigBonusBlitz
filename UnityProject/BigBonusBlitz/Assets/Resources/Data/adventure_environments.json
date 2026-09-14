@@ -1,0 +1,544 @@
+{
+  "stages": [
+    {
+      "id": "A-1",
+      "name": "草原の入口",
+      "atlas": "Art/Adventure/A-1",
+      "indoor": false,
+      "weather": "Clear",
+      "hour": 7,
+      "intensity": 0.6,
+      "haze": 0.1,
+      "accent": {
+        "r": 0.7137254901960784,
+        "g": 0.6274509803921569,
+        "b": 0.4666666666666667,
+        "a": 1
+      },
+      "farEnd": 0.3505859375,
+      "middleEnd": 0.689453125
+    },
+    {
+      "id": "B-1",
+      "name": "丘の道",
+      "atlas": "Art/Adventure/B-1",
+      "indoor": false,
+      "weather": "Clear",
+      "hour": 7,
+      "intensity": 0.6,
+      "haze": 0.1,
+      "accent": {
+        "r": 0.7137254901960784,
+        "g": 0.6274509803921569,
+        "b": 0.4666666666666667,
+        "a": 1
+      },
+      "farEnd": 0.3310546875,
+      "middleEnd": 0.66796875
+    },
+    {
+      "id": "B-2",
+      "name": "獣道",
+      "atlas": "Art/Adventure/B-2",
+      "indoor": false,
+      "weather": "Fog",
+      "hour": 7,
+      "intensity": 0.6,
+      "haze": 0.1,
+      "accent": {
+        "r": 0.7137254901960784,
+        "g": 0.6274509803921569,
+        "b": 0.4666666666666667,
+        "a": 1
+      },
+      "farEnd": 0.30859375,
+      "middleEnd": 0.6904296875
+    },
+    {
+      "id": "C-1",
+      "name": "霧の森",
+      "atlas": "Art/Adventure/C-1",
+      "indoor": false,
+      "weather": "Fog",
+      "hour": 7,
+      "intensity": 0.6,
+      "haze": 0.26,
+      "accent": {
+        "r": 0.7137254901960784,
+        "g": 0.6274509803921569,
+        "b": 0.4666666666666667,
+        "a": 1
+      },
+      "farEnd": 0.3916015625,
+      "middleEnd": 0.7294921875
+    },
+    {
+      "id": "C-2",
+      "name": "古い橋",
+      "atlas": "Art/Adventure/C-2",
+      "indoor": false,
+      "weather": "Rain",
+      "hour": 7,
+      "intensity": 0.6,
+      "haze": 0.1,
+      "accent": {
+        "r": 0.7137254901960784,
+        "g": 0.6274509803921569,
+        "b": 0.4666666666666667,
+        "a": 1
+      },
+      "farEnd": 0.333984375,
+      "middleEnd": 0.716796875
+    },
+    {
+      "id": "C-3",
+      "name": "沢沿い",
+      "atlas": "Art/Adventure/C-3",
+      "indoor": false,
+      "weather": "Rain",
+      "hour": 7,
+      "intensity": 0.6,
+      "haze": 0.1,
+      "accent": {
+        "r": 0.7137254901960784,
+        "g": 0.6274509803921569,
+        "b": 0.4666666666666667,
+        "a": 1
+      },
+      "farEnd": 0.357421875,
+      "middleEnd": 0.7294921875
+    },
+    {
+      "id": "C-4",
+      "name": "ぬかるみ",
+      "atlas": "Art/Adventure/C-4",
+      "indoor": false,
+      "weather": "Rain",
+      "hour": 7,
+      "intensity": 0.6,
+      "haze": 0.1,
+      "accent": {
+        "r": 0.7137254901960784,
+        "g": 0.6274509803921569,
+        "b": 0.4666666666666667,
+        "a": 1
+      },
+      "farEnd": 0.345703125,
+      "middleEnd": 0.673828125
+    },
+    {
+      "id": "D-1",
+      "name": "廃坑",
+      "atlas": "Art/Adventure/D-1",
+      "indoor": true,
+      "weather": "Drips",
+      "hour": 7,
+      "intensity": 0.6,
+      "haze": 0.1,
+      "accent": {
+        "r": 0.7137254901960784,
+        "g": 0.6274509803921569,
+        "b": 0.4666666666666667,
+        "a": 1
+      },
+      "farEnd": 0.3330078125,
+      "middleEnd": 0.666015625
+    },
+    {
+      "id": "D-2",
+      "name": "石切場",
+      "atlas": "Art/Adventure/D-2",
+      "indoor": false,
+      "weather": "Clear",
+      "hour": 7,
+      "intensity": 0.6,
+      "haze": 0.1,
+      "accent": {
+        "r": 0.7137254901960784,
+        "g": 0.6274509803921569,
+        "b": 0.4666666666666667,
+        "a": 1
+      },
+      "farEnd": 0.3662109375,
+      "middleEnd": 0.712890625
+    },
+    {
+      "id": "D-3",
+      "name": "朽ちた社",
+      "atlas": "Art/Adventure/D-3",
+      "indoor": false,
+      "weather": "Fog",
+      "hour": 7,
+      "intensity": 0.6,
+      "haze": 0.1,
+      "accent": {
+        "r": 0.7137254901960784,
+        "g": 0.6274509803921569,
+        "b": 0.4666666666666667,
+        "a": 1
+      },
+      "farEnd": 0.3857421875,
+      "middleEnd": 0.7216796875
+    },
+    {
+      "id": "D-4",
+      "name": "崖の細道",
+      "atlas": "Art/Adventure/D-4",
+      "indoor": false,
+      "weather": "Snow",
+      "hour": 7,
+      "intensity": 0.6,
+      "haze": 0.1,
+      "accent": {
+        "r": 0.7137254901960784,
+        "g": 0.6274509803921569,
+        "b": 0.4666666666666667,
+        "a": 1
+      },
+      "farEnd": 0.3662109375,
+      "middleEnd": 0.703125
+    },
+    {
+      "id": "D-5",
+      "name": "苔の洞",
+      "atlas": "Art/Adventure/D-5",
+      "indoor": true,
+      "weather": "Drips",
+      "hour": 7,
+      "intensity": 0.6,
+      "haze": 0.26,
+      "accent": {
+        "r": 0.43137254901960786,
+        "g": 0.7294117647058823,
+        "b": 0.788235294117647,
+        "a": 1
+      },
+      "farEnd": 0.35546875,
+      "middleEnd": 0.6875
+    },
+    {
+      "id": "D-6",
+      "name": "枯れ谷",
+      "atlas": "Art/Adventure/D-6",
+      "indoor": false,
+      "weather": "Clear",
+      "hour": 7,
+      "intensity": 0.6,
+      "haze": 0.1,
+      "accent": {
+        "r": 0.7137254901960784,
+        "g": 0.6274509803921569,
+        "b": 0.4666666666666667,
+        "a": 1
+      },
+      "farEnd": 0.3603515625,
+      "middleEnd": 0.7236328125
+    },
+    {
+      "id": "E-1",
+      "name": "地下水路",
+      "atlas": "Art/Adventure/E-1",
+      "indoor": true,
+      "weather": "Drips",
+      "hour": 7,
+      "intensity": 0.6,
+      "haze": 0.1,
+      "accent": {
+        "r": 0.43137254901960786,
+        "g": 0.7294117647058823,
+        "b": 0.788235294117647,
+        "a": 1
+      },
+      "farEnd": 0.345703125,
+      "middleEnd": 0.6767578125
+    },
+    {
+      "id": "E-2",
+      "name": "結晶の間",
+      "atlas": "Art/Adventure/E-2",
+      "indoor": true,
+      "weather": "Clear",
+      "hour": 7,
+      "intensity": 0.6,
+      "haze": 0.1,
+      "accent": {
+        "r": 0.5450980392156862,
+        "g": 0.6823529411764706,
+        "b": 0.9137254901960784,
+        "a": 1
+      },
+      "farEnd": 0.384765625,
+      "middleEnd": 0.7001953125
+    },
+    {
+      "id": "E-3",
+      "name": "忘れられた書庫",
+      "atlas": "Art/Adventure/E-3",
+      "indoor": true,
+      "weather": "Spores",
+      "hour": 7,
+      "intensity": 0.6,
+      "haze": 0.1,
+      "accent": {
+        "r": 0.7137254901960784,
+        "g": 0.6274509803921569,
+        "b": 0.4666666666666667,
+        "a": 1
+      },
+      "farEnd": 0.392578125,
+      "middleEnd": 0.7275390625
+    },
+    {
+      "id": "E-4",
+      "name": "鏡の広間",
+      "atlas": "Art/Adventure/E-4",
+      "indoor": true,
+      "weather": "Fog",
+      "hour": 7,
+      "intensity": 0.6,
+      "haze": 0.1,
+      "accent": {
+        "r": 0.43137254901960786,
+        "g": 0.7294117647058823,
+        "b": 0.788235294117647,
+        "a": 1
+      },
+      "farEnd": 0.3359375,
+      "middleEnd": 0.7177734375
+    },
+    {
+      "id": "E-5",
+      "name": "鐘楼",
+      "atlas": "Art/Adventure/E-5",
+      "indoor": true,
+      "weather": "Clear",
+      "hour": 7,
+      "intensity": 0.6,
+      "haze": 0.1,
+      "accent": {
+        "r": 0.7137254901960784,
+        "g": 0.6274509803921569,
+        "b": 0.4666666666666667,
+        "a": 1
+      },
+      "farEnd": 0.3701171875,
+      "middleEnd": 0.6953125
+    },
+    {
+      "id": "E-6",
+      "name": "地熱の泉",
+      "atlas": "Art/Adventure/E-6",
+      "indoor": true,
+      "weather": "Fog",
+      "hour": 7,
+      "intensity": 0.6,
+      "haze": 0.1,
+      "accent": {
+        "r": 0.7137254901960784,
+        "g": 0.6274509803921569,
+        "b": 0.4666666666666667,
+        "a": 1
+      },
+      "farEnd": 0.330078125,
+      "middleEnd": 0.6650390625
+    },
+    {
+      "id": "E-7",
+      "name": "虫の巣",
+      "atlas": "Art/Adventure/E-7",
+      "indoor": true,
+      "weather": "Spores",
+      "hour": 7,
+      "intensity": 0.6,
+      "haze": 0.1,
+      "accent": {
+        "r": 0.4980392156862745,
+        "g": 0.6627450980392157,
+        "b": 0.5450980392156862,
+        "a": 1
+      },
+      "farEnd": 0.328125,
+      "middleEnd": 0.671875
+    },
+    {
+      "id": "E-8",
+      "name": "底なし沼",
+      "atlas": "Art/Adventure/E-8",
+      "indoor": false,
+      "weather": "Fog",
+      "hour": 7,
+      "intensity": 0.6,
+      "haze": 0.26,
+      "accent": {
+        "r": 0.4980392156862745,
+        "g": 0.6627450980392157,
+        "b": 0.5450980392156862,
+        "a": 1
+      },
+      "farEnd": 0.33203125,
+      "middleEnd": 0.6650390625
+    },
+    {
+      "id": "F-1",
+      "name": "古代遺跡",
+      "atlas": "Art/Adventure/F-1",
+      "indoor": false,
+      "weather": "Clear",
+      "hour": 7,
+      "intensity": 0.6,
+      "haze": 0.1,
+      "accent": {
+        "r": 0.7137254901960784,
+        "g": 0.6274509803921569,
+        "b": 0.4666666666666667,
+        "a": 1
+      },
+      "farEnd": 0.35546875,
+      "middleEnd": 0.71484375
+    },
+    {
+      "id": "F-2",
+      "name": "静寂の回廊",
+      "atlas": "Art/Adventure/F-2",
+      "indoor": true,
+      "weather": "Spores",
+      "hour": 7,
+      "intensity": 0.6,
+      "haze": 0.1,
+      "accent": {
+        "r": 0.7137254901960784,
+        "g": 0.6274509803921569,
+        "b": 0.4666666666666667,
+        "a": 1
+      },
+      "farEnd": 0.3212890625,
+      "middleEnd": 0.6552734375
+    },
+    {
+      "id": "F-3",
+      "name": "祭壇",
+      "atlas": "Art/Adventure/F-3",
+      "indoor": true,
+      "weather": "Embers",
+      "hour": 7,
+      "intensity": 0.6,
+      "haze": 0.1,
+      "accent": {
+        "r": 1.0,
+        "g": 0.6313725490196078,
+        "b": 0.27450980392156865,
+        "a": 1
+      },
+      "farEnd": 0.3271484375,
+      "middleEnd": 0.6669921875
+    },
+    {
+      "id": "F-4",
+      "name": "風の抜け道",
+      "atlas": "Art/Adventure/F-4",
+      "indoor": true,
+      "weather": "Spores",
+      "hour": 7,
+      "intensity": 0.6,
+      "haze": 0.1,
+      "accent": {
+        "r": 0.7137254901960784,
+        "g": 0.6274509803921569,
+        "b": 0.4666666666666667,
+        "a": 1
+      },
+      "farEnd": 0.384765625,
+      "middleEnd": 0.7431640625
+    },
+    {
+      "id": "F-5",
+      "name": "瓦礫の海",
+      "atlas": "Art/Adventure/F-5",
+      "indoor": false,
+      "weather": "Clear",
+      "hour": 7,
+      "intensity": 0.6,
+      "haze": 0.1,
+      "accent": {
+        "r": 0.7137254901960784,
+        "g": 0.6274509803921569,
+        "b": 0.4666666666666667,
+        "a": 1
+      },
+      "farEnd": 0.3515625,
+      "middleEnd": 0.712890625
+    },
+    {
+      "id": "G-1",
+      "name": "竜の巣への道",
+      "atlas": "Art/Adventure/G-1",
+      "indoor": false,
+      "weather": "Embers",
+      "hour": 7,
+      "intensity": 0.6,
+      "haze": 0.1,
+      "accent": {
+        "r": 1.0,
+        "g": 0.6313725490196078,
+        "b": 0.27450980392156865,
+        "a": 1
+      },
+      "farEnd": 0.3291015625,
+      "middleEnd": 0.6689453125
+    },
+    {
+      "id": "G-2",
+      "name": "灼熱の岩場",
+      "atlas": "Art/Adventure/G-2",
+      "indoor": false,
+      "weather": "Embers",
+      "hour": 7,
+      "intensity": 0.6,
+      "haze": 0.1,
+      "accent": {
+        "r": 1.0,
+        "g": 0.6313725490196078,
+        "b": 0.27450980392156865,
+        "a": 1
+      },
+      "farEnd": 0.375,
+      "middleEnd": 0.68359375
+    },
+    {
+      "id": "G-3",
+      "name": "骨の道",
+      "atlas": "Art/Adventure/G-3",
+      "indoor": false,
+      "weather": "Embers",
+      "hour": 7,
+      "intensity": 0.6,
+      "haze": 0.1,
+      "accent": {
+        "r": 1.0,
+        "g": 0.6313725490196078,
+        "b": 0.27450980392156865,
+        "a": 1
+      },
+      "farEnd": 0.3427734375,
+      "middleEnd": 0.6748046875
+    },
+    {
+      "id": "H-1",
+      "name": "竜の巣",
+      "atlas": "Art/Adventure/H-1",
+      "indoor": true,
+      "weather": "Embers",
+      "hour": 7,
+      "intensity": 0.6,
+      "haze": 0.1,
+      "accent": {
+        "r": 1.0,
+        "g": 0.6313725490196078,
+        "b": 0.27450980392156865,
+        "a": 1
+      },
+      "farEnd": 0.4033203125,
+      "middleEnd": 0.71875
+    }
+  ]
+}

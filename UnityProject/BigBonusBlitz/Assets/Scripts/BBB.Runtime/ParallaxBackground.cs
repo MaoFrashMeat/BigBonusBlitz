@@ -1,77 +1,145 @@
-using System.Collections.Generic;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace BBB.Runtime
 {
-    /// <summary>
-    /// style.css の lcd-layer（奥→手前の6層）。歩行中だけ横スクロール。
-    /// RawImage の uvRect をずらして無限ループさせる（テクスチャは Repeat 取り込み）。
-    /// </summary>
+    /// <summary>Illustrated depth planes with independent walking speeds, a continuous sky clock and Unity weather geometry.</summary>
     public sealed class ParallaxBackground : MonoBehaviour
     {
-        private sealed class Layer
-        {
-            public RawImage image;
-            public float speed;    // 1秒あたりの UV 移動量
-            public float offset;
-        }
-
-        private readonly List<Layer> _layers = new List<Layer>();
         public bool IsWalking;
-
-        /// <summary>area は背景を敷く矩形。</summary>
+        public ParallaxBackground EnvironmentSource { get; set; }
+        public bool AutoCycle = true;
+        [Min(60)] public float DayLengthSeconds = 720;
+        [Range(0,24)] [SerializeField] float hour = 7;
+        [SerializeField] AdventureWeather weather;
+        [Range(0,1)] [SerializeField] float intensity = .65f;
+        public string CurrentStageId => Profile.id;
+        public AdventureEnvironmentProfile Profile { get; private set; }
+        public float Hour => hour;
+        public float Elapsed { get; private set; }
+        public int IllustratedLayerCount => 3;
+        public AdventureWeather CurrentWeather => weather;
+        public bool HasIllustration => banks != null && banks[activeBank][0].texture != null;
+        RawImage[][] banks;
+        Material[][] layerMaterials;
+        CanvasGroup[] groups;
+        AdventureAtmosphereGraphic sky, atmosphere;
+        RectTransform area;
+        RectTransform scenery;
+        int activeBank;
+        float stageBlend=1, weatherBlend=1, oldIntensity;
+        AdventureWeather oldWeather;
+        float weatherSeconds=2, hourFrom, hourTarget, hourBlend=1, hourSeconds=2;
+        float offset, meshTimer;
+        readonly float[] speeds={.007f,.024f,.065f};
+        readonly Vector2[] heights={new Vector2(.9f,.13f),new Vector2(.85f,-.01f),new Vector2(.34f,-.035f)};
         public static ParallaxBackground Create(RectTransform area)
         {
-            var bg = area.gameObject.AddComponent<ParallaxBackground>();
-            // (path, 高さ比, 下端位置比, 1000px 流れるのにかかる秒, 横タイル倍率)  ※CSS の scrollLayerN の秒数
-            var defs = new (string path, float heightRatio, float bottom, float loopSec, float tile)[]
-            {
-                ("Art/Backgrounds/bg_layer6_sky",                1.00f,  0.00f, 0f,   1.0f),
-                ("Art/Backgrounds/layer5_mountains_transparent", 0.65f,  0.30f, 120f, 1.5f),
-                ("Art/Backgrounds/bg_layer4_distant",            0.60f,  0.20f, 60f,  1.5f),
-                ("Art/Backgrounds/bg_layer3_woods",              0.45f,  0.08f, 30f,  2.0f),
-                ("Art/Backgrounds/bg_layer2_debris",             0.16f,  0.02f, 20f,  3.0f),
-                ("Art/Backgrounds/bg_ground",                    0.30f, -0.10f, 15f,  2.5f),
-            };
-            float W = area.rect.width, H = area.rect.height;
-            foreach (var d in defs)
-            {
-                var tex = ArtLoader.Texture(d.path);
-                if (tex == null) continue;
-                var go = new GameObject(System.IO.Path.GetFileName(d.path), typeof(RectTransform), typeof(RawImage));
-                var rt = go.GetComponent<RectTransform>();
-                rt.SetParent(area, false);
-                rt.anchorMin = new Vector2(0, 0);
-                rt.anchorMax = new Vector2(1, 0);
-                rt.pivot = new Vector2(0.5f, 0);
-                float h = H * d.heightRatio;
-                rt.sizeDelta = new Vector2(0, h);
-                rt.anchoredPosition = new Vector2(0, H * d.bottom);
-                var img = go.GetComponent<RawImage>();
-                img.texture = tex;
-                img.raycastTarget = false;
-                float aspect = (float)tex.width / tex.height;
-                float tilesX = W / (h * aspect) * d.tile;
-                img.uvRect = new Rect(0, 0, tilesX, 1);
-                // CSS: 1000px / loopSec。ここでは 1000px ≒ 全幅相当とみなす
-                bg._layers.Add(new Layer { image = img, speed = d.loopSec > 0 ? tilesX / d.loopSec : 0f });
-            }
-            return bg;
+            var bg=area.gameObject.AddComponent<ParallaxBackground>();bg.Initialize(area);return bg;
         }
-
-        private void Update()
+        void Initialize(RectTransform parent)
         {
-            if (!IsWalking) return;
-            for (int i = 0; i < _layers.Count; i++)
+            area=parent;Profile=AdventureEnvironmentCatalog.Find("A-1");
+            scenery=UiSkin.Rect(area,"EnvironmentWorld",Vector2.zero,Vector2.zero);UiSkin.Stretch(scenery);
+            sky=Graphic("EnvironmentSky",false);
+            banks=new RawImage[2][];layerMaterials=new Material[2][];groups=new CanvasGroup[2];
+            var layerShader=Resources.Load<Shader>("Art/Adventure/AdventureSeamless");
+            for(int b=0;b<2;b++)
             {
-                var l = _layers[i];
-                if (l.speed <= 0f) continue;
-                l.offset = (l.offset + l.speed * Time.deltaTime) % 1f;
-                var r = l.image.uvRect;
-                r.x = l.offset;
-                l.image.uvRect = r;
+                var root=UiSkin.Rect(scenery,"EnvironmentPlanes"+b,Vector2.zero,Vector2.zero);UiSkin.Stretch(root);
+                groups[b]=root.gameObject.AddComponent<CanvasGroup>();groups[b].blocksRaycasts=false;groups[b].interactable=false;banks[b]=new RawImage[3];layerMaterials[b]=new Material[3];
+                for(int i=0;i<3;i++)
+                {
+                    var rt=UiSkin.Rect(root,"Depth"+i,Vector2.zero,Vector2.zero);
+                    rt.anchorMin=new Vector2(0,heights[i].y);rt.anchorMax=new Vector2(1,heights[i].y+heights[i].x);rt.offsetMin=rt.offsetMax=Vector2.zero;
+                    var image=rt.gameObject.AddComponent<RawImage>();image.raycastTarget=false;banks[b][i]=image;
+                    if(layerShader!=null){layerMaterials[b][i]=new Material(layerShader);image.material=layerMaterials[b][i];}
+                }
             }
+            SetStage("A-1",true);
+            atmosphere=Graphic("EnvironmentWeather",true);
         }
+        AdventureAtmosphereGraphic Graphic(string name,bool front)
+        {
+            var rt=UiSkin.Rect(front?area:scenery,name,Vector2.zero,Vector2.zero);UiSkin.Stretch(rt);
+            var g=rt.gameObject.AddComponent<AdventureAtmosphereGraphic>();g.owner=this;g.foreground=front;g.raycastTarget=false;return g;
+        }
+        public void PlaceWeatherAboveCharacters() { if(atmosphere!=null && atmosphere.transform.GetSiblingIndex()!=area.childCount-1)atmosphere.transform.SetAsLastSibling(); }
+        public void SetStage(string nodeId,bool instant=false)
+        {
+            var next=AdventureEnvironmentCatalog.Find(nodeId);
+            if(!instant && Profile!=null && Profile.id==next.id && HasIllustration)return;
+            Profile=next;
+            var tex=Resources.Load<Texture2D>(next.atlas);
+            if(tex==null)Debug.LogWarning("Adventure illustration missing: "+next.atlas);
+            if(tex!=null){tex.wrapModeU=TextureWrapMode.Clamp;tex.wrapModeV=TextureWrapMode.Clamp;}
+            activeBank=1-activeBank;
+            float[] cuts={0,next.farEnd,next.middleEnd,1};
+            for(int i=0;i<3;i++)
+            {
+                var im=banks[activeBank][i];im.texture=tex;im.enabled=tex!=null;
+                float padding=tex!=null?4f/tex.height:0;
+                im.uvRect=new Rect(offset*speeds[i],1-cuts[i+1]+padding,1,Mathf.Max(.01f,cuts[i+1]-cuts[i]-2*padding));
+                if(layerMaterials[activeBank][i]!=null)
+                {
+                    // MaskableGraphic caches stencil material copies. Use a new base when atlas rows change.
+                    var old=layerMaterials[activeBank][i];var material=new Material(old.shader);
+                    material.SetVector("_Row",new Vector4(im.uvRect.y,im.uvRect.height,.07f,i==2?0:.035f));
+                    layerMaterials[activeBank][i]=material;im.material=material;
+                    if(Application.isPlaying)Destroy(old);else DestroyImmediate(old);
+                }
+            }
+            groups[activeBank].transform.SetAsLastSibling();stageBlend=instant?1:0;
+            groups[activeBank].alpha=stageBlend;groups[1-activeBank].alpha=1-stageBlend;
+            Enum.TryParse(next.weather,out AdventureWeather baseWeather);SetWeather(baseWeather,next.intensity,instant?0:2);
+            if(instant){hour=next.hour;hourBlend=1;} // stage transitions preserve a continuous day clock
+            ApplyLighting();
+        }
+        public void SetTimeOfDay(AdventureTime time,float transitionSeconds=2)
+        { SetHour(time==AdventureTime.Morning?6.5f:time==AdventureTime.Day?12:time==AdventureTime.Evening?18.5f:23,transitionSeconds); }
+        public void SetHour(float value,float transitionSeconds=2)
+        {
+            AutoCycle=false;hourFrom=hour;hourTarget=Mathf.Repeat(value,24);hourSeconds=Mathf.Max(.01f,transitionSeconds);hourBlend=transitionSeconds<=0?1:0;if(hourBlend==1)hour=hourTarget;ApplyLighting();
+        }
+        public void SetWeather(AdventureWeather value,float strength=1,float transitionSeconds=2)
+        {
+            value=AdventureEnvironmentCatalog.WeatherFor(Profile,value);
+            oldWeather=AdventureEnvironmentCatalog.WeatherFor(Profile,weather);oldIntensity=intensity;weather=value;intensity=Mathf.Clamp01(strength);
+            weatherSeconds=Mathf.Max(.01f,transitionSeconds);weatherBlend=transitionSeconds<=0?1:0;Dirty();
+        }
+        public float WeatherStrength(AdventureWeather kind)
+        { return (weather==kind?intensity*weatherBlend:0)+(oldWeather==kind?oldIntensity*(1-weatherBlend):0); }
+        public void Preview(float elapsed)
+        { Elapsed=Mathf.Max(0,elapsed);offset=Elapsed;ApplyLighting(); }
+        void Update()
+        {
+            if(banks==null)return;
+            float dt=Mathf.Min(Time.deltaTime,.1f);
+            if(EnvironmentSource!=null){var src=EnvironmentSource;hour=src.hour;weather=src.weather;oldWeather=src.oldWeather;intensity=src.intensity;oldIntensity=src.oldIntensity;weatherBlend=src.weatherBlend;Elapsed=src.Elapsed;offset=src.offset;AutoCycle=false;hourBlend=1;}
+            else Elapsed+=dt;
+            if(IsWalking && EnvironmentSource==null)offset+=dt;
+            if(hourBlend<1){hourBlend=Mathf.Min(1,hourBlend+dt/hourSeconds);hour=Mathf.Repeat(hourFrom+Mathf.DeltaAngle(hourFrom*15,hourTarget*15)/15*Mathf.SmoothStep(0,1,hourBlend),24);}
+            else if(AutoCycle)hour=Mathf.Repeat(hour+dt*24/Mathf.Max(60,DayLengthSeconds),24);
+            weather=AdventureEnvironmentCatalog.WeatherFor(Profile,weather);
+            if(EnvironmentSource==null)weatherBlend=Mathf.Min(1,weatherBlend+dt/weatherSeconds);
+            stageBlend=Mathf.Min(1,stageBlend+dt/1.4f);groups[activeBank].alpha=stageBlend;groups[1-activeBank].alpha=1-stageBlend;
+            meshTimer-=dt;if(meshTimer<=0){meshTimer=1f/30;ApplyLighting();}
+        }
+        void ApplyLighting()
+        {
+            if(banks==null)return;
+            AdventureEnvironmentCatalog.Palette(hour,out var skyColor,out var horizon,out var light);
+            if(Profile.indoor)light=Color.Lerp(new Color(.63f,.7f,.8f),Color.white,.42f);
+            float darkWeather=WeatherStrength(AdventureWeather.Rain)+WeatherStrength(AdventureWeather.Storm);light=Color.Lerp(light,new Color(.67f,.73f,.79f),darkWeather*.3f);
+            for(int b=0;b<2;b++)for(int i=0;i<3;i++)
+            {
+                var im=banks[b][i];im.color=Color.Lerp(light,Color.Lerp(light,horizon,.24f),i==0?.7f:i==1?.22f:0);
+                var uv=im.uvRect;uv.x=Mathf.Repeat(offset*speeds[i],2);im.uvRect=uv;
+            }
+            Dirty();
+        }
+        void Dirty(){if(sky!=null)sky.SetVerticesDirty();if(atmosphere!=null)atmosphere.SetVerticesDirty();}
+        void OnDestroy(){if(layerMaterials==null)return;foreach(var bank in layerMaterials)foreach(var m in bank)if(m!=null){if(Application.isPlaying)Destroy(m);else DestroyImmediate(m);}}
     }
 }

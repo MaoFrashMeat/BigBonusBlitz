@@ -38,7 +38,7 @@ public static class SaliaValidation
             model.breath = model.hair = model.cloth = 0;
             var neutral = Capture(camera, model, output, "unity-neutral.png", 0, 0);
             var closed = Capture(camera, model, output, "unity-blink.png", 0, 1);
-            model.breath = .65f; model.hair = .7f; model.cloth = .65f; model.motionRange = 1.35f;
+            model.breath = .65f; model.hair = .35f; model.cloth = .65f; model.motionRange = 1.35f;
             var moving = Capture(camera, model, output, "unity-motion.png", 1.25f, 0);
             long blinkDelta = Difference(neutral, closed), motionDelta = Difference(neutral, moving);
             int visible = 0; foreach (var p in neutral) if (p.a > 127) visible++;
@@ -46,11 +46,16 @@ public static class SaliaValidation
             if (blinkDelta < 10000 || motionDelta < 10000) throw new Exception("Eye or motion uniforms did not change the render.");
             // Exercise opposite wind phases at the highest exposed motion settings.
             model.breath = model.hair = model.cloth = 1.5f; model.motionRange = 2f;
-            foreach (float time in new[] { .8f, 2.4f, 4.1f })
+            foreach (float time in new[] { .4f, .8f, 1.25f, 1.8f, 2.4f, 3.2f, 4.1f, 4.8f, 5.6f, 6.4f })
             {
                 var stress = Capture(camera, model, output, "unity-seams-" + time.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) + ".png", time, 0);
                 if (RegionDifference(neutral, stress, 475, 505, 225, 200) != 0 || RegionDifference(neutral, stress, 1220, 375, 90, 80) != 0)
                     throw new Exception("Pinned glove pixels moved under maximum motion.");
+                if (EyeDifference(neutral, stress) != 0)
+                    throw new Exception("Eye pixels moved under maximum motion at " + time);
+                var stressClosed = Capture(camera, model, output, "unity-eyes-closed-" + time + ".png", time, 1);
+                if (EyeDifference(closed, stressClosed) != 0 || EyeDifference(stress, stressClosed) < 10000)
+                    throw new Exception("Blink changed position or stopped working at " + time);
             }
             model.breath = model.cloth = 0; model.hair = 1; model.motionRange = 1.35f;
             var fringe = Capture(camera, model, output, "unity-fringe.png", 2.4f, 0);
@@ -95,6 +100,12 @@ public static class SaliaValidation
             return image.GetPixels32();
         }
         finally { camera.targetTexture = null; RenderTexture.active = old; RenderTexture.ReleaseTemporary(target); UnityEngine.Object.DestroyImmediate(image); }
+    }
+
+    private static long EyeDifference(Color32[] a, Color32[] b)
+    {
+        return RegionDifference(a, b, 702, 220, 47, 29) +
+               RegionDifference(a, b, 788, 175, 50, 35);
     }
 
     private static long Difference(Color32[] a, Color32[] b)

@@ -15,8 +15,21 @@
   <div class="tabs" role="tablist"><button id="motion-tab" class="active" role="tab" aria-selected="true">モーション</button><button id="parts-tab" role="tab" aria-selected="false">パーツ</button></div>
   <div id="motion-panel" role="tabpanel">
     <div class="control"><label for="breath"><span><b>01</b> 息遣い</span><output id="breath-value">65%</output></label><input id="breath" type="range" min="0" max="1.5" step="0.01" value="0.65"><p>胸元と肩が穏やかに上下</p></div>
-    <div class="control"><label for="hair"><span><b>02</b> 髪の揺れ</span><output id="hair-value">70%</output></label><input id="hair" type="range" min="0" max="1.5" step="0.01" value="0.7"><p>毛先に遅れて伝わる、柔らかな動き</p></div>
+    <div class="control"><label for="hair"><span><b>02</b> 髪の揺れ</span><output id="hair-value">35%</output></label><input id="hair" type="range" min="0" max="1.5" step="0.01" value="0.35"><p>毛先に遅れて伝わる、柔らかな動き</p></div>
     <div class="control"><label for="cloth"><span><b>03</b> 服の揺れ</span><output id="cloth-value">65%</output></label><input id="cloth" type="range" min="0" max="1.5" step="0.01" value="0.65"><p>左右の裾とスカートに小さな風</p></div>
+    <div class="control"><label for="ribbon"><span><b>04</b> リボンの揺れ</span><output id="ribbon-value">65%</output></label><input id="ribbon" type="range" min="0" max="1.5" step="0.01" value="0.65"><p>髪とは別のリズムで、結び目を支点に揺れる</p></div>
+<div class="control"><label for="ahoge"><span><b>05</b> アホ毛</span><output id="ahoge-value">80%</output></label><input id="ahoge" type="range" min="0" max="1.5" step="0.01" value="0.8"><p>根元を支点に、先端が軽く弾む</p></div>
+<div class="control"><label for="skirtLift"><span><b>06</b> 裾のめくれ</span><output id="skirtLift-value">65%</output></label><input id="skirtLift" type="range" min="0" max="1.5" step="0.01" value="0.65"><p>フリルが持ち上がって戻る</p></div>
+<div class="control"><label for="swordRock"><span><b>07</b> 剣の上げ下げ</span><output id="swordRock-value">65%</output></label><input id="swordRock" type="range" min="0" max="1.5" step="0.01" value="0.65"><p>肩を支点に、握り手も一緒に動く</p></div>
+<details><summary>毛束ごとの揺れ（画面から見た左右）</summary>
+<div class="control"><label for="frontLeft"><span>前髪・左</span><output id="frontLeft-value">100%</output></label><input id="frontLeft" type="range" min="0" max="1.5" step="0.01" value="1"></div>
+<div class="control"><label for="frontCenter"><span>前髪・中央</span><output id="frontCenter-value">100%</output></label><input id="frontCenter" type="range" min="0" max="1.5" step="0.01" value="1"></div>
+<div class="control"><label for="frontRight"><span>前髪・右</span><output id="frontRight-value">100%</output></label><input id="frontRight" type="range" min="0" max="1.5" step="0.01" value="1"></div>
+<div class="control"><label for="sideLeftInner"><span>左の垂れ髪・内側</span><output id="sideLeftInner-value">100%</output></label><input id="sideLeftInner" type="range" min="0" max="1.5" step="0.01" value="1"></div>
+<div class="control"><label for="sideLeftOuter"><span>左の垂れ髪・外側</span><output id="sideLeftOuter-value">100%</output></label><input id="sideLeftOuter" type="range" min="0" max="1.5" step="0.01" value="1"></div>
+<div class="control"><label for="sideRightInner"><span>右の垂れ髪・内側</span><output id="sideRightInner-value">100%</output></label><input id="sideRightInner" type="range" min="0" max="1.5" step="0.01" value="1"></div>
+<div class="control"><label for="sideRightOuter"><span>右の垂れ髪・外側</span><output id="sideRightOuter-value">100%</output></label><input id="sideRightOuter" type="range" min="0" max="1.5" step="0.01" value="1"></div>
+</details>
     <div class="toggle-row"><div><strong>目パチ</strong><p>間隔にゆらぎを付けて自動再生</p></div><label class="switch"><input id="auto-blink" type="checkbox" checked aria-label="自動目パチ"><span></span></label></div>
     <label class="check"><input id="hold-blink" type="checkbox"> 閉じ目を固定して確認</label>
     <div class="control speed"><label for="speed"><span>再生速度</span><output id="speed-value">1.00×</output></label><input id="speed" type="range" min="0.25" max="2" step="0.05" value="1"></div>

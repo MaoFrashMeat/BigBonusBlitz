@@ -89,6 +89,7 @@ namespace BBB.Runtime
         {
             if (_inst == null) return;
             _inst.StartCoroutine(_inst.RingRoutine(_inst.ToLayer(at), color, fromSize, toSize, duration));
+            AudioManager.Create().MotionIfQuiet(MotionCue.Impact);
         }
 
         /// <summary>斬撃線: 一瞬走る白い線。angle は度。</summary>
@@ -96,6 +97,7 @@ namespace BBB.Runtime
         {
             if (_inst == null) return;
             _inst.StartCoroutine(_inst.SlashRoutine(_inst.ToLayer(at), angle, length, color ?? Color.white));
+            AudioManager.Create().MotionIfQuiet(MotionCue.Impact);
         }
 
         /// <summary>数字ポップ: 「+15」などが跳ねて消える。</summary>
@@ -125,12 +127,14 @@ namespace BBB.Runtime
         {
             if (_inst == null || from == null || to == null) return;
             _inst.StartCoroutine(_inst.AbsorbRoutine(_inst.ToLayer(from) + fromOffset, _inst.ToLayer(to) + toOffset, preset, count, duration));
+            if(count>0)AudioManager.Create().MotionIfQuiet(MotionCue.Recover);
         }
 
         public static void Cutin(RectTransform at, string text, Color color, Sprite icon, float scale = 1f, float hold = 0.8f, bool rainbow = false, Vector2 offset = default)
         {
             if (_inst == null) return;
             _inst.StartCoroutine(_inst.CutinRoutine(_inst.ToLayer(at) + offset, text, color, icon, scale, hold, rainbow));
+            AudioManager.Create().MotionIfQuiet(MotionCue.Reveal);
         }
 
         /// <summary>湧き出し → ふくらみ → 吸い込みの 3 段。玉ごとに少し遅らせて流れを作る。</summary>

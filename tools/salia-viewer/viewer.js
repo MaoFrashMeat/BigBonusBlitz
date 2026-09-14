@@ -1,7 +1,7 @@
 'use strict';
 const $ = id => document.getElementById(id);
 const ASSETS = '../../assets/title/Character/salia-rig/';
-const state = {playing:!matchMedia('(prefers-reduced-motion: reduce)').matches, time:0, breath:.65, hair:.7, cloth:.65, range:1.35, speed:1, zoom:1, autoBlink:true, mesh:false, colors:false, part:'all'};
+const state = {playing:!matchMedia('(prefers-reduced-motion: reduce)').matches, time:0, breath:.65, hair:.35, cloth:.65, range:1.35, speed:1, zoom:1, autoBlink:true, mesh:false, colors:false, part:'all'};
 let layerTextures=[];
 let gl, rig, motionGrid, program, vertexBuffer, indices, lineIndices, textures={}, partImages=[], assembled, activeTexture, blinkOverride=null;
 let last=performance.now(), nextBlink=3.3, blinkStart=-10, manualStart=-10, randomSeed=512, pendingCapture=false;
@@ -48,6 +48,10 @@ void main(){
   // Pin every vertex around both gloves, with a soft transition outside their silhouettes.
   float hands=max(pinBox(aPosition,vec2(430.0,478.0),vec2(740.0,725.0)),pinBox(aPosition,vec2(1195.0,350.0),vec2(1335.0,485.0)));
   p=mix(p,aPosition,hands);
+  // Keep eye/central-face geometry still across every motion field and joined layer.
+  float stableFace=max(pinBox(aPosition,vec2(691.0,207.0),vec2(761.0,261.0)),pinBox(aPosition,vec2(775.0,161.0),vec2(852.0,223.0)));
+  stableFace=max(stableFace,protectFace(aPosition,vec2(792.0,277.0),vec2(58.0,40.0)));
+  p=mix(p,aPosition,stableFace);
   float scale=min(uViewport.x/(uCanvasSize.x*.98),uViewport.y/(uCanvasSize.y*1.04))*.98*uZoom;
   vec2 screen=(p-uCanvasSize*.5)*scale+uViewport*.5;
   gl_Position=vec4(screen.x/uViewport.x*2.0-1.0,1.0-screen.y/uViewport.y*2.0,0.0,1.0);
@@ -130,7 +134,7 @@ function wireControls(){
   $('show-parts').onchange=()=>state.colors=$('show-parts').checked;
   $('snapshot').onclick=()=>pendingCapture=true;
   $('reset-view').onclick=()=>{$('zoom').value=1;$('zoom').dispatchEvent(new Event('input'));};
-  $('reset-motion').onclick=()=>{for(const [k,v] of Object.entries({breath:.65,hair:.7,cloth:.65,range:1.35,speed:1})){$(k).value=v;$(k).dispatchEvent(new Event('input'));}state.autoBlink=true;$('auto-blink').checked=true;$('hold-blink').checked=false;state.time=0;nextBlink=3.3;blinkStart=-10;manualStart=-10;blinkOverride=null;};
+  $('reset-motion').onclick=()=>{for(const [k,v] of Object.entries({breath:.65,hair:.35,cloth:.65,range:1.35,speed:1})){$(k).value=v;$(k).dispatchEvent(new Event('input'));}state.autoBlink=true;$('auto-blink').checked=true;$('hold-blink').checked=false;state.time=0;nextBlink=3.3;blinkStart=-10;manualStart=-10;blinkOverride=null;};
   $('fullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch{$('status').textContent='この表示環境は全画面に対応していません';}};
   document.addEventListener('fullscreenchange',()=>$('fullscreen').textContent=document.fullscreenElement?'⛶ 戻る':'⛶ 全画面');
   for(const tab of ['motion','parts'])$(tab+'-tab').onclick=()=>{for(const name of ['motion','parts']){$(name+'-tab').classList.toggle('active',name===tab);$(name+'-tab').setAttribute('aria-selected',String(name===tab));$(name+'-panel').hidden=name!==tab;}};

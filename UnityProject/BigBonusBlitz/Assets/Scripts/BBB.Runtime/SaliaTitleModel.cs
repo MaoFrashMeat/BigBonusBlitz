@@ -19,17 +19,29 @@ namespace BBB.Runtime
             public Layer[] parts;
         }
 
-        [Range(0, 1.5f)] public float breath = .65f, hair = .7f, cloth = .65f;
+        [Range(0, 1.5f)] public float breath = .65f, hair = .35f, cloth = .65f;
+        [Tooltip("Independent bow rotation around the knot; does not use the hair strength.")]
+        [Range(0, 1.5f)] public float ribbon = .65f;
+        [Range(0, 1.5f)] public float ahoge = .8f, skirtLift = .65f, swordRock = .65f;
+        [Tooltip("Screen-left, center, screen-right fringe strengths (0–1.5), multiplied by hair.")]
+        public Vector3 frontHair = Vector3.one;
+        [Tooltip("Screen-left inner/outer, screen-right inner/outer sidelocks (0–1.5), multiplied by hair.")]
+        public Vector4 sideHair = Vector4.one;
         [Range(.5f, 2f)] public float motionRange = 1.35f;
         public bool autoBlink = true, paused;
         [Range(.25f, 2f)] public float speed = 1f;
         public int LayerCount => Mathf.Max(0, _materials.Count - 1);
         public float MotionTime => _time;
         private readonly List<Material> _materials = new List<Material>();
+        private int _clothSoundCycle, _swordSoundCycle;
         private float _time, _nextBlink = 3.3f, _blinkStart = -10f;
         private uint _seed = 512;
         private static readonly int MotionTimeId = Shader.PropertyToID("_MotionTime");
         private static readonly int MotionId = Shader.PropertyToID("_Motion");
+        private static readonly int RibbonId = Shader.PropertyToID("_Ribbon");
+        private static readonly int FrontHairId = Shader.PropertyToID("_FrontHair");
+        private static readonly int SideHairId = Shader.PropertyToID("_SideHair");
+        private static readonly int ExtrasId = Shader.PropertyToID("_Extras");
         private static readonly int BlinkId = Shader.PropertyToID("_Blink");
 
         public static SaliaTitleModel Create(Transform parent)
@@ -105,12 +117,16 @@ namespace BBB.Runtime
             foreach (var mat in _materials)
             {
                 mat.SetFloat(MotionTimeId, _time); mat.SetVector(MotionId, amount); mat.SetVector(BlinkId, eyes);
+                mat.SetFloat(RibbonId, ribbon);
+                mat.SetVector(ExtrasId, new Vector4(Mathf.Clamp(ahoge, 0, 1.5f), Mathf.Clamp(skirtLift, 0, 1.5f), Mathf.Clamp(swordRock, 0, 1.5f), 0));
+                mat.SetVector(FrontHairId, new Vector4(Mathf.Clamp(frontHair.x, 0, 1.5f), Mathf.Clamp(frontHair.y, 0, 1.5f), Mathf.Clamp(frontHair.z, 0, 1.5f), 0));
+                mat.SetVector(SideHairId, new Vector4(Mathf.Clamp(sideHair.x, 0, 1.5f), Mathf.Clamp(sideHair.y, 0, 1.5f), Mathf.Clamp(sideHair.z, 0, 1.5f), Mathf.Clamp(sideHair.w, 0, 1.5f)));
             }
         }
 
         private void Update()
         {
-            if (paused) return;
+            if (paused || AtelierPreferences.Motion) return;
             // Independent of gameplay timeScale; cap resume jumps after focus loss.
             _time += Mathf.Min(Time.unscaledDeltaTime, .05f) * speed;
             if (autoBlink && _time >= _nextBlink)
@@ -119,6 +135,10 @@ namespace BBB.Runtime
                 unchecked { _seed = _seed * 1664525u + 1013904223u; }
                 _nextBlink = _time + 3.2f + _seed / (float)uint.MaxValue * 2.4f;
             }
+            int clothCycle=Mathf.FloorToInt(_time*1.27f/(2*Mathf.PI));
+            int swordCycle=Mathf.FloorToInt(_time*1.30899694f/(2*Mathf.PI));
+            if(clothCycle!=_clothSoundCycle){_clothSoundCycle=clothCycle;if(motionRange>0 && (cloth>0||hair>0||ribbon>0))AudioManager.Create().Motion(MotionCue.Cloth);}
+            if(swordCycle!=_swordSoundCycle){_swordSoundCycle=swordCycle;if(motionRange>0 && swordRock>0)AudioManager.Create().Motion(MotionCue.Sword);}
             SetPose(_time, BlinkEnvelope(_time - _blinkStart), BlinkEnvelope(_time - _blinkStart - .006f));
         }
 

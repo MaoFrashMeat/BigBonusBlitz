@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace BBB.Runtime
@@ -48,7 +48,7 @@ namespace BBB.Runtime
 
         private void Update()
         {
-            _t += Time.deltaTime;
+            if (!AtelierPreferences.Motion) _t += Time.deltaTime;
             if (graphic != null) graphic.SetVerticesDirty();
         }
 

@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using BBB.Core;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -38,7 +38,6 @@ namespace BBB.Runtime
         private GameObject _tier2Box;
         private Image _expFill;
         private Button _btnBet, _btnAuto, _btnAutoSpeed;
-        private Slider _bgmSlider, _seSlider;
 
         private RectTransform _charRt;
         private SpriteAnimator _charAnim;
@@ -213,9 +212,7 @@ namespace BBB.Runtime
         private Coroutine _bossBarAnim;
         private string _engagedName = "";
         private GameObject _trophyBox;                            // 実績と図鑑（TrophyScreen）。開いている間だけある
-        private RectTransform _mapBody, _mapView, _condList;
-        /// <summary>冒険マップの窓の高さ。地図 320 + 分岐条件 96 が縦に収まる大きさ。</summary>
-        private const float MapModalH = 500f;
+        private RectTransform _mapBody;
         private Text _mapInfo;
         private bool _leaving;   // 章クリア・帰還で街へ戻る途中
         private Text _torchTag;
@@ -396,6 +393,7 @@ namespace BBB.Runtime
             areaBtn.transition = Selectable.Transition.None;
             areaBtn.onClick.AddListener(OnSpaceStep);
             _bg = ParallaxBackground.Create(_area);
+            _bg.SetStage(_m.Adv.nodeId,true);_bgOuter.SetStage(_m.Adv.nodeId,true);_bgOuter.EnvironmentSource=_bg;
 
             // キャラ（左 15%、足元 6px）
             // ポポラ（Art/Hero）。無ければ旧素材（Art/Characters）に戻す
@@ -804,36 +802,23 @@ namespace BBB.Runtime
 
             // ===== モーダル: 音量・設定 =====
             _autoStopMask = SaveData.LoadAutoStop();
-            _settingsBox = BuildModal("Settings", new Vector2(400, 380), "サウンド / 設定", ToggleSettings, out var sBody);
-            UiFactory.Label(sBody, "BgmLabel", new Vector2(-140, 96), new Vector2(60, 20), "BGM", 12, TextAnchor.MiddleLeft, ColTextSub);
-            _bgmSlider = UiFactory.Slider(sBody, "BgmSlider", new Vector2(30, 96), new Vector2(230, 20), _audio.BgmVolume, v => { _audio.BgmVolume = v; });
-            SkinSlider(_bgmSlider);
-            _bgmSlider.gameObject.AddComponent<SliderReleaseSound>().OnRelease = () => { _audio.UiPop(); SaveData.SaveAudio(_audio); };
-            UiFactory.Label(sBody, "SeLabel", new Vector2(-140, 64), new Vector2(60, 20), "SE", 12, TextAnchor.MiddleLeft, ColTextSub);
-            _seSlider = UiFactory.Slider(sBody, "SeSlider", new Vector2(30, 64), new Vector2(230, 20), _audio.SeVolume, v => { _audio.SeVolume = v; });
-            SkinSlider(_seSlider);
-            _seSlider.gameObject.AddComponent<SliderReleaseSound>().OnRelease = () => { _audio.UiPop(); SaveData.SaveAudio(_audio); };
-            var bgmToggle = UiSkin.Button(sBody, "BgmToggle", new Vector2(-96, 22), new Vector2(150, 30), "BGM ON / OFF", () => { _audio.ToggleBgm(); _audio.UiPop(); SaveData.SaveAudio(_audio); }, ColBtn, 12, false, 8);
-            UiSkin.Button(sBody, "ResetSave", new Vector2(72, 22), new Vector2(150, 30), "セーブ削除", OnResetSavePressed, new Color(0.45f, 0.15f, 0.2f), 12, false, 8);
-            UiSkin.Button(sBody, "BackToTown", new Vector2(-96, -10), new Vector2(150, 30), "街へ戻る", OnBackToTown, Hex("#5b3fd0"), 12, false, 8);
-            _graphAlwaysBtn = UiSkin.Button(sBody, "GraphAlways", new Vector2(72, -10), new Vector2(150, 30), "", ToggleGraphAlways, ColBtn, 12, false, 8);
-            // AUTO を止める条件（押すたび ON/OFF。ON は AUTO と同じ緑）
-            UiFactory.Label(sBody, "AutoStopLabel", new Vector2(0, -44), new Vector2(360, 16), "AUTO を止める", 11, TextAnchor.MiddleCenter, ColTextSub);
-            string[] stopNames = { "実績解除", "アビス以上の装備", "中ボス出現" };
-            int[] stopBits = { SaveData.AutoStopAchievement, SaveData.AutoStopRareEquip, SaveData.AutoStopBoss };
-            for (int i = 0; i < 3; i++)
+            _settingsBox = AtelierSettings.Build(_stage, _audio, ToggleSettings, sBody =>
             {
-                int bit = stopBits[i];
-                _autoStopBtns[i] = UiSkin.Button(sBody, "AutoStop" + i, new Vector2(-120 + i * 120, -70), new Vector2(114, 28), stopNames[i],
-                    () => { _autoStopMask ^= bit; SaveData.SaveAutoStop(_autoStopMask); _audio.UiPop(); RefreshAutoStopButtons(); }, ColBtn, 10, false, 8);
-            }
-            RefreshAutoStopButtons();
-            _resetConfirm = UiFactory.Label(sBody, "ResetConfirm", new Vector2(0, -98), new Vector2(360, 16), "", 11, TextAnchor.MiddleCenter, ColGold);
-            // キー案内は 3 行（1 行だと板の幅 400 を超える）
-            var keys = UiFactory.Label(sBody, "Keys", new Vector2(0, -134), new Vector2(356, 42),
-                _isTouch ? "画面をタップ: BET / 順に停止\nリールをタップ: そのリールを停止" : "A: AUTO   S: 速さ   B: BGM   G: グラフ\nM: マップ   E: 装備   R: セーブ削除\nF1〜F6: 設定   D: デバッグ   Esc: 閉じる", 10, TextAnchor.MiddleCenter, UiSkin.TextDim);
-            keys.horizontalOverflow = HorizontalWrapMode.Wrap;
-            RefreshGraphAlwaysLabel();
+                AtelierUi.Text(sBody,"GameOptions",0,156,426,30,"冒険とAUTOの設定",22,AtelierUi.Light,true);
+                AtelierUi.Button(sBody,"BackToTown",-109,97,208,"街へ戻る",OnBackToTown);
+                _graphAlwaysBtn=AtelierUi.Button(sBody,"GraphAlways",109,97,208,"",ToggleGraphAlways);
+                AtelierUi.Text(sBody,"AutoStopLabel",0,42,426,24,"AUTOを止める条件",16,AtelierUi.Sub);
+                string[] labels={"実績解除","アビス以上の装備","中ボス出現"};
+                int[] bits={SaveData.AutoStopAchievement,SaveData.AutoStopRareEquip,SaveData.AutoStopBoss};
+                for(int i=0;i<3;i++)
+                {
+                    int bit=bits[i];
+                    _autoStopBtns[i]=AtelierUi.Button(sBody,"AutoStop"+i,-144+i*144,-4,138,labels[i],()=>{_autoStopMask^=bit;SaveData.SaveAutoStop(_autoStopMask);_audio.UiPop();RefreshAutoStopButtons();});
+                }
+                AtelierUi.Button(sBody,"ResetSave",0,-77,426,"セーブデータを削除",OnResetSavePressed,UiSkin.Hex("#653642"));
+                _resetConfirm=AtelierUi.Text(sBody,"ResetConfirm",0,-130,426, 60,"",15,AtelierUi.Gold);
+                RefreshAutoStopButtons();RefreshGraphAlwaysLabel();
+            });
             _settingsBox.SetActive(false);
 
             // ===== モーダル: デバッグ =====
@@ -919,8 +904,7 @@ namespace BBB.Runtime
             _graphBox.SetActive(false);
 
             // ===== モーダル: 冒険マップ =====
-            _mapBox = BuildModal("Map", new Vector2(760, MapModalH), "冒険マップ", ToggleMap, out _mapBody);
-            _mapInfo = UiFactory.Label(_mapBody, "Info", new Vector2(0, MapModalH * 0.5f - 46), new Vector2(700, 20), "", 13, TextAnchor.MiddleCenter, ColTextSub);
+            _mapBody = AtelierUi.Screen(_stage, "AdventureMap", AtelierUi.Night, null, out _mapBox);
             _mapBox.SetActive(false);
 
             // ボーナス中の枠（AT 期待度）。舞台の四辺を縁取り、期待度のランク色で点滅する
@@ -957,63 +941,24 @@ namespace BBB.Runtime
             Destroy(gameObject);
         }
 
-        private void ToggleSettings() { _settingsBox.SetActive(!_settingsBox.activeSelf); if (_settingsBox.activeSelf) _debugBox.SetActive(false); _resetConfirm.text = ""; _audio.UiPop(); }
+        private void ToggleSettings() { _settingsBox.SetActive(!_settingsBox.activeSelf); if (_settingsBox.activeSelf) { _debugBox.SetActive(false); if (_autoMode) SetAuto(false, _autoSpeed); } _resetConfirm.text = ""; _audio.UiPop(); }
         private void ToggleDebug() { _debugBox.SetActive(!_debugBox.activeSelf); if (_debugBox.activeSelf) { _settingsBox.SetActive(false); _graphBox.SetActive(false); } _audio.UiPop(); }
         private void ToggleMap()
         {
             if (_mapBox == null) return;
             _mapBox.SetActive(!_mapBox.activeSelf);
-            if (_mapBox.activeSelf) { _settingsBox.SetActive(false); _debugBox.SetActive(false); _graphBox.SetActive(false); RedrawMap(); }
+            if (_mapBox.activeSelf) { if (_autoMode) SetAuto(false, _autoSpeed); _settingsBox.SetActive(false); _debugBox.SetActive(false); _graphBox.SetActive(false); RedrawMap(); }
             _audio.UiPop();
         }
 
         /// <summary>マップを描き直す（開くたび・ステージが変わるたび）。</summary>
         private void RedrawMap()
         {
-            if (_mapBody == null || !_m.AdventureEnabled) return;
-            if (_mapView != null) Destroy(_mapView.gameObject);
-            var cfg = _m.Config.adventure;
-            // 地図は情報行の下から分岐条件の上まで（+194 〜 -126）
-            _mapView = StageMapView.Build(_mapBody, cfg, _m.Adv, new Vector2(700, 320));
-            _mapView.anchoredPosition = new Vector2(0, 34);
-            var n = _m.CurrentStage;
-            string next = _m.Adv.nextId != null ? cfg.Find(_m.Adv.nextId)?.name : null;
-            _mapInfo.text = $"{cfg.chapterName}   第{_m.Adv.chapter}章   現在地 {n?.id} {n?.name}   残り {_m.Adv.spinsLeft} G"
-                            + (next != null ? $"   次 → {next}" : "") + (_m.Adv.treasuresFound > 0 ? $"   宝 {_m.Adv.treasuresFound}" : "");
-            BuildConditionList(n);
+            if (_mapBody == null) return;
+            AtelierUi.Clear(_mapBody);
+            AtelierMap.Build(_mapBody, _m, ToggleMap, OnBackToTown, ToggleEquip, ToggleTrophy,
+                () => { _mapBox.SetActive(false); ToggleSettings(); }, ToggleMap, out _mapInfo, true);
         }
-
-        /// <summary>マップの下に、今のステージの達成条件と進み具合を並べる。</summary>
-        private void BuildConditionList(StageNode node)
-        {
-            if (_condList != null) Destroy(_condList.gameObject);
-            _condList = null;
-            var conds = node?.routeConditions;
-            if (conds == null || conds.Count == 0) return;
-            var cfg = _m.Config.adventure;
-
-            _condList = UiSkin.Rect(_mapBody, "Conditions", new Vector2(0, -MapModalH * 0.5f + 66), new Vector2(700, 96));
-            UiFactory.Label(_condList, "Head", new Vector2(0, 38), new Vector2(700, 18), "このステージの分岐条件", 12, TextAnchor.MiddleCenter, ColTextSub);
-            int shown = 0;
-            foreach (var c in conds)
-            {
-                if (c == null || shown >= 3) continue;
-                bool met = AdventureDirector.Meets(c, _m.Adv, _m.Credit, _m.Wallet.Souls, _m.PlayerLevel);
-                if (c.hidden && !met) continue;
-                var to = cfg.Find(c.to);
-                float y = 16 - shown * 24;
-                var col = met ? ColGold : ColText;
-                UiSkin.Img(_condList, "Row" + shown, new Vector2(0, y), new Vector2(700, 22), UiSkin.Rounded(6), met ? new Color(1f, 0.82f, 0.25f, 0.14f) : new Color(1, 1, 1, 0.05f));
-                UiFactory.Label(_condList, "To" + shown, new Vector2(-300, y), new Vector2(120, 20), to != null ? $"→ {to.id}" : "→ ?", 12, TextAnchor.MiddleLeft, met ? ColGold : ColTextSub);
-                UiFactory.Label(_condList, "Desc" + shown, new Vector2(-60, y), new Vector2(360, 20), AdventureDirector.DescribeCondition(c), 12, TextAnchor.MiddleLeft, col);
-                UiFactory.Label(_condList, "Prog" + shown, new Vector2(250, y), new Vector2(220, 20),
-                    met ? "達成！" : AdventureDirector.ProgressText(c, _m.Adv, _m.Credit, _m.Wallet.Souls, _m.PlayerLevel),
-                    12, TextAnchor.MiddleRight, met ? ColGold : ColTextSub);
-                shown++;
-            }
-            if (shown == 0) Destroy(_condList.gameObject);
-        }
-
         /// <summary>スランプの常駐を切り替える。表示の好みなので別キーに残す。</summary>
         private void ToggleGraphAlways()
         {
@@ -1149,6 +1094,9 @@ namespace BBB.Runtime
 
         private void RefreshUi()
         {
+            _bg?.PlaceWeatherAboveCharacters();
+            if(_bg!=null && _bg.CurrentStageId!=_m.Adv.nodeId){_bg.SetStage(_m.Adv.nodeId);_bg.PlaceWeatherAboveCharacters();}
+            if(_bgOuter!=null && _bgOuter.CurrentStageId!=_m.Adv.nodeId)_bgOuter.SetStage(_m.Adv.nodeId);
             _creditNum.text = _m.Credit.ToString("N0");
             _payoutNum.text = _lastPayout.ToString();
             bool inBonus = _m.BonusMode != BonusMode.NORMAL;
@@ -2181,10 +2129,9 @@ namespace BBB.Runtime
             _dustRt.gameObject.SetActive(false);
         }
 
-        // --------------------------------------------------------------- INPUT
-        /// <summary>窓（設定 / 地図 / グラフ / デバッグ / 装備 / ステータス / 呪い一覧 / 実績）が開いているか。開いている間は Esc 以外のキーを取らない（棚 c01）。</summary>
         private bool AtelierModalOpen() => (_settingsBox != null && _settingsBox.activeSelf) || (_mapBox != null && _mapBox.activeSelf) || (_graphBox != null && _graphBox.activeSelf) || (_debugBox != null && _debugBox.activeSelf) || _equipBox != null || _statsBox != null || _curseListBox != null || _trophyBox != null;
 
+        // --------------------------------------------------------------- INPUT
         private void Update()
         {
             AnimateNavi();
@@ -2288,7 +2235,7 @@ namespace BBB.Runtime
 
         private void OnBetClicked()
         {
-            if (_m.IsGameActive || _inputLocked || _leaving) return;
+            if (_m.IsGameActive || _inputLocked || _leaving || AtelierModalOpen()) return;
             bool wasReplay = _m.IsReplay;
             if (!_m.MaxBet())
             {
@@ -2853,6 +2800,7 @@ namespace BBB.Runtime
         {
             if (_equipBox != null) { CloseModals(); _audio.UiPop(); return; }   // 上に乗ったステータスの窓も一緒に閉じる
             if (_m.Config.equipment == null || !_m.Config.equipment.enabled) return;
+            if (_autoMode) SetAuto(false, _autoSpeed);
             CloseModals();
             _audio.UiPop();
             _equipBox = EquipScreen.Build(_stage, _m, _audio, () => SaveData.Save(_m, _audio),
@@ -3010,21 +2958,19 @@ namespace BBB.Runtime
         /// <summary>章クリア: 報酬を見せてから街へ戻る（オートは止める）。</summary>
         private IEnumerator ChapterClearRoutine(GameResult r)
         {
-            _leaving = true;
-            _inputLocked = true;
-            if (_autoMode) SetAuto(false, _autoSpeed);
-            _audio.Win();
-            UiFx.Burst(_charRt, UiFx.Preset.SuccessStars, new Vector2(0, 40));
-            yield return SlamTitle($"第{Mathf.Max(1, _m.Adv.chapter - 1)}章  踏破！   {{soul}}+{r.chapterSouls}", ColGold, 2.4f, 50);
-            if (r.chapterSetbacks > 0) yield return SlamTitle($"引き返した回数 {r.chapterSetbacks}   報酬はその分だけ減った", ColTextSub, 1.4f, 28);
-            if (PlayStory(StoryDirector.OnClear(_m.Config.story, Mathf.Max(1, _m.Adv.chapter - 1)))) yield return new WaitForSeconds(3.2f);
-            _runEndReason = "clear";
-            yield return SlamTitle("街へ戻る……", ColText, 1.0f, 34);
-            SaveData.Save(_m, _audio);
-            _inputLocked = false;
-            _leaving = false;
+            _leaving=true; _inputLocked=true;
+            if(_autoMode) SetAuto(false,_autoSpeed);
+            _audio.Win(); _runEndReason="clear";
+            if(PlayStory(StoryDirector.OnClear(_m.Config.story,Mathf.Max(1,_m.Adv.chapter-1)))) yield return new WaitForSeconds(3.2f);
+            SaveData.Save(_m,_audio);
+            bool acknowledged=false;
+            var result=AtelierResult.Build(_stage,_m,r,()=>acknowledged=true);
+            while(!acknowledged) yield return null;
+            Destroy(result);
+            _inputLocked=false; _leaving=false;
             OnBackToTown();
         }
+
 
         /// <summary>通常時（敵なし・前兆なし・ボーナスなし・会話中でない）に主人公がたまにひとりごとを言う。</summary>
         // ------------------------------------------------------ REPLAY ACTION
@@ -3363,7 +3309,16 @@ namespace BBB.Runtime
         /// <summary>1 行分: タグを付けて本文をタイプライタ表示し、seconds 経つまで保持。</summary>
         private IEnumerator ShowLine(string speaker, string text, Color tagBg, Color tagFg, float seconds)
         {
-            _dialogBox.SetActive(true);
+            if(AtelierPreferences.Subtitles)AudioManager.Create().MotionIfQuiet(MotionCue.Dialogue);
+            _dialogBox.SetActive(AtelierPreferences.Subtitles);
+            _dialogText.fontSize = Mathf.RoundToInt(15 * AtelierPreferences.Scale / 100f);
+            var dialogRect = (RectTransform)_dialogBox.transform;
+            dialogRect.sizeDelta = new Vector2(dialogRect.sizeDelta.x, AtelierPreferences.Scale > 100 ? 126 : 84);
+            _dialogText.rectTransform.sizeDelta = new Vector2(584, AtelierPreferences.Scale > 100 ? 88 : 44);
+            _dialogNameBg.rectTransform.anchoredPosition = new Vector2(_dialogNameBg.rectTransform.anchoredPosition.x, AtelierPreferences.Scale > 100 ? 51 : 27);
+            var dialogImage = _dialogBox.GetComponent<Image>();
+            if(dialogImage != null) dialogImage.color = AtelierPreferences.Contrast ? Color.black : ColBg;
+            _dialogText.color = Color.white;
             _dialogName.text = speaker;
             _dialogNameBg.color = tagBg;
             _dialogName.color = tagFg;
@@ -3592,6 +3547,7 @@ namespace BBB.Runtime
 
         private IEnumerator SlamTitle(string text, Color color, float hold = 1.5f, int fontSize = 58, bool rainbow = false)
         {
+            AudioManager.Create().MotionIfQuiet(MotionCue.Reveal);
             var band = UiSkin.Rect(_area, "SlamBand", Vector2.zero, new Vector2(AreaW * 1.2f, 96));
             UiSkin.Img(band, "Bg", Vector2.zero, new Vector2(AreaW * 1.2f, 96), null, new Color(0, 0, 0, 0.78f));
             UiSkin.Img(band, "LineTop", new Vector2(0, 47), new Vector2(AreaW * 1.2f, 2), null, new Color(color.r, color.g, color.b, 0.9f));
@@ -4647,6 +4603,7 @@ namespace BBB.Runtime
 
         private IEnumerator GuardFlash()
         {
+            AudioManager.Create().Motion(MotionCue.Guard);
             // 青い縁光: 敵の攻撃を弾いたイメージ
             float t = 0;
             while (t < 0.5f)

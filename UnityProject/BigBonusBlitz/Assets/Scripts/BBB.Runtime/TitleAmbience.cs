@@ -185,6 +185,7 @@ namespace BBB.Runtime
 
         private void Update()
         {
+            if (AtelierPreferences.Motion) return;
             var r = _root.rect;
             _w = r.width; _h = r.height;
             float dt = Time.deltaTime;

@@ -7,7 +7,7 @@ namespace BBB.Runtime
     /// 対応: bet→se_bet, spin→se_spin_start, stop→se_ui_pop, win→se_coin, replay→se_replay,
     ///       attack→se_attack, enemyDeath→se_enemy_death, bbConfirm→se_bb_confirm
     /// </summary>
-    public sealed class AudioManager : MonoBehaviour
+    public sealed partial class AudioManager : MonoBehaviour
     {
         private AudioSource _bgm;
         private AudioSource _se;
@@ -30,7 +30,7 @@ namespace BBB.Runtime
         private AudioClip _achievement, _pickupSoul, _pickupEmber, _pickupItem;
 
         public float BgmVolume { get => _bgmBaseVolume; set { _bgmBaseVolume = value; _bgm.volume = value; } }
-        public float SeVolume { get => _se.volume; set { _se.volume = value; _sePitched.volume = value; } }
+        public float SeVolume { get => _se.volume; set { value = Mathf.Clamp01(value); _se.volume = value; _sePitched.volume = value; SetMotionVolume(value); } }
         public bool BgmEnabled { get; private set; } = true;
 
         /// <summary>
@@ -85,10 +85,11 @@ namespace BBB.Runtime
             am._bgm.volume = 0.5f;
             am._se.volume = 0.8f;
             am._sePitched.volume = 0.8f;
+            am.InitMotion();
             return am;
         }
 
-        private void Play(AudioClip c, float vol = 1f) { if (c != null) _se.PlayOneShot(c, vol); }
+        private void Play(AudioClip c, float vol = 1f) { if (c != null) { MarkSound(); _se.PlayOneShot(c, vol); } }
 
         public void Bet() => Play(_bet, 0.6f);
         public void SpinStart() => Play(_spin, 0.5f);
@@ -96,6 +97,7 @@ namespace BBB.Runtime
         /// <summary>示唆: 停止音が高くなる（3G目の熱いパターン）。stopIndex 0..2 で段階的に上げる。</summary>
         public void StopHot(int stopIndex)
         {
+            MarkSound();
             if (_stop == null) return;
             _sePitched.pitch = 1.3f + 0.25f * stopIndex;
             _sePitched.volume = _se.volume;
@@ -129,6 +131,7 @@ namespace BBB.Runtime
         /// <summary>択 正解: 爽快な上昇音（パワーアップ音を高めに＋コイン）。</summary>
         public void NaviSuccess()
         {
+            MarkSound();
             _sePitched.pitch = 1.25f;
             _sePitched.volume = _se.volume;
             if (_replay != null) _sePitched.PlayOneShot(_replay, 1f);
@@ -138,6 +141,7 @@ namespace BBB.Runtime
         /// <summary>択 失敗: 攻撃を食らう（斬撃音を低く）。</summary>
         public void NaviFail()
         {
+            MarkSound();
             _sePitched.pitch = 0.7f;
             _sePitched.volume = _se.volume;
             if (_attack != null) _sePitched.PlayOneShot(_attack, 0.9f);
@@ -146,6 +150,7 @@ namespace BBB.Runtime
         /// <summary>敵が逃げる（低いポップ音）。</summary>
         public void EnemyEscape()
         {
+            MarkSound();
             if (_uiPop == null) return;
             _sePitched.pitch = 0.6f;
             _sePitched.volume = _se.volume;
@@ -156,6 +161,7 @@ namespace BBB.Runtime
         /// <summary>払い出し音: 枚数ぶん「デュルデュル」と連打。ピッチを少しずつ上げて枚数感を出す。</summary>
         public void Payout(int coins)
         {
+            MarkSound();
             if (_win == null || coins <= 0) { Win(); return; }
             StopCoroutine(nameof(PayoutRoutine));
             StartCoroutine(nameof(PayoutRoutine), coins);
@@ -181,6 +187,7 @@ namespace BBB.Runtime
         /// <summary>通常時の獲得音: 控えめな「チャリ」を枚数に応じて 1〜3 発（ボーナス中の連打音と差をつける）。</summary>
         public void PayoutSmall(int coins)
         {
+            MarkSound();
             if (_smallCoin == null) { Win(); return; }
             StopCoroutine(nameof(PayoutSmallRoutine));
             StartCoroutine(nameof(PayoutSmallRoutine), coins);
@@ -235,7 +242,7 @@ namespace BBB.Runtime
         public void Replay() => Play(_replay, 0.6f);
         public void Attack() => Play(_attack);
         public void EnemyDeath() => Play(_enemyDeath);
-        public void UiPop() => Play(_uiPop, 0.5f);
+        public void UiPop() => Motion(MotionCue.Click);
 
         /// <summary>敵出現・接近開始（SlideIn の頭で呼ぶ）。素材があれば素材を 1 回だけ鳴らす。</summary>
         public void EnemyAppearStart()
@@ -254,6 +261,7 @@ namespace BBB.Runtime
         /// <summary>BB確定音。長さ(秒)を返す（呼び元で操作ロックに使う）。</summary>
         public float BbConfirm()
         {
+            MarkSound();
             StopBgm();
             if (_bbConfirm == null) return 0f;
             _se.PlayOneShot(_bbConfirm);

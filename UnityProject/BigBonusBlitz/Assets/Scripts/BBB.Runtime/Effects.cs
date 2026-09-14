@@ -10,6 +10,7 @@ namespace BBB.Runtime
         /// <summary>screenShake 0.4s。</summary>
         public static IEnumerator Shake(RectTransform target, float duration = 0.4f, float amp = 8f)
         {
+            AudioManager.Create().MotionIfQuiet(MotionCue.Impact);
             var origin = target.anchoredPosition;
             float t = 0;
             while (t < duration)
@@ -25,6 +26,7 @@ namespace BBB.Runtime
         /// <summary>enemyAnimHit 0.3s: scale 1→1.2(rot10°)→1。</summary>
         public static IEnumerator Hit(RectTransform target, float duration = 0.3f)
         {
+            AudioManager.Create().MotionIfQuiet(MotionCue.Impact);
             float t = 0;
             while (t < duration)
             {
@@ -41,6 +43,7 @@ namespace BBB.Runtime
         /// <summary>enemyAnimSquash 0.5s: 潰れて消える（forwards）。</summary>
         public static IEnumerator Squash(RectTransform target, CanvasGroup cg, float duration = 0.5f)
         {
+            AudioManager.Create().MotionIfQuiet(MotionCue.Impact);
             float t = 0;
             var origin = target.anchoredPosition;
             while (t < duration)
@@ -62,6 +65,7 @@ namespace BBB.Runtime
         /// <summary>enemySlideIn 0.5s: 右300pxから、透明→不透明。</summary>
         public static IEnumerator SlideIn(RectTransform target, CanvasGroup cg, float duration = 0.5f)
         {
+            AudioManager.Create().MotionIfQuiet(MotionCue.Travel);
             var origin = target.anchoredPosition;
             float t = 0;
             while (t < duration)
@@ -79,6 +83,7 @@ namespace BBB.Runtime
         /// <summary>逃走: 右へ走り去って消える。</summary>
         public static IEnumerator SlideOut(RectTransform target, CanvasGroup cg, float duration = 0.45f)
         {
+            AudioManager.Create().MotionIfQuiet(MotionCue.Travel);
             var origin = target.anchoredPosition;
             float t = 0;
             while (t < duration)
@@ -106,6 +111,7 @@ namespace BBB.Runtime
         /// <summary>勝利: 白くフラッシュしてから潰れて消える。</summary>
         public static IEnumerator Defeat(RectTransform target, Image img, CanvasGroup cg)
         {
+            AudioManager.Create().MotionIfQuiet(MotionCue.Impact);
             var c0 = img.color;
             for (int i = 0; i < 3; i++)
             {
@@ -133,6 +139,7 @@ namespace BBB.Runtime
         /// <summary>animMiss 0.5s: 左に仰け反る。</summary>
         public static IEnumerator Miss(RectTransform target, float duration = 0.5f)
         {
+            AudioManager.Create().MotionIfQuiet(MotionCue.Page);
             var origin = target.anchoredPosition;
             float t = 0;
             while (t < duration)
@@ -151,6 +158,7 @@ namespace BBB.Runtime
         /// <summary>animCherry 0.7s: 横薙ぎ。</summary>
         public static IEnumerator Cherry(RectTransform target, float duration = 0.7f)
         {
+            AudioManager.Create().MotionIfQuiet(MotionCue.Reveal);
             var origin = target.anchoredPosition;
             float t = 0;
             while (t < duration)
@@ -170,6 +178,7 @@ namespace BBB.Runtime
         /// <summary>animWatermelon 0.8s: ジャンプして叩きつけ。</summary>
         public static IEnumerator Watermelon(RectTransform target, float duration = 0.8f)
         {
+            AudioManager.Create().MotionIfQuiet(MotionCue.Recover);
             var origin = target.anchoredPosition;
             float t = 0;
             while (t < duration)
@@ -189,6 +198,7 @@ namespace BBB.Runtime
         /// <summary>animReplay 0.8s: 少し前に出てガード。</summary>
         public static IEnumerator Replay(RectTransform target, float duration = 0.8f)
         {
+            AudioManager.Create().MotionIfQuiet(MotionCue.Recover);
             var origin = target.anchoredPosition;
             float t = 0;
             while (t < duration)
@@ -205,6 +215,7 @@ namespace BBB.Runtime
         /// <summary>cutinZoom 0.5s(オーバーシュート) → 表示保持 → 消す。</summary>
         public static IEnumerator Cutin(RectTransform target, CanvasGroup cg, float hold = 3f)
         {
+            AudioManager.Create().MotionIfQuiet(MotionCue.Reveal);
             cg.alpha = 1f;
             float t = 0, d = 0.5f;
             while (t < d)
@@ -230,6 +241,7 @@ namespace BBB.Runtime
         /// <summary>hint-red-glow: 画面縁が赤く点滅。</summary>
         public static IEnumerator RedGlow(Image overlay, float duration = 1.5f)
         {
+            AudioManager.Create().MotionIfQuiet(MotionCue.Reveal);
             float t = 0;
             while (t < duration)
             {

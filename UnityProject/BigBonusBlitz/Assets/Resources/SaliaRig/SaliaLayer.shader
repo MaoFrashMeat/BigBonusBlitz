@@ -14,7 +14,7 @@ Shader "BBB/UI/SaliaLayer"
         _ColorMask ("Color Mask", Float) = 15
         [Toggle(UNITY_UI_ALPHACLIP)] _UseUIAlphaClip ("Alpha Clip", Float) = 0
         _MotionTime ("Motion time", Float) = 0
-        _Motion ("Breath Hair Cloth Range", Vector) = (.65,.7,.65,1.35)
+        _Motion ("Breath Hair Cloth Range", Vector) = (.65,.35,.65,1.35)
         _Blink ("Left Right Closed", Vector) = (0,0,0,0)
         _ImageSize ("Canvas", Vector) = (1672,941,0,0)
         _RectSize ("UI Rect", Vector) = (1672,941,0,0)
@@ -78,6 +78,13 @@ Shader "BBB/UI/SaliaLayer"
                 }
                 float hands=max(pinBox(q,float2(430,478),float2(740,725)),pinBox(q,float2(1195,350),float2(1335,485)));
                 p=lerp(p,q,hands);
+                // Protect the eyes from ALL motion fields, not only the front fringe.
+                // Include lattice-cell margins and the central face to avoid floating eyes.
+                // Shared by every layer and backing; blink texture blending stays independent.
+                float stableFace=max(pinBox(q,float2(691,207),float2(761,261)),
+                                     pinBox(q,float2(775,161),float2(852,223)));
+                stableFace=max(stableFace,protectFace(q,float2(792,277),float2(58,40)));
+                p=lerp(p,q,stableFace);
                 v.vertex.xy+=(p-q)/_ImageSize.xy*_RectSize.xy*float2(1,-1);
                 o.world=v.vertex; o.vertex=UnityObjectToClipPos(v.vertex); o.color=v.color*_Color; o.uv=v.uv; o.localUv=v.localUv;
                 return o;

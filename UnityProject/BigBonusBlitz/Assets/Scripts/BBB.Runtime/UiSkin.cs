@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -951,7 +951,8 @@ namespace BBB.Runtime
                 cb0.colorMultiplier = 1f;
                 cb0.fadeDuration = 0.06f;
                 btn0.colors = cb0;
-                btn0.onClick.AddListener(() => onClick?.Invoke());
+                MotionSound.Attach(btn0);
+            btn0.onClick.AddListener(() => MotionSound.Invoke(name, onClick));
                 if (lamp) Img(root, "Lamp", new Vector2(0, size.y * 0.5f - 7), new Vector2(size.x * 0.4f, 3), Rounded(2), new Color(1, 1, 1, 0.15f)).name = "Lamp";
                 return btn0;
             }
@@ -972,7 +973,8 @@ namespace BBB.Runtime
             cb.colorMultiplier = 1f;
             cb.fadeDuration = 0.06f;
             btn.colors = cb;
-            btn.onClick.AddListener(() => onClick?.Invoke());
+            MotionSound.Attach(btn);
+            btn.onClick.AddListener(() => MotionSound.Invoke(name, onClick));
             if (lamp)
             {
                 var l = Img(root, "Lamp", new Vector2(0, size.y * 0.5f - 5), new Vector2(size.x * 0.5f, 3), Rounded(2), new Color(1, 1, 1, 0.15f));
@@ -1045,7 +1047,8 @@ namespace BBB.Runtime
             var cb = btn.colors;
             cb.normalColor = color; cb.highlightedColor = color; cb.pressedColor = color * 0.7f; cb.selectedColor = color; cb.disabledColor = BtnDisabled; cb.colorMultiplier = 1f; cb.fadeDuration = 0.06f;
             btn.colors = cb;
-            btn.onClick.AddListener(() => onClick?.Invoke());
+            MotionSound.Attach(btn);
+            btn.onClick.AddListener(() => MotionSound.Invoke(name, onClick));
             return btn;
         }
 

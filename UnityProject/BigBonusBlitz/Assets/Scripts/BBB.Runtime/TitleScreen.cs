@@ -341,16 +341,8 @@ namespace BBB.Runtime
 
         private void BuildSettings(Transform stage)
         {
-            var card = Modal(stage, "Settings", "設定", new Vector2(420, 230), ToggleSettings, out _settingsBox);
-
-            UiFactory.Label(card, "BgmLabel", new Vector2(-150, 30), new Vector2(60, 20), "BGM", 13, TextAnchor.MiddleLeft, ColInk).fontStyle = FontStyle.Bold;
-            var bgm = UiFactory.Slider(card, "BgmSlider", new Vector2(35, 30), new Vector2(250, 20), _audio.BgmVolume, v => { _audio.BgmVolume = v; });
-            bgm.gameObject.AddComponent<SliderReleaseSound>().OnRelease = () => { _audio.UiPop(); SaveData.SaveAudio(_audio); };
-            UiFactory.Label(card, "SeLabel", new Vector2(-150, -4), new Vector2(60, 20), "SE", 13, TextAnchor.MiddleLeft, ColInk).fontStyle = FontStyle.Bold;
-            var se = UiFactory.Slider(card, "SeSlider", new Vector2(35, -4), new Vector2(250, 20), _audio.SeVolume, v => { _audio.SeVolume = v; });
-            se.gameObject.AddComponent<SliderReleaseSound>().OnRelease = () => { _audio.UiPop(); SaveData.SaveAudio(_audio); };
-            UiSkin.Button(card, "BgmToggle", new Vector2(0, -58), new Vector2(200, 36), "BGM ON / OFF",
-                () => { _audio.ToggleBgm(); _audio.UiPop(); SaveData.SaveAudio(_audio); }, ColBtn, 13, false, 8);
+            _settingsBox = AtelierSettings.Build(stage, _audio, ToggleSettings);
+            _settingsBox.SetActive(false);
         }
 
         // ------------------------------------------------------------ お知らせ（開発中の遊び。V1 になったら窓ごと消す）
@@ -573,6 +565,8 @@ namespace BBB.Runtime
             }
             if (_confirm != null && _confirm.text.Length > 0 && Time.time > _confirmUntil) _confirm.text = "";
 
+            if (!_starting && _settingsBox != null && _settingsBox.activeSelf && Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+            { ToggleSettings(); return; }
             if (_starting || (_settingsBox != null && _settingsBox.activeSelf) || (_newsBox != null && _newsBox.activeSelf)) return;
             var kb = Keyboard.current;
             if (kb == null) return;
@@ -607,6 +601,7 @@ namespace BBB.Runtime
 
         private IEnumerator BeginRoutine(bool clearSave)
         {
+            AudioManager.Create().Motion(MotionCue.Travel);
             _fade.blocksRaycasts = true;
             yield return FadeTo(1f, 0.45f);
             if (clearSave) SaveData.Clear();

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 namespace BBB.Runtime
 {
@@ -94,7 +95,7 @@ namespace BBB.Runtime
             slider.direction = UnityEngine.UI.Slider.Direction.LeftToRight;
             slider.minValue = 0f; slider.maxValue = 1f;
             slider.value = value;
-            slider.onValueChanged.AddListener(v => onChange?.Invoke(v));
+            slider.onValueChanged.AddListener(v => { onChange?.Invoke(v); if (EventSystem.current != null && EventSystem.current.currentSelectedGameObject == slider.gameObject) AudioManager.Create().Motion(MotionCue.Slider); });
             return slider;
         }
 
@@ -108,7 +109,8 @@ namespace BBB.Runtime
             colors.disabledColor = new Color(0.4f, 0.4f, 0.4f, 0.5f);
             btn.colors = colors;
             Label(rt, "Label", Vector2.zero, size, text, fontSize);
-            btn.onClick.AddListener(() => onClick?.Invoke());
+            MotionSound.Attach(btn);
+            btn.onClick.AddListener(() => MotionSound.Invoke(name, onClick));
             return btn;
         }
     }
