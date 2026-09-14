@@ -310,62 +310,67 @@
     document.querySelectorAll("#reels .posv").forEach(v => { v.textContent = reels[v.dataset.r].pos.toFixed(2); });
   }
   function symOf(name) { return SYMS.find(x => x.key === SYM_KEY[name]); }
+  // コマ 1 つを描く。x, y = コマの左上、cw, ch = コマの大きさ。fx = 役の演出（null で無し）、lampC = ランプの色（null で無し）
+  function drawCell(g, x, y, cw, ch, z, symName, fx, lampC, pulse, blurSpread) {
+    const trim = document.getElementById("trim").checked;
+    const sdef = symOf(symName); if (!sdef) return;
+    const src = chosenSrc(sdef), scale = scaleOf(sdef);
+    const im = load(src); if (!im.complete || !im.naturalWidth) return;
+    const rc = trim ? trimRect(im, src) : { x: 0, y: 0, w: im.naturalWidth, h: im.naturalHeight };
+    const kk = Math.min(cw * scale / rc.w, ch * scale / rc.h), w = rc.w * kk, h = rc.h * kk;
+    g.imageSmoothingQuality = "high";
+    const bright = fx ? fx.bright : 1;
+    if (fx && fx.glowA > 0) {   // 役色の光（図柄の後ろ、コマいっぱい）
+      g.save(); g.globalAlpha = Math.min(1, fx.glowA); g.fillStyle = fx.glowC; g.shadowColor = fx.glowC; g.shadowBlur = 18 * z;
+      g.beginPath(); g.roundRect(x + 3 * z, y + 3 * z, cw - 6 * z, ch - 6 * z, 6 * z); g.fill(); g.restore();
+    }
+    const L = blink.params.lamp;
+    if (lampC) {   // ランプの後ろの光（放射状）
+      const cx = x + cw / 2, cy = y + ch / 2, rad = cw * L.size / 2;
+      const grad = g.createRadialGradient(cx, cy, 0, cx, cy, rad); grad.addColorStop(0, lampC); grad.addColorStop(1, "rgba(0,0,0,0)");
+      g.save(); g.globalCompositeOperation = "lighter"; g.globalAlpha = L.intensity * pulse; g.fillStyle = grad; g.fillRect(x, y, cw, ch); g.restore();
+    }
+    const filters = [];
+    if (bright !== 1) filters.push("brightness(" + bright + ")");
+    if (fx && fx.flash > 0) filters.push("brightness(" + (1 + fx.flash) + ") saturate(" + (1 - fx.flash * 0.6) + ")");
+    if (fx && fx.hue !== null) filters.push("hue-rotate(" + fx.hue + "deg) saturate(" + (1 + fx.sat) + ")");
+    if (fx || lampC) {   // コマの中心を軸に 拡大・ずらし・傾き。その上に 染め・層・ランプの内側の光 を図柄の形で重ねる
+      const T = fx || { scale: 1, dx: 0, dy: 0, rot: 0, tint: null, layer: null };
+      g.save(); g.translate(x + cw / 2 + T.dx * z, y + ch / 2 + T.dy * z); g.rotate(T.rot * Math.PI / 180); g.scale(T.scale, T.scale);
+      if (filters.length) g.filter = filters.join(" ");
+      g.drawImage(im, rc.x, rc.y, rc.w, rc.h, -w / 2, -h / 2, w, h); g.filter = "none";
+      if (T.tint) { g.globalCompositeOperation = "multiply"; g.globalAlpha = T.tint.k; g.drawImage(silhouette(im, src, rc, T.tint.color), -w / 2, -h / 2, w, h); g.globalCompositeOperation = "destination-in"; g.globalAlpha = 1; g.drawImage(silhouette(im, src, rc, "#fff"), -w / 2, -h / 2, w, h); g.globalCompositeOperation = "source-over"; }
+      if (lampC) { const inner = lampInner(symName); g.globalCompositeOperation = "lighter"; g.globalAlpha = inner * pulse; g.filter = "blur(" + (3 * z) + "px)"; g.drawImage(silhouette(im, src, rc, lampC), -w / 2, -h / 2, w, h); g.filter = "none"; g.globalAlpha = inner * pulse * 0.5; g.drawImage(silhouette(im, src, rc, lampC), -w / 2, -h / 2, w, h); g.globalAlpha = 1; g.globalCompositeOperation = "source-over"; }
+      if (T.layer) { g.globalCompositeOperation = T.layer.mode; g.globalAlpha = Math.min(1, T.layer.a); g.drawImage(silhouette(im, src, rc, T.layer.color), -w / 2, -h / 2, w, h); g.globalAlpha = 1; g.globalCompositeOperation = "source-over"; }
+      g.restore(); return;
+    }
+    if (filters.length) g.filter = filters.join(" ");
+    if (blurSpread > 0) {   // 回転中のブレ
+      g.globalAlpha = 0.34;
+      for (let b = -1; b <= 1; b++) g.drawImage(im, rc.x, rc.y, rc.w, rc.h, x + (cw - w) / 2, y + (ch - h) / 2 + b * blurSpread * 0.35, w, h);
+      g.globalAlpha = 1;
+    } else g.drawImage(im, rc.x, rc.y, rc.w, rc.h, x + (cw - w) / 2, y + (ch - h) / 2, w, h);
+    g.filter = "none";
+  }
+  // ランプの脈（段 k で位相をずらす）
+  function lampPulse(now, k) { const L = blink.params.lamp; return L.pulse > 0 ? 1 - L.pulseDepth * (0.5 + 0.5 * Math.sin(now / 1000 * L.pulse * Math.PI * 2 + k * 0.9)) : 1; }
   function drawReel(cv, r) {
     const z = zoom(), g = cv.getContext("2d");
-    const trim = document.getElementById("trim").checked;
     const blur = document.getElementById("blur").checked && reels[r].spinning;
     g.fillStyle = "#f2f4f7"; g.fillRect(0, 0, cv.width, cv.height);
     const strip = STRIPS[r], len = strip.length, cellH = CELL_H * z, gap = 6 * z;
     // pos = 上段に来ているコマ番号（小数）。下へ流れる
     const p = reels[r].pos;
     const base = Math.floor(p), frac = p - base;
+    const now = performance.now(), L = blink.params.lamp;
     for (let k = -1; k <= ROWS; k++) {
       const idx = ((base + k) % len + len) % len;
       const y = (k + frac) * cellH + (k >= 0 ? gap * Math.min(k, ROWS - 1) : 0) + reels[r].bounce * z;
       g.fillStyle = "#e9edf2"; g.fillRect(0, y, cv.width, cellH);
-      const sdef = symOf(strip[idx]); if (!sdef) continue;
-      const src = chosenSrc(sdef), scale = scaleOf(sdef);
-      const im = load(src); if (!im.complete || !im.naturalWidth) continue;
-      const rc = trim ? trimRect(im, src) : { x: 0, y: 0, w: im.naturalWidth, h: im.naturalHeight };
-      const kk = Math.min(cv.width * scale / rc.w, cellH * scale / rc.h), w = rc.w * kk, h = rc.h * kk;
-      g.imageSmoothingQuality = "high";
-      const now = performance.now();
       const fx = (reels[r].spinning || k < 0 || k >= ROWS) ? null : cellFx(r, k, now);
-      const bright = fx ? fx.bright : 1;
-      if (fx && fx.glowA > 0) {   // 役色の光（図柄の後ろ、コマいっぱい）
-        g.save(); g.globalAlpha = Math.min(1, fx.glowA); g.fillStyle = fx.glowC; g.shadowColor = fx.glowC; g.shadowBlur = 18 * z;
-        g.beginPath(); g.roundRect(3 * z, y + 3 * z, cv.width - 6 * z, cellH - 6 * z, 6 * z); g.fill(); g.restore();
-      }
-      // 図柄の中のランプ（赤 7・白 7）。停止中はずっと、回転中は設定次第。段ごとに位相をずらす
-      const L = blink.params.lamp, lampC = (k >= 0 && k < ROWS && (!reels[r].spinning || L.whileSpinning)) ? lampFor(strip[idx]) : null;
-      const pulse = lampC ? (L.pulse > 0 ? 1 - L.pulseDepth * (0.5 + 0.5 * Math.sin(now / 1000 * L.pulse * Math.PI * 2 + k * 0.9)) : 1) : 0;
-      if (lampC) {   // 後ろの光（放射状）
-        const cx = cv.width / 2, cy = y + cellH / 2, rad = cv.width * L.size / 2;
-        const grad = g.createRadialGradient(cx, cy, 0, cx, cy, rad); grad.addColorStop(0, lampC); grad.addColorStop(1, "rgba(0,0,0,0)");
-        g.save(); g.globalCompositeOperation = "lighter"; g.globalAlpha = L.intensity * pulse; g.fillStyle = grad; g.fillRect(0, y, cv.width, cellH); g.restore();
-      }
-      const filters = [];
-      if (bright !== 1) filters.push("brightness(" + bright + ")");
-      if (fx && fx.flash > 0) filters.push("brightness(" + (1 + fx.flash) + ") saturate(" + (1 - fx.flash * 0.6) + ")");
-      if (fx && fx.hue !== null) filters.push("hue-rotate(" + fx.hue + "deg) saturate(" + (1 + fx.sat) + ")");
-      if (fx || lampC) {   // コマの中心を軸に 拡大・ずらし・傾き。その上に 染め・層・ランプの内側の光 を図柄の形で重ねる
-        const T = fx || { scale: 1, dx: 0, dy: 0, rot: 0, tint: null, layer: null };
-        g.save(); g.translate(cv.width / 2 + T.dx * z, y + cellH / 2 + T.dy * z); g.rotate(T.rot * Math.PI / 180); g.scale(T.scale, T.scale);
-        if (filters.length) g.filter = filters.join(" ");
-        g.drawImage(im, rc.x, rc.y, rc.w, rc.h, -w / 2, -h / 2, w, h); g.filter = "none";
-        if (T.tint) { g.globalCompositeOperation = "multiply"; g.globalAlpha = T.tint.k; g.drawImage(silhouette(im, src, rc, T.tint.color), -w / 2, -h / 2, w, h); g.globalCompositeOperation = "destination-in"; g.globalAlpha = 1; g.drawImage(silhouette(im, src, rc, "#fff"), -w / 2, -h / 2, w, h); g.globalCompositeOperation = "source-over"; }
-        if (lampC) { const inner = lampInner(strip[idx]); g.globalCompositeOperation = "lighter"; g.globalAlpha = inner * pulse; g.filter = "blur(" + (3 * z) + "px)"; g.drawImage(silhouette(im, src, rc, lampC), -w / 2, -h / 2, w, h); g.filter = "none"; g.globalAlpha = inner * pulse * 0.5; g.drawImage(silhouette(im, src, rc, lampC), -w / 2, -h / 2, w, h); g.globalAlpha = 1; g.globalCompositeOperation = "source-over"; }
-        if (T.layer) { g.globalCompositeOperation = T.layer.mode; g.globalAlpha = Math.min(1, T.layer.a); g.drawImage(silhouette(im, src, rc, T.layer.color), -w / 2, -h / 2, w, h); g.globalAlpha = 1; g.globalCompositeOperation = "source-over"; }
-        g.restore(); continue;
-      }
-      if (filters.length) g.filter = filters.join(" ");
-      if (blur) {
-        const spread = reels[r].lastMove * z;   // 1 フレームで動いた px
-        g.globalAlpha = 0.34;
-        for (let b = -1; b <= 1; b++) g.drawImage(im, rc.x, rc.y, rc.w, rc.h, (cv.width - w) / 2, y + (cellH - h) / 2 + b * spread * 0.35, w, h);
-        g.globalAlpha = 1;
-      } else g.drawImage(im, rc.x, rc.y, rc.w, rc.h, (cv.width - w) / 2, y + (cellH - h) / 2, w, h);
-      g.filter = "none";
+      // 図柄の中のランプ（赤 7・白 7）。停止中はずっと、回転中は設定次第
+      const lampC = (k >= 0 && k < ROWS && (!reels[r].spinning || L.whileSpinning)) ? lampFor(strip[idx]) : null;
+      drawCell(g, 0, y, cv.width, cellH, z, strip[idx], fx, lampC, lampC ? lampPulse(now, k) : 0, blur ? reels[r].lastMove * z : 0);
     }
     // 段の境目
     g.fillStyle = "#f2f4f7";
@@ -391,6 +396,7 @@
     });
     if (blink.start >= 0 && document.getElementById("blinkLoop").checked && (t - blink.start) / 1000 >= blink.params.seconds + 0.6) blink.start = t;
     document.querySelectorAll("#reels canvas").forEach(cv => drawReel(cv, parseInt(cv.dataset.r)));
+    drawStrips();
     syncBars();
     requestAnimationFrame(tick);
   }
@@ -405,23 +411,23 @@
     }
   }
   function drawStrips() {
-    const trim = document.getElementById("trim").checked;
     const z = parseFloat(document.getElementById("stripZoom").value);
+    const now = performance.now(), L = blink.params.lamp;
     document.querySelectorAll("#strips canvas").forEach(cv => {
-      const r = parseInt(cv.dataset.r), g = cv.getContext("2d"), strip = STRIPS[r];
+      const r = parseInt(cv.dataset.r), g = cv.getContext("2d"), strip = STRIPS[r], len = strip.length;
       const cw = CELL_W * z, ch = CELL_H * z, pitch = (CELL_H + 4) * z, x0 = 26 * z;
+      // 窓に見えているコマ（上・中・下段）。リールと同じ演出をここにも出す
+      const base = Math.floor(reels[r].pos), rowOf = {};
+      if (!reels[r].spinning) for (let k = 0; k < ROWS; k++) rowOf[((base + k) % len + len) % len] = k;
       g.fillStyle = "#f2f4f7"; g.fillRect(0, 0, cv.width, cv.height);
       for (let i = 0; i < strip.length; i++) {
-        const y = i * pitch;
-        g.fillStyle = "#e9edf2"; g.fillRect(x0, y, cw, ch);
+        const y = i * pitch, k = rowOf[i];
+        g.fillStyle = k !== undefined ? "#dfe6ef" : "#e9edf2"; g.fillRect(x0, y, cw, ch);
+        if (k !== undefined) { g.strokeStyle = "rgba(77,163,255,.55)"; g.lineWidth = 2; g.strokeRect(x0 + 1, y + 1, cw - 2, ch - 2); }   // 窓の位置
         g.fillStyle = "#667"; g.font = (11 * z + 3) + "px sans-serif"; g.textBaseline = "middle"; g.fillText(String(i), 4 * z, y + ch / 2);
-        const sdef = symOf(strip[i]); if (!sdef) continue;
-        const src = chosenSrc(sdef), scale = scaleOf(sdef);
-        const im = load(src); if (!im.complete || !im.naturalWidth) continue;
-        const rc = trim ? trimRect(im, src) : { x: 0, y: 0, w: im.naturalWidth, h: im.naturalHeight };
-        const kk = Math.min(cw * scale / rc.w, ch * scale / rc.h), w = rc.w * kk, h = rc.h * kk;
-        g.imageSmoothingQuality = "high";
-        g.drawImage(im, rc.x, rc.y, rc.w, rc.h, x0 + (cw - w) / 2, y + (ch - h) / 2, w, h);
+        const fx = k !== undefined ? cellFx(r, k, now) : null;
+        const lampC = (!reels[r].spinning || L.whileSpinning) ? lampFor(strip[i]) : null;
+        drawCell(g, x0, y, cw, ch, z, strip[i], fx, lampC, lampC ? lampPulse(now, k !== undefined ? k : i % 3) : 0, 0);
       }
     });
   }
