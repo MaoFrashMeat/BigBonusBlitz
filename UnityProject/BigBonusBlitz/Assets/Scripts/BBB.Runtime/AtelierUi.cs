@@ -32,12 +32,30 @@ namespace BBB.Runtime
             t.horizontalOverflow = HorizontalWrapMode.Wrap; t.verticalOverflow = VerticalWrapMode.Truncate;
             return t;
         }
-        public static Button Button(Transform p, string name, float x, float y, float w, string text, Action action, Color? bg = null, Color? fg = null, float h = 44)
+        /// <summary>板の縁。1px の線 4 本（フラットでも板と背景を分けるため。game-design §8.3）。</summary>
+        public static void Edge(RectTransform r, Color c, float t = 1f)
+        {
+            var w = r.sizeDelta.x; var h = r.sizeDelta.y;
+            foreach (var (n, x, y, ew, eh) in new[] { ("EdgeT", 0f, h * .5f - t * .5f, w, t), ("EdgeB", 0f, -h * .5f + t * .5f, w, t), ("EdgeL", -w * .5f + t * .5f, 0f, t, h), ("EdgeR", w * .5f - t * .5f, 0f, t, h) })
+                Panel(r, n, x, y, ew, eh, c);
+        }
+        /// <summary>数値の札。アイコン + 小見出し + 太い値（game-design §8.2）。戻り値は値の Text。</summary>
+        public static Text Tile(Transform p, string name, float x, float y, float w, Sprite icon, string caption, Color? valueColor = null, float h = 44)
+        {
+            var r = UiSkin.Rect(p, name, new Vector2(x, y), new Vector2(w, h));
+            float left = -w * .5f;
+            if (icon != null) Art(r, "Icon", left + 15, 0, 26, 26, icon);
+            float textLeft = left + (icon != null ? 36 : 2), textW = w - (icon != null ? 38 : 4);
+            Text(r, "Caption", textLeft + textW * .5f, 10, textW, 14, caption, 10, Sub);
+            return Text(r, "Value", textLeft + textW * .5f, -9, textW, 22, "—", 17, valueColor ?? Light, true);
+        }
+        public static Button Button(Transform p, string name, float x, float y, float w, string text, Action action, Color? bg = null, Color? fg = null, float h = 44, Color? edge = null, int fontSize = 14)
         {
             var r = Panel(p, name,x,y,w,h,bg ?? Ink); var im = r.GetComponent<Image>(); im.raycastTarget = true;
+            if (edge != null) Edge(r, edge.Value);
             var b = r.gameObject.AddComponent<Button>(); b.targetGraphic = im;
             var c = b.colors; c.highlightedColor = new Color(1.15f,1.15f,1.15f); c.selectedColor = new Color(1.2f,1.2f,1.2f); c.pressedColor = new Color(.7f,.8f,.85f); c.disabledColor = new Color(.55f,.55f,.55f); b.colors = c;
-            Text(r,"Label",0,0,w-20,h-4,text,14,fg ?? Light,true,TextAnchor.MiddleCenter);
+            Text(r,"Label",0,0,w-(w<60?6:20),h-4,text,fontSize,fg ?? Light,true,TextAnchor.MiddleCenter);   // 小さな四角のボタンは文字の幅をぎりぎりまで取る
             MotionSound.Attach(b);
             b.onClick.AddListener(() => MotionSound.Invoke(name, action));
             r.gameObject.AddComponent<AtelierFocus>(); return b;

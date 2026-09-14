@@ -247,6 +247,32 @@ row('V2 map columns', [('actions', -324, 264), ('route', 142, 628)], left=-456, 
 row('V2 footer', [('back', -376, 160), ('life', -180, 196), ('supply', 40, 196), ('ember', 260, 196)], left=-480, right=480)
 stack('V2 map headings', [('chapter',150,28), ('current',124,20), ('columns',104,18), ('nodes',-22,227), ('legend',-158,22)], top=187, bottom=-187)
 
+# ---------------------------------------------------------------- 街の地図（アトリエ風、2026-09-14 組み直し）
+# AtelierMap.cs の定数を写す。下のボタン列は端から 24 以上、板どうし 20、上の要素と 16 以上（docs/ui_rules.md 12）
+MARGIN, ROW_Y, ROW_H = 24.0, -224.0, 44.0
+VIEW_X, VIEW_Y, VIEW_W, VIEW_H = -158.0, -12.0, 592.0, 340.0
+DETAIL_X, DETAIL_W = 313.0, 282.0
+row('街の地図: 板の横並び', [('地図', VIEW_X, VIEW_W), ('詳細', DETAIL_X, DETAIL_W)], left=-480 + MARGIN, right=480 - MARGIN)
+tileW, tileGap = 118.0, 8.0
+tiles = []
+tx = 480 - MARGIN - tileW / 2
+for name in ['ソウル', 'エンバー', '補給', 'ライフ']:
+    tiles.append((name, tx, tileW)); tx -= tileW + tileGap
+row('街の地図: 上の札と見出し', [('見出し', -264, 380)] + tiles, left=-480 + MARGIN, right=480 - MARGIN)
+x = -480 + MARGIN
+btns = []
+for name, w in [('街のショップ', 150), ('装備', 108), ('実績', 108), ('設定', 108)]:
+    btns.append((name, x + w / 2, w)); x += w + 10
+btns.append(('タイトルへ', 480 - MARGIN - 75, 150))
+row('街の地図: 下のボタン列', btns, left=-480 + MARGIN, right=480 - MARGIN)
+stack('街の地図: 縦', [('小見出し', 235, 18), ('見出し', 203, 38), ('ヒント', 170, 20), ('地図', VIEW_Y, VIEW_H), ('ボタン列', ROW_Y, ROW_H)], top=270, bottom=-270)
+if ROW_Y - ROW_H / 2 < -270 + MARGIN - 0.5:
+    FAIL.append('街の地図: 下のボタン列が端から 24 未満')
+if (VIEW_Y - VIEW_H / 2) - (ROW_Y + ROW_H / 2) < 16 - 0.5:
+    FAIL.append('街の地図: 地図とボタン列の間が 16 未満')
+half = VIEW_H / 2
+stack('街の地図: 右の板の中', [('絵', 110, 96), ('状態', 53, 14), ('名前', 29, 30), ('事実', -19, 60), ('分岐条件', -82, 44), ('出発', -134, 44)], top=half - 12, bottom=-half + 12)
+
 # ---------------------------------------------------------------- マップの丸
 print('\n■ ステージマップ（枝が最大 8 本のとき）')
 for name, w, h in [('ゲーム中', 700.0, 340.0), ('街', 564.0, 258.0)]:
