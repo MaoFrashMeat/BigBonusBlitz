@@ -216,6 +216,10 @@ namespace BBB.Tests
             foreach (var r in new[] { r1, r2, r3 }) AchievementDirector.Track(null, m.Ach, r, m);
             Assert.AreEqual(2, m.Ach.Get(AchievementCounters.Codex));
             Assert.AreEqual(2, m.Ach.Get(AchievementCounters.SeenPrefix + "x1"));
+            // 古いセーブ（seen: だけあって codex が無い）でも、次の Track で拾った種類数から始まる
+            m.Ach.Counters[AchievementCounters.SeenPrefix + "y1"] = 5;
+            AchievementDirector.Track(null, m.Ach, new GameResult(), m);
+            Assert.AreEqual(3, m.Ach.Get(AchievementCounters.Codex), "seen: から数え直していない");
 
             // 呪いを 3 つ抱えて踏破
             for (int i = 0; i < 3; i++) m.Curse.Taken.Add(new CurseInstance());

@@ -915,7 +915,7 @@ namespace BBB.Runtime
                 if (_histLabels[i] != null) _histLabels[i].alignment = TextAnchor.MiddleLeft;
             }
             UiSkin.Button(gBody, "GraphReset", new Vector2(grW * 0.5f - 90, -grH * 0.5f + 20), new Vector2(140, 28), "ここから取り直す",
-                () => { _audio.UiPop(); _graph.ResetTo(_m.Credit); _graph.Save(); _graph.SetGhost(null); _histPicked = -1; RefreshHistory(); }, ColBtn, 12, false, 8);
+                () => { _audio.UiPop(); _graph.ResetTo(_m.Credit); _graph.Save(); _graph.SetGhost(null); _histPicked = -1; RefreshHistory(); _mini?.ResetTo(_m.Credit); RedrawMini(); }, ColBtn, 12, false, 8);
             _graphBox.SetActive(false);
 
             // ===== モーダル: 冒険マップ =====
@@ -2172,6 +2172,8 @@ namespace BBB.Runtime
         private void HideEnemy()
         {
             HideEngageBanners();
+            if (_bossBarAnim != null) { StopCoroutine(_bossBarAnim); _bossBarAnim = null; }
+            _bossHp = 1f;
             if (_enemyIdle != null) { StopCoroutine(_enemyIdle); _enemyIdle = null; }
             if (_enemyRainbow != null) { StopCoroutine(_enemyRainbow); _enemyRainbow = null; }
             _enemyCg.alpha = 0f;

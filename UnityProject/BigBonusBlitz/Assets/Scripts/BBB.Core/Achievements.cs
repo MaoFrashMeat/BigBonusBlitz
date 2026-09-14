@@ -118,6 +118,10 @@ namespace BBB.Core
             if (r.returnedToTown && r.returnReason == "hp") st.Add(AchievementCounters.Deaths, 1);
             st.Max(AchievementCounters.LevelMax, m.PlayerLevel);
             st.Max(AchievementCounters.DepthMax, m.CurrentDepth);
+            // 図鑑の種類数は seen: から数え直す（この数えものが無かったころのセーブでも、拾った分から始まる）
+            long kinds = 0;
+            foreach (var kv in st.Counters) if (kv.Value > 0 && kv.Key.StartsWith(AchievementCounters.SeenPrefix, StringComparison.Ordinal)) kinds++;
+            st.Max(AchievementCounters.Codex, kinds);
             int worn = 0;
             foreach (var kv in m.Equip.Worn) if (kv.Value != null) worn++;
             st.Max(AchievementCounters.WornMax, worn);
