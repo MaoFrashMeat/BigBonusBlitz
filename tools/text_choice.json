@@ -1,35 +1,35 @@
 {
-  "numbers": {
-    "height": 128,
-    "src": "assets/symbols/number/num{d}_{v}.png",
-    "variant": {
-      "0": 3,
-      "1": 3,
-      "2": 2,
-      "3": 1,
-      "4": 3,
-      "5": 1,
-      "6": 2,
-      "7": 2,
-      "8": 1,
-      "9": 1
-    }
-  },
-  "words": {
-    "height": 110,
-    "kakutoku": {
-      "src": "assets/symbols/text/kakutoku_{v}.png",
-      "variant": 3
-    },
-    "g": {
-      "src": "assets/symbols/text/g_{v}.png",
-      "variant": 1,
-      "height": 128
-    },
-    "plus": {
-      "src": "assets/symbols/text/plus_{v}.png",
-      "variant": 1,
-      "height": 128
-    }
+ "numbers": {
+  "height": 128,
+  "src": "assets/symbols/number/num{d}_{v}.png",
+  "variant": {
+   "0": 1,
+   "1": 1,
+   "2": 1,
+   "3": 1,
+   "4": 5,
+   "5": 1,
+   "6": 1,
+   "7": 1,
+   "8": 1,
+   "9": 5
   }
+ },
+ "words": {
+  "height": 110,
+  "kakutoku": {
+   "src": "assets/symbols/text/kakutoku_{v}.png",
+   "variant": 3
+  },
+  "g": {
+   "src": "assets/symbols/text/g_{v}.png",
+   "variant": 1,
+   "height": 128
+  },
+  "plus": {
+   "src": "assets/symbols/text/plus_{v}.png",
+   "variant": 1,
+   "height": 128
+  }
+ }
 }
