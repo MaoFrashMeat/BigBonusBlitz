@@ -169,6 +169,9 @@ namespace BBB.Runtime
         private RectTransform _miniBox;
         private Text _miniLabel;
         private Text _atRankLabel;
+        /// <summary>右のログ枠（説明の吹き出しに流した文を新しい順に。最後の数行だけ見せる）。</summary>
+        private Text _logText;
+        private readonly System.Collections.Generic.List<string> _log = new System.Collections.Generic.List<string>();
         private Button _graphAlwaysBtn;
         /// <summary>グラフに重ねている履歴の番号（-1 なら重ねていない）。</summary>
         private int _histPicked = -1;
@@ -620,12 +623,23 @@ namespace BBB.Runtime
             var Lcr = UiLayout.Get("credit", Ldp.x + winX, Ldp.y + rowY0 - RowPitch, winW, RowH);
             var creditInset = UiSkin.Inset(disp, "CreditInset", Lcr.Pos - Ldp.Pos, Lcr.Size, 6, null, UiLayout.Frame("credit") ?? "slot_navy");
             _creditNum = UiSkin.Number(creditInset, "CreditNum", new Vector2(-6, 0), new Vector2(Lcr.w - 20, Lcr.h), "50", 20, ColText);
+            // 窓の左側にボーナス（シャードの印 + 進み具合。2026-09-16 本人: 右の枠を左の欄に詰める）。数字は右詰めのまま
+            const float SubW = 126f;
+            float subL = -Lcr.w * 0.5f + 8f;
+            UiSkin.Img(creditInset, "BonusIcon", new Vector2(subL + 6f, 5f), new Vector2(12, 12), UiSkin.Icon("amulet", 64), Color.white);
+            _bonusLabel = UiFactory.Label(creditInset, "BonusLabel", new Vector2(subL + 14f + (SubW - 14f) * 0.5f, 5f), new Vector2(SubW - 14f, 14), "―", 10, TextAnchor.MiddleLeft, ColGold);
+            _bonusFill = UiSkin.Gauge(creditInset, "BonusGauge", new Vector2(subL + SubW * 0.5f, -Lcr.h * 0.5f + 5f), new Vector2(SubW, 4), ColGold, out _bonusTrack);
             // 3 行目: PAYOUT
             HeadRow("PayoutIcon", "PayoutLabel", "PAYOUT", rowY0 - RowPitch * 2, UiSkin.Circle(32), ColGold);
             UiSkin.Img(disp, "PayoutIconIn", new Vector2(-innerW * 0.5f + HeadIco * 0.5f, rowY0 - RowPitch * 2), new Vector2(HeadIco * 0.5f, HeadIco * 0.5f), UiSkin.Circle(32), UiSkin.GoldDeep);
             var Lpo = UiLayout.Get("payout", Ldp.x + winX, Ldp.y + rowY0 - RowPitch * 2, winW, RowH);
             var payInset = UiSkin.Inset(disp, "PayoutInset", Lpo.Pos - Ldp.Pos, Lpo.Size, 6, null, UiLayout.Frame("payout") ?? "pill_coin");
             _payoutNum = UiSkin.Number(payInset, "PayoutNum", new Vector2(-6, 0), new Vector2(Lpo.w - 20, Lpo.h), "0", 20, ColGold);
+            // 窓の左側に Lv と EXP の進み具合
+            _player = UiFactory.Label(payInset, "Lv", new Vector2(subL + 40f * 0.5f, 5f), new Vector2(40f, 14), "Lv 1", 11, TextAnchor.MiddleLeft, ColGold);
+            _player.fontStyle = FontStyle.Bold;
+            UiFactory.Label(payInset, "ExpLabel", new Vector2(subL + SubW - 16f, 5f), new Vector2(32f, 14), "EXP", 9, TextAnchor.MiddleRight, UiSkin.TextDim);
+            _expFill = UiSkin.Gauge(payInset, "Exp", new Vector2(subL + SubW * 0.5f, -Lpo.h * 0.5f + 5f), new Vector2(SubW, 4), ColGreen, out _expTrack);
             // 4 行目: 左=設定 / 右=ソウル。アイコンぶんを差し引いて領域を分ける
             const float SoulIco = 14f;
             float halfW = innerW * 0.5f;
@@ -706,20 +720,13 @@ namespace BBB.Runtime
             float sColL = -innerW * 0.5f + sColW * 0.5f;        // 左の列の中心
             float sColR = innerW * 0.5f - sColW * 0.5f;         // 右の列の中心
             float top = Lsd.h * 0.5f;
-            // 左の列
-            UiSkin.Img(side, "PlayerIcon", new Vector2(sColL - sColW * 0.5f + HeadIco * 0.5f, top - 20), new Vector2(HeadIco, HeadIco), UiSkin.Icon("sword", 64), Color.white);
-            UiSkin.Heading(side, "PlayerLabel", new Vector2(sColL, top - 20), sColW, "PLAYER", HeadIndent);
-            _player = UiFactory.Label(side, "Lv", new Vector2(sColL, top - 38), new Vector2(sColW, 18), "Lv 1", 15, TextAnchor.MiddleLeft, ColGold);
-            _player.fontStyle = FontStyle.Bold;
-            UiFactory.Label(side, "ExpLabel", new Vector2(sColL, top - 38), new Vector2(sColW, 18), "EXP", 10, TextAnchor.MiddleRight, UiSkin.TextDim);
-            _expFill = UiSkin.Gauge(side, "Exp", new Vector2(sColL, top - 51), new Vector2(sColW, 6), ColGreen, out _expTrack);
-            UiSkin.Img(side, "BonusIcon", new Vector2(sColL - sColW * 0.5f + HeadIco * 0.5f, top - 70), new Vector2(HeadIco, HeadIco), UiSkin.Icon("amulet", 64), Color.white);
-            const float rankW = 72f, rankGap = 8f;
-            float bonusHeadW = sColW - rankW - rankGap;
-            UiSkin.Heading(side, "BonusHead", new Vector2(sColL - sColW * 0.5f + bonusHeadW * 0.5f, top - 70), bonusHeadW, "BONUS", HeadIndent);
-            _bonusLabel = UiFactory.Label(side, "BonusLabel", new Vector2(sColL, top - 88), new Vector2(sColW, 16), "―", 12, TextAnchor.MiddleLeft, ColGold);
-            _atRankLabel = UiFactory.Label(side, "AtRank", new Vector2(sColL + sColW * 0.5f - rankW * 0.5f, top - 70), new Vector2(rankW, 16), "", 10, TextAnchor.MiddleRight, UiSkin.TextDim);
-            _bonusFill = UiSkin.Gauge(side, "BonusGauge", new Vector2(sColL, top - 102), new Vector2(sColW, 6), ColGold, out _bonusTrack);
+            // 左の列: ログ枠（PLAYER / BONUS は左の EMBER / PAYOUT の窓に詰めた。2026-09-16 本人）
+            UiSkin.Img(side, "LogIcon", new Vector2(sColL - sColW * 0.5f + HeadIco * 0.5f, top - 20), new Vector2(HeadIco, HeadIco), UiSkin.Icon("book", 64), Color.white);
+            UiSkin.Heading(side, "LogLabel", new Vector2(sColL, top - 20), sColW, "LOG", HeadIndent);
+            var Llg = UiLayout.Get("log", Lsd.x + sColL, Lsd.y + top - 70, sColW, 84);
+            var logBox = UiSkin.Inset(side, "LogBox", Llg.Pos - Lsd.Pos, Llg.Size, 6, null, UiLayout.Frame("log") ?? "slot_navy");
+            _logText = UiFactory.Label(logBox, "Text", new Vector2(0, 0), new Vector2(Llg.w - 12, Llg.h - 8), "", 10, TextAnchor.LowerLeft, ColTextSub);
+            _logText.horizontalOverflow = HorizontalWrapMode.Wrap; _logText.verticalOverflow = VerticalWrapMode.Truncate;
             // 右の列
             _status = UiFactory.Label(side, "Status", new Vector2(sColR, top - 30), new Vector2(sColW, 40), "", 12, TextAnchor.UpperLeft, ColText);
             // 常駐のスランプ（設定で出し入れする）。数字は右に小さく添える
@@ -1117,7 +1124,7 @@ namespace BBB.Runtime
             _bonusLabel.text = inBonus
                 ? (byGames ? $"{(_m.BonusMode == BonusMode.BB ? "BIG" : "REG")}  残{Mathf.Max(0, _m.BonusGamesTotal - _m.BonusGamesPlayed)}G"
                            : $"{(_m.BonusMode == BonusMode.BB ? "BIG" : "REG")}  {_m.BonusEarned} / {_m.BonusPayoutTarget}")
-                : held ? "成立中  揃えよう" : "―";
+                : held ? "成立中  揃えよう" : atRank != null ? $"AT期待度 {atRank}" : "―";
             if (_atRankLabel != null) _atRankLabel.text = atRank != null ? $"AT期待度 {atRank}" : "";
             float bonusRatio = !inBonus ? 0f
                 : byGames ? Mathf.Clamp01((float)_m.BonusGamesPlayed / _m.BonusGamesTotal)
@@ -3191,10 +3198,24 @@ namespace BBB.Runtime
         }
 
         /// <summary>説明を 1 行ずつ、吹き出しで流す（青いタグ「説明」）。長い行は少し長く見せる。</summary>
+        /// <summary>ログ枠に 1 行足す（説明の吹き出しに流した文。絵の印 {soul} などは名前に置き換える）。新しいものが下。</summary>
+        private void LogAdd(string line)
+        {
+            if (string.IsNullOrEmpty(line)) return;
+            string plain = System.Text.RegularExpressions.Regex.Replace(line, @"\{(\w+)\}", m =>
+                m.Groups[1].Value == "soul" ? "魂" : m.Groups[1].Value == "ember" ? "火" : m.Groups[1].Value == "book" ? "EXP" : m.Groups[1].Value == "games" ? "G" : "");
+            _log.Add(plain.Trim());
+            if (_log.Count > 40) _log.RemoveRange(0, _log.Count - 40);
+            if (_logText == null) return;
+            int n = Mathf.Min(_log.Count, 6);
+            _logText.text = string.Join("\n", _log.GetRange(_log.Count - n, n));
+        }
+
         private IEnumerator ExplainRoutine(System.Collections.Generic.List<string> lines)
         {
             foreach (var line in lines)
             {
+                LogAdd(line);
                 float seconds = line.Length > 26 ? 3.0f : 2.4f;
                 float t = 0;
                 const float cps = 28f;
