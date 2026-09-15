@@ -194,6 +194,8 @@ namespace BBB.Runtime
         private readonly System.Collections.Generic.List<Image> _holdLinks = new System.Collections.Generic.List<Image>();
         // 次のルートの達成条件（表示域の左）
         private GameObject _routeBox;
+        /// <summary>状態の札（AUTO ON / 敵 / 任務）。文が無ければ隠す。</summary>
+        private GameObject _statusBox;
         private Text _routeTitle;
         private readonly Text[] _routeArrow = new Text[3];
         private readonly Text[] _routeText = new Text[3];
@@ -539,6 +541,14 @@ namespace BBB.Runtime
             }
             _routeBox = routeRt.gameObject;
             _routeBox.SetActive(false);
+            // 状態の札（AUTO ON / 敵 / 任務）: 次のルートのすぐ下（2026-09-16 本人の赤枠）。ルートの板と同じ細い縁の暗い板
+            var Lsb = UiLayout.Get("statusTag", Lrt.x - rtW * 0.5f + 88f, Lrt.y - rtH * 0.5f - 4f - 24f, 176f, 48f);
+            var statusRt = UiSkin.Rect(stageCard, "StatusBox", Lsb.Pos - Lsc.Pos, Lsb.Size);
+            UiSkin.Img(statusRt, "Edge", Vector2.zero, new Vector2(Lsb.w + 2, Lsb.h + 2), UiSkin.Rounded(10), new Color(1, 1, 1, 0.13f));
+            UiSkin.Img(statusRt, "Bg", Vector2.zero, new Vector2(Lsb.w, Lsb.h), UiSkin.Rounded(9), Hex("#0b1120"));
+            _status = UiFactory.Label(statusRt, "Status", new Vector2(0, 0), new Vector2(Lsb.w - 14, Lsb.h - 6), "", 11, TextAnchor.MiddleLeft, ColText);
+            TextShadow(_status, 1f);
+            _statusBox = statusRt.gameObject;
 
             _hint = UiFactory.Label(_area, "Hint", new Vector2(0, AreaH * 0.5f - 34), new Vector2(640, 36), "", 24, TextAnchor.MiddleCenter, ColAccent);
             _hint.fontStyle = FontStyle.Bold;
@@ -723,14 +733,16 @@ namespace BBB.Runtime
             float sColR = innerW * 0.5f - sColW * 0.5f;         // 右の列の中心
             float top = Lsd.h * 0.5f;
             // 左の列: ログ枠（PLAYER / BONUS は左の EMBER / PAYOUT の窓に詰めた。2026-09-16 本人）
-            UiSkin.Img(side, "LogIcon", new Vector2(sColL - sColW * 0.5f + HeadIco * 0.5f, top - 20), new Vector2(HeadIco, HeadIco), UiSkin.Icon("book", 64), Color.white);
-            UiSkin.Heading(side, "LogLabel", new Vector2(sColL, top - 20), sColW, "LOG", HeadIndent);
-            var Llg = UiLayout.Get("log", Lsd.x + sColL, Lsd.y + top - 70, sColW, 84);
-            var logBox = UiSkin.Inset(side, "LogBox", Llg.Pos - Lsd.Pos, Llg.Size, 6, null, UiLayout.Frame("log") ?? "slot_navy");
-            _logText = UiFactory.Label(logBox, "Text", new Vector2(0, 0), new Vector2(Llg.w - 12, Llg.h - 8), "", 10, TextAnchor.LowerLeft, ColTextSub);
+            UiSkin.Img(side, "LogIcon", new Vector2(-innerW * 0.5f + HeadIco * 0.5f, top - 20), new Vector2(HeadIco, HeadIco), UiSkin.Icon("book", 64), Color.white);
+            UiSkin.Heading(side, "LogLabel", new Vector2(0, top - 20), innerW, "LOG", HeadIndent);
+            // ログの板は幅いっぱい。枠は押せる所だけ（ui_rules 10）なので、細い縁の暗い板（2026-09-16 本人: 金の枠は太すぎる）
+            var Llg = UiLayout.Get("log", Lsd.x, Lsd.y + top - 72, innerW, 84);
+            var logBox = UiSkin.Rect(side, "LogBox", Llg.Pos - Lsd.Pos, Llg.Size);
+            UiSkin.Img(logBox, "Edge", Vector2.zero, new Vector2(Llg.w + 2, Llg.h + 2), UiSkin.Rounded(9), new Color(1, 1, 1, 0.13f));
+            UiSkin.Img(logBox, "Bg", Vector2.zero, Llg.Size, UiSkin.Rounded(8), Hex("#0b1120"));
+            _logText = UiFactory.Label(logBox, "Text", new Vector2(0, 0), new Vector2(Llg.w - 16, Llg.h - 8), "", 10, TextAnchor.LowerLeft, ColTextSub);
             _logText.horizontalOverflow = HorizontalWrapMode.Wrap; _logText.verticalOverflow = VerticalWrapMode.Truncate;
-            // 右の列
-            _status = UiFactory.Label(side, "Status", new Vector2(sColR, top - 30), new Vector2(sColW, 40), "", 12, TextAnchor.UpperLeft, ColText);
+            // 右の列は無し（状態の札は表示域の左、次のルートの下へ移した）
             // 常駐（ミニ）のスランプは表示域の左下（2026-09-16 本人の赤枠）。グラフのボタンで 大 → ミニ → OFF と切り替える。数字は右下に小さく
             var areaStage = Lsc.Pos + new Vector2(0, AreaY);
             var Lmn = UiLayout.Get("mini", areaStage.x - AreaW * 0.5f + 10f + 78f, areaStage.y - AreaH * 0.5f + 8f + 40f, 156, 80);
@@ -1210,6 +1222,7 @@ namespace BBB.Runtime
             string body = line1 + (line1.Length > 0 && line2.Length > 0 ? "\n" : "") + line2;
             if (mission.Length > 0) body = body.Length > 0 ? body + "\n" + mission : mission;
             _status.text = body;
+            if (_statusBox != null) _statusBox.SetActive(body.Length > 0);
             var dbg = new System.Text.StringBuilder();
             dbg.Append($"FLAG   {_m.CurrentFlag}\nRNG    {_m.CurrentRng}\nHELD   {_m.HeldBonusFlag}\nMODE   {_m.Mode}\nSLIP   {_m.Slip[0]}, {_m.Slip[1]}, {_m.Slip[2]}\n");
             if (_m.BonusAnnounceRemaining > 0 || _m.PseudoPlay)
