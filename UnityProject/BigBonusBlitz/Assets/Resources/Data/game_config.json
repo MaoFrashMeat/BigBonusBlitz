@@ -5068,6 +5068,16 @@
       "pulseDepth": 0.4,
       "whileSpinning": true
     },
+    "outline": {
+      "enabled": false,
+      "mode": "blink",
+      "width": 2,
+      "color": "role",
+      "alpha": 1,
+      "glow": false,
+      "glowWidth": 6,
+      "glowAlpha": 0.5
+    },
     "blinkPeriod": 0.13,
     "blinkDim": 0.28,
     "blinkSeconds": 1.4,

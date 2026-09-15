@@ -675,7 +675,7 @@ namespace BBB.Runtime
                 mk.rectTransform.localRotation = Quaternion.Euler(0, 0, 45);
             }
             // 図柄の中のランプ（赤 7・白 7。game_config の reelFx.lamp）
-            foreach (var rv in _reels) rv.SetLamp(_m.Config.reelFx?.lamp);
+            foreach (var rv in _reels) { rv.SetLamp(_m.Config.reelFx?.lamp); rv.SetOutline(_m.Config.reelFx?.outline); }
             // 役演出: 揃ったコマだけを役の色で光らせる（斜めライン・チェリーの段もそのまま出せる）
             var pl = UiSkin.Rect(cabinet, "PaylineFlash", Vector2.zero, new Vector2(cabW, Lcb.h));
             _paylineFlash = pl.gameObject.AddComponent<CanvasGroup>();
@@ -4546,6 +4546,11 @@ namespace BBB.Runtime
             string frameStyle = (fx.frameStyle ?? "border").ToLowerInvariant();
             bool fBorder = frameStyle.Contains("border"), fFill = frameStyle.Contains("fill"), fGlow = frameStyle.Contains("glow");
             float frameAlpha = Mathf.Clamp01(fx.frameAlpha);
+            // 縁取り（blink = 点滅の周期で / wave = 脈打つ。always は ReelView が常時出す）
+            var outline = fx.outline;
+            bool outlineOn = outline != null && outline.enabled && outline.mode != "always";
+            bool outlineRole = outline != null && (string.IsNullOrEmpty(outline.color) || outline.color.ToLowerInvariant() == "role");
+            var outlineFixed = outline != null ? ReelView.ParseColor(outline.color, Color.white) : Color.white;
             float glowTotal = period * pulses;
             float total = Mathf.Max(glowTotal, fxTotal);
             float t = 0;
@@ -4601,6 +4606,12 @@ namespace BBB.Runtime
                             else if (layerMode != "none") layer = new Color(layerColor.r, layerColor.g, layerColor.b, Mathf.Clamp01(fx.layerAlpha) * (fx.layerPulse ? wave : 1f));
                             _reels[reel].SetRowFx(row, tint, scale, off, rot);
                             _reels[reel].SetRowLayer(row, lmode, layer);
+                            if (outlineOn)
+                            {
+                                var ocol = outlineRole ? c : outlineFixed;
+                                float oa = outline.mode == "wave" ? wave : (on ? 1f : 0f);
+                                _reels[reel].SetRowOutline(row, new Color(ocol.r, ocol.g, ocol.b, oa * Mathf.Clamp01(outline.alpha)));
+                            }
                         }
                 }
                 float a = Mathf.Max(lineA, glowA);

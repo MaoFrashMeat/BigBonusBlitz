@@ -337,6 +337,8 @@ namespace BBB.Core
         public bool layerPulse = true;
         /// <summary>図柄の中のランプ（赤 7・白 7 など。停止中ずっと点いている）。</summary>
         public SymbolLampConfig lamp = new SymbolLampConfig();
+        /// <summary>図柄のシルエットの縁取り。</summary>
+        public SymbolOutlineConfig outline = new SymbolOutlineConfig();
         /// <summary>点滅の周期（秒。暗→明で 1 周期）。</summary>
         public float blinkPeriod = 0.13f;
         /// <summary>暗いときの明るさ（0〜1）。</summary>
@@ -351,6 +353,22 @@ namespace BBB.Core
     /// 図柄の中にランプが入っているような見え方（実機のバックライト）。図柄の後ろに色の光、図柄の形に加算の光を重ね、
     /// pulse（Hz）でゆっくり脈打つ。symbols に入れた図柄だけに出す。colors は図柄名 → #rrggbb。
     /// </summary>
+    /// <summary>
+    /// 図柄のシルエットに沿った縁取り（UIOutline.shader）。mode: always = 全部の図柄に常時 / blink = 揃った図柄に点滅の周期で /
+    /// wave = 揃った図柄に脈打つ。color は #rrggbb か "role"（役の色。always のときは白）。glow で外側にもう 1 本、太く薄い光を足す。
+    /// </summary>
+    public sealed class SymbolOutlineConfig
+    {
+        public bool enabled = false;
+        public string mode = "blink";
+        public float width = 2f;
+        public string color = "role";
+        public float alpha = 1f;
+        public bool glow = false;
+        public float glowWidth = 6f;
+        public float glowAlpha = 0.5f;
+    }
+
     public sealed class SymbolLampConfig
     {
         public bool enabled = true;

@@ -106,6 +106,17 @@
         <label><input type="checkbox" id="layerPulse" checked> 周期で強弱</label>
       </div>
       <div class="ctrl">
+        <b style="font-size:13px">図柄の縁取り</b>
+        <label><input type="checkbox" id="olOn"> 付ける</label>
+        <select id="olMode"><option value="blink">揃った図柄に点滅で</option><option value="wave">揃った図柄に脈で</option><option value="always">全部の図柄に常時</option></select>
+        <label><input type="checkbox" id="olRole" checked> 役の色</label><input type="color" id="olColor" value="#ffffff" title="縁の色（役の色を使わないとき / 常時）">
+        <label>太さ <input type="range" id="olWidth" min="0.5" max="6" step="0.5" value="2" style="width:70px"> <span id="olWidthV">2.0</span></label>
+        <label>濃さ <input type="range" id="olAlpha" min="0" max="1" step="0.05" value="1" style="width:70px"> <span id="olAlphaV">1.00</span></label>
+        <label><input type="checkbox" id="olGlow"> 外に光</label>
+        <label>光の太さ <input type="range" id="olGlowWidth" min="2" max="16" step="1" value="6" style="width:70px"> <span id="olGlowWidthV">6</span></label>
+        <label>光の濃さ <input type="range" id="olGlowAlpha" min="0" max="1" step="0.05" value="0.5" style="width:70px"> <span id="olGlowAlphaV">0.50</span></label>
+      </div>
+      <div class="ctrl">
         <b style="font-size:13px">図柄の中のランプ</b>
         <label><input type="checkbox" id="lampOn" checked> 点ける</label>
         <label>後ろの光 <input type="range" id="lampIntensity" min="0" max="1" step="0.05" value="0.7"> <span id="lampIntensityV">0.70</span></label>
@@ -244,9 +255,10 @@
   const blink = { rows: [-1, -1, -1], start: -1, params: { style: "blink", strength: 1, dimOthers: false, role: "BELL", period: 0.13, dim: 0.28, seconds: 1.4,
     roleColors: { BELL: "#ffcf3f", REPLAY: "#4da3ff", CHERRY: "#ff73a6", WATERMELON: "#66f280", CHANCE: "rainbow" },
     target: "symbol", frameStyle: "border", frameWidth: 3, frameAlpha: 0.9,
+    outline: { enabled: false, mode: "blink", width: 2, color: "role", alpha: 1, glow: false, glowWidth: 6, glowAlpha: 0.5 },
     blinkMode: "dark", blinkColor: "role", layerMode: "none", layerColor: "role", layerAlpha: 0.6, layerPulse: true,
     lamp: { enabled: true, symbols: ["RED7", "BLUE7"], colors: { RED7: "#ff4a4a", BLUE7: "#9fd8ff", BAR: "#ffd27a" }, intensity: 0.7, inner: 0.5, innerBySymbol: { RED7: 0.5, BLUE7: 0.5, BAR: 0.3 }, size: 1.4, pulse: 1.2, pulseDepth: 0.4, whileSpinning: true } } };
-  try { const bp = JSON.parse(localStorage.getItem("bbb_blink_v4") || "null"); if (bp) { const lamp = Object.assign({}, blink.params.lamp, bp.lamp || {}), rc = Object.assign({}, blink.params.roleColors, bp.roleColors || {}); Object.assign(blink.params, bp); blink.params.lamp = lamp; blink.params.roleColors = rc; } } catch (e) {}
+  try { const bp = JSON.parse(localStorage.getItem("bbb_blink_v4") || "null"); if (bp) { const lamp = Object.assign({}, blink.params.lamp, bp.lamp || {}), rc = Object.assign({}, blink.params.roleColors, bp.roleColors || {}), ol = Object.assign({}, blink.params.outline, bp.outline || {}); Object.assign(blink.params, bp); blink.params.lamp = lamp; blink.params.roleColors = rc; blink.params.outline = ol; } } catch (e) {}
   // いま試している役の色（虹は時間で回る）
   function roleColorNow(t) { const c = blink.params.roleColors[blink.params.role] || "#ffcf3f"; return c === "rainbow" ? "hsl(" + Math.floor((t * 1.5 % 1) * 360) + " 80% 60%)" : c; }
   // 図柄の形だけを色で塗った絵（層・ランプの内側の光に使う）。src + 色で覚える
@@ -262,6 +274,22 @@
     }
     return c;
   }
+  // 縁取り: 図柄の形を 16 方向にずらして色で塗り、元の形をくり抜いた絵（絵の外側だけの帯）。src + 色 + 太さ（元絵の px）で覚える
+  const outlines = {};
+  function outlineImage(im, src, rc, color, widthPx) {
+    const key = src + "|" + color + "|" + widthPx.toFixed(2) + "|" + rc.x + "," + rc.y + "," + rc.w + "," + rc.h;
+    let c = outlines[key];
+    if (!c) {
+      const pad = Math.ceil(widthPx) + 2;
+      c = document.createElement("canvas"); c.width = rc.w + pad * 2; c.height = rc.h + pad * 2;
+      const g = c.getContext("2d"), sil = silhouette(im, src, rc, color);
+      for (let i = 0; i < 16; i++) { const a = i * Math.PI / 8; g.drawImage(sil, pad + Math.cos(a) * widthPx, pad + Math.sin(a) * widthPx); }
+      for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; g.drawImage(sil, pad + Math.cos(a) * widthPx * 0.5, pad + Math.sin(a) * widthPx * 0.5); }
+      g.globalCompositeOperation = "destination-out"; g.drawImage(im, rc.x, rc.y, rc.w, rc.h, pad, pad, rc.w, rc.h);   // 内側をくり抜く
+      outlines[key] = c; c.pad = pad;
+    }
+    return c;
+  }
   const LAMP_SYM = { RED7: "lampRed7", BLUE7: "lampBlue7", BAR: "lampBar" };
   function lampFor(name) {
     const L = blink.params.lamp; if (!L.enabled || !L.symbols.includes(name)) return null;
@@ -271,7 +299,7 @@
   function lampInner(name) { const L = blink.params.lamp; const v = L.innerBySymbol && L.innerBySymbol[name]; return typeof v === "number" ? v : L.inner; }
   // 段 k（0〜2）の演出。GameController.PaylineFlashRoutine と同じ式。返り値: 明るさ・拡大・ずらし・傾き・光の量と色・色相
   function cellFx(r, k, now) {
-    const none = { bright: 1, scale: 1, dx: 0, dy: 0, rot: 0, glowA: 0, glowC: null, hue: null, flash: 0, tint: null, layer: null, frame: null };
+    const none = { bright: 1, scale: 1, dx: 0, dy: 0, rot: 0, glowA: 0, glowC: null, hue: null, flash: 0, tint: null, layer: null, frame: null, outline: null };
     if (blink.start < 0) return none;
     const t = (now - blink.start) / 1000, P = blink.params, bp = Math.max(0.03, P.period), K = P.strength;
     if (t >= P.seconds) return none;
@@ -284,6 +312,8 @@
     // 枠（縁・塗り・光）の明滅。波の種類は wave、点滅の種類は on/off
     const waveStyle = ["pulse", "bounce", "wobble", "shake", "glow", "rainbow"].includes(P.style);
     if (P.target !== "symbol") o.frame = { color: col, a: (waveStyle ? wave : (on ? 1 : 0)) * P.frameAlpha, style: P.frameStyle, width: P.frameWidth };
+    const OL = P.outline;
+    if (OL.enabled && OL.mode !== "always") o.outline = { color: OL.color === "role" ? col : OL.color, a: (OL.mode === "wave" ? wave : (on ? 1 : 0)) * OL.alpha, width: OL.width, glow: OL.glow, glowWidth: OL.glowWidth, glowAlpha: OL.glowAlpha };
     if (P.target === "frame") return o;   // 枠だけ: 図柄は触らない
     let offPhase = false;
     switch (P.style) {
@@ -360,12 +390,23 @@
     if (fx && fx.flash > 0) filters.push("brightness(" + (1 + fx.flash) + ") saturate(" + (1 - fx.flash * 0.6) + ")");
     if (fx && fx.hue !== null) filters.push("hue-rotate(" + fx.hue + "deg) saturate(" + (1 + fx.sat) + ")");
     // 枠の縁（図柄の前）。描いた後で図柄を重ねると縁が隠れるので、最後に描く
+    // 縁取り。O = 演出の縁（揃ったコマ）か、常時の縁（全コマ）。太さは表示 px → 元絵の px に直して形を作る
+    const OLp = blink.params.outline;
+    const O = fx && fx.outline && fx.outline.a > 0.001 ? fx.outline : (OLp.enabled && OLp.mode === "always" ? { color: OLp.color === "role" ? "#ffffff" : OLp.color, a: OLp.alpha, width: OLp.width, glow: OLp.glow, glowWidth: OLp.glowWidth, glowAlpha: OLp.glowAlpha } : null);
+    const drawOutline = (ox, oy) => {
+      if (!O) return;
+      const toSrc = rc.w / w;   // 表示 px → 元絵 px
+      if (O.glow) { const gimg = outlineImage(im, src, rc, O.color, O.glowWidth * z * toSrc); g.save(); g.globalCompositeOperation = "lighter"; g.globalAlpha = Math.min(1, O.a * O.glowAlpha); g.filter = "blur(" + (2 * z) + "px)"; g.drawImage(gimg, ox - gimg.pad / toSrc, oy - gimg.pad / toSrc, gimg.width / toSrc, gimg.height / toSrc); g.restore(); }
+      const oimg = outlineImage(im, src, rc, O.color, O.width * z * toSrc);
+      g.save(); g.globalAlpha = Math.min(1, O.a); g.drawImage(oimg, ox - oimg.pad / toSrc, oy - oimg.pad / toSrc, oimg.width / toSrc, oimg.height / toSrc); g.restore();
+    };
     const drawBorder = () => { if (!F || !F.style.includes("border")) return; g.save(); g.globalAlpha = F.a; g.strokeStyle = F.color; g.lineWidth = F.width * z; g.beginPath(); g.roundRect(x + F.width * z / 2 + 1, y + F.width * z / 2 + 1, cw - F.width * z - 2, ch - F.width * z - 2, 6 * z); g.stroke(); g.restore(); };
     if (fx || lampC) {   // コマの中心を軸に 拡大・ずらし・傾き。その上に 染め・層・ランプの内側の光 を図柄の形で重ねる
       const T = fx || { scale: 1, dx: 0, dy: 0, rot: 0, tint: null, layer: null };
       g.save(); g.translate(x + cw / 2 + T.dx * z, y + ch / 2 + T.dy * z); g.rotate(T.rot * Math.PI / 180); g.scale(T.scale, T.scale);
       if (filters.length) g.filter = filters.join(" ");
       g.drawImage(im, rc.x, rc.y, rc.w, rc.h, -w / 2, -h / 2, w, h); g.filter = "none";
+      drawOutline(-w / 2, -h / 2);
       if (T.tint) { g.globalCompositeOperation = "multiply"; g.globalAlpha = T.tint.k; g.drawImage(silhouette(im, src, rc, T.tint.color), -w / 2, -h / 2, w, h); g.globalCompositeOperation = "destination-in"; g.globalAlpha = 1; g.drawImage(silhouette(im, src, rc, "#fff"), -w / 2, -h / 2, w, h); g.globalCompositeOperation = "source-over"; }
       if (lampC) { const inner = lampInner(symName); g.globalCompositeOperation = "lighter"; g.globalAlpha = inner * pulse; g.filter = "blur(" + (3 * z) + "px)"; g.drawImage(silhouette(im, src, rc, lampC), -w / 2, -h / 2, w, h); g.filter = "none"; g.globalAlpha = inner * pulse * 0.5; g.drawImage(silhouette(im, src, rc, lampC), -w / 2, -h / 2, w, h); g.globalAlpha = 1; g.globalCompositeOperation = "source-over"; }
       if (T.layer) { g.globalCompositeOperation = T.layer.mode; g.globalAlpha = Math.min(1, T.layer.a); g.drawImage(silhouette(im, src, rc, T.layer.color), -w / 2, -h / 2, w, h); g.globalAlpha = 1; g.globalCompositeOperation = "source-over"; }
@@ -377,7 +418,7 @@
       for (let b = -1; b <= 1; b++) g.drawImage(im, rc.x, rc.y, rc.w, rc.h, x + (cw - w) / 2, y + (ch - h) / 2 + b * blurSpread * 0.35, w, h);
       g.globalAlpha = 1;
     } else g.drawImage(im, rc.x, rc.y, rc.w, rc.h, x + (cw - w) / 2, y + (ch - h) / 2, w, h);
-    g.filter = "none"; drawBorder();
+    g.filter = "none"; drawOutline(x + (cw - w) / 2, y + (ch - h) / 2); drawBorder();
   }
   // ランプの脈（段 k で位相をずらす）
   function lampPulse(now, k) { const L = blink.params.lamp; return L.pulse > 0 ? 1 - L.pulseDepth * (0.5 + 0.5 * Math.sin(now / 1000 * L.pulse * Math.PI * 2 + k * 0.9)) : 1; }
@@ -485,7 +526,7 @@
       json[s.out] = o;
     });
     const P = blink.params;
-    const fx = { style: P.style, strength: P.strength, dimOthers: P.dimOthers, blinkMode: P.blinkMode, blinkColor: P.blinkColor, target: P.target, frameStyle: P.frameStyle, frameWidth: P.frameWidth, frameAlpha: P.frameAlpha, roleColors: Object.assign({}, P.roleColors), layerMode: P.layerMode, layerColor: P.layerColor, layerAlpha: P.layerAlpha, layerPulse: P.layerPulse,
+    const fx = { style: P.style, strength: P.strength, dimOthers: P.dimOthers, blinkMode: P.blinkMode, blinkColor: P.blinkColor, target: P.target, frameStyle: P.frameStyle, frameWidth: P.frameWidth, frameAlpha: P.frameAlpha, outline: Object.assign({}, P.outline), roleColors: Object.assign({}, P.roleColors), layerMode: P.layerMode, layerColor: P.layerColor, layerAlpha: P.layerAlpha, layerPulse: P.layerPulse,
       lamp: { enabled: P.lamp.enabled, symbols: P.lamp.symbols.slice(), colors: Object.fromEntries(P.lamp.symbols.map(n => [n, P.lamp.colors[n]])), intensity: P.lamp.intensity, inner: P.lamp.inner, innerBySymbol: Object.fromEntries(P.lamp.symbols.map(n => [n, P.lamp.innerBySymbol[n]])), size: P.lamp.size, pulse: P.lamp.pulse, pulseDepth: P.lamp.pulseDepth, whileSpinning: P.lamp.whileSpinning },
       blinkPeriod: P.period, blinkDim: P.dim, blinkSeconds: P.seconds };
     document.getElementById("result").textContent = parts.join("、") + "、役の演出 " + fx.style + " 強さ " + fx.strength + " / 周期 " + fx.blinkPeriod + " / 暗さ " + fx.blinkDim + " / 長さ " + fx.blinkSeconds + (fx.dimOthers ? " / 他を暗く" : "") + " / 対象 " + fx.target + (fx.target !== "symbol" ? "(" + fx.frameStyle + ")" : "") + " / 消える側 " + fx.blinkMode + " / 層 " + fx.layerMode + " / ランプ " + (fx.lamp.enabled ? fx.lamp.symbols.join("+") : "なし")
@@ -518,11 +559,14 @@
     blink.params = { style: v("blinkStyle"), role, roleColors, strength: n("blinkStrength"), dimOthers: ck("blinkDimOthers"),
       period: n("blinkPeriod"), dim: n("blinkDim"), seconds: n("blinkSeconds"),
       target: v("blinkTarget"), frameStyle, frameWidth: n("frameWidth"), frameAlpha: n("frameAlpha"),
+      outline: { enabled: ck("olOn"), mode: v("olMode"), width: n("olWidth"), color: ck("olRole") ? "role" : v("olColor"), alpha: n("olAlpha"), glow: ck("olGlow"), glowWidth: n("olGlowWidth"), glowAlpha: n("olGlowAlpha") },
       blinkMode: v("blinkMode"), blinkColor: ck("blinkTintRole") ? "role" : v("blinkTint"), layerMode: v("layerMode"), layerColor: ck("layerColorRole") ? "role" : v("layerColor"), layerAlpha: n("layerAlpha"), layerPulse: ck("layerPulse"),
       lamp: { enabled: ck("lampOn"), symbols, colors: { RED7: v("lampRed7C"), BLUE7: v("lampBlue7C"), BAR: v("lampBarC") }, intensity: n("lampIntensity"), inner: n("lampInner"), innerBySymbol: { RED7: n("lampRed7I"), BLUE7: n("lampBlue7I"), BAR: n("lampBarI") }, size: n("lampSize"), pulse: n("lampPulse"), pulseDepth: n("lampDepth"), whileSpinning: ck("lampSpin") } };
     for (const id of ["lampRed7I", "lampBlue7I", "lampBarI"]) document.getElementById(id + "V").textContent = n(id).toFixed(2);
     document.getElementById("layerAlphaV").textContent = blink.params.layerAlpha.toFixed(2);
     document.getElementById("frameWidthV").textContent = String(blink.params.frameWidth);
+    document.getElementById("olWidthV").textContent = blink.params.outline.width.toFixed(1); document.getElementById("olAlphaV").textContent = blink.params.outline.alpha.toFixed(2);
+    document.getElementById("olGlowWidthV").textContent = String(blink.params.outline.glowWidth); document.getElementById("olGlowAlphaV").textContent = blink.params.outline.glowAlpha.toFixed(2);
     document.getElementById("frameAlphaV").textContent = blink.params.frameAlpha.toFixed(2);
     document.getElementById("lampIntensityV").textContent = blink.params.lamp.intensity.toFixed(2);
     document.getElementById("lampInnerV").textContent = blink.params.lamp.inner.toFixed(2);
@@ -539,13 +583,15 @@
   document.getElementById("blinkTest").addEventListener("click", startBlink);
   ["blinkPeriod", "blinkDim", "blinkSeconds", "blinkStrength", "layerAlpha", "lampIntensity", "lampInner", "lampSize", "lampPulse", "lampDepth", "blinkTint", "layerColor", "lampRed7C", "lampBlue7C", "lampBarC", "lampRed7I", "lampBlue7I", "lampBarI"].forEach(id => document.getElementById(id).addEventListener("input", readBlinkParams));
   ["blinkStyle", "blinkDimOthers", "blinkMode", "layerMode", "layerPulse", "blinkTarget", "frameBorder", "frameFill", "frameGlow", "blinkTintRole", "layerColorRole", "roleRainbow"].forEach(id => document.getElementById(id).addEventListener("change", () => { readBlinkParams(); startBlink(); }));
-  ["roleColor", "frameWidth", "frameAlpha"].forEach(id => document.getElementById(id).addEventListener("input", readBlinkParams));
+  ["roleColor", "frameWidth", "frameAlpha", "olWidth", "olAlpha", "olColor", "olGlowWidth", "olGlowAlpha"].forEach(id => document.getElementById(id).addEventListener("input", readBlinkParams));
+  ["olOn", "olMode", "olRole", "olGlow"].forEach(id => document.getElementById(id).addEventListener("change", () => { readBlinkParams(); if (blink.params.outline.mode !== "always") startBlink(); }));
   function showRoleColor() { const c = blink.params.roleColors[document.getElementById("blinkRole").value] || "#ffcf3f"; document.getElementById("roleRainbow").checked = c === "rainbow"; if (c !== "rainbow") document.getElementById("roleColor").value = c; }
   document.getElementById("blinkRole").addEventListener("change", () => { showRoleColor(); readBlinkParams(); startBlink(); });
   ["lampOn", "lampRed7", "lampBlue7", "lampBar", "lampSpin"].forEach(id => document.getElementById(id).addEventListener("change", readBlinkParams));
   (function initBlink() {
     const P = blink.params, set = (id, val) => { document.getElementById(id).value = val; }, chk = (id, val) => { document.getElementById(id).checked = !!val; };
     set("blinkStyle", P.style || "blink"); set("blinkRole", P.role || "BELL"); showRoleColor(); set("blinkStrength", P.strength ?? 1); chk("blinkDimOthers", P.dimOthers);
+    const OL = P.outline; chk("olOn", OL.enabled); set("olMode", OL.mode || "blink"); chk("olRole", (OL.color || "role") === "role"); set("olColor", OL.color && OL.color !== "role" ? OL.color : "#ffffff"); set("olWidth", OL.width ?? 2); set("olAlpha", OL.alpha ?? 1); chk("olGlow", OL.glow); set("olGlowWidth", OL.glowWidth ?? 6); set("olGlowAlpha", OL.glowAlpha ?? 0.5);
     set("blinkTarget", P.target || "symbol"); const fs = P.frameStyle || "border"; chk("frameBorder", fs.includes("border")); chk("frameFill", fs.includes("fill")); chk("frameGlow", fs.includes("glow")); set("frameWidth", P.frameWidth ?? 3); set("frameAlpha", P.frameAlpha ?? 0.9);
     set("blinkMode", P.blinkMode || "dark"); chk("blinkTintRole", (P.blinkColor || "role") === "role"); set("blinkTint", P.blinkColor && P.blinkColor !== "role" ? P.blinkColor : "#ffffff");
     set("layerMode", P.layerMode || "none"); chk("layerColorRole", (P.layerColor || "role") === "role"); set("layerColor", P.layerColor && P.layerColor !== "role" ? P.layerColor : "#ffcf3f"); set("layerAlpha", P.layerAlpha ?? 0.6); chk("layerPulse", P.layerPulse !== false);

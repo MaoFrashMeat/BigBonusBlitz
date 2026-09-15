@@ -31,13 +31,31 @@ namespace BBB.Runtime
         private float _remainingSlip = -1f;
         private Image[] _rows;
         // 図柄の後ろの光（ランプ）と、図柄の形に重ねる層（ランプの内側の光 / 役の演出の層）。合成は UIBlend.shader
-        private Image[] _lampBack, _lampInner, _fxLayer;
+        private Image[] _lampBack, _lampInner, _fxLayer, _outline, _outlineGlow;
+        private SymbolOutlineConfig _outlineCfg;      // mode = always のとき全段に出す
         private SymbolLampConfig _lamp;
         private static Shader _blendShader;
         private static readonly System.Collections.Generic.Dictionary<string, Material> _blendMats = new System.Collections.Generic.Dictionary<string, Material>();
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)] private static void ResetMats() { _blendMats.Clear(); _blendShader = null; }
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)] private static void ResetMats() { _blendMats.Clear(); _blendShader = null; _outlineMats.Clear(); _outlineShader = null; }
 
         /// <summary>合成の種類ごとの Material（add / screen / multiply）。無ければ null（通常の合成で描く）。</summary>
+        // 縁取りの Material（通常 / 加算）。太さは _WidthUV（px / 表示幅）で、行ごとに SetFloat せず共有するので、太さごとに 1 つ
+        private static Shader _outlineShader;
+        private static readonly System.Collections.Generic.Dictionary<string, Material> _outlineMats = new System.Collections.Generic.Dictionary<string, Material>();
+        public static Material OutlineMaterial(float widthPx, bool additive)
+        {
+            string key = (additive ? "a" : "n") + Mathf.RoundToInt(widthPx * 4);
+            if (_outlineMats.TryGetValue(key, out var m) && m != null) return m;
+            if (_outlineShader == null) _outlineShader = Resources.Load<Shader>("Art/Symbols/UIOutline");
+            if (_outlineShader == null) return null;
+            m = new Material(_outlineShader) { name = "UIOutline/" + key };
+            m.SetFloat("_WidthUV", widthPx / (ReelWidth - 8f));
+            m.SetFloat("_SrcBlend", (float)(additive ? UnityEngine.Rendering.BlendMode.One : UnityEngine.Rendering.BlendMode.SrcAlpha));
+            m.SetFloat("_DstBlend", (float)(additive ? UnityEngine.Rendering.BlendMode.One : UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha));
+            _outlineMats[key] = m;
+            return m;
+        }
+
         public static Material BlendMaterial(string mode)
         {
             mode = string.IsNullOrEmpty(mode) ? "add" : mode.ToLowerInvariant();
@@ -127,7 +145,7 @@ namespace BBB.Runtime
             view.Strip = strip;
             view._frame = rt.GetComponent<Image>();
             view._rows = new Image[Rows];
-            view._lampBack = new Image[Rows]; view._lampInner = new Image[Rows]; view._fxLayer = new Image[Rows];
+            view._lampBack = new Image[Rows]; view._lampInner = new Image[Rows]; view._fxLayer = new Image[Rows]; view._outline = new Image[Rows]; view._outlineGlow = new Image[Rows];
             view._rowLabels = new Text[Rows];
             view._useSprites = ArtLoader.SymbolSprite(Symbol.RED7) != null;
             for (int i = 0; i < Rows; i++)
@@ -150,6 +168,8 @@ namespace BBB.Runtime
                 view._lampBack[i] = back;
                 // 図柄の形に重ねる層 2 枚（ランプの内側の光 / 役の演出の層）。親と同じ矩形・同じ絵
                 view._lampInner[i] = Overlay(r, "Inner");
+                view._outlineGlow[i] = Overlay(r, "OutlineGlow");
+                view._outline[i] = Overlay(r, "Outline");
                 view._fxLayer[i] = Overlay(r, "Layer");
                 view._rowLabels[i] = UiFactory.Label(rt, "Label" + i, new Vector2(0, y), new Vector2(ReelWidth, SymbolHeight), "", 28);
                 view._rowLabels[i].enabled = !view._useSprites;
@@ -202,6 +222,19 @@ namespace BBB.Runtime
         private readonly string[] _fxLayerMode = new string[3];
         private readonly Color[] _fxLayerColor = new Color[3];       // a = 0 で層なし
 
+        private readonly Color[] _fxOutline = new Color[3];         // 揃ったコマの縁取り（a = 0 で無し）
+
+        /// <summary>縁取りの設定（mode = always なら全段に常時）。</summary>
+        public void SetOutline(SymbolOutlineConfig cfg) { _outlineCfg = cfg != null && cfg.enabled ? cfg : null; Redraw(); }
+
+        /// <summary>段の図柄の縁取り（役の演出用）。color の a が濃さ。a=0 で消す。</summary>
+        public void SetRowOutline(int windowRow, Color color)
+        {
+            if (windowRow < 0 || windowRow > 2) return;
+            _fxOutline[windowRow] = color;
+            if (!IsSpinning) Redraw();
+        }
+
         /// <summary>段の図柄に重ねる層（mode: add / screen / multiply、color の a が強さ）。a=0 で消す。</summary>
         public void SetRowLayer(int windowRow, string mode, Color color)
         {
@@ -225,7 +258,7 @@ namespace BBB.Runtime
         public void ResetBrightness()
         {
             if (_rows == null) return;
-            for (int r = 0; r < 3; r++) { _fxTint[r] = Color.white; _fxScale[r] = 1f; _fxOffset[r] = Vector2.zero; _fxRot[r] = 0f; _fxLayerColor[r] = new Color(0, 0, 0, 0); }
+            for (int r = 0; r < 3; r++) { _fxTint[r] = Color.white; _fxScale[r] = 1f; _fxOffset[r] = Vector2.zero; _fxRot[r] = 0f; _fxLayerColor[r] = new Color(0, 0, 0, 0); _fxOutline[r] = new Color(0, 0, 0, 0); }
             foreach (var img in _rows) if (img != null) { img.color = Color.white; img.rectTransform.localScale = Vector3.one; img.rectTransform.localRotation = Quaternion.identity; }
             Redraw();
         }
@@ -295,6 +328,28 @@ namespace BBB.Runtime
                     _rows[i].rectTransform.localScale = fx ? new Vector3(_fxScale[wr], _fxScale[wr], 1f) : Vector3.one;
                     _rows[i].rectTransform.localRotation = fx ? Quaternion.Euler(0, 0, _fxRot[wr]) : Quaternion.identity;
                     _rows[i].color = fx ? _fxTint[wr] : Color.white;
+                    // 縁取り: always なら全段、それ以外は役の演出で指定された段だけ
+                    var ol = _outline[i]; var og = _outlineGlow[i];
+                    if (ol != null && og != null)
+                    {
+                        Color oc = new Color(0, 0, 0, 0); float ow = 2f; bool glow = false; float gw = 6f, ga = 0.5f;
+                        if (_outlineCfg != null && _outlineCfg.mode == "always")
+                        {
+                            oc = ParseColor(_outlineCfg.color == "role" ? "#ffffff" : _outlineCfg.color, Color.white); oc.a = Mathf.Clamp01(_outlineCfg.alpha);
+                            ow = _outlineCfg.width; glow = _outlineCfg.glow; gw = _outlineCfg.glowWidth; ga = _outlineCfg.glowAlpha;
+                        }
+                        else if (fx && _fxOutline[wr].a > 0.001f && _outlineCfg != null)
+                        {
+                            oc = _fxOutline[wr]; ow = _outlineCfg.width; glow = _outlineCfg.glow; gw = _outlineCfg.glowWidth; ga = _outlineCfg.glowAlpha;
+                        }
+                        bool show = oc.a > 0.001f;
+                        ol.enabled = show; og.enabled = show && glow;
+                        if (show)
+                        {
+                            ol.sprite = _rows[i].sprite; ol.color = oc; var om = OutlineMaterial(ow, false); if (om != null && ol.material != om) ol.material = om;
+                            if (glow) { og.sprite = _rows[i].sprite; og.color = new Color(oc.r, oc.g, oc.b, oc.a * ga); var gm = OutlineMaterial(gw, true); if (gm != null && og.material != gm) og.material = gm; }
+                        }
+                    }
                     // 役の演出の層（揃ったコマだけ）
                     var layer = _fxLayer[i];
                     bool hasLayer = fx && _fxLayerColor[wr].a > 0.001f;
