@@ -263,6 +263,10 @@ namespace BBB.Core
         public float backIconSize = 120f, backIconAlpha = 0.45f, backIconX = 0f, backIconY = 0f, backIconRot = 0f, backIconSpin = 0f;
         /// <summary>AT の G 数の帯（＋ と G の付く帯）にも後ろの絵を出すか。false なら他の帯だけ（2026-09-16 本人: G 数の帯には要らない）。</summary>
         public bool backIconGames = false;
+        /// <summary>数字の光沢（キランッ）: 止まってから shineDelay 秒後に、桁ごとに shineStagger 秒ずつ遅れて、斜めの光の筋が左から右へ shineSeconds 秒で走る。
+        /// shineWidth は筋の太さ（桁の幅比）、shineAlpha は濃さ、shineAngle は傾き（度。+ で上が右）。数字の形の中だけ光る</summary>
+        public bool shine = false;
+        public float shineDelay = 0.05f, shineSeconds = 0.35f, shineStagger = 0.06f, shineWidth = 0.35f, shineAlpha = 0.9f, shineAngle = 20f;
         /// <summary>部品ごとの ON/OFF: 黒い帯 / 上下の線 / 後ろの光 / 止まっている間の震え / 止まった瞬間の火花 / 数字の右の炎（手前）。</summary>
         public bool showBand = false, showEdges = false, showGlow = true, shake = true, sparks = true, showIcon = true;
         /// <summary>震え（shake）が止まるまでの秒（帯が止まってから）。0 なら止まっている間ずっと（終わりに向けて弱まる）。</summary>

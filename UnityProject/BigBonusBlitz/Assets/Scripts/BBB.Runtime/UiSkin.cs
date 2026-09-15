@@ -407,6 +407,25 @@ namespace BBB.Runtime
             return s;
         }
 
+        /// <summary>光の筋（数字の光沢用）。横に 透明 → 白 → 透明、真ん中の芯は明るい。縦は一様。</summary>
+        public static Sprite Streak(int width)
+        {
+            string key = "streak" + width;
+            if (_cache.TryGetValue(key, out var s) && s != null) return s;
+            const int h = 4;
+            var tex = new Texture2D(width, h, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
+            for (int x = 0; x < width; x++)
+            {
+                float u = Mathf.Abs((x + 0.5f) / width * 2f - 1f);
+                float a = Mathf.Max(Mathf.Pow(Mathf.Clamp01(1f - u), 1.6f), Mathf.Clamp01(1f - u / 0.25f));
+                for (int y = 0; y < h; y++) tex.SetPixel(x, y, new Color(1, 1, 1, a));
+            }
+            tex.Apply();
+            s = Sprite.Create(tex, new Rect(0, 0, width, h), new Vector2(0.5f, 0.5f), 1f);
+            _cache[key] = s;
+            return s;
+        }
+
         private static float RoundedAlpha(int x, int y, int w, int h, int radius, float aa)
         {
             float d = RoundedDistance(x + 0.5f, y + 0.5f, 0, 0, w, h, radius);

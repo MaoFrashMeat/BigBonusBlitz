@@ -2,6 +2,12 @@
   "entries": [
     {
       "date": "2026-09-16",
+      "version": "dev 239",
+      "title": "「GET」の帯の数字に光沢（キランッ）",
+      "body": "・帯が止まったあと、各桁の上を斜めの光の筋が左から右へ走る（桁ごとに少しずつずれて）。数字の形の中だけ光る\n・reelFx.emberGain の shine（ON/OFF）/ shineDelay（止まってから秒）/ shineSeconds（走る秒）/ shineStagger（桁ごとのずれ秒）/ shineWidth（筋の太さ、桁の幅比）/ shineAlpha（濃さ）/ shineAngle（傾き）。ビューアの「足す効果」に項目"
+    },
+    {
+      "date": "2026-09-16",
       "version": "dev 238",
       "title": "「AT +5G GET」の帯は後ろの絵を出さない（切り替えられる）",
       "body": "・reelFx.emberGain.backIconGames（既定 false）。false なら ＋ と G の付く帯だけ後ろの絵（炎など）を出さない。他の帯（エンバー / ソウル / EXP）は backIcon のまま\n・ビューアの「後ろの炎」に「AT の G 数の帯にも出す」"

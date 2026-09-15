@@ -5464,7 +5464,7 @@
                    "backIcon": true, "backIconSize": 158, "backIconAlpha": 1, "backIconX": 9, "backIconY": 17, "backIconRot": -14, "backIconSpin": 0, "backIconGames": false,
                    "showBand": false, "showEdges": true, "showGlow": false, "shake": true, "shakeSeconds": 0.4, "sparks": true, "sound": true, "showIcon": false, "countUp": true, "countOffset": 0, "countSeconds": 0.3,
                    "shadow": true, "shadowX": 3, "shadowY": -5, "shadowAlpha": 1, "outline": true, "outlineSize": 4, "outlineAlpha": 1,
-                   "digitBounce": true, "wobble": false, "wobbleDeg": 0, "wobbleSpeed": 30, "glowPulse": true,
+                   "digitBounce": true, "wobble": false, "wobbleDeg": 0, "wobbleSpeed": 30, "glowPulse": true, "shine": true, "shineDelay": 0.05, "shineSeconds": 0.35, "shineStagger": 0.06, "shineWidth": 0.35, "shineAlpha": 0.9, "shineAngle": 20,
                    "stackY": 0, "stackGap": 153, "stackStagger": 0.16, "stackScale": 0.47, "stackFit": false, "aboveDialogue": false, "dialogueMargin": 12}
   },
   "curse": {

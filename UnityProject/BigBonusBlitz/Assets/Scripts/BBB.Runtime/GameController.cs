@@ -4286,6 +4286,7 @@ namespace BBB.Runtime
             Text numText = null; Image[] digitSlots = null;
             var pieces = new System.Collections.Generic.List<Graphic>();          // 落ち影・縁取りを付ける部品（数字 / 炎 / 獲得）
             var movers = new System.Collections.Generic.List<RectTransform>();    // ポンと出る・揺れる対象（桁ごと。文字のときは数字の文字 1 つ）
+            var shines = new System.Collections.Generic.List<Image>();           // 数字の光沢（桁ごとの光の筋。数字の Mask の子）
             if (numArt != null && kakutoku != null)
             {
                 string s = amount.ToString();
@@ -4315,6 +4316,14 @@ namespace BBB.Runtime
                     digitSlots[i].preserveAspect = true; x += dw[i] + fx.digitGap;
                     digitSlots[i].rectTransform.localRotation = Quaternion.Euler(0, 0, fx.numRot);
                     pieces.Add(digitSlots[i]); movers.Add(digitSlots[i].rectTransform);
+                    if (fx.shine)
+                    {
+                        // 光沢: 数字を Mask にして、その形の中だけ光の筋を描く（筋は子。位置は毎フレーム動かす）
+                        digitSlots[i].gameObject.AddComponent<Mask>().showMaskGraphic = true;
+                        var st = UiSkin.Img(digitSlots[i].rectTransform, "Shine", Vector2.zero, new Vector2(Mathf.Max(2f, dw[i] * fx.shineWidth), fx.numH * 2.4f), UiSkin.Streak(64), new Color(1f, 1f, 1f, Mathf.Clamp01(fx.shineAlpha)));
+                        st.rectTransform.localRotation = Quaternion.Euler(0, 0, -fx.shineAngle); st.raycastTarget = false; st.enabled = false;
+                        shines.Add(st);
+                    }
                 }
                 x -= fx.digitGap;
                 if (unitArt != null)   // 単位の絵（G）は数字の続きとして並べる
@@ -4392,6 +4401,14 @@ namespace BBB.Runtime
                     for (int i = 0; i < n; i++) { float b = ph == 0 ? Mathf.Max(0.01f, EaseOutBack(Mathf.Clamp01(pu * k - 0.25f * i))) : 1f; movers[i].localScale = new Vector3(b, b, 1f); }
                 }
                 if (fx.wobble) for (int i = 0; i < movers.Count; i++) movers[i].localRotation = Quaternion.Euler(0, 0, fx.numRot + (ph == 1 ? fx.wobbleDeg * Mathf.Sin(t * fx.wobbleSpeed + i * 0.9f) : 0f));
+                // 光沢（キランッ）: 止まってから shineDelay 秒後、桁ごとに shineStagger ずつ遅れて左から右へ（tools/fx_viewer.html と同じ式）
+                for (int i = 0; i < shines.Count; i++)
+                {
+                    float su = (t - Mathf.Max(0.01f, fx.inSeconds) - fx.shineDelay - i * fx.shineStagger) / Mathf.Max(0.05f, fx.shineSeconds);
+                    bool on = su >= 0f && su <= 1f;
+                    if (shines[i].enabled != on) shines[i].enabled = on;
+                    if (on) shines[i].rectTransform.anchoredPosition = new Vector2((su * 2f - 1f) * ((RectTransform)shines[i].transform.parent).sizeDelta.x * 0.9f, 0f);
+                }
                 if (fx.glowPulse && glow != null)
                 {
                     float w = ph >= 1 ? Mathf.Sin(th * 14f) : 0f;

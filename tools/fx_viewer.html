@@ -195,6 +195,13 @@
         { group: "足す効果", key: "outlineSize", label: "縁の太さ", min: 1, max: 6, step: 0.5, def: 4 },
         { group: "足す効果", key: "outlineAlpha", label: "縁の濃さ", min: 0, max: 1, step: 0.05, def: 1 },
         { group: "足す効果", key: "digitBounce", label: "桁が順にポン", type: "bool", def: true },
+        { group: "足す効果", key: "shine", label: "数字の光沢（キランッ）", type: "bool", def: true },
+        { group: "足す効果", key: "shineDelay", label: "光沢の始まり（止まってから秒）", min: 0, max: 1.5, step: 0.05, def: 0.05 },
+        { group: "足す効果", key: "shineSeconds", label: "光沢が走る秒", min: 0.05, max: 1.5, step: 0.05, def: 0.35 },
+        { group: "足す効果", key: "shineStagger", label: "桁ごとのずれ（秒）", min: 0, max: 0.5, step: 0.01, def: 0.06 },
+        { group: "足す効果", key: "shineWidth", label: "光の筋の太さ（桁の幅比）", min: 0.05, max: 1.5, step: 0.05, def: 0.35 },
+        { group: "足す効果", key: "shineAlpha", label: "光の濃さ", min: 0, max: 1, step: 0.05, def: 0.9 },
+        { group: "足す効果", key: "shineAngle", label: "光の傾き（+ で上が右）", min: -80, max: 80, step: 1, def: 20 },
         { group: "足す効果", key: "wobble", label: "桁がゆらゆら", type: "bool", def: false },
         { group: "足す効果", key: "wobbleDeg", label: "揺れの角度", min: 0, max: 20, step: 1, def: 0 },
         { group: "足す効果", key: "wobbleSpeed", label: "揺れの速さ", min: 1, max: 30, step: 1, def: 30 },
@@ -306,6 +313,20 @@
         };
         const outlineCopies = draw => { const d = p.outlineSize; g.save(); g.globalAlpha *= p.outlineAlpha; [[d, d], [d, -d], [-d, d], [-d, -d]].forEach(([ox, oy]) => draw(ox, oy, "rgba(64,20,0,1)")); g.restore(); };
         const imgDraw = (im, sx, sy, sw, sh, dx, dy, dw, dh) => (ox, oy, tint) => { if (tint) g.drawImage(silhouette(im, tint), sx, sy, sw, sh, dx + ox, dy + oy, dw, dh); else g.drawImage(im, sx, sy, sw, sh, dx + ox, dy + oy, dw, dh); };
+        // 光沢（キランッ）: 止まってから shineDelay 秒後、桁ごとに shineStagger ずつ遅れて、斜めの光の筋が左から右へ。数字の形の中だけ（source-atop。GameController と同じ式）
+        const shineOf = (i, dw) => { if (!p.shine) return null; const su = (t - Math.max(0.01, p.inSeconds) - (p.shineDelay || 0) - i * (p.shineStagger || 0)) / Math.max(0.05, p.shineSeconds || 0.35); if (su < 0 || su > 1) return null; return { sx: (su * 2 - 1) * dw * 0.9, w: Math.max(2, dw * (p.shineWidth || 0.35)), a: p.shineAlpha == null ? 0.9 : p.shineAlpha, ang: (p.shineAngle || 0) * Math.PI / 180 }; };
+        const shineDraw = (im, sx, sy, sw, sh, dx, dy, dw, dh, i) => (ox, oy, tint) => {
+          const s = tint ? null : shineOf(i, dw);
+          if (!s) { imgDraw(im, sx, sy, sw, sh, dx, dy, dw, dh)(ox, oy, tint); return; }
+          const tc = document.createElement("canvas"); tc.width = Math.ceil(dw) + 2; tc.height = Math.ceil(dh) + 2; const tg = tc.getContext("2d");
+          tg.drawImage(im, sx, sy, sw, sh, 1, 1, dw, dh);
+          tg.globalCompositeOperation = "source-atop"; tg.translate(1 + dw / 2, 1 + dh / 2); tg.rotate(s.ang);
+          const grd = tg.createLinearGradient(s.sx - s.w / 2, 0, s.sx + s.w / 2, 0);
+          // 横の濃さは UiSkin.Streak と同じ: 外は柔らかく、真ん中の芯は明るい
+          [[0, 0], [0.2, 0.28], [0.375, 0.6], [0.45, 1], [0.5, 1], [0.55, 1], [0.625, 0.6], [0.8, 0.28], [1, 0]].forEach(([k, m]) => grd.addColorStop(k, "rgba(255,255,255," + (s.a * m).toFixed(3) + ")"));
+          tg.fillStyle = grd; tg.fillRect(s.sx - s.w / 2, -dh * 1.5, s.w, dh * 3);
+          g.drawImage(tc, dx + ox - 1, dy + oy - 1);
+        };
         const plusX = p.plusX || 0, plusY = p.plusY || 0, unitX = p.unitX || 0, unitY = p.unitY || 0;   // ＋ と G のずらし（上が +）。並びの幅は変えない
         if (pArt) { piece(imgDraw(pArt.im, pArt.b.x, pArt.b.y, pArt.b.w, pArt.b.h, x0 + plusX, cy - plusH / 2 - plusY, plusW, plusH), x0 + plusW / 2 + plusX, cy - plusY, 0, p.numRot); x0 += plusW + dgap; }
         if (artOk) {
@@ -313,7 +334,7 @@
           const ss = String(shown);
           digits.forEach((a, i) => {
             const w = numH * a.b.w / a.b.h, j = i - (digits.length - ss.length);
-            if (j >= 0) { const da = digitArt(+ss[j]); if (da) { const dw = Math.min(w, numH * da.b.w / da.b.h), dh = dw * da.b.h / da.b.w; piece(imgDraw(da.im, da.b.x, da.b.y, da.b.w, da.b.h, x0 + (w - dw) / 2, cy - dh / 2, dw, dh), x0 + w / 2, cy, i, p.numRot); } }
+            if (j >= 0) { const da = digitArt(+ss[j]); if (da) { const dw = Math.min(w, numH * da.b.w / da.b.h), dh = dw * da.b.h / da.b.w; piece(shineDraw(da.im, da.b.x, da.b.y, da.b.w, da.b.h, x0 + (w - dw) / 2, cy - dh / 2, dw, dh, i), x0 + w / 2, cy, i, p.numRot); } }
             x0 += w + (i < digits.length - 1 ? dgap : 0);
           });
         } else {
