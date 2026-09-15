@@ -4296,13 +4296,15 @@ namespace BBB.Runtime
                 // 単位（"G"）は絵があれば絵（Art/UI/Text/g）。その帯は数字の前に「＋」の絵（Art/UI/Text/plus）も付く。どちらも数字と同じ高さで digitGap で並べる
                 var unitArt = unit != null ? ArtLoader.Sprite("Art/UI/Text/" + unit.ToLowerInvariant()) : null;
                 var plusArt = unit != null ? ArtLoader.Sprite("Art/UI/Text/plus") : null;
-                float unitW = unitArt != null ? fx.numH * unitArt.rect.width / unitArt.rect.height : 0f;
-                float plusW = plusArt != null ? fx.numH * plusArt.rect.width / plusArt.rect.height : 0f;
+                // ＋ と G の高さは数字比（plusScale / unitScale）。並びは数字と同じ中心線
+                float unitH = fx.numH * Mathf.Max(0.05f, fx.unitScale), plusH = fx.numH * Mathf.Max(0.05f, fx.plusScale);
+                float unitW = unitArt != null ? unitH * unitArt.rect.width / unitArt.rect.height : 0f;
+                float plusW = plusArt != null ? plusH * plusArt.rect.width / plusArt.rect.height : 0f;
                 float markW = unitArt != null ? fx.digitGap + unitW : (fx.showIcon || unit != null ? gap + iconW : 0f);
                 float x = -((plusArt != null ? plusW + fx.digitGap : 0f) + numW + markW + picGap + picW) * 0.5f;
                 if (plusArt != null)
                 {
-                    var plus = UiSkin.Img(row, "Plus", new Vector2(x + plusW * 0.5f, 0), new Vector2(plusW, fx.numH), plusArt, Color.white);
+                    var plus = UiSkin.Img(row, "Plus", new Vector2(x + plusW * 0.5f, 0), new Vector2(plusW, plusH), plusArt, Color.white);
                     plus.preserveAspect = true; plus.rectTransform.localRotation = Quaternion.Euler(0, 0, fx.numRot); pieces.Add(plus);
                     x += plusW + fx.digitGap;
                 }
@@ -4318,7 +4320,7 @@ namespace BBB.Runtime
                 if (unitArt != null)   // 単位の絵（G）は数字の続きとして並べる
                 {
                     x += fx.digitGap;
-                    var ug = UiSkin.Img(row, "Unit", new Vector2(x + unitW * 0.5f, 0), new Vector2(unitW, fx.numH), unitArt, Color.white);
+                    var ug = UiSkin.Img(row, "Unit", new Vector2(x + unitW * 0.5f, 0), new Vector2(unitW, unitH), unitArt, Color.white);
                     ug.preserveAspect = true; ug.rectTransform.localRotation = Quaternion.Euler(0, 0, fx.numRot); pieces.Add(ug);
                     x += unitW;
                 }

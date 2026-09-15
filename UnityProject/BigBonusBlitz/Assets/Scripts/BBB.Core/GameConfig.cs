@@ -250,6 +250,8 @@ namespace BBB.Core
         /// <summary>文字の大きさ（数字の絵が無いときの文字と、炎の絵の基準）と、「獲得」の絵の高さ、数字の絵の高さ。</summary>
         public int fontSize = 40;
         public float picH = 52f, numH = 56f;
+        /// <summary>AT の G 数の帯の「＋」と「G」の絵の大きさ（数字の高さ比。1 = 数字と同じ）。</summary>
+        public float plusScale = 1f, unitScale = 1f;
         /// <summary>炎の絵と「獲得」の絵のずらし（px。右が +、上が +）。数字との並びや詰まり具合を合わせる用。</summary>
         public float iconX = 0f, iconY = 0f, picX = 0f, picY = 0f;
         /// <summary>詰め: 桁と桁の間 / 数字と炎の間 / 炎と「獲得」の間（px。負で重ねる）。傾き: 数字 / 炎 / 「獲得」（度、反時計回り+）。</summary>

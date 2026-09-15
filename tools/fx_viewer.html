@@ -151,6 +151,8 @@
         { group: "大きさ・位置", key: "fontSize", label: "文字", min: 20, max: 80, step: 1, def: 44 },
         { group: "大きさ・位置", key: "numH", label: "数字の絵", min: 24, max: 120, step: 1, def: 99 },
         { group: "大きさ・位置", key: "picH", label: "獲得の絵", min: 24, max: 100, step: 1, def: 39 },
+        { group: "大きさ・位置", key: "plusScale", label: "＋ の大きさ（数字比）", min: 0.3, max: 2, step: 0.01, def: 1 },
+        { group: "大きさ・位置", key: "unitScale", label: "G の大きさ（数字比）", min: 0.3, max: 2, step: 0.01, def: 1 },
         { group: "大きさ・位置", key: "iconX", label: "炎の左右", min: -40, max: 40, step: 1, def: 40 },
         { group: "大きさ・位置", key: "iconY", label: "炎の上下", min: -40, max: 40, step: 1, def: 13 },
         { group: "大きさ・位置", key: "picX", label: "獲得の左右", min: -60, max: 60, step: 1, def: 7 },
@@ -277,7 +279,8 @@
         const numW = artOk ? digits.reduce((w, a) => w + numH * a.b.w / a.b.h, 0) + dgap * (digits.length - 1) : g.measureText(String(amount)).width;
         // 単位（G）は絵があれば絵、その帯は数字の前に「＋」の絵。どちらも数字と同じ高さで digitGap で並べる（ゲームと同じ）
         const uArt = unit !== null && artOk ? wordArt(unit.toLowerCase()) : null, pArt = unit !== null && artOk ? wordArt("plus") : null;
-        const unitW = uArt ? numH * uArt.b.w / uArt.b.h : 0, plusW = pArt ? numH * pArt.b.w / pArt.b.h : 0;
+        const unitH = numH * (p.unitScale || 1), plusH = numH * (p.plusScale || 1);   // ＋ と G は数字比の高さ
+        const unitW = uArt ? unitH * uArt.b.w / uArt.b.h : 0, plusW = pArt ? plusH * pArt.b.w / pArt.b.h : 0;
         const showIcon = p.showIcon !== false || unit !== null;
         const markW = uArt ? dgap + unitW : (showIcon ? gap + iconW : 0);
         const total = (pArt ? plusW + dgap : 0) + numW + markW + picGap + picW;
@@ -297,7 +300,7 @@
         };
         const outlineCopies = draw => { const d = p.outlineSize; g.save(); g.globalAlpha *= p.outlineAlpha; [[d, d], [d, -d], [-d, d], [-d, -d]].forEach(([ox, oy]) => draw(ox, oy, "rgba(64,20,0,1)")); g.restore(); };
         const imgDraw = (im, sx, sy, sw, sh, dx, dy, dw, dh) => (ox, oy, tint) => { if (tint) g.drawImage(silhouette(im, tint), sx, sy, sw, sh, dx + ox, dy + oy, dw, dh); else g.drawImage(im, sx, sy, sw, sh, dx + ox, dy + oy, dw, dh); };
-        if (pArt) { piece(imgDraw(pArt.im, pArt.b.x, pArt.b.y, pArt.b.w, pArt.b.h, x0, cy - numH / 2, plusW, numH), x0 + plusW / 2, cy, 0, p.numRot); x0 += plusW + dgap; }
+        if (pArt) { piece(imgDraw(pArt.im, pArt.b.x, pArt.b.y, pArt.b.w, pArt.b.h, x0, cy - plusH / 2, plusW, plusH), x0 + plusW / 2, cy, 0, p.numRot); x0 += plusW + dgap; }
         if (artOk) {
           // 桁の枠は最終の枚数で決め、数え上げ中は右詰め（GameController.SetDigits と同じ）
           const ss = String(shown);
@@ -313,7 +316,7 @@
         }
         if (uArt) {   // 単位の絵（G）は数字の続きとして並べる
           x0 += dgap;
-          piece(imgDraw(uArt.im, uArt.b.x, uArt.b.y, uArt.b.w, uArt.b.h, x0, cy - numH / 2, unitW, numH), x0 + unitW / 2, cy, 99, p.numRot);
+          piece(imgDraw(uArt.im, uArt.b.x, uArt.b.y, uArt.b.w, uArt.b.h, x0, cy - unitH / 2, unitW, unitH), x0 + unitW / 2, cy, 99, p.numRot);
           x0 += unitW;
         }
         else if (showIcon) {

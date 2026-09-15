@@ -2,6 +2,12 @@
   "entries": [
     {
       "date": "2026-09-16",
+      "version": "dev 235",
+      "title": "「AT +5G GET」の ＋ と G の大きさを変えられる",
+      "body": "・reelFx.emberGain の plusScale / unitScale（数字の高さ比。1 = 数字と同じ、既定 1）。並びは数字と同じ中心線\n・ビューアの「大きさ・位置」に「＋ の大きさ」「G の大きさ」（種類を AT の G 数にして確かめる）"
+    },
+    {
+      "date": "2026-09-16",
       "version": "dev 234",
       "title": "「GET」の帯の並び方と数字の書体（本人がビューアで詰めた値）",
       "body": "・縦に並ぶときの間隔 100 → 153、順にずれる秒 0.05 → 0.16、縮み 0.7 → 0.47。詰めて収める（stackFit）とセリフの上に出す（aboveDialogue）は OFF、セリフとの間 12\n・数字は 4 と 9 を候補 5、他は候補 1 に（tools/text_choice.json → text_build.py で作り直し）。獲得 / G / + はそのまま"
