@@ -28,6 +28,7 @@ namespace BBB.Runtime
         private AudioClip _precogWeak, _precogStrong;
         /// <summary>実績解除と落とし物（素材 se_achievement / se_pickup_soul / se_pickup_ember / se_pickup_item があれば優先）。</summary>
         private AudioClip _achievement, _pickupSoul, _pickupEmber, _pickupItem;
+        private AudioClip _gainExp, _gainGames;
 
         public float BgmVolume { get => _bgmBaseVolume; set { _bgmBaseVolume = value; _bgm.volume = value; } }
         public float SeVolume { get => _se.volume; set { value = Mathf.Clamp01(value); _se.volume = value; _sePitched.volume = value; SetMotionVolume(value); } }
@@ -82,6 +83,8 @@ namespace BBB.Runtime
             am._pickupSoul = Resources.Load<AudioClip>("Audio/SE/se_pickup_soul") ?? SfxSynth.PickupSoul();
             am._pickupEmber = Resources.Load<AudioClip>("Audio/SE/se_pickup_ember") ?? SfxSynth.PickupEmber();
             am._pickupItem = Resources.Load<AudioClip>("Audio/SE/se_pickup_item") ?? SfxSynth.PickupItem();
+            am._gainExp = Resources.Load<AudioClip>("Audio/SE/se_gain_exp") ?? SfxSynth.GainExp();
+            am._gainGames = Resources.Load<AudioClip>("Audio/SE/se_gain_games") ?? SfxSynth.GainGames();
             am._bgm.volume = 0.5f;
             am._se.volume = 0.8f;
             am._sePitched.volume = 0.8f;
@@ -217,6 +220,19 @@ namespace BBB.Runtime
             {
                 case "souls": Play(_pickupSoul, 0.7f); break;
                 case "embers": Play(_pickupEmber, 0.8f); break;
+                default: Play(_pickupItem, 0.7f); break;
+            }
+        }
+
+        /// <summary>「GET」の帯の音。kind は帯の絵（soul / ember / book = EXP / games = AT の G 数）。帯が止まった瞬間に 1 発。</summary>
+        public void Gain(string kind)
+        {
+            switch (kind)
+            {
+                case "soul": Play(_pickupSoul, 0.7f); break;
+                case "ember": Play(_pickupEmber, 0.8f); break;
+                case "book": Play(_gainExp, 0.7f); break;
+                case "games": Play(_gainGames, 0.8f); break;
                 default: Play(_pickupItem, 0.7f); break;
             }
         }

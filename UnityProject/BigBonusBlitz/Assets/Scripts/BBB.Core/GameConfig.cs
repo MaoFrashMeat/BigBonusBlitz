@@ -259,6 +259,8 @@ namespace BBB.Core
         public float backIconSize = 120f, backIconAlpha = 0.45f, backIconX = 0f, backIconY = 0f, backIconRot = 0f, backIconSpin = 0f;
         /// <summary>部品ごとの ON/OFF: 黒い帯 / 上下の線 / 後ろの光 / 止まっている間の震え / 止まった瞬間の火花 / 数字の右の炎（手前）。</summary>
         public bool showBand = false, showEdges = false, showGlow = true, shake = true, sparks = true, showIcon = true;
+        /// <summary>帯が止まった瞬間に種類ごとの音（ソウル / エンバー / EXP / G 数）を鳴らす。</summary>
+        public bool sound = true;
         /// <summary>
         /// 数字が 0 から増えていく。どの型にも足せる追加の効果。
         /// 画面で止まった瞬間を 0 として countOffset 秒後に数え始め、countSeconds 秒かけて枚数に届く（負なら止まる前から）。

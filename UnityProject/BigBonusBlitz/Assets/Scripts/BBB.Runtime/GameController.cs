@@ -878,12 +878,14 @@ namespace BBB.Runtime
                 ("実績", () => _audio.Achievement()), ("魂", () => _audio.Pickup("souls")), ("火", () => _audio.Pickup("embers")), ("品", () => _audio.Pickup("torch")),
                 ("正解", () => _audio.NaviSuccess()), ("不正解", () => _audio.NaviFail()), ("逃走", () => _audio.EnemyEscape()), ("討伐", () => _audio.EnemyDeath()),
                 ("予告1", () => _audio.Precog(1)), ("予告2", () => _audio.Precog(2)), ("出現", () => _audio.EnemyAppearLand()), ("払出", () => _audio.Payout(15)),
+                // 「GET」の帯の音（棚 c10）: 魂 / 火 は拾う音と同じ。EXP と G 数は専用
+                ("EXP", () => _audio.Gain("book")), ("G数", () => _audio.Gain("games")),
             };
             for (int i = 0; i < ses.Length; i++)
             {
                 var se = ses[i];
-                float x = -dW * 0.5f + 20 + 56 + 26 + i * 46f;
-                UiSkin.Button(dBody, "Dbg_Se" + i, new Vector2(x, -dH * 0.5f + 66), new Vector2(42, 26), se.label, () => se.play(), ColBtn, 10, false, 6);
+                float x = -dW * 0.5f + 20 + 56 + 26 + i * 40f;
+                UiSkin.Button(dBody, "Dbg_Se" + i, new Vector2(x, -dH * 0.5f + 66), new Vector2(38, 26), se.label, () => se.play(), ColBtn, 10, false, 6);
             }
             _debugBox.SetActive(false);
 
@@ -4395,7 +4397,7 @@ namespace BBB.Runtime
                 int shown = countU < 1f ? Mathf.RoundToInt(amount * Mathf.Clamp01(countU)) : amount;
                 if (numText != null) { string ss = shown.ToString(); if (numText.text != ss) numText.text = ss; }
                 else if (digitSlots != null) SetDigits(digitSlots, numArt, shown);
-                if (!sparked && t >= Mathf.Max(0.01f, fx.inSeconds)) { sparked = true; if (fx.sparks) UiFx.Burst(_area, UiFx.Preset.Sparks, new Vector2(0, y0)); }
+                if (!sparked && t >= Mathf.Max(0.01f, fx.inSeconds)) { sparked = true; if (fx.sparks) UiFx.Burst(_area, UiFx.Preset.Sparks, new Vector2(0, y0)); if (fx.sound) _audio.Gain(iconName); }
                 yield return null;
             }
             Destroy(band.gameObject);

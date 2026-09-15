@@ -339,6 +339,35 @@ namespace BBB.Runtime
             return Make("synth_pickup_item", d);
         }
 
+        /// <summary>EXP を得る: 上がっていく 3 音（レベルが近づく感じ。魂の「ふわっ」より角がある）。</summary>
+        public static AudioClip GainExp(float seconds = 0.45f)
+        {
+            int n = Mathf.RoundToInt(Sr * seconds);
+            var d = new float[n];
+            for (int i = 0; i < n; i++)
+            {
+                float t = i / (float)Sr;
+                float v = Pluck(t, 659.3f, 0.10f, 0.25f) * 0.7f + Pluck(t - 0.08f, 830.6f, 0.10f, 0.25f) * 0.7f + Pluck(t - 0.16f, 1108.7f, 0.16f, 0.2f) * 0.8f;
+                d[i] = Soft(v) * 0.8f;
+            }
+            return Make("synth_gain_exp", d);
+        }
+
+        /// <summary>AT の G 数が増える: 高い「キン」と、その上に薄い倍音のきらめき（ベルの払い出し音と区別がつくように短く鋭い）。</summary>
+        public static AudioClip GainGames(float seconds = 0.4f)
+        {
+            int n = Mathf.RoundToInt(Sr * seconds);
+            var d = new float[n];
+            for (int i = 0; i < n; i++)
+            {
+                float t = i / (float)Sr;
+                float shimmer = 1f + 0.03f * Mathf.Sin(2f * Mathf.PI * 11f * t);
+                float v = Pluck(t, 2093f * shimmer, 0.09f, 0.15f) * 0.6f + Pluck(t, 3136f, 0.06f, 0.1f) * 0.35f + Pluck(t - 0.05f, 1568f, 0.18f, 0.2f) * 0.5f;
+                d[i] = Soft(v) * 0.75f;
+            }
+            return Make("synth_gain_games", d);
+        }
+
         /// <summary>通常時の小さな獲得音: 短い「チャリ」1 発（枚数少なめの控えめな音）。</summary>
         public static AudioClip SmallCoin(float seconds = 0.18f)
         {
