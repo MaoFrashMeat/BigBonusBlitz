@@ -427,7 +427,9 @@ namespace BBB.Runtime
                     _newsDots.Add(dot.gameObject);
                 }
                 Side(UiFactory.Label(row.transform, "Date", Vector2.zero, Vector2.zero, entry.date, 11, TextAnchor.MiddleLeft, ColInkSub), 12, 100);
-                Side(UiFactory.Label(row.transform, "Title", Vector2.zero, Vector2.zero, entry.title, 13, TextAnchor.MiddleLeft, ColInk), 104, inner.x - 104);
+                var titleLabel = UiFactory.Label(row.transform, "Title", Vector2.zero, Vector2.zero, entry.title, 13, TextAnchor.MiddleLeft, ColInk);
+                Side(titleLabel, 104, inner.x - 104);
+                Ellipsize(titleLabel, inner.x - 104 - 104 - 6);   // 右の版の番号（100）に重ならない所で「…」。全文は中身で読める
                 // 一覧では版の番号だけ（「dev 118」）。ハッシュは中身の方に出す
                 string shortVer = (entry.version ?? "").Split('·')[0].Trim();
                 Side(UiFactory.Label(row.transform, "Version", Vector2.zero, Vector2.zero, shortVer, 11, TextAnchor.MiddleRight, ColInkSub), inner.x - 100, inner.x - 30);
@@ -461,6 +463,19 @@ namespace BBB.Runtime
             rt.pivot = new Vector2(0, 0.5f);
             rt.anchoredPosition = new Vector2(x0, 0);
             rt.sizeDelta = new Vector2(x1 - x0, 0);
+        }
+
+        /// <summary>1 行に収まらない文は、収まる所で「…」に切る（一覧の題。uGUI の Text に省略記号は無いので測って切る）。</summary>
+        private static void Ellipsize(Text t, float maxWidth)
+        {
+            string s = t.text ?? "";
+            if (string.IsNullOrEmpty(s) || maxWidth <= 0f) return;
+            var settings = t.GetGenerationSettings(Vector2.zero);
+            float Width(string x) => t.cachedTextGeneratorForLayout.GetPreferredWidth(x, settings) / t.pixelsPerUnit;
+            if (Width(s) <= maxWidth) return;
+            int n = s.Length;
+            while (n > 1 && Width(s.Substring(0, n) + "…") > maxWidth) n--;
+            t.text = s.Substring(0, n) + "…";
         }
 
         /// <summary>縦に送れる窓。はみ出しは矩形マスクで切る（ステンシル不要）。中身は上から詰める。</summary>

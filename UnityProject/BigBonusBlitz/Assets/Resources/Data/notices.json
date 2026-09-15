@@ -2,6 +2,12 @@
   "entries": [
     {
       "date": "2026-09-16",
+      "version": "dev 243",
+      "title": "お知らせの一覧で長い題が版の番号に重なっていたのを直す",
+      "body": "・一覧の題は幅に収まる所で「…」で切る（中身を開けば全文）"
+    },
+    {
+      "date": "2026-09-16",
       "version": "dev 242",
       "title": "「GET」の帯は第三停止で出て、BET を押すと左へ抜ける",
       "body": "・reelFx.emberGain.holdUntilBet（ON）。止まる秒は使わず、BET（レバー）してから betWaitSeconds（0.3 秒）後に抜け始める。betHoldMax（0 = 待ち続ける）で BET が無くても抜ける秒を決められる\n・ビューアに「BET まで止まる」の段と BET ボタン（再生中に押すとその時刻が BET）。例の「BET を押す時刻」でも確かめられる"
