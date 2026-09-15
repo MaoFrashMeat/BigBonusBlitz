@@ -465,9 +465,9 @@
     const host = document.getElementById("picker");
     const rows = [];
     for (let d = 0; d <= 9; d++) rows.push({ key: String(d), label: String(d), max: 5, src: v => candNum(d, v).src, file: v => "num" + d + "_" + v + ".png" });
-    rows.push({ key: "kakutoku", label: "獲得", max: 10, src: v => candWord("kakutoku", v).src, file: v => "kakutoku_" + v + ".png" });
-    rows.push({ key: "g", label: "G", max: 5, src: v => candWord("g", v).src, file: v => "g_" + v + ".png" });
-    rows.push({ key: "plus", label: "＋", max: 5, src: v => candWord("plus", v).src, file: v => "plus_" + v + ".png" });
+    rows.push({ key: "kakutoku", label: "獲得", max: 13, src: v => candWord("kakutoku", v).src, file: v => "kakutoku_" + v + ".png" });
+    rows.push({ key: "g", label: "G", max: 6, src: v => candWord("g", v).src, file: v => "g_" + v + ".png" });
+    rows.push({ key: "plus", label: "＋", max: 6, src: v => candWord("plus", v).src, file: v => "plus_" + v + ".png" });
     rows.forEach(r => {
       const row = document.createElement("div"); row.className = "drow";
       const b = document.createElement("b"); b.textContent = r.label; row.appendChild(b);
