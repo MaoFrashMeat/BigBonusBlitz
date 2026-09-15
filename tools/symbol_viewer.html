@@ -41,7 +41,20 @@
   input[type=range] { width:140px; vertical-align:middle; }
   .out { background:var(--panel); border-radius:8px; padding:10px 12px; margin-top:10px; }
   .out pre { margin:6px 0 0; background:var(--bg); padding:8px; border-radius:6px; font-size:13px; white-space:pre-wrap; user-select:all; }
-  .note { color:var(--muted); font-size:12px; line-height:1.6; }
+  .note { color:var(--muted); font-size:12px; line-height:1.6; margin:8px 0 0; }
+  .btns { display:flex; gap:6px; margin:10px 0 6px; flex-wrap:wrap; }
+  .sec { background:var(--panel); border-radius:8px; padding:6px 12px 10px; margin-top:10px; }
+  .sec > summary { cursor:pointer; font-weight:bold; font-size:13px; padding:6px 0; list-style:none; }
+  .sec > summary::before { content:"▸ "; color:var(--muted); }
+  .sec[open] > summary::before { content:"▾ "; }
+  .form { display:grid; grid-template-columns:76px 1fr; gap:8px 10px; align-items:center; margin-top:6px; }
+  .form > label { color:var(--muted); font-size:12px; text-align:right; }
+  .form > div { display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:12px; color:var(--muted); }
+  .form input[type=range] { width:150px; }
+  .form input[type=range].short { width:90px; }
+  .form select { max-width:100%; }
+  .form.sub { margin-top:10px; padding-top:8px; border-top:1px dashed var(--line); }
+  label.ck { display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
 </style>
 </head>
 <body>
@@ -58,81 +71,102 @@
   <div class="side">
     <div class="reels">
       <div class="reelrow" id="reels"></div>
-      <div class="ctrl">
+      <div class="btns">
         <button class="primary" id="spin">回す</button>
         <button id="stop0">左 止め</button><button id="stop1">中 止め</button><button id="stop2">右 止め</button>
-        <label>速さ <input type="range" id="rpm" min="40" max="110" value="80"> <span id="rpmV">80</span> rpm</label>
       </div>
-      <div class="ctrl">
-        <label><input type="checkbox" id="trim" checked> 透明な余白を切る</label>
-        <label><input type="checkbox" id="blur"> 回転中のブレを足す</label>
-        <label>表示 <select id="zoom"><option value="1">実寸（ゲームと同じ 123×56）</option><option value="1.5">1.5 倍</option><option value="2">2 倍</option></select></label>
+      <div class="form">
+        <label>速さ</label><div><input type="range" id="rpm" min="40" max="110" value="80"> <span id="rpmV">80</span> rpm</div>
+        <label>表示</label><div><select id="zoom"><option value="1">実寸（ゲームと同じ 123×56）</option><option value="1.5">1.5 倍</option><option value="2">2 倍</option></select></div>
+        <label></label><div><label class="ck"><input type="checkbox" id="trim" checked> 透明な余白を切る</label> <label class="ck"><input type="checkbox" id="blur"> 回転中のブレを足す</label></div>
       </div>
-      <div class="note">配列は game_config.json の reelStrips そのまま。速さの既定 80 rpm はゲームの回転と同じ（20 コマで 1 周 0.75 秒）。止めると次のコマ境界で止まる。各リールの下のバーで位置をコマ単位（0.05 刻み）にずらせる（回転中に動かすと止まる）。</div>
-      <div class="ctrl" style="border-top:1px solid var(--line);padding-top:10px">
-        <b style="font-size:13px">役の演出</b>
-        <select id="blinkStyle" title="種類">
+      <div class="note">配列は game_config.json の reelStrips そのまま。80 rpm はゲームと同じ（20 コマで 1 周 0.75 秒）。各リールの下のバーで位置をコマ単位に動かせる。</div>
+    </div>
+
+    <details class="sec" open>
+      <summary>役の演出を試す</summary>
+      <div class="form">
+        <label>役</label><div><select id="blinkRole"><option value="BELL">ベル</option><option value="REPLAY">リプレイ</option><option value="CHERRY">チェリー</option><option value="WATERMELON">スイカ</option><option value="CHANCE">チャンス目</option></select> <input type="color" id="roleColor" value="#ffcf3f" title="この役の色"> <label class="ck"><input type="checkbox" id="roleRainbow"> 虹</label></div>
+        <label>ライン</label><div><select id="blinkLine"><option value="mid">中段そろい</option><option value="top">上段そろい</option><option value="diag">斜め（右下がり）</option><option value="cherry">チェリー（左の中段）</option></select></div>
+        <label></label><div><button class="primary" id="blinkTest">揃えて点滅を試す</button> <label class="ck"><input type="checkbox" id="blinkLoop"> 繰り返す</label></div>
+      </div>
+      <div class="note">役を選ぶとその役の色を編集できる（ライン光・枠・染め・層・カットインに使う）。押すと、その役の図柄をラインに揃えてから演出が出る。</div>
+    </details>
+
+    <details class="sec" open>
+      <summary>点滅の動き</summary>
+      <div class="form">
+        <label>種類</label><div><select id="blinkStyle">
           <option value="blink">点滅（暗↔明）</option><option value="pulse">拡大縮小</option><option value="bounce">跳ねる</option><option value="wobble">左右に傾く</option>
           <option value="shake">小刻みに揺れる</option><option value="glow">役色の光が脈打つ</option><option value="flash">白く光る</option><option value="rainbow">色相を回す</option><option value="pop">膨らんでから点滅</option>
-        </select>
-        <select id="blinkRole" title="役"><option value="BELL">ベル</option><option value="REPLAY">リプレイ</option><option value="CHERRY">チェリー</option><option value="WATERMELON">スイカ</option><option value="CHANCE">チャンス目</option></select>
-        <input type="color" id="roleColor" value="#ffcf3f" title="この役の色"><label><input type="checkbox" id="roleRainbow"> 虹</label>
-        <select id="blinkLine"><option value="mid">中段そろい</option><option value="top">上段そろい</option><option value="diag">斜め（右下がり）</option><option value="cherry">チェリー（左の中段）</option></select>
-        <button class="primary" id="blinkTest">点滅を試す</button>
-        <label><input type="checkbox" id="blinkLoop"> 繰り返す</label>
+        </select></div>
+        <label>何を</label><div><select id="blinkTarget"><option value="symbol">図柄</option><option value="frame">コマの枠</option><option value="both">両方</option></select></div>
+        <label>周期</label><div><input type="range" id="blinkPeriod" min="0.05" max="0.4" step="0.01" value="0.13"> <span id="blinkPeriodV">0.13</span> 秒</div>
+        <label>長さ</label><div><input type="range" id="blinkSeconds" min="0.4" max="3" step="0.1" value="1.4"> <span id="blinkSecondsV">1.4</span> 秒</div>
+        <label>強さ</label><div><input type="range" id="blinkStrength" min="0" max="1" step="0.05" value="1"> <span id="blinkStrengthV">1.00</span></div>
+        <label>暗さ</label><div><input type="range" id="blinkDim" min="0" max="0.9" step="0.02" value="0.28"> <span id="blinkDimV">0.28</span></div>
+        <label></label><div><label class="ck"><input type="checkbox" id="blinkDimOthers"> 揃っていないコマを暗く</label></div>
       </div>
-      <div class="ctrl">
-        <label>周期 <input type="range" id="blinkPeriod" min="0.05" max="0.4" step="0.01" value="0.13"> <span id="blinkPeriodV">0.13</span> 秒</label>
-        <label>暗さ <input type="range" id="blinkDim" min="0" max="0.9" step="0.02" value="0.28"> <span id="blinkDimV">0.28</span></label>
-        <label>長さ <input type="range" id="blinkSeconds" min="0.4" max="3" step="0.1" value="1.4"> <span id="blinkSecondsV">1.4</span> 秒</label>
-        <label>強さ <input type="range" id="blinkStrength" min="0" max="1" step="0.05" value="1"> <span id="blinkStrengthV">1.00</span></label>
-        <label><input type="checkbox" id="blinkDimOthers"> 揃っていないコマを暗く</label>
+    </details>
+
+    <details class="sec">
+      <summary>消える側の見え方</summary>
+      <div class="form">
+        <label>見え方</label><div><select id="blinkMode"><option value="dark">黒へ暗くする</option><option value="tint">色で染める</option><option value="light">色を足して明るく</option></select></div>
+        <label>色</label><div><label class="ck"><input type="checkbox" id="blinkTintRole" checked> 役の色</label> <input type="color" id="blinkTint" value="#ffffff" title="役の色を使わないときの色"></div>
       </div>
-      <div class="ctrl">
-        <b style="font-size:13px">何を点滅</b>
-        <select id="blinkTarget"><option value="symbol">図柄</option><option value="frame">コマの枠</option><option value="both">両方</option></select>
-        <label><input type="checkbox" id="frameBorder" checked> 縁</label><label><input type="checkbox" id="frameFill"> 塗り</label><label><input type="checkbox" id="frameGlow"> 光</label>
-        <label>太さ <input type="range" id="frameWidth" min="1" max="6" step="1" value="3" style="width:70px"> <span id="frameWidthV">3</span></label>
-        <label>濃さ <input type="range" id="frameAlpha" min="0" max="1" step="0.05" value="0.9" style="width:80px"> <span id="frameAlphaV">0.90</span></label>
+      <div class="note">「黒へ暗くする」は今までの点滅。図柄の色は掛け算なので暗くしかできず、明るくするには「色を足す」（加算の層）を使う。</div>
+    </details>
+
+    <details class="sec">
+      <summary>コマの枠（「何を」で 枠 / 両方 のとき）</summary>
+      <div class="form">
+        <label>見た目</label><div><label class="ck"><input type="checkbox" id="frameBorder" checked> 縁</label> <label class="ck"><input type="checkbox" id="frameFill"> 塗り</label> <label class="ck"><input type="checkbox" id="frameGlow"> 光</label></div>
+        <label>太さ</label><div><input type="range" id="frameWidth" min="1" max="6" step="1" value="3"> <span id="frameWidthV">3</span> px</div>
+        <label>濃さ</label><div><input type="range" id="frameAlpha" min="0" max="1" step="0.05" value="0.9"> <span id="frameAlphaV">0.90</span></div>
       </div>
-      <div class="ctrl">
-        <b style="font-size:13px">消える側の見え方</b>
-        <select id="blinkMode"><option value="dark">黒へ暗くする</option><option value="tint">色で染める</option><option value="light">色を足して明るく</option></select>
-        <label><input type="checkbox" id="blinkTintRole" checked> 役の色</label><input type="color" id="blinkTint" value="#ffffff" title="染める / 足す色（役の色を使わないとき）">
-        <b style="font-size:13px;margin-left:12px">重ねる層</b>
-        <select id="layerMode"><option value="none">なし</option><option value="add">加算</option><option value="screen">スクリーン</option><option value="multiply">乗算</option></select>
-        <label><input type="checkbox" id="layerColorRole" checked> 役の色</label><input type="color" id="layerColor" value="#ffcf3f" title="層の色（役の色を使わないとき）">
-        <label>強さ <input type="range" id="layerAlpha" min="0" max="1" step="0.05" value="0.6"> <span id="layerAlphaV">0.60</span></label>
-        <label><input type="checkbox" id="layerPulse" checked> 周期で強弱</label>
+    </details>
+
+    <details class="sec">
+      <summary>重ねる層（加算 / スクリーン / 乗算）</summary>
+      <div class="form">
+        <label>合成</label><div><select id="layerMode"><option value="none">なし</option><option value="add">加算</option><option value="screen">スクリーン</option><option value="multiply">乗算</option></select></div>
+        <label>色</label><div><label class="ck"><input type="checkbox" id="layerColorRole" checked> 役の色</label> <input type="color" id="layerColor" value="#ffcf3f" title="役の色を使わないときの色"></div>
+        <label>強さ</label><div><input type="range" id="layerAlpha" min="0" max="1" step="0.05" value="0.6"> <span id="layerAlphaV">0.60</span></div>
+        <label></label><div><label class="ck"><input type="checkbox" id="layerPulse" checked> 周期で強弱</label></div>
       </div>
-      <div class="ctrl">
-        <b style="font-size:13px">図柄の縁取り</b>
-        <label><input type="checkbox" id="olOn"> 付ける</label>
-        <select id="olMode"><option value="blink">揃った図柄に点滅で</option><option value="wave">揃った図柄に脈で</option><option value="always">全部の図柄に常時</option></select>
-        <label><input type="checkbox" id="olRole" checked> 役の色</label><input type="color" id="olColor" value="#ffffff" title="縁の色（役の色を使わないとき / 常時）">
-        <label>太さ <input type="range" id="olWidth" min="0.5" max="6" step="0.5" value="2" style="width:70px"> <span id="olWidthV">2.0</span></label>
-        <label>濃さ <input type="range" id="olAlpha" min="0" max="1" step="0.05" value="1" style="width:70px"> <span id="olAlphaV">1.00</span></label>
-        <label><input type="checkbox" id="olGlow"> 外に光</label>
-        <label>光の太さ <input type="range" id="olGlowWidth" min="2" max="16" step="1" value="6" style="width:70px"> <span id="olGlowWidthV">6</span></label>
-        <label>光の濃さ <input type="range" id="olGlowAlpha" min="0" max="1" step="0.05" value="0.5" style="width:70px"> <span id="olGlowAlphaV">0.50</span></label>
+    </details>
+
+    <details class="sec">
+      <summary>図柄の縁取り</summary>
+      <div class="form">
+        <label>付ける</label><div><label class="ck"><input type="checkbox" id="olOn"> 付ける</label> <select id="olMode"><option value="blink">揃った図柄に点滅で</option><option value="wave">揃った図柄に脈で</option><option value="always">全部の図柄に常時</option></select></div>
+        <label>色</label><div><label class="ck"><input type="checkbox" id="olRole" checked> 役の色</label> <input type="color" id="olColor" value="#ffffff" title="役の色を使わないとき / 常時の色"></div>
+        <label>太さ</label><div><input type="range" id="olWidth" min="0.5" max="6" step="0.5" value="2"> <span id="olWidthV">2.0</span> px</div>
+        <label>濃さ</label><div><input type="range" id="olAlpha" min="0" max="1" step="0.05" value="1"> <span id="olAlphaV">1.00</span></div>
+        <label>外の光</label><div><label class="ck"><input type="checkbox" id="olGlow"> 付ける</label></div>
+        <label>光の太さ</label><div><input type="range" id="olGlowWidth" min="2" max="16" step="1" value="6"> <span id="olGlowWidthV">6</span> px</div>
+        <label>光の濃さ</label><div><input type="range" id="olGlowAlpha" min="0" max="1" step="0.05" value="0.5"> <span id="olGlowAlphaV">0.50</span></div>
       </div>
-      <div class="ctrl">
-        <b style="font-size:13px">図柄の中のランプ</b>
-        <label><input type="checkbox" id="lampOn" checked> 点ける</label>
-        <label>後ろの光 <input type="range" id="lampIntensity" min="0" max="1" step="0.05" value="0.7"> <span id="lampIntensityV">0.70</span></label>
-        <label>中の光（共通） <input type="range" id="lampInner" min="0" max="1" step="0.05" value="0.5"> <span id="lampInnerV">0.50</span></label>
+    </details>
+
+    <details class="sec" open>
+      <summary>図柄の中のランプ（赤 7・白 7）</summary>
+      <div class="form">
+        <label>点ける</label><div><label class="ck"><input type="checkbox" id="lampOn" checked> 点ける</label> <label class="ck"><input type="checkbox" id="lampSpin" checked> 回転中も</label></div>
+        <label>後ろの光</label><div><input type="range" id="lampIntensity" min="0" max="1" step="0.05" value="0.7"> <span id="lampIntensityV">0.70</span></div>
+        <label>中の光</label><div><input type="range" id="lampInner" min="0" max="1" step="0.05" value="0.5"> <span id="lampInnerV">0.50</span> <small>共通</small></div>
+        <label>広がり</label><div><input type="range" id="lampSize" min="0.8" max="2.2" step="0.05" value="1.4"> <span id="lampSizeV">1.40</span></div>
+        <label>速さ</label><div><input type="range" id="lampPulse" min="0" max="4" step="0.1" value="1.2"> <span id="lampPulseV">1.2</span> Hz</div>
+        <label>脈の深さ</label><div><input type="range" id="lampDepth" min="0" max="1" step="0.05" value="0.4"> <span id="lampDepthV">0.40</span></div>
       </div>
-      <div class="ctrl" style="padding-left:12px">
-        <label><input type="checkbox" id="lampRed7" checked> 赤7 <input type="color" id="lampRed7C" value="#ff4a4a"> 中 <input type="range" id="lampRed7I" min="0" max="1" step="0.05" value="0.5" style="width:90px"> <span id="lampRed7IV">0.50</span></label>
-        <label><input type="checkbox" id="lampBlue7" checked> 白7 <input type="color" id="lampBlue7C" value="#9fd8ff"> 中 <input type="range" id="lampBlue7I" min="0" max="1" step="0.05" value="0.5" style="width:90px"> <span id="lampBlue7IV">0.50</span></label>
-        <label><input type="checkbox" id="lampBar"> BAR <input type="color" id="lampBarC" value="#ffd27a"> 中 <input type="range" id="lampBarI" min="0" max="1" step="0.05" value="0.3" style="width:90px"> <span id="lampBarIV">0.30</span></label>
-        <label>広がり <input type="range" id="lampSize" min="0.8" max="2.2" step="0.05" value="1.4"> <span id="lampSizeV">1.40</span></label>
-        <label>速さ <input type="range" id="lampPulse" min="0" max="4" step="0.1" value="1.2"> <span id="lampPulseV">1.2</span> Hz</label>
-        <label>脈の深さ <input type="range" id="lampDepth" min="0" max="1" step="0.05" value="0.4"> <span id="lampDepthV">0.40</span></label>
-        <label><input type="checkbox" id="lampSpin" checked> 回転中も</label>
+      <div class="form sub">
+        <label>赤7</label><div><label class="ck"><input type="checkbox" id="lampRed7" checked> 点ける</label> <input type="color" id="lampRed7C" value="#ff4a4a"> 中の光 <input type="range" id="lampRed7I" min="0" max="1" step="0.05" value="0.5" class="short"> <span id="lampRed7IV">0.50</span></div>
+        <label>白7</label><div><label class="ck"><input type="checkbox" id="lampBlue7" checked> 点ける</label> <input type="color" id="lampBlue7C" value="#9fd8ff"> 中の光 <input type="range" id="lampBlue7I" min="0" max="1" step="0.05" value="0.5" class="short"> <span id="lampBlue7IV">0.50</span></div>
+        <label>BAR</label><div><label class="ck"><input type="checkbox" id="lampBar"> 点ける</label> <input type="color" id="lampBarC" value="#ffd27a"> 中の光 <input type="range" id="lampBarI" min="0" max="1" step="0.05" value="0.3" class="short"> <span id="lampBarIV">0.30</span></div>
       </div>
-      <div class="note">ゲームでは揃ったコマの図柄に「種類」の動きを「周期」で繰り返し、「長さ」だけ続ける（game_config.json の reelFx: style / strength / dimOthers / blinkMode / blinkColor / layerMode / layerColor / layerAlpha / layerPulse / lamp / blinkPeriod / blinkDim / blinkSeconds）。予告（レバーオン）は図柄を触らず、ラインの光だけ。</div>
-    </div>
+    </details>
+    <div class="note">値は game_config.json の reelFx に写す（下の「選んだもの」の "reelFx"）。予告（レバーオン）は図柄を触らず、ラインの光だけ。</div>
     <div class="out">
       <b>選んだもの</b>
       <pre id="result"></pre>
