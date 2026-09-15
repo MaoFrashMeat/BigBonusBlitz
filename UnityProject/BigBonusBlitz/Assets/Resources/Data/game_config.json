@@ -1,7 +1,7 @@
 ﻿{
   "payouts": {
     "BIG": 300,
-    "REG": 90,
+    "REG": 110,
     "STAR": 8,
     "WATERMELON": 6,
     "CHERRY": 4,
@@ -9,7 +9,7 @@
   },
   "payouts_BB": {
     "BIG": 200,
-    "REG": 90,
+    "REG": 110,
     "STAR": 15,
     "WATERMELON": 6,
     "CHERRY": 4,
@@ -17,7 +17,7 @@
   },
   "payouts_RB": {
     "BIG": 300,
-    "REG": 90,
+    "REG": 110,
     "STAR": 15,
     "WATERMELON": 6,
     "CHERRY": 4,
