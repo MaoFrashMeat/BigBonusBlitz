@@ -2306,7 +2306,8 @@ namespace BBB.Runtime
         /// <summary>技術介入の「Ready？」。帯が消えるころに停止が解禁され、「GO！」を小さく出す。</summary>
         /// <summary>
         /// 「狙え！」の演出（2026-09-14 本人: 実機のように、狙う図柄を縦に並べた柱と「狙え！」を画面に出す）。
-        /// 表示域の左寄りに、狙う図柄を 3 コマ縦に積んだ柱（ビタなら狙う段だけ明るい）と炎色の光、右に「狙え！」。
+        /// 狙う図柄を 3 コマ縦に積んだ柱（ビタなら狙う段だけ明るい）を対象のリールの真上に、その右に「狙え！」と炎色の光
+        /// （2026-09-16 本人: 右リールと書いてあるのに左に出るのはおかしい。対応するリールの上に）。
         /// レバーオンで出て、対象のリールを止めたら消える。
         /// </summary>
         private void ShowTechAim()
@@ -2314,7 +2315,11 @@ namespace BBB.Runtime
             HideTechAim();
             var t = _m.Tech;
             if (!t.Active) return;
-            var root = UiSkin.Rect(_area, "TechAim", new Vector2(-60f, 0f), new Vector2(420f, 220f));
+            // 柱（root の x −70）が対象リールの中心に来るように root を置く。表示域の外に出ない範囲に収める
+            float reelX = _reels != null && t.reel >= 0 && t.reel < _reels.Length && _reels[t.reel] != null
+                ? ((Vector2)_area.InverseTransformPoint(_reels[t.reel].transform.position)).x : -130f;
+            float rootX = Mathf.Clamp(reelX + 70f, -AreaW * 0.5f + 140f, AreaW * 0.5f - 340f);
+            var root = UiSkin.Rect(_area, "TechAim", new Vector2(rootX, 0f), new Vector2(420f, 220f));
             var fire = new Color(1f, 0.45f, 0.1f);
             UiSkin.Img(root, "Glow", new Vector2(-70f, 0f), new Vector2(420f, 420f), UiSkin.Glow(96), new Color(fire.r, fire.g, fire.b, 0.95f));
             UiSkin.Img(root, "Glow2", new Vector2(-70f, 0f), new Vector2(260f, 300f), UiSkin.Glow(96), new Color(1f, 0.85f, 0.35f, 0.8f));
@@ -2347,7 +2352,7 @@ namespace BBB.Runtime
             _techAim = root.gameObject;
             root.SetAsLastSibling();
             StartCoroutine(TechAimPulse(root, aim.rectTransform));
-            UiFx.Burst(_area, UiFx.Preset.Sparks, new Vector2(-70f, 0f));
+            UiFx.Burst(_area, UiFx.Preset.Sparks, new Vector2(rootX - 70f, 0f));
             StartCoroutine(EdgeGlow(fire, 1.0f, false));
         }
 
