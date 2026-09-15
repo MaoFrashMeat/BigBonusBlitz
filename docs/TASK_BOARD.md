@@ -65,8 +65,15 @@ run.py はどれが無くても「NG …」の 1 行で教える。本体を Uni
   notices.json が衝突したら両方残して自分の番号を最新 +1 に振り直す
 - 元絵（`assets/`）は LFS。1 枚 1〜2MB でも入れてよい（2026-09-14 本人）。QA の画面撮り（`tools/*-qa/`）と `*_preview.png` は入れない
 
-## 今の棚の状態（2026-09-14）
+## 今の棚の状態（2026-09-15）
 
-- done: t01〜t04, t07〜t14, t18〜t20, c01〜c08
-- blocked（本人の選択待ち）: t05（モード表 A〜D）/ t06（設定 5・6 の逆転）/ t15（第 3 章の問い）/ t16（トロフィーの絵）/ t17（章ごとの地図）
-- candidate: c09〜c13
+- done: t01〜t20, c01〜c13
+- candidate（by: claude、未チェック）: c14（第 3 章のステージ名）/ c15（物語の上下の台詞が出ない段）/ c16（4 章目以降は最後の章を使い回す）/ c17（AT が全 G の 55〜61%）/ c18（StageMapView.cs を消す）
+
+## 別 PC の push 待ちで HEAD の Runtime がコンパイルできないとき（2026-09-15 の例）
+
+`AtelierMap.cs` が `AdventureEnvironmentProfile.UsesModules` を使うのに、その定義（別 PC の未 push 分）が無い。
+`py -3 tools/verify/run.py` の runtime / tests は NG になるが、自分の変更の検証は次でできる:
+- scratchpad に runtime.csproj の写しを作り、足りない定義を足した `AdventureEnvironmentCatalog.cs` の写し（`public bool UsesModules => false;`）に `<Compile Remove>` + `<Compile Include>` で差し替えて `dotnet build`
+- Unity の EditMode テスト / プローブは、複製プロジェクト（`Assets` を robocopy /MIR で写す）に同じ穴埋めの写しを置いてから回す
+- 直すのは相手の仕事。自分では直さず「指摘」に留める
