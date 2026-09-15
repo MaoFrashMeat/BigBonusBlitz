@@ -5430,6 +5430,7 @@
     "frameWidth": 3,
     "frameAlpha": 0.9,
     "roleColors": { "BELL": "#ffcf3f", "REPLAY": "#4da3ff", "CHERRY": "#ff73a6", "WATERMELON": "#66f280", "CHANCE": "rainbow" },
+    "roleCutin": { "REPLAY": true, "CHERRY": false, "WATERMELON": false, "CHANCE": true },
     "layerMode": "none",
     "layerColor": "role",
     "layerAlpha": 0.6,

@@ -340,6 +340,9 @@ namespace BBB.Core
         {
             { "BELL", "#ffcf3f" }, { "REPLAY", "#4da3ff" }, { "CHERRY", "#ff73a6" }, { "WATERMELON", "#66f280" }, { "CHANCE", "rainbow" },
         };
+        /// <summary>揃ったときの札（「チェリー！」などのカットイン）を出すか、役ごと。無い役は出す。ライン光・音・縁の光は関係ない。</summary>
+        public Dictionary<string, bool> roleCutin = new Dictionary<string, bool>();
+        public bool RoleCutin(string role) => roleCutin == null || !roleCutin.TryGetValue(role, out var on) || on;
         /// <summary>
         /// 揃った図柄に重ねる層。none / add（加算）/ screen（スクリーン）/ multiply（乗算）。
         /// 図柄の形そのままに layerColor を layerAlpha で重ね、layerPulse なら周期で強弱を付ける。

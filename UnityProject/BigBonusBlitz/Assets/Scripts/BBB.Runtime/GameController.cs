@@ -4147,6 +4147,7 @@ namespace BBB.Runtime
             // 色は game_config の reelFx.roleColors（本人がビューアで決める）
             var gold = RoleColor("BELL", out _);
             var blue = RoleColor("REPLAY", out _);
+            var rfx = _m.Config.reelFx ?? new ReelFxConfig();
             var pink = RoleColor("CHERRY", out _);
             var green = RoleColor("SUICA", out _);
             var chance = RoleColor("CHANCE", out bool chanceRainbow);
@@ -4160,25 +4161,25 @@ namespace BBB.Runtime
                 case WinType.REPLAY:
                     PaylineFlash(blue, 2, false, cellMask);
                     UiFx.Burst(_charRt, UiFx.Preset.Sparkle, new Vector2(0, 70));
-                    if (!inBonus) UiFx.Cutin(_area, "REPLAY", blue, ArtLoader.SymbolSprite(Symbol.REPLAY), 0.7f, 0.35f, false, new Vector2(0, -20));
+                    if (!inBonus && rfx.RoleCutin("REPLAY")) UiFx.Cutin(_area, "REPLAY", blue, ArtLoader.SymbolSprite(Symbol.REPLAY), 0.7f, 0.35f, false, new Vector2(0, -20));
                     break;
                 case WinType.CHERRY:
                     PaylineFlash(pink, 3, false, cellMask);
                     _audio.RoleCherry();
                     UiFx.Rain(_area, UiFx.Preset.Petals, AreaW * 0.9f, AreaH * 0.5f + 10, 1.4f, 26f);
-                    UiFx.Cutin(_area, "チェリー！", pink, ArtLoader.SymbolSprite(Symbol.CHERRY), 1.0f, 0.8f, false, new Vector2(0, 10));
+                    if (rfx.RoleCutin("CHERRY")) UiFx.Cutin(_area, "チェリー！", pink, ArtLoader.SymbolSprite(Symbol.CHERRY), 1.0f, 0.8f, false, new Vector2(0, 10));   // 札は reelFx.roleCutin で役ごとに
                     StartCoroutine(EdgeGlow(pink, 0.8f, false));
                     break;
                 case WinType.WATERMELON:
                     PaylineFlash(green, 3, false, cellMask);
                     _audio.RoleSuica();
-                    UiFx.Cutin(_area, "スイカ！", green, ArtLoader.SymbolSprite(Symbol.WATERMELON), 1.15f, 0.9f, false, new Vector2(0, 10));
+                    if (rfx.RoleCutin("WATERMELON")) UiFx.Cutin(_area, "スイカ！", green, ArtLoader.SymbolSprite(Symbol.WATERMELON), 1.15f, 0.9f, false, new Vector2(0, 10));
                     StartCoroutine(EdgeGlow(green, 1.0f, false));
                     break;
                 case WinType.CHANCE:
                     PaylineFlash(chance, 4, chanceRainbow, cellMask);
                     _audio.RoleChance();
-                    UiFx.Cutin(_area, "チャンス目！", ColGold, null, 1.3f, 1.1f, true, new Vector2(0, 10));
+                    if (rfx.RoleCutin("CHANCE")) UiFx.Cutin(_area, "チャンス目！", ColGold, null, 1.3f, 1.1f, true, new Vector2(0, 10));
                     UiFx.Burst(_area, UiFx.Preset.RainbowStars, new Vector2(0, 0));
                     UiFx.Burst(_area, UiFx.Preset.Confetti, new Vector2(0, AreaH * 0.5f - 10));
                     StartCoroutine(Effects.Shake(_stage, 0.3f, 6f));
