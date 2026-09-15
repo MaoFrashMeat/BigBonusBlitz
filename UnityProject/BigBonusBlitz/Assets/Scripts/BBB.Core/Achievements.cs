@@ -19,6 +19,32 @@ namespace BBB.Core
         public int rewardSouls;
         /// <summary>解除するまで中身を見せない。</summary>
         public bool hidden;
+        /// <summary>一覧に出す絵（Resources/Art/UI/Icons のシート名）。空なら counter から決める（AchievementIcons）。</summary>
+        public string icon = "";
+    }
+
+    /// <summary>実績の絵。counter の種類ごとの既定（回転 / ボーナス / 討伐 / 冒険 / 装備 / 宝 / 魂 / 技）。</summary>
+    public static class AchievementIcons
+    {
+        public const string Secret = "lock";
+        public static string Of(AchievementDef d)
+        {
+            if (d == null) return "star_gold";
+            if (!string.IsNullOrEmpty(d.icon)) return d.icon;
+            switch (d.counter)
+            {
+                case AchievementCounters.Spins: case AchievementCounters.NaviHits: return "refresh";
+                case AchievementCounters.TechWins: case AchievementCounters.TechPerfect: return "sparkle";
+                case AchievementCounters.Big: case AchievementCounters.Reg: case AchievementCounters.At: case AchievementCounters.AtBest: return "star_gold";
+                case AchievementCounters.Defeats: case AchievementCounters.Hunts: return "swords";
+                case AchievementCounters.Curses: case AchievementCounters.CursedChapters: return "chain";
+                case AchievementCounters.Chapters: case AchievementCounters.DepthMax: case AchievementCounters.Deaths: case AchievementCounters.LevelMax: return "compass";
+                case AchievementCounters.Drops: case AchievementCounters.LegendDrops: case AchievementCounters.WornMax: case AchievementCounters.Sold: case AchievementCounters.Codex: return "bag";
+                case AchievementCounters.Treasures: return "gift";
+                case AchievementCounters.SoulsTotal: return "crystal";
+                default: return "star_gold";
+            }
+        }
     }
 
     [Serializable]

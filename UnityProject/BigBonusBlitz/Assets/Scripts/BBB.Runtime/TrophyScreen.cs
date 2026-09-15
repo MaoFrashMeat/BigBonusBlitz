@@ -81,9 +81,10 @@ namespace BBB.Runtime
                     bool secret = d.hidden && !done;
                     var row = UiSkin.Img(list, "Row", Vector2.zero, new Vector2(w, rowH), UiSkin.Rounded(6), done ? new Color(1f, 0.82f, 0.25f, 0.10f) : new Color(1, 1, 1, 0.04f));
                     row.gameObject.AddComponent<LayoutElement>().preferredHeight = rowH;
-                    var star = UiSkin.Img(row.transform, "Star", Vector2.zero, new Vector2(26, 26), UiSkin.Star(96), done ? UiSkin.Gold : new Color(1, 1, 1, 0.18f));
-                    star.rectTransform.anchorMin = new Vector2(0, 0.5f); star.rectTransform.anchorMax = new Vector2(0, 0.5f);
-                    star.rectTransform.anchoredPosition = new Vector2(24, 0);
+                    // 絵は実績の種類ごと（achievements.json の icon。隠しは解除まで錠前）。未解除は薄く
+                    var icon = UiSkin.Img(row.transform, "Icon", Vector2.zero, new Vector2(28, 28), UiSkin.Icon(secret ? AchievementIcons.Secret : AchievementIcons.Of(d), 64), done ? Color.white : new Color(1, 1, 1, 0.28f));
+                    icon.rectTransform.anchorMin = new Vector2(0, 0.5f); icon.rectTransform.anchorMax = new Vector2(0, 0.5f);
+                    icon.rectTransform.anchoredPosition = new Vector2(24, 0);
                     var name = UiFactory.Label(row.transform, "Name", Vector2.zero, Vector2.zero, secret ? "？？？" : d.name, 13, TextAnchor.MiddleLeft, done ? UiSkin.Gold : UiSkin.Text);
                     name.fontStyle = FontStyle.Bold; Side(name.rectTransform, 48, 300); name.rectTransform.anchoredPosition += new Vector2(0, 9); name.rectTransform.sizeDelta = new Vector2(252, 18); name.rectTransform.anchorMin = new Vector2(0, 0.5f); name.rectTransform.anchorMax = new Vector2(0, 0.5f);
                     var desc = UiFactory.Label(row.transform, "Desc", Vector2.zero, Vector2.zero, secret ? "解除すると見える" : d.desc, 10, TextAnchor.MiddleLeft, UiSkin.TextSub);

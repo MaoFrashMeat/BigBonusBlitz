@@ -5,6 +5,7 @@
       "name": "はじめの一回転",
       "desc": "1 回転する",
       "counter": "spins",
+      "icon": "refresh",
       "target": 1,
       "rewardSouls": 30,
       "hidden": false
@@ -14,6 +15,7 @@
       "name": "千回転",
       "desc": "1,000 回転する",
       "counter": "spins",
+      "icon": "refresh",
       "target": 1000,
       "rewardSouls": 100,
       "hidden": false
@@ -23,6 +25,7 @@
       "name": "一万回転",
       "desc": "10,000 回転する",
       "counter": "spins",
+      "icon": "refresh",
       "target": 10000,
       "rewardSouls": 300,
       "hidden": false
@@ -32,6 +35,7 @@
       "name": "十万回転",
       "desc": "100,000 回転する",
       "counter": "spins",
+      "icon": "refresh",
       "target": 100000,
       "rewardSouls": 1000,
       "hidden": false
@@ -41,6 +45,7 @@
       "name": "はじめての BIG",
       "desc": "BIG BONUS を引く",
       "counter": "big",
+      "icon": "star_gold",
       "target": 1,
       "rewardSouls": 50,
       "hidden": false
@@ -50,6 +55,7 @@
       "name": "BIG 50",
       "desc": "BIG BONUS を 50 回引く",
       "counter": "big",
+      "icon": "star_gold",
       "target": 50,
       "rewardSouls": 300,
       "hidden": false
@@ -59,6 +65,7 @@
       "name": "REG 30",
       "desc": "REG BONUS を 30 回引く",
       "counter": "reg",
+      "icon": "star_gold",
       "target": 30,
       "rewardSouls": 200,
       "hidden": false
@@ -68,6 +75,7 @@
       "name": "洞窟へ",
       "desc": "AT「洞窟」に入る",
       "counter": "at",
+      "icon": "star_gold",
       "target": 1,
       "rewardSouls": 50,
       "hidden": false
@@ -77,6 +85,7 @@
       "name": "洞窟の常連",
       "desc": "AT「洞窟」に 20 回入る",
       "counter": "at",
+      "icon": "star_gold",
       "target": 20,
       "rewardSouls": 300,
       "hidden": false
@@ -86,6 +95,7 @@
       "name": "長い洞窟",
       "desc": "1 回の AT で 300G 回す",
       "counter": "atBest",
+      "icon": "star_gold",
       "target": 300,
       "rewardSouls": 500,
       "hidden": false
@@ -95,6 +105,7 @@
       "name": "はじめての章クリア",
       "desc": "章を 1 つクリアする",
       "counter": "chapters",
+      "icon": "compass",
       "target": 1,
       "rewardSouls": 100,
       "hidden": false
@@ -104,6 +115,7 @@
       "name": "歴戦の旅人",
       "desc": "章を 10 回クリアする",
       "counter": "chapters",
+      "icon": "compass",
       "target": 10,
       "rewardSouls": 500,
       "hidden": false
@@ -113,6 +125,7 @@
       "name": "討伐 10",
       "desc": "エンゲージで敵を 10 体倒す",
       "counter": "defeats",
+      "icon": "swords",
       "target": 10,
       "rewardSouls": 100,
       "hidden": false
@@ -122,6 +135,7 @@
       "name": "討伐 100",
       "desc": "エンゲージで敵を 100 体倒す",
       "counter": "defeats",
+      "icon": "swords",
       "target": 100,
       "rewardSouls": 500,
       "hidden": false
@@ -131,6 +145,7 @@
       "name": "狩人",
       "desc": "狩猟で 50 体倒す",
       "counter": "hunts",
+      "icon": "swords",
       "target": 50,
       "rewardSouls": 300,
       "hidden": false
@@ -140,6 +155,7 @@
       "name": "宝探し",
       "desc": "宝を 10 個見つける",
       "counter": "treasures",
+      "icon": "gift",
       "target": 10,
       "rewardSouls": 100,
       "hidden": false
@@ -149,6 +165,7 @@
       "name": "拾い集め",
       "desc": "装備を 50 個拾う",
       "counter": "drops",
+      "icon": "bag",
       "target": 50,
       "rewardSouls": 200,
       "hidden": false
@@ -158,6 +175,7 @@
       "name": "伝説の一品",
       "desc": "アビス（黒）以上の装備を拾う",
       "counter": "legendDrops",
+      "icon": "bag",
       "target": 1,
       "rewardSouls": 300,
       "hidden": false
@@ -167,6 +185,7 @@
       "name": "全身装備",
       "desc": "8 つの枠を全部埋める",
       "counter": "wornMax",
+      "icon": "bag",
       "target": 8,
       "rewardSouls": 200,
       "hidden": false
@@ -176,6 +195,7 @@
       "name": "押し順の達人",
       "desc": "押し順ナビに 500 回従う",
       "counter": "naviHits",
+      "icon": "refresh",
       "target": 500,
       "rewardSouls": 300,
       "hidden": false
@@ -185,6 +205,7 @@
       "name": "職人",
       "desc": "技術介入に 20 回成功する",
       "counter": "techWins",
+      "icon": "sparkle",
       "target": 20,
       "rewardSouls": 200,
       "hidden": false
@@ -194,6 +215,7 @@
       "name": "Lv 10",
       "desc": "レベル 10 になる",
       "counter": "levelMax",
+      "icon": "compass",
       "target": 10,
       "rewardSouls": 200,
       "hidden": false
@@ -203,6 +225,7 @@
       "name": "Lv 30",
       "desc": "レベル 30 になる",
       "counter": "levelMax",
+      "icon": "compass",
       "target": 30,
       "rewardSouls": 500,
       "hidden": false
@@ -212,6 +235,7 @@
       "name": "最深部",
       "desc": "8 段目まで到達する",
       "counter": "depthMax",
+      "icon": "compass",
       "target": 8,
       "rewardSouls": 500,
       "hidden": false
@@ -221,6 +245,7 @@
       "name": "魂の収集家",
       "desc": "ソウルを累計 10,000 集める",
       "counter": "soulsTotal",
+      "icon": "crystal",
       "target": 10000,
       "rewardSouls": 300,
       "hidden": false
@@ -230,6 +255,7 @@
       "name": "旅路の洗礼",
       "desc": "力尽きて街へ戻される",
       "counter": "deaths",
+      "icon": "compass",
       "target": 1,
       "rewardSouls": 50,
       "hidden": true
@@ -239,6 +265,7 @@
       "name": "商人の目",
       "desc": "装備を 10 個売る",
       "counter": "sold",
+      "icon": "bag",
       "target": 10,
       "rewardSouls": 100,
       "hidden": false
@@ -248,6 +275,7 @@
       "name": "大商人",
       "desc": "装備を 100 個売る",
       "counter": "sold",
+      "icon": "bag",
       "target": 100,
       "rewardSouls": 300,
       "hidden": false
@@ -257,6 +285,7 @@
       "name": "目利き",
       "desc": "図鑑の装備を 20 種見つける",
       "counter": "codex",
+      "icon": "bag",
       "target": 20,
       "rewardSouls": 200,
       "hidden": false
@@ -266,6 +295,7 @@
       "name": "図鑑コンプリート",
       "desc": "図鑑の装備を 40 種すべて見つける",
       "counter": "codex",
+      "icon": "bag",
       "target": 40,
       "rewardSouls": 500,
       "hidden": false
@@ -275,6 +305,7 @@
       "name": "呪われ者",
       "desc": "呪いを 3 つ受ける",
       "counter": "curses",
+      "icon": "chain",
       "target": 3,
       "rewardSouls": 100,
       "hidden": false
@@ -284,6 +315,7 @@
       "name": "呪われた踏破",
       "desc": "呪いを 3 つ以上抱えたまま章を踏破する",
       "counter": "cursedChapters",
+      "icon": "chain",
       "target": 1,
       "rewardSouls": 300,
       "hidden": false
@@ -293,6 +325,7 @@
       "name": "Perfect!!",
       "desc": "技術介入で Perfect!! を出す",
       "counter": "techPerfect",
+      "icon": "sparkle",
       "target": 1,
       "rewardSouls": 100,
       "hidden": false
@@ -302,6 +335,7 @@
       "name": "神の指",
       "desc": "技術介入で Perfect!! を 10 回出す",
       "counter": "techPerfect",
+      "icon": "sparkle",
       "target": 10,
       "rewardSouls": 300,
       "hidden": false
