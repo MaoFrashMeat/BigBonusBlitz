@@ -17,6 +17,7 @@ public static class EquipUiProbe
         string output = Environment.GetEnvironmentVariable("EQUIP_UI_OUTPUT");
         Directory.CreateDirectory(output);
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        PlayerPrefs.SetInt("bbb_graph_always", 1);   // ミニのスランプを出した状態で描く
         var host = new GameObject("EquipProbe").AddComponent<GameController>();
         var machine = GameDataLoader.CreateMachine(new SystemRandom());
         machine.Wallet.Souls = 12345; machine.Credit = 1081;

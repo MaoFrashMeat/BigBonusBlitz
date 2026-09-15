@@ -729,12 +729,14 @@ namespace BBB.Runtime
             _logText.horizontalOverflow = HorizontalWrapMode.Wrap; _logText.verticalOverflow = VerticalWrapMode.Truncate;
             // 右の列
             _status = UiFactory.Label(side, "Status", new Vector2(sColR, top - 30), new Vector2(sColW, 40), "", 12, TextAnchor.UpperLeft, ColText);
-            // 常駐のスランプ（設定で出し入れする）。数字は右に小さく添える
-            var Lmn = UiLayout.Get("mini", Lsd.x + sColR, Lsd.y + top - 82, sColW, 40);
-            _miniBox = UiSkin.Rect(side, "MiniSlump", Lmn.Pos - Lsd.Pos, Lmn.Size);
-            _mini = SlumpGraph.Create(_miniBox, new Vector2(-24, 0), new Vector2(Lmn.w - 48, Lmn.h), _m.Credit, true);
+            // 常駐（ミニ）のスランプは表示域の左下（2026-09-16 本人の赤枠）。グラフのボタンで 大 → ミニ → OFF と切り替える。数字は右下に小さく
+            var areaStage = Lsc.Pos + new Vector2(0, AreaY);
+            var Lmn = UiLayout.Get("mini", areaStage.x - AreaW * 0.5f + 10f + 78f, areaStage.y - AreaH * 0.5f + 8f + 40f, 156, 80);
+            _miniBox = UiSkin.Rect(_area, "MiniSlump", Lmn.Pos - areaStage, Lmn.Size);
+            UiSkin.Img(_miniBox, "Bg", Vector2.zero, Lmn.Size, UiSkin.Rounded(8), new Color(0f, 0f, 0f, 0.45f)).raycastTarget = false;
+            _mini = SlumpGraph.Create(_miniBox, new Vector2(0, 6), new Vector2(Lmn.w - 10, Lmn.h - 20), _m.Credit, true);
             _mini.Restore(_m.Credit);   // 窓のグラフと同じ記録を読んで続きから（棚 c08。小型版は 160 点に間引く）
-            _miniLabel = UiFactory.Label(_miniBox, "MiniDiff", new Vector2(Lmn.w * 0.5f - 22, 0), new Vector2(44, 16), "0", 11, TextAnchor.MiddleLeft, ColTextSub);
+            _miniLabel = UiFactory.Label(_miniBox, "MiniDiff", new Vector2(Lmn.w * 0.5f - 30, -Lmn.h * 0.5f + 9), new Vector2(56, 14), "0", 11, TextAnchor.MiddleRight, ColTextSub);
             _miniBox.gameObject.SetActive(SaveData.LoadGraphAlwaysOn());
 
             // ===== 下段: 操作バー（左 BET / 中央 STOP×3 = リールと同じ物理配置 §16.3 / 右 AUTO）=====
@@ -899,7 +901,7 @@ namespace BBB.Runtime
             // ===== モーダル: スランプグラフ =====
             // 上にグラフ、下に前回までの潜行の一覧。選ぶとその回の波形を薄く重ねる
             const float grW = 720f, grH = 500f;
-            _graphBox = BuildModal("Graph", new Vector2(grW, grH), "スランプグラフ（エンバーの増減）", ToggleGraph, out var gBody);
+            _graphBox = BuildModal("Graph", new Vector2(grW, grH), "スランプグラフ（エンバーの増減）", CloseGraph, out var gBody);
             _graph = SlumpGraph.Create(gBody, new Vector2(0, grH * 0.5f - 38 - 8 - 132), new Vector2(660, 264), _m.Credit);
             _graph.Restore(_m.Credit);   // 前回までの波形の続きから
             _runBaseCredit = _m.Credit;
@@ -979,11 +981,7 @@ namespace BBB.Runtime
         /// <summary>スランプの常駐を切り替える。表示の好みなので別キーに残す。</summary>
         private void ToggleGraphAlways()
         {
-            bool on = !SaveData.LoadGraphAlwaysOn();
-            SaveData.SaveGraphAlwaysOn(on);
-            if (_miniBox != null) _miniBox.gameObject.SetActive(on);
-            if (on) RedrawMini();
-            RefreshGraphAlwaysLabel();
+            SetMiniGraph(!SaveData.LoadGraphAlwaysOn());
             _audio.UiPop();
         }
 
@@ -1055,11 +1053,25 @@ namespace BBB.Runtime
             RefreshHistory();
         }
 
+        /// <summary>グラフのボタン: 大（窓）→ ミニ（常駐）→ OFF → 大 … と切り替える（2026-09-16 本人）。</summary>
         private void ToggleGraph()
         {
-            _graphBox.SetActive(!_graphBox.activeSelf);
-            if (_graphBox.activeSelf) { _settingsBox.SetActive(false); _debugBox.SetActive(false); _graph.Redraw(); RefreshHistory(); }
+            if (_graphBox.activeSelf) { _graphBox.SetActive(false); SetMiniGraph(true); }
+            else if (SaveData.LoadGraphAlwaysOn()) SetMiniGraph(false);
+            else { _graphBox.SetActive(true); _settingsBox.SetActive(false); _debugBox.SetActive(false); _graph.Redraw(); RefreshHistory(); }
             _audio.UiPop();
+        }
+
+        /// <summary>グラフの窓の ×。閉じるだけ（切り替えはしない）。</summary>
+        private void CloseGraph() { _graphBox.SetActive(false); _audio.UiPop(); }
+
+        /// <summary>ミニのスランプの出し入れ（好みなので保存する。設定の窓の札も揃える）。</summary>
+        private void SetMiniGraph(bool on)
+        {
+            SaveData.SaveGraphAlwaysOn(on);
+            if (_miniBox != null) _miniBox.gameObject.SetActive(on);
+            if (on) RedrawMini();
+            RefreshGraphAlwaysLabel();
         }
         /// <summary>レバーオン・Esc でモーダルを閉じる（game-design §16.9: 遊技を止めさせない）。</summary>
         private void CloseModals() { if (_settingsBox != null) _settingsBox.SetActive(false); if (_debugBox != null) _debugBox.SetActive(false); if (_graphBox != null) _graphBox.SetActive(false); if (_mapBox != null) _mapBox.SetActive(false); if (_trophyBox != null) { Destroy(_trophyBox); _trophyBox = null; } if (_statsBox != null) { Destroy(_statsBox); _statsBox = null; } if (_curseListBox != null) { Destroy(_curseListBox); _curseListBox = null; } if (_equipBox != null) { Destroy(_equipBox); _equipBox = null; } }
