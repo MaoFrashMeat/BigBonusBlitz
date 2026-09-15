@@ -73,7 +73,7 @@ namespace BBB.Runtime
             var cfg = m.Config.adventure;
             string lap = m.Adv.chapter > 1 ? $"  ·  {m.Adv.chapter} 周目" : "";
             AtelierUi.Text(bg, "Eyebrow", -264, 235, 380, 18, "CHAPTER " + Mathf.Max(1, m.Adv.chapter) + " / ROUTE MAP" + lap, 10, AtelierUi.Light);
-            AtelierUi.Text(bg, "Heading", -264, 203, 380, 38, cfg?.chapterName ?? "冒険の準備", 28, AtelierUi.Light, true);
+            AtelierUi.Text(bg, "Heading", -264, 203, 380, 38, StoryDirector.ChapterTitle(m.Config.story, cfg, Mathf.Max(1, m.Adv.chapter)), 28, AtelierUi.Light, true);
 
             // 上の札 4 つ（右端から）: ソウル / エンバー / 補給 / ライフ。アイコン + 小見出し + 太い値
             const float tileW = 118f, tileGap = 8f; float tx = 480 - Margin - tileW * .5f;
@@ -185,7 +185,7 @@ namespace BBB.Runtime
                     var cb = btn.colors; cb.highlightedColor = new Color(1.15f, 1.15f, 1.15f); cb.selectedColor = new Color(1.2f, 1.2f, 1.2f); cb.pressedColor = new Color(.7f, .8f, .85f); btn.colors = cb;
                     MotionSound.Attach(btn); btn.onClick.AddListener(() => MotionSound.Invoke("Node", () => { selected = node.id; Refresh(); }));
                     root.gameObject.AddComponent<AtelierFocus>();
-                    var label = AtelierUi.Text(content, "NodeLabel_" + n.id, p.x, p.y - d * .5f - 16, 110, 16, known ? n.id + "  " + n.name : n.id + "  未発見", 11, st == State.Unknown ? AtelierUi.Sub : AtelierUi.Light, st == State.Current, TextAnchor.MiddleCenter);
+                    var label = AtelierUi.Text(content, "NodeLabel_" + n.id, p.x, p.y - d * .5f - 16, 110, 16, known ? n.id + "  " + StoryDirector.StageName(m.Config.story, m.Adv.chapter, n) : n.id + "  未発見", 11, st == State.Unknown ? AtelierUi.Sub : AtelierUi.Light, st == State.Current, TextAnchor.MiddleCenter);
                     label.rectTransform.anchorMin = label.rectTransform.anchorMax = new Vector2(0, 1);
                 }
                 if (first && positions.TryGetValue(m.Adv.nodeId, out var current)) { Canvas.ForceUpdateCanvases(); zoom.CenterOn(current, 1f); first = false; }

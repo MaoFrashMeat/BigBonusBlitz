@@ -519,9 +519,37 @@ namespace BBB.Tests
             }
             // 第 2 章の頭では「また来たのか」を足さない（初めて通る章）
             Assert.IsNull(StoryDirector.Lap(story, 2, 2));
-            // 第 3 章は用意していないので第 1 章を使い回し、3 周目の台詞が足される
-            Assert.AreEqual(1, story.Find(3).chapter);
-            Assert.IsNotNull(StoryDirector.Lap(story, 3, 3));
+            // 第 3 章も用意してあり、周回の台詞は足さない。第 4 章は用意していないので第 1 章を使い回し、周回の台詞が足される
+            Assert.AreEqual(3, story.Find(3).chapter);
+            Assert.IsNull(StoryDirector.Lap(story, 3, 3));
+            Assert.AreEqual(1, story.Find(4).chapter);
+            Assert.IsNotNull(StoryDirector.Lap(story, 4, 4));
+        }
+
+        [Test]
+        public void 第3章は全部の段に台詞があり_第2章はステージ名が全部書き換わる()
+        {
+            var m = NewMachine(3);
+            var story = m.Config.story;
+            var adv = m.Config.adventure;
+            var ch3 = story.FindExact(3);
+            Assert.IsNotNull(ch3);
+            foreach (var n in adv.nodes)
+            {
+                var st = ch3.FindStage(n.column);
+                Assert.IsNotNull(st, "第 3 章に段 " + n.column + " の台詞が無い");
+                Assert.IsTrue(st.high.Count > 0 && st.mid.Count > 0 && st.low.Count > 0, "段 " + n.column + " の上中下が揃っていない");
+                // 第 2 章は同じ地図でステージ名だけ変わる。第 1 章と第 3 章は adventure の名のまま
+                string n2 = StoryDirector.StageName(story, 2, n);
+                Assert.AreNotEqual(n.name, n2, n.id + " の第 2 章の名が第 1 章と同じ");
+                Assert.AreEqual(n.name, StoryDirector.StageName(story, 1, n));
+                Assert.AreEqual(n.name, StoryDirector.StageName(story, 3, n));
+                Assert.AreEqual(n.name, StoryDirector.StageName(story, 9, n), "用意していない章で名が変わる");
+            }
+            Assert.IsNull(story.FindExact(9));
+            Assert.AreEqual(story.FindExact(2).title, StoryDirector.ChapterTitle(story, adv, 2));
+            Assert.AreEqual(adv.chapterName, StoryDirector.ChapterTitle(story, adv, 9));
+            Assert.AreEqual("", StoryDirector.StageName(story, 2, null));
         }
     }
 }

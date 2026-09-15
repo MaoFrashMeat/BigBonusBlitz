@@ -49,6 +49,8 @@ namespace BBB.Core
         public List<StoryLine> onClear = new List<StoryLine>();
         /// <summary>2 周目以降に足す台詞（キーは周回数）。</summary>
         public Dictionary<string, List<StoryLine>> laps = new Dictionary<string, List<StoryLine>>();
+        /// <summary>この章でのステージ名（キーはステージ id。無いステージは adventure の名のまま）。地図の形は章で変えない</summary>
+        public Dictionary<string, string> stageNames = new Dictionary<string, string>();
 
         public StoryStage FindStage(string column)
         {
@@ -73,6 +75,14 @@ namespace BBB.Core
             if (chapters == null || chapters.Count == 0) return null;
             foreach (var c in chapters) if (c != null && c.chapter == chapter) return c;
             return chapters[0];   // 用意していない周回は第 1 章を使い回す
+        }
+
+        /// <summary>その章だけ（使い回しなし）。無ければ null。</summary>
+        public StoryChapter FindExact(int chapter)
+        {
+            if (chapters == null) return null;
+            foreach (var c in chapters) if (c != null && c.chapter == chapter) return c;
+            return null;
         }
     }
 
@@ -125,6 +135,23 @@ namespace BBB.Core
             int n = 0;
             foreach (var x in adv.nodes) if (x != null && x.column == column) n++;
             return Math.Max(1, n);
+        }
+
+        /// <summary>画面に出すステージ名。章にその id の名があればそれ、無ければ adventure の名。</summary>
+        public static string StageName(StoryConfig cfg, int chapter, StageNode node)
+        {
+            if (node == null) return "";
+            var ch = cfg != null && cfg.enabled ? cfg.FindExact(chapter) : null;
+            if (ch?.stageNames != null && !string.IsNullOrEmpty(node.id) && ch.stageNames.TryGetValue(node.id, out var name) && !string.IsNullOrEmpty(name)) return name;
+            return node.name ?? "";
+        }
+
+        /// <summary>章の題（story にその章があればその題、無ければ adventure.chapterName）。</summary>
+        public static string ChapterTitle(StoryConfig cfg, AdventureConfig adv, int chapter)
+        {
+            var ch = cfg != null && cfg.enabled ? cfg.FindExact(chapter) : null;
+            if (ch != null && !string.IsNullOrEmpty(ch.title)) return ch.title;
+            return adv?.chapterName ?? "";
         }
 
         public static List<StoryLine> Opening(StoryConfig cfg, int chapter) => cfg?.Find(chapter)?.opening;

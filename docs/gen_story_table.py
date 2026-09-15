@@ -42,6 +42,7 @@ def main():
     w("- 引き返した / ライフが尽きた / 力尽きた / 踏破した ときに、それぞれの台詞")
     w("- 用意していない章は第 1 章の台詞を使い回す")
     w("- 【声】は姿のない語り手。無印は主人公")
+    w("- ステージ名は章ごとに `stageNames` で書き換えられる（地図の形は同じ。無いステージは adventure の名）")
     w("")
     total = 0
     for ch in st.get("chapters", []):
@@ -58,8 +59,9 @@ def main():
         w("| 段 | ステージ | 上の枝（灯が強い） | 真ん中 | 下の枝（灯が弱い） |")
         w("|---|---|---|---|---|")
         stages = {s["column"]: s for s in ch.get("stages", [])}
+        sn = ch.get("stageNames") or {}      # 章ごとのステージ名（無いステージは adventure の名）
         for col in cols:
-            names = " / ".join(n["name"] for n in nodes if n["column"] == col)
+            names = " / ".join(sn.get(n["id"]) or n["name"] for n in nodes if n["column"] == col)
             s = stages.get(col, {})
             w("| %s | %s | %s | %s | %s |" % (col, names, lines(s.get("high")), lines(s.get("mid")), lines(s.get("low"))))
         w("")

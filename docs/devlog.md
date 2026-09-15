@@ -379,6 +379,13 @@ cherry_1 66% / replay_6 81% / blank_6 73%。旧絵（symbol_src）は使わな�
 効くのは高確ステージ（stage.mode = "D"）と、ボーナス後のモード移行（modeTransitions）で B〜D に入ったとき。
 → 覆すなら: 数字は game_config.json の probabilities_B / C / D。案 2（D のボーナス 1.5 倍）に切り替えるときは別途測る。
 
+### 決定: 章ごとの地図は「同じ形でステージ名だけ変える」。名は story.chapters[].stageNames（棚 t17）
+本人がチェックを入れ直した（提案: 第 2 章は同じ形でステージ名だけ「分けた灯」の後の世界に書き換える。枝は同じ）ので、そのまま。
+地図の形（30 ステージ・枝・条件）は章で変えない。変えるのは名だけで、無いステージは adventure の名のまま。
+街の地図の見出しは adventure.chapterName（第1章  はじまりの草原）でなく story の章の題にした（第 1 章は「灯を継ぐ」に変わる）。
+第 3 章の名はまだ付けていない（第 1 章の名のまま。候補に積む）。
+→ 覆すなら: 形も変えるなら adventure.nodes を章ごとに持つ必要があり、Core の AdventureConfig から作り直し。
+
 ### 決定: 実績の絵はアイコンのシート（Art/UI/Icons）から種類ごとに選ぶ。SDF は描かない（棚 t16）
 案 1 は「SDF で 6 種を描く」だったが、別セッションのアトリエ画面でアイコンのシート（44 枚）が入ったので、そちらを使う方が絵が揃う。
 回転 refresh / 技術介入 sparkle / ボーナス star_gold / 討伐 swords / 呪い chain / 冒険 compass / 装備 bag / 宝 gift / 魂 crystal。

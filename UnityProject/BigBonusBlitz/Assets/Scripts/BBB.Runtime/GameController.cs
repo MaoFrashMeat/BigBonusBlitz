@@ -259,6 +259,9 @@ namespace BBB.Runtime
             }
         }
 
+        /// <summary>画面に出すステージ名（章ごとに story.stageNames で書き換えられる）。</summary>
+        private string StageName(StageNode n) => StoryDirector.StageName(_m.Config.story, _m.Adv.chapter, n);
+
         private void OnApplicationQuit() { SaveData.Save(_m, _audio); _graph?.Save(); }
 
         // ------------------------------------------------------------------ UI
@@ -1035,7 +1038,7 @@ namespace BBB.Runtime
                 maxDiff = _graph.RunMaxDiff,
                 minDiff = _graph.RunMinDiff,
                 chapter = _m.Adv?.chapter ?? 1,
-                stage = node?.name ?? _m.Adv?.nodeId ?? "",
+                stage = node != null ? StageName(node) : (_m.Adv?.nodeId ?? ""),
                 reason = reason ?? "",
                 wave = _graph.RunSnapshot(RunHistory.WavePoints),
             });
@@ -1125,7 +1128,7 @@ namespace BBB.Runtime
             {
                 var stg = _m.CurrentStage;
                 var sc = Hex(AdventureDirector.ColorFor(stg));
-                _stageTag.text = stg != null ? $"{stg.id} {stg.name}   のこり {_m.Adv.spinsLeft}G" : "";
+                _stageTag.text = stg != null ? $"{stg.id} {StageName(stg)}   のこり {_m.Adv.spinsLeft}G" : "";
                 if (_stageTagEdge != null) _stageTagEdge.color = sc;
 
                 // ステージが止まっている間は鎖と錠で封じる
@@ -2881,7 +2884,7 @@ namespace BBB.Runtime
             _audio.Win();
             UiFx.Burst(_charRt, UiFx.Preset.RainbowStars, new Vector2(0, 40));
             yield return SlamTitle($"条件達成！  {AdventureDirector.DescribeCondition(c)}", ColGold, 1.6f, 40);
-            if (to != null) yield return SlamTitle($"{to.id}  {to.name} へ", Hex(AdventureDirector.ColorFor(to)), 1.3f, 44);
+            if (to != null) yield return SlamTitle($"{to.id}  {StageName(to)} へ", Hex(AdventureDirector.ColorFor(to)), 1.3f, 44);
         }
 
         private IEnumerator TreasureRoutine(TreasureDef t)
@@ -2908,7 +2911,7 @@ namespace BBB.Runtime
             {
                 _audio.EnemyAppearLand();
                 UiFx.Ring(_charRt, new Color(color.r, color.g, color.b, 0.8f), 40, 300, 0.5f);
-                yield return SlamTitle($"{node.id}   {node.name}", color, 1.6f, 50);
+                yield return SlamTitle($"{node.id}   {StageName(node)}", color, 1.6f, 50);
                 if (firstSouls > 0) yield return SlamTitle($"はじめての地   {{soul}}+{firstSouls}", ColGold, 1.2f, 36);
             }
             else
@@ -2917,7 +2920,7 @@ namespace BBB.Runtime
                 _audio.EnemyEscape();
                 StartCoroutine(Effects.Miss(_charRt));
                 yield return SlamTitle(stayed ? "進めなかった……" : "来た道を引き返す……", ColTextSub, 1.4f, 38);
-                yield return SlamTitle($"{node.id}   {node.name}", new Color(color.r * 0.7f, color.g * 0.7f, color.b * 0.7f), 1.2f, 44);
+                yield return SlamTitle($"{node.id}   {StageName(node)}", new Color(color.r * 0.7f, color.g * 0.7f, color.b * 0.7f), 1.2f, 44);
                 PlayStory(StoryDirector.OnBack(_m.Config.story, _m.Adv.chapter));
             }
             RefreshUi();
@@ -3130,13 +3133,13 @@ namespace BBB.Runtime
             if (r.routeDecided != null && !r.stageChanged && cfg != null)
             {
                 var n = cfg.Find(r.routeDecided);
-                lines.Add(r.routeCondition != null ? $"{AdventureDirector.DescribeCondition(r.routeCondition)} を達成。次は {n?.name ?? r.routeDecided} へ"
+                lines.Add(r.routeCondition != null ? $"{AdventureDirector.DescribeCondition(r.routeCondition)} を達成。次は {(n != null ? StageName(n) : r.routeDecided)} へ"
                                                    : $"次は {n?.name ?? r.routeDecided} へ進む");
             }
             if (r.stageChanged && cfg != null)
             {
                 var n = cfg.Find(r.stageTo);
-                if (n != null) lines.Add($"{n.name} に着いた。{_m.Adv.spinsLeft}G 回すと次のルートが決まる");
+                if (n != null) lines.Add($"{StageName(n)} に着いた。{_m.Adv.spinsLeft}G 回すと次のルートが決まる");
             }
             if (r.curseOffer != null) lines.Add("呪いの申し出。受けると呪いと祝福が 1 つずつ付く（街へ戻るまで）");
             if (r.tech.Active)
