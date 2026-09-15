@@ -38,6 +38,8 @@ namespace BBB.Runtime
         private GameObject _tier2Box;
         private Image _expFill;
         private Button _btnBet, _btnAuto, _btnAutoSpeed;
+        /// <summary>AUTO が ON のとき、ボタンの後ろに出す緑の光。</summary>
+        private Image _autoGlow;
 
         private RectTransform _charRt;
         private SpriteAnimator _charAnim;
@@ -751,6 +753,9 @@ namespace BBB.Runtime
             float autoBtnW = autoW - SpdW - SpdGap;
             var Lau = UiLayout.Get("auto", ContentW * 0.5f - SideW + autoBtnW * 0.5f, CtrlY, autoBtnW, CtrlH);
             _btnAuto = UiSkin.Button(_stage, "BtnAuto", Lau.Pos, Lau.Size, "AUTO", ToggleAuto, ColBtn, 18, true, 12, UiLayout.Frame("auto"));
+            // ON のときだけ後ろに緑の光（ボタンの 1 つ後ろに置く）
+            _autoGlow = UiSkin.Img(_stage, "AutoGlow", Lau.Pos, Lau.Size + new Vector2(56, 56), UiSkin.Glow(96), new Color(0.45f, 1f, 0.6f, 0.6f));
+            _autoGlow.raycastTarget = false; _autoGlow.transform.SetSiblingIndex(_btnAuto.transform.GetSiblingIndex()); _autoGlow.enabled = false;
             AddSubHint(_btnAuto, _isTouch ? "ON / OFF" : "A: ON / OFF");
             var Lsp = UiLayout.Get("autoSpeed", ContentW * 0.5f - SideW + autoBtnW + SpdGap + SpdW * 0.5f, CtrlY, SpdW, CtrlH);
             _btnAutoSpeed = UiSkin.Button(_stage, "BtnAutoSpeed", Lsp.Pos, Lsp.Size, "x1", CycleAutoSpeed, ColBtn, 16, false, 12, UiLayout.Frame("autoSpeed"));
@@ -1271,6 +1276,7 @@ namespace BBB.Runtime
             UiSkin.SetButtonText(_btnAuto, "AUTO");
             UiSkin.SetButtonColor(_btnAuto, _autoMode ? ColGreen : ColBtn, _autoMode ? ColBg : ColText);
             UiSkin.SetLamp(_btnAuto, _autoMode, ColGreen);
+            SetAutoLook(_autoMode);
             // 速さのボタン: 選んだ速さ。長押しの一時オート中だけ x1 と出す
             if (_btnAutoSpeed != null)
             {
@@ -4927,6 +4933,20 @@ namespace BBB.Runtime
         }
 
         /// <summary>オートの ON/OFF と速さをまとめて切り替える。</summary>
+        /// <summary>AUTO のボタンの見え方: ON は緑に明るく + 後ろに緑の光、OFF は暗く（2026-09-16 本人: 見分けやすく）。枠の絵に色を掛ける。</summary>
+        private void SetAutoLook(bool on)
+        {
+            if (_btnAuto == null) return;
+            var tint = on ? Color.Lerp(Color.white, ColGreen, 0.55f) : new Color(0.42f, 0.45f, 0.52f, 1f);
+            var cb = _btnAuto.colors;
+            cb.normalColor = tint; cb.highlightedColor = tint * 1.1f; cb.selectedColor = tint; cb.pressedColor = tint * new Color(0.72f, 0.74f, 0.82f, 1f);
+            _btnAuto.colors = cb;
+            if (_btnAuto.targetGraphic != null) _btnAuto.targetGraphic.color = tint;
+            var t = _btnAuto.GetComponentInChildren<Text>();
+            if (t != null) t.color = on ? Color.white : new Color(0.75f, 0.78f, 0.85f, 1f);
+            if (_autoGlow != null) _autoGlow.enabled = on;
+        }
+
         private void SetAuto(bool on, int speed)
         {
             _autoMode = on;
