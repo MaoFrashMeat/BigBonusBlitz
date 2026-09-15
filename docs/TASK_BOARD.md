@@ -72,8 +72,9 @@ run.py はどれが無くても「NG …」の 1 行で教える。本体を Uni
 
 ## 別 PC の push 待ちで HEAD の Runtime がコンパイルできないとき（2026-09-15 の例）
 
-`AtelierMap.cs` が `AdventureEnvironmentProfile.UsesModules` を使うのに、その定義（別 PC の未 push 分）が無い。
-`py -3 tools/verify/run.py` の runtime / tests は NG になるが、自分の変更の検証は次でできる:
+`AtelierMap.cs` が `AdventureEnvironmentProfile.UsesModules` を使うのに、その定義（別 PC の未 push 分）が無かった
+（本人の指示で 09-15 に `modules` / `UsesModules` を足して通した。別 PC の分が来たらそちらの定義に置き換える）。
+同じことが起きたら `py -3 tools/verify/run.py` の runtime / tests は NG になるが、自分の変更の検証は次でできる:
 - scratchpad に runtime.csproj の写しを作り、足りない定義を足した `AdventureEnvironmentCatalog.cs` の写し（`public bool UsesModules => false;`）に `<Compile Remove>` + `<Compile Include>` で差し替えて `dotnet build`
 - Unity の EditMode テスト / プローブは、複製プロジェクト（`Assets` を robocopy /MIR で写す）に同じ穴埋めの写しを置いてから回す
 - 直すのは相手の仕事。自分では直さず「指摘」に留める
