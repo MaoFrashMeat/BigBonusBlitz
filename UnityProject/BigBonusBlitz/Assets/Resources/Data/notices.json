@@ -2,6 +2,12 @@
   "entries": [
     {
       "date": "2026-09-16",
+      "version": "dev 236",
+      "title": "「GET」の帯の震えが止まるまでの秒数",
+      "body": "・reelFx.emberGain.shakeSeconds（帯が止まってから震えが止まるまでの秒。まず 0.4）。0 なら今まで通り止まっている間ずっと（終わりに向けて弱まる）\n・ビューアの「部品」に「震えが止まる秒」"
+    },
+    {
+      "date": "2026-09-16",
       "version": "dev 235",
       "title": "「AT +5G GET」の ＋ と G の大きさを変えられる",
       "body": "・reelFx.emberGain の plusScale / unitScale（数字の高さ比。1 = 数字と同じ、既定 1）。並びは数字と同じ中心線\n・ビューアの「大きさ・位置」に「＋ の大きさ」「G の大きさ」（種類を AT の G 数にして確かめる）"

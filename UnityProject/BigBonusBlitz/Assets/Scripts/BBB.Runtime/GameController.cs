@@ -4461,7 +4461,9 @@ namespace BBB.Runtime
             if (phase == 3) return false;
             float u = phase == 0 ? t / tIn : phase == 1 ? (tHold > 0 ? (t - tIn) / tHold : 1f) : (t - tIn - tHold) / tOut;
             if (fx.countUp) countU = Mathf.Clamp01((t - tIn - fx.countOffset) / Mathf.Max(0.01f, fx.countSeconds));   // 数え上げ: 止まった瞬間からのオフセットで管理（どの型にも重なる）
-            float shake = fx.shake && phase == 1 ? 3f * Mathf.Sin((t - tIn) * 30f) * (1f - u) : 0f;
+            // 震え: shakeSeconds が 0 なら止まっている間ずっと（終わりに向けて弱まる）、指定があればその秒で止まる
+            float shakeU = fx.shakeSeconds > 0f ? Mathf.Clamp01((t - tIn) / fx.shakeSeconds) : u;
+            float shake = fx.shake && phase == 1 && shakeU < 1f ? 3f * Mathf.Sin((t - tIn) * 30f) * (1f - shakeU) : 0f;
             switch (style)
             {
                 case "slideLR":

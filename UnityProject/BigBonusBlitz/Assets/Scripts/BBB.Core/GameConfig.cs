@@ -261,6 +261,8 @@ namespace BBB.Core
         public float backIconSize = 120f, backIconAlpha = 0.45f, backIconX = 0f, backIconY = 0f, backIconRot = 0f, backIconSpin = 0f;
         /// <summary>部品ごとの ON/OFF: 黒い帯 / 上下の線 / 後ろの光 / 止まっている間の震え / 止まった瞬間の火花 / 数字の右の炎（手前）。</summary>
         public bool showBand = false, showEdges = false, showGlow = true, shake = true, sparks = true, showIcon = true;
+        /// <summary>震え（shake）が止まるまでの秒（帯が止まってから）。0 なら止まっている間ずっと（終わりに向けて弱まる）。</summary>
+        public float shakeSeconds = 0f;
         /// <summary>帯が止まった瞬間に種類ごとの音（ソウル / エンバー / EXP / G 数）を鳴らす。</summary>
         public bool sound = true;
         /// <summary>
