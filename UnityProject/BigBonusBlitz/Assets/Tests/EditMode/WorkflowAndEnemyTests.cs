@@ -294,5 +294,17 @@ namespace BBB.Tests
             for (int i = 0; i < 100_000; i++) if (EnemyEngage.RollDefeat(slime, WinType.BELL, rng, streak: 2, streakBonus: 15)) hit++;
             Assert.AreEqual(0.55, hit / 100_000.0, 0.01);
         }
+
+        [Test]
+        public void 討伐率は基本に連続ボーナスと装備の上乗せを足し_表にない役は0()
+        {
+            var slime = _enemies.Find(t => t.enemyType == "slime");
+            int bell = slime.defeatProbabilities["BELL"];
+            Assert.AreEqual(bell, EnemyEngage.DefeatPercent(slime, WinType.BELL), 1e-6);
+            Assert.AreEqual(bell + 2 * 15 + 7, EnemyEngage.DefeatPercent(slime, WinType.BELL, streak: 2, streakBonus: 15, skillBonus: 7), 1e-6);
+            Assert.AreEqual(100.0, EnemyEngage.DefeatPercent(slime, WinType.BELL, multiplier: 10f), 1e-6, "100% で頭打ち");
+            Assert.AreEqual(0, EnemyEngage.DefeatPercent(slime, WinType.NONE), 1e-6);
+            Assert.AreEqual(0, EnemyEngage.DefeatPercent(null, WinType.BELL), 1e-6);
+        }
     }
 }

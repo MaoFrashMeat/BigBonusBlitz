@@ -59,6 +59,8 @@ namespace BBB.Core
         public int atExpectGained;
         /// <summary>敵を討伐して得た EXP（中ボスは多い）。</summary>
         public int enemyExp;
+        /// <summary>このGの討伐抽選で使った率（%。連続ボーナスと装備・技能を含む）。抽選が無かったGは 0。体力バーはこれで減らす</summary>
+        public int defeatPercent;
         /// <summary>このGで得たソウル。</summary>
         public int soulsGained;
         // --- AT ---
@@ -885,7 +887,7 @@ namespace BBB.Core
                 if (win.winType == WinType.BELL && Navi.Active && CurrentCommand == BellCommand.Success)
                 {
                     var bc = Config.bellCommand;
-                    if (bc == null || bc.successGuaranteesDefeat) { result.naviDefeatGuaranteed = !EnemyDefeatWon; EnemyDefeatWon = true; }
+                    if (bc == null || bc.successGuaranteesDefeat) { result.naviDefeatGuaranteed = !EnemyDefeatWon; if (!EnemyDefeatWon && IsTier2 && EnemyActive) LastDefeatPercent = 100; EnemyDefeatWon = true; }
                     int exp = bc?.successExp ?? 25;
                     if (exp > 0) { result.naviExp = exp; if (GainExp(exp)) result.levelUp = true; }
                 }
@@ -910,6 +912,10 @@ namespace BBB.Core
                 Bet = 0;
                 if (IsTier2) DefeatStreak = 0;
             }
+
+            // このGの討伐抽選で使った率を結果に（体力バーの見通し用。抽選が無ければ 0）
+            result.defeatPercent = LastDefeatPercent;
+            LastDefeatPercent = 0;
 
             // Tier2 決着（tier2MaxSpins ゲーム目の終わり）
             if (IsTier2 && Tier2SpinCount >= EngageMaxSpins)
@@ -1350,12 +1356,18 @@ namespace BBB.Core
         {
             if (!IsTier2 || ActiveEnemyTable == null || !EnemyActive) return false;
             if (EnemyDefeatWon) return false;
-            int skillBonus = BonusOf(ShopEffects.DefeatBonus)
-                             + (StatsCfg != null ? (int)(TechniqueStat * StatsCfg.technique.defeatBonus) : 0);
+            int skillBonus = DefeatSkillBonus;
+            LastDefeatPercent = (int)Math.Round(EnemyEngage.DefeatPercent(ActiveEnemyTable, winType, multiplier, DefeatStreak, Config.defeatStreakBonus, skillBonus));
             if (EnemyEngage.RollDefeat(ActiveEnemyTable, winType, _rng, multiplier, DefeatStreak, Config.defeatStreakBonus, skillBonus)) EnemyDefeatWon = true;
             DefeatStreak++;
             return EnemyDefeatWon;
         }
+
+        /// <summary>装備（討伐率の上乗せ）と技能ステータスぶんの討伐率の上乗せ（%）。</summary>
+        public int DefeatSkillBonus => BonusOf(ShopEffects.DefeatBonus) + (StatsCfg != null ? (int)(TechniqueStat * StatsCfg.technique.defeatBonus) : 0);
+
+        /// <summary>直前の討伐抽選で使った率（%）。抽選のたびに更新（Evaluate が結果に写して 0 に戻す）。</summary>
+        public int LastDefeatPercent { get; private set; }
 
         /// <summary>装備を売る（実績の「売った数」も進める）。戻り値は入ったソウル。</summary>
         public int SellEquip(EquipItem item)

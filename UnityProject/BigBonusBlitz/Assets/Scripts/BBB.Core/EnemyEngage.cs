@@ -34,11 +34,20 @@ namespace BBB.Core
         /// <summary>checkEnemyDefeat: 役ごとの討伐率（%）で内部当選。multiplier は倍率、streak は直前までの小役連続回数（1回ごとに streakBonus % 加算）。</summary>
         public static bool RollDefeat(EnemyTable table, WinType winType, IRandom rng, float multiplier = 1f, int streak = 0, int streakBonus = 0, int skillBonus = 0)
         {
-            if (table == null) return false;
-            string key = winType.ToString();
-            if (!table.defeatProbabilities.TryGetValue(key, out var prob) || prob <= 0) return false;
-            double p = System.Math.Min(100.0, (prob + Math.Max(0, streak) * Math.Max(0, streakBonus) + Math.Max(0, skillBonus)) * multiplier);
+            double p = DefeatPercent(table, winType, multiplier, streak, streakBonus, skillBonus);
+            if (p <= 0) return false;
             return rng.NextDouble() * 100 < p;
+        }
+
+        /// <summary>
+        /// その役で討伐が決まる率（%、0〜100）。基本の率に 連続ボーナス × 連続回数 と 装備・技能の上乗せを足し、倍率を掛ける。
+        /// 表にない役は 0。抽選（RollDefeat）と体力バーの見通しはこれ 1 つを使う。
+        /// </summary>
+        public static double DefeatPercent(EnemyTable table, WinType winType, float multiplier = 1f, int streak = 0, int streakBonus = 0, int skillBonus = 0)
+        {
+            if (table?.defeatProbabilities == null) return 0;
+            if (!table.defeatProbabilities.TryGetValue(winType.ToString(), out var prob) || prob <= 0) return 0;
+            return System.Math.Min(100.0, (prob + Math.Max(0, streak) * Math.Max(0, streakBonus) + Math.Max(0, skillBonus)) * multiplier);
         }
 
         /// <summary>onLever の示唆演出抽選。</summary>

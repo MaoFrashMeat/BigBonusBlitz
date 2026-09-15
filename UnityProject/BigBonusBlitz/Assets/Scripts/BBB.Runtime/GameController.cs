@@ -2575,9 +2575,10 @@ namespace BBB.Runtime
             if (r.bonusEnded) SetMessage("BONUS END!", true, Color.yellow);
 
             // 中ボスの体力バー: 当たりごとに、その役の討伐率ぶん「生き残る確率」を掛けて減らす。決着までは 6% を下回らない（3G 目まで結果は言わない）
+            // 率は実際の抽選と同じ（基本 + 連続ボーナス × 連続回数 + 装備・技能。GameResult.defeatPercent。棚 c12）
             if (_engagedBoss && r.win.winType != WinType.NONE && (_m.IsTier2 || r.enemyResolved.HasValue) && _m.ActiveEnemyTable != null)
             {
-                int p = _m.ActiveEnemyTable.defeatProbabilities != null && _m.ActiveEnemyTable.defeatProbabilities.TryGetValue(r.win.winType.ToString(), out var pp) ? pp : 0;
+                int p = r.defeatPercent;
                 if (p > 0)
                 {
                     _bossHp = Mathf.Max(0.06f, _bossHp * (1f - Mathf.Clamp01(p / 100f)));
