@@ -519,11 +519,14 @@ namespace BBB.Tests
             }
             // 第 2 章の頭では「また来たのか」を足さない（初めて通る章）
             Assert.IsNull(StoryDirector.Lap(story, 2, 2));
-            // 第 3 章も用意してあり、周回の台詞は足さない。第 4 章は用意していないので第 1 章を使い回し、周回の台詞が足される
+            // 第 3 章も用意してあり、周回の台詞は足さない。第 4 章は用意していないので最後の章（第 3 章）を使い回し、周回の台詞は第 1 章の laps から足される
             Assert.AreEqual(3, story.Find(3).chapter);
             Assert.IsNull(StoryDirector.Lap(story, 3, 3));
-            Assert.AreEqual(1, story.Find(4).chapter);
+            Assert.AreEqual(3, story.Find(4).chapter);
+            Assert.AreEqual(3, story.Find(9).chapter);
             Assert.IsNotNull(StoryDirector.Lap(story, 4, 4));
+            Assert.AreEqual(StoryDirector.Lap(story, 4, 4), StoryDirector.Lap(story, 1, 4), "使い回しの周回の台詞は第 1 章のもの");
+            Assert.AreEqual("第4章  灯の歩幅", StoryDirector.ChapterTitle(story, m.Config.adventure, 4));
         }
 
         [Test]
@@ -544,11 +547,12 @@ namespace BBB.Tests
                 Assert.AreNotEqual(n.name, n2, n.id + " の第 2 章の名が第 1 章と同じ");
                 Assert.AreEqual(n.name, StoryDirector.StageName(story, 1, n));
                 Assert.AreEqual(n.name, StoryDirector.StageName(story, 3, n));
-                Assert.AreEqual(n.name, StoryDirector.StageName(story, 9, n), "用意していない章で名が変わる");
+                Assert.AreEqual(StoryDirector.StageName(story, 3, n), StoryDirector.StageName(story, 9, n), "用意していない章は最後の章の名");
             }
             Assert.IsNull(story.FindExact(9));
             Assert.AreEqual(story.FindExact(2).title, StoryDirector.ChapterTitle(story, adv, 2));
-            Assert.AreEqual(adv.chapterName, StoryDirector.ChapterTitle(story, adv, 9));
+            Assert.AreEqual("第9章  灯の歩幅", StoryDirector.ChapterTitle(story, adv, 9));
+            Assert.AreEqual(adv.chapterName, StoryDirector.ChapterTitle(new StoryConfig(), adv, 9), "story が無ければ adventure の章名");
             Assert.AreEqual("", StoryDirector.StageName(story, 2, null));
         }
     }

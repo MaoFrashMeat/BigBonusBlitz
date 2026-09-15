@@ -70,11 +70,18 @@ namespace BBB.Core
         public int lowBranchFromBottom = 1;
         public List<StoryChapter> chapters = new List<StoryChapter>();
 
+        /// <summary>その章。用意していない章は、それより前で最後に用意した章を使い回す（第 3 章まであれば 4 章目以降は第 3 章）。</summary>
         public StoryChapter Find(int chapter)
         {
             if (chapters == null || chapters.Count == 0) return null;
-            foreach (var c in chapters) if (c != null && c.chapter == chapter) return c;
-            return chapters[0];   // 用意していない周回は第 1 章を使い回す
+            StoryChapter best = null;
+            foreach (var c in chapters)
+            {
+                if (c == null) continue;
+                if (c.chapter == chapter) return c;
+                if (c.chapter < chapter && (best == null || c.chapter > best.chapter)) best = c;
+            }
+            return best ?? chapters[0];
         }
 
         /// <summary>その章だけ（使い回しなし）。無ければ null。</summary>
@@ -141,17 +148,18 @@ namespace BBB.Core
         public static string StageName(StoryConfig cfg, int chapter, StageNode node)
         {
             if (node == null) return "";
-            var ch = cfg != null && cfg.enabled ? cfg.FindExact(chapter) : null;
+            var ch = cfg != null && cfg.enabled ? cfg.Find(chapter) : null;   // 用意していない章は最後の章の名
             if (ch?.stageNames != null && !string.IsNullOrEmpty(node.id) && ch.stageNames.TryGetValue(node.id, out var name) && !string.IsNullOrEmpty(name)) return name;
             return node.name ?? "";
         }
 
-        /// <summary>章の題（story にその章があればその題、無ければ adventure.chapterName）。</summary>
+        /// <summary>章の題。story にその章があればその題、無ければ使い回す章の題の「第n章」を今の番号にして出す（story が無ければ adventure.chapterName）。</summary>
         public static string ChapterTitle(StoryConfig cfg, AdventureConfig adv, int chapter)
         {
-            var ch = cfg != null && cfg.enabled ? cfg.FindExact(chapter) : null;
-            if (ch != null && !string.IsNullOrEmpty(ch.title)) return ch.title;
-            return adv?.chapterName ?? "";
+            var ch = cfg != null && cfg.enabled ? cfg.Find(chapter) : null;
+            if (ch == null || string.IsNullOrEmpty(ch.title)) return adv?.chapterName ?? "";
+            if (ch.chapter == chapter) return ch.title;
+            return System.Text.RegularExpressions.Regex.Replace(ch.title, @"^第\s*\d+\s*章", "第" + chapter + "章");
         }
 
         public static List<StoryLine> Opening(StoryConfig cfg, int chapter) => cfg?.Find(chapter)?.opening;
@@ -163,13 +171,16 @@ namespace BBB.Core
         /// <summary>2 周目以降に足す台詞（同じ道をまた通っていることを世界が覚えている）。</summary>
         public static List<StoryLine> Lap(StoryConfig cfg, int chapter, int lap)
         {
-            var ch = cfg?.Find(chapter);
-            if (ch?.laps == null || lap < 2) return null;
-            if (ch.laps.TryGetValue(lap.ToString(), out var v) && v != null && v.Count > 0) return v;
+            if (cfg == null || lap < 2) return null;
+            // その章に周回の台詞があればそれ。用意した章（laps が空）は足さない。用意していない章（使い回し）は第 1 章の laps から足す
+            var exact = cfg.FindExact(chapter);
+            var laps = exact != null ? exact.laps : (cfg.chapters != null && cfg.chapters.Count > 0 ? cfg.chapters[0]?.laps : null);
+            if (laps == null) return null;
+            if (laps.TryGetValue(lap.ToString(), out var v) && v != null && v.Count > 0) return v;
             // 用意していない周回は、いちばん大きい番号のものを使う
             List<StoryLine> best = null;
             int bestKey = 1;
-            foreach (var kv in ch.laps)
+            foreach (var kv in laps)
                 if (int.TryParse(kv.Key, out var k) && k <= lap && k > bestKey && kv.Value != null && kv.Value.Count > 0)
                 { best = kv.Value; bestKey = k; }
             return best;
