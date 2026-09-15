@@ -1,3 +1,4 @@
+using BBB.Core;
 using UnityEngine;
 
 namespace BBB.Runtime
@@ -29,6 +30,8 @@ namespace BBB.Runtime
         /// <summary>実績解除と落とし物（素材 se_achievement / se_pickup_soul / se_pickup_ember / se_pickup_item があれば優先）。</summary>
         private AudioClip _achievement, _pickupSoul, _pickupEmber, _pickupItem;
         private AudioClip _gainExp, _gainGames;
+        private AudioClip _rankPerfect;
+        private readonly System.Collections.Generic.Dictionary<string, AudioClip> _rankClips = new System.Collections.Generic.Dictionary<string, AudioClip>();
 
         public float BgmVolume { get => _bgmBaseVolume; set { _bgmBaseVolume = value; _bgm.volume = value; } }
         public float SeVolume { get => _se.volume; set { value = Mathf.Clamp01(value); _se.volume = value; _sePitched.volume = value; SetMotionVolume(value); } }
@@ -85,6 +88,7 @@ namespace BBB.Runtime
             am._pickupItem = Resources.Load<AudioClip>("Audio/SE/se_pickup_item") ?? SfxSynth.PickupItem();
             am._gainExp = Resources.Load<AudioClip>("Audio/SE/se_gain_exp") ?? SfxSynth.GainExp();
             am._gainGames = Resources.Load<AudioClip>("Audio/SE/se_gain_games") ?? SfxSynth.GainGames();
+            am._rankPerfect = Resources.Load<AudioClip>("Audio/SE/se_rank_perfect") ?? SfxSynth.RankPerfect();
             am._bgm.volume = 0.5f;
             am._se.volume = 0.8f;
             am._sePitched.volume = 0.8f;
@@ -235,6 +239,20 @@ namespace BBB.Runtime
                 case "games": Play(_gainGames, 0.8f); break;
                 default: Play(_pickupItem, 0.7f); break;
             }
+        }
+
+        /// <summary>技術介入のランクの音。Perfect!!（上乗せ 100% 以上）は専用、他はランクの sePitch / seSeconds で合成した音（ランクごとに 1 回作って持つ）。</summary>
+        public void TechRank(TechRankDef rank)
+        {
+            if (rank == null) return;
+            if (rank.bonusPercent >= 100) { Play(_rankPerfect, 0.9f); return; }
+            string key = (rank.id ?? "") + ":" + rank.sePitch.ToString("F2") + ":" + rank.seSeconds.ToString("F2");
+            if (!_rankClips.TryGetValue(key, out var clip) || clip == null)
+            {
+                clip = Resources.Load<AudioClip>("Audio/SE/se_rank_" + rank.id) ?? SfxSynth.RankChime(rank.sePitch, rank.seSeconds);
+                _rankClips[key] = clip;
+            }
+            Play(clip, 0.8f);
         }
 
         /// <summary>予告音。stage 1=弱 2=強。</summary>

@@ -17,6 +17,7 @@ public static class SfxProbe
             ("pickup_ember", SfxSynth.PickupEmber()), ("pickup_item", SfxSynth.PickupItem()),
             ("ref_bell", SfxSynth.BellDing()), ("ref_small_coin", SfxSynth.SmallCoin()),
             ("gain_exp", SfxSynth.GainExp()), ("gain_games", SfxSynth.GainGames()),
+            ("rank_perfect", SfxSynth.RankPerfect()), ("rank_excellent", SfxSynth.RankChime(1.5f, 0.5f)), ("rank_cool", SfxSynth.RankChime(1f, 0.3f)), ("rank_koma2", SfxSynth.RankChime(0.71f, 0.2f)),
         };
         foreach (var (name, clip) in clips)
         {

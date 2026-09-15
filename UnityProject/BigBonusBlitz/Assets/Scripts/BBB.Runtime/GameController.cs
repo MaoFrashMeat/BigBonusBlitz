@@ -3538,7 +3538,8 @@ namespace BBB.Runtime
                                       new Color(color.r * 0.25f, color.g * 0.25f, color.b * 0.25f, 1f), new Vector2(2, -3));
             if (rank.rainbow) foreach (var tx in row.texts) RainbowTint.Apply(tx, 1f, 0.75f);
             var cg = host.gameObject.AddComponent<CanvasGroup>(); cg.blocksRaycasts = false;
-            if (rank.bonusPercent >= 100) { UiFx.Burst(reelRt, UiFx.Preset.Confetti, new Vector2(0, fx.y)); _audio.NaviSuccess(); }
+            if (rank.bonusPercent >= 100) UiFx.Burst(reelRt, UiFx.Preset.Confetti, new Vector2(0, fx.y));
+            _audio.TechRank(rank);   // ランクごとの高さと長さ。Perfect!! は専用の音（棚 c11）
             float tIn = Mathf.Max(0.01f, fx.inSeconds), tHold = Mathf.Max(0f, fx.holdSeconds), tOut = Mathf.Max(0.01f, fx.outSeconds);
             float t = 0;
             while (t < tIn + tHold + tOut)

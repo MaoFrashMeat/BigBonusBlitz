@@ -2,6 +2,12 @@
   "entries": [
     {
       "date": "2026-09-15",
+      "version": "dev 229",
+      "title": "技術介入のランクごとに効果音（Perfect!! は専用のファンファーレ）",
+      "body": "・2コマ → 1コマ → Cool → Good → Great! → Excellent! の順に音が高く長くなる（625Hz・0.2 秒 → 1319Hz・0.5 秒）。Perfect!! は上がる 4 音＋きらめきの専用音（紙吹雪はそのまま）\n・高さと長さは tech.ranks の sePitch / seSeconds。Audio/SE/se_rank_<id> があればその音を使う"
+    },
+    {
+      "date": "2026-09-15",
       "version": "dev 228",
       "title": "「GET」の帯に種類ごとの音",
       "body": "・帯が止まった瞬間に 1 発: ソウルは魂を拾う音、エンバーは火の「ぼっ」、EXP は上がる 3 音（新）、AT の G 数は高い「キン」（新）\n・reelFx.emberGain.sound で ON/OFF（ビューアにも項目）。D の窓の効果音の列に「EXP」「G数」のボタン"

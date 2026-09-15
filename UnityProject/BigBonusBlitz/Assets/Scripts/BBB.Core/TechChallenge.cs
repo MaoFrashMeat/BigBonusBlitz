@@ -61,6 +61,9 @@ namespace BBB.Core
         public int bonusPercent = 0;
         /// <summary>文字を虹色で出す（最高ランク用）。</summary>
         public bool rainbow = false;
+        /// <summary>効果音の高さ（1 = 基準の 880Hz。上のランクほど高く）と長さ（秒）。Perfect!!（bonusPercent 100 以上）は専用の音で、この 2 つは使わない。</summary>
+        public float sePitch = 1f;
+        public float seSeconds = 0.3f;
     }
 
     /// <summary>ランクの文字の出し方（対象リールの上に出す。tools/fx_viewer.html と同じ式）。</summary>
@@ -106,12 +109,12 @@ namespace BBB.Core
         public static List<TechRankDef> DefaultRanks() => new List<TechRankDef>
         {
             new TechRankDef { id = "perfect",   name = "Perfect!!",  color = "#ff66d9", koma = 0, phase = 0.10f, bonusPercent = 100, rainbow = true },
-            new TechRankDef { id = "excellent", name = "Excellent!", color = "#ffd23f", koma = 0, phase = 0.20f, bonusPercent = 70 },
-            new TechRankDef { id = "great",     name = "Great!",     color = "#7cf47c", koma = 0, phase = 0.30f, bonusPercent = 50 },
-            new TechRankDef { id = "good",      name = "Good",       color = "#7cc8ff", koma = 0, phase = 0.40f, bonusPercent = 30 },
-            new TechRankDef { id = "cool",      name = "Cool",       color = "#ffffff", koma = 0, phase = -1f,   bonusPercent = 20 },
-            new TechRankDef { id = "koma1",     name = "1コマ",       color = "#d8d8d8", koma = 1, phase = -1f,   bonusPercent = 10 },
-            new TechRankDef { id = "koma2",     name = "2コマ",       color = "#a8a8a8", koma = 2, phase = -1f,   bonusPercent = 0 },
+            new TechRankDef { id = "excellent", name = "Excellent!", color = "#ffd23f", koma = 0, phase = 0.20f, bonusPercent = 70, sePitch = 1.5f, seSeconds = 0.5f },
+            new TechRankDef { id = "great",     name = "Great!",     color = "#7cf47c", koma = 0, phase = 0.30f, bonusPercent = 50, sePitch = 1.33f, seSeconds = 0.42f },
+            new TechRankDef { id = "good",      name = "Good",       color = "#7cc8ff", koma = 0, phase = 0.40f, bonusPercent = 30, sePitch = 1.19f, seSeconds = 0.36f },
+            new TechRankDef { id = "cool",      name = "Cool",       color = "#ffffff", koma = 0, phase = -1f,   bonusPercent = 20, sePitch = 1f, seSeconds = 0.3f },
+            new TechRankDef { id = "koma1",     name = "1コマ",       color = "#d8d8d8", koma = 1, phase = -1f,   bonusPercent = 10, sePitch = 0.84f, seSeconds = 0.24f },
+            new TechRankDef { id = "koma2",     name = "2コマ",       color = "#a8a8a8", koma = 2, phase = -1f,   bonusPercent = 0, sePitch = 0.71f, seSeconds = 0.2f },
         };
 
         public static TechConfig Default()

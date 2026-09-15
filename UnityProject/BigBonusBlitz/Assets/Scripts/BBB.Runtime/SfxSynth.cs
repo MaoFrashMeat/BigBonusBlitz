@@ -368,6 +368,48 @@ namespace BBB.Runtime
             return Make("synth_gain_games", d);
         }
 
+        /// <summary>技術介入のランクの音: 短い「タッ」の後に「ティン」。pitch で高さ（1 = 880Hz）、seconds で長さが変わる（上のランクほど高く長く）。</summary>
+        public static AudioClip RankChime(float pitch, float seconds)
+        {
+            pitch = Mathf.Clamp(pitch, 0.3f, 3f); seconds = Mathf.Clamp(seconds, 0.1f, 1.5f);
+            int n = Mathf.RoundToInt(Sr * seconds);
+            var d = new float[n];
+            float f = 880f * pitch, tail = Mathf.Max(0.05f, seconds * 0.45f);
+            for (int i = 0; i < n; i++)
+            {
+                float t = i / (float)Sr;
+                float v = Pluck(t, f * 0.5f, 0.03f, 0.4f) * 0.5f                                  // 「タッ」（低く短く）
+                        + Pluck(t - 0.05f, f, tail, 0.2f) * 0.7f + Pluck(t - 0.05f, f * 1.5f, tail * 0.6f, 0.1f) * 0.25f;   // 「ティン」
+                float fade = Mathf.Clamp01((seconds - t) / 0.05f);
+                d[i] = Soft(v) * 0.8f * fade;
+            }
+            return Make("synth_rank_" + pitch.ToString("F2") + "_" + seconds.ToString("F2"), d);
+        }
+
+        /// <summary>Perfect!! 専用: 上がる 4 音の短いファンファーレと、上に薄いきらめき（実績の音より速く、高い）。</summary>
+        public static AudioClip RankPerfect(float seconds = 0.9f)
+        {
+            int n = Mathf.RoundToInt(Sr * seconds);
+            var d = new float[n];
+            float[] notes = { 1046.5f, 1318.5f, 1568f, 2093f };
+            for (int i = 0; i < n; i++)
+            {
+                float t = i / (float)Sr;
+                float v = 0f;
+                for (int k = 0; k < notes.Length; k++)
+                {
+                    float st = t - k * 0.08f;
+                    if (st < 0) continue;
+                    float decay = k == notes.Length - 1 ? 0.45f : 0.12f;
+                    v += Pluck(st, notes[k], decay, 0.2f) * 0.5f + Pluck(st, notes[k] * 2f, decay * 0.5f, 0f) * 0.15f;
+                }
+                float st3 = t - 0.24f;
+                if (st3 > 0) v += Mathf.Sin(2f * Mathf.PI * 4186f * st3) * (0.6f + 0.4f * Mathf.Sin(2f * Mathf.PI * 8f * st3)) * Mathf.Exp(-st3 / 0.35f) * 0.12f;
+                d[i] = Soft(v) * 0.9f;
+            }
+            return Make("synth_rank_perfect", d);
+        }
+
         /// <summary>通常時の小さな獲得音: 短い「チャリ」1 発（枚数少なめの控えめな音）。</summary>
         public static AudioClip SmallCoin(float seconds = 0.18f)
         {
