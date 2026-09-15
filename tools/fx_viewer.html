@@ -42,7 +42,7 @@
   <div class="stagecol"><div class="stagebox"><canvas id="stage" width="1170" height="540"></canvas></div><div class="note" id="fxNote" style="margin-top:8px"></div></div>
   <div class="ctrl">
     <h2 id="fxName"></h2>
-    <div class="row"><button class="primary" id="play">再生</button><button class="plain" id="loop">繰り返し: OFF</button><button class="plain" id="reset">既定に戻す</button></div>
+    <div class="row"><button class="primary" id="play">再生</button><button class="plain" id="loop">繰り返し: OFF</button><button class="plain" id="reset">既定に戻す</button><button class="plain" id="bet" title="「BET まで止まる」のとき、再生中に押すとその時刻が BET になる">BET</button></div>
     <div id="params"></div>
     <details class="picker"><summary>数字と「獲得」の書体（クリックで選ぶ。候補は assets/symbols/number・text にあるときだけ）</summary><div id="picker"></div></details>
     <pre id="out"></pre>
@@ -144,6 +144,10 @@
         { group: "動き", key: "style", label: "型", type: "select", def: "slideRL", options: [["slideRL", "右→左スライド"], ["slideLR", "左→右スライド"], ["pop", "中央でポン"], ["drop", "上から落ちて弾む"], ["rise", "下からふわっと"], ["zoom", "急拡大して消える"], ["flip", "縦に開く"], ["slam", "叩きつけ"], ["spiral", "回りながら収まる"], ["pulse", "明滅"]] },
         { group: "動き", key: "inSeconds", label: "入る秒", min: 0.05, max: 1, step: 0.01, def: 0.1 },
         { group: "動き", key: "holdSeconds", label: "止まる秒", min: 0, max: 2, step: 0.05, def: 1 },
+        { group: "BET まで止まる", key: "holdUntilBet", label: "BET まで止まったまま（止まる秒は使わない）", type: "bool", def: false },
+        { group: "BET まで止まる", key: "betWaitSeconds", label: "BET してから抜けるまで（秒）", min: 0, max: 3, step: 0.05, def: 0.3 },
+        { group: "BET まで止まる", key: "betHoldMax", label: "BET が無くても抜ける秒（0 = 待ち続ける）", min: 0, max: 20, step: 0.5, def: 0 },
+        { group: "BET まで止まる", key: "betAt", label: "例: BET を押す時刻（秒。再生中は BET ボタンでも）", min: 0.2, max: 10, step: 0.1, def: 2, local: true },
         { group: "動き", key: "outSeconds", label: "抜ける秒", min: 0.05, max: 1, step: 0.01, def: 0.1 },
         { group: "動き", key: "y", label: "高さ", min: -140, max: 140, step: 1, def: -85 },
         { group: "大きさ・位置", key: "bandW", label: "帯の幅", min: 200, max: 700, step: 2, def: 438 },
@@ -215,7 +219,7 @@
         { group: "セリフのとき", key: "aboveDialogue", label: "枠より上に出す", type: "bool", def: true },
         { group: "セリフのとき", key: "dialogueMargin", label: "枠からの余白", min: 0, max: 60, step: 1, def: 8 },
       ],
-      total: p => p.inSeconds + p.holdSeconds + p.outSeconds + (p.kind === "stack" ? (p.stackStagger || 0) * (GAIN_SEQ.length - 1) : 0),
+      total: p => p.inSeconds + holdOf(p) + p.outSeconds + (p.kind === "stack" ? (p.stackStagger || 0) * (GAIN_SEQ.length - 1) : 0),
       draw(t, p) {
         // セリフ（説明の吹き出し）の例。ゲームでは表示域の下部に 620×54 の枠（名前タグが上に 10 はみ出す）
         if (p.withDialogue) drawDialogue("説明", "技術介入 成功！ Perfect!!  押した精度で +100% 上乗せ");
@@ -254,7 +258,7 @@
         g.save(); g.globalAlpha = q.alpha;
         g.translate(cx, cy); g.rotate(-q.rot * Math.PI / 180); g.scale(q.sx * scale, q.sy * scale); g.translate(-cx, -cy);
         // 段階（0 入る / 1 止まる / 2 抜ける）と、止まってからの秒。足せる効果に使う（GameController.EmberGainPhase と同じ）
-        const tIn = Math.max(0.01, p.inSeconds), tHold = Math.max(0, p.holdSeconds);
+        const tIn = Math.max(0.01, p.inSeconds), tHold = holdOf(p);
         const ph = t < tIn ? 0 : t < tIn + tHold ? 1 : 2, pu = ph === 0 ? t / tIn : ph === 1 ? (tHold > 0 ? (t - tIn) / tHold : 1) : 1, th = Math.max(0, t - tIn);
         // 光（ON のとき。脈打つ ON なら止まってから明滅）
         if (p.showGlow) {
@@ -402,8 +406,17 @@
   const easeOutBack = u => { u = Math.min(1, Math.max(0, u)); const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(u - 1, 3) + c1 * Math.pow(u - 1, 2); };
   const easeOutBounce = u => { u = Math.min(1, Math.max(0, u)); const n1 = 7.5625, d1 = 2.75; if (u < 1 / d1) return n1 * u * u; if (u < 2 / d1) { u -= 1.5 / d1; return n1 * u * u + 0.75; } if (u < 2.5 / d1) { u -= 2.25 / d1; return n1 * u * u + 0.9375; } u -= 2.625 / d1; return n1 * u * u + 0.984375; };
   const lerp = (a, b, u) => a + (b - a) * u;
+  let betLive = -1;   // 再生中に BET ボタンを押した時刻（秒）。-1 なら params.betAt
+  // 止まる秒: 「BET まで止まる」なら BET の時刻 + betWaitSeconds まで（betHoldMax > 0 ならそれで打ち切る）。GameController.GainSlide と同じ
+  function holdOf(p) {
+    if (!p.holdUntilBet) return Math.max(0, p.holdSeconds);
+    const tIn = Math.max(0.01, p.inSeconds);
+    let betAt = betLive >= 0 ? betLive : (p.betAt == null ? 2 : p.betAt);
+    if ((p.betHoldMax || 0) > 0) betAt = Math.min(betAt, tIn + p.betHoldMax);
+    return Math.max(0, betAt + (p.betWaitSeconds || 0) - tIn);
+  }
   function emberGainPose(style, t, p, xIn) {
-    const tIn = Math.max(0.01, p.inSeconds), tHold = Math.max(0, p.holdSeconds), tOut = Math.max(0.01, p.outSeconds);
+    const tIn = Math.max(0.01, p.inSeconds), tHold = holdOf(p), tOut = Math.max(0.01, p.outSeconds);
     const q = { x: 0, y: 0, sx: 1, sy: 1, rot: 0, alpha: 1, countU: 1 };
     const phase = t < tIn ? 0 : t < tIn + tHold ? 1 : t < tIn + tHold + tOut ? 2 : 3;
     if (phase === 3) return null;
@@ -513,7 +526,8 @@
       host.appendChild(row);
     });
   }
-  function play() { playing = performance.now(); }
+  function play() { playing = performance.now(); betLive = -1; }
+  document.getElementById("bet").addEventListener("click", () => { if (playing >= 0) betLive = (performance.now() - playing) / 1000; else play(); });
   function frame(now) {
     g.clearRect(0, 0, cv.width, cv.height);
     if (bg.complete && bg.naturalWidth) g.drawImage(bg, 0, 0, cv.width, cv.height); else { g.fillStyle = "#101a2a"; g.fillRect(0, 0, cv.width, cv.height); }

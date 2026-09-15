@@ -2259,6 +2259,7 @@ namespace BBB.Runtime
         private void Lever()
         {
             _lastPayout = 0;
+            _gainBetSerial++;
             CloseModals();
             _dustRt.gameObject.SetActive(false);
             if (_m.EnemyActive) _enemyCg.alpha = 1f;   // JS onLever: 潰した敵を戻す
@@ -4194,6 +4195,7 @@ namespace BBB.Runtime
         /// </summary>
         private readonly System.Collections.Generic.List<(string icon, int amount, string unit)> _gainPending = new System.Collections.Generic.List<(string, int, string)>();
         private readonly System.Collections.Generic.Queue<System.Collections.Generic.List<(string icon, int amount, string unit)>> _gainQueue = new System.Collections.Generic.Queue<System.Collections.Generic.List<(string icon, int amount, string unit)>>();
+        private int _gainBetSerial;   // BET（レバー）のたびに +1。「BET まで止まる」帯が抜けるきっかけ
         private bool _gainPlaying, _gainFlushScheduled;
 
         /// <summary>
@@ -4385,17 +4387,25 @@ namespace BBB.Runtime
             float xIn = AreaW * 0.5f + bandW * 0.6f;
             // 型ごとの動き（tools/fx_viewer.html と同じ式）。入る → 止まる → 抜ける
             float t = 0; bool sparked = false;
+            int betSerial0 = _gainBetSerial; float tRelease = -1f, tInS = Mathf.Max(0.01f, fx.inSeconds);
             while (true)
             {
                 t += Time.deltaTime;
-                if (!EmberGainPose(fx.style ?? "slideRL", t, fx, xIn, out var pos, out var sc, out float rot, out float alpha, out float countU)) break;
+                // BET まで止まる: BET（Lever）が来たら betWaitSeconds 後に抜け始める。betHoldMax > 0 なら BET が無くてもその秒で打ち切る
+                float hold = -1f;
+                if (fx.holdUntilBet)
+                {
+                    if (tRelease < 0f && (_gainBetSerial != betSerial0 || (fx.betHoldMax > 0f && t >= tInS + fx.betHoldMax))) tRelease = t;
+                    hold = tRelease < 0f ? 1e6f : Mathf.Max(0f, tRelease + fx.betWaitSeconds - tInS);
+                }
+                if (!EmberGainPose(fx.style ?? "slideRL", t, fx, xIn, out var pos, out var sc, out float rot, out float alpha, out float countU, hold)) break;
                 band.anchoredPosition = new Vector2(pos.x, y0 + pos.y);
                 band.localScale = new Vector3(sc.x * scale, sc.y * scale, 1f);
                 band.localRotation = Quaternion.Euler(0, 0, rot);
                 cg.alpha = alpha;
                 if (back != null && fx.backIconSpin != 0f) back.rectTransform.localRotation = Quaternion.Euler(0, 0, fx.backIconRot + fx.backIconSpin * t);
                 // 足せる効果（tools/fx_viewer.html と同じ式）
-                EmberGainPhase(t, fx, out int ph, out float pu, out float th);
+                EmberGainPhase(t, fx, out int ph, out float pu, out float th, hold);
                 if (fx.digitBounce)
                 {
                     int n = movers.Count; float k = 1f + 0.25f * (n - 1);
@@ -4450,9 +4460,9 @@ namespace BBB.Runtime
         private static float EaseOutBack(float u) { u = Mathf.Clamp01(u); const float c1 = 1.70158f, c3 = c1 + 1f; return 1f + c3 * Mathf.Pow(u - 1f, 3f) + c1 * Mathf.Pow(u - 1f, 2f); }
 
         /// <summary>帯の段階（0 入る / 1 止まる / 2 抜ける / 3 終わり）と、その中の進み u（0〜1）、止まってからの秒 th。</summary>
-        private static void EmberGainPhase(float t, EmberGainFxConfig fx, out int phase, out float u, out float th)
+        private static void EmberGainPhase(float t, EmberGainFxConfig fx, out int phase, out float u, out float th, float holdSeconds = -1f)
         {
-            float tIn = Mathf.Max(0.01f, fx.inSeconds), tHold = Mathf.Max(0f, fx.holdSeconds), tOut = Mathf.Max(0.01f, fx.outSeconds);
+            float tIn = Mathf.Max(0.01f, fx.inSeconds), tHold = holdSeconds >= 0f ? holdSeconds : Mathf.Max(0f, fx.holdSeconds), tOut = Mathf.Max(0.01f, fx.outSeconds);
             phase = t < tIn ? 0 : t < tIn + tHold ? 1 : t < tIn + tHold + tOut ? 2 : 3;
             u = phase == 0 ? t / tIn : phase == 1 ? (tHold > 0 ? (t - tIn) / tHold : 1f) : phase == 2 ? (t - tIn - tHold) / tOut : 1f;
             th = Mathf.Max(0f, t - tIn);
@@ -4471,9 +4481,10 @@ namespace BBB.Runtime
         /// 終わったら false。tools/fx_viewer.html の同名の関数と同じ式にしておく（見た目を合わせるため）。
         /// </summary>
         private static bool EmberGainPose(string style, float t, EmberGainFxConfig fx, float xIn,
-                                          out Vector2 pos, out Vector2 scale, out float rot, out float alpha, out float countU)
+                                          out Vector2 pos, out Vector2 scale, out float rot, out float alpha, out float countU, float holdSeconds = -1f)
         {
-            float tIn = Mathf.Max(0.01f, fx.inSeconds), tHold = Mathf.Max(0f, fx.holdSeconds), tOut = Mathf.Max(0.01f, fx.outSeconds);
+            // holdSeconds >= 0 なら止まる秒をそれにする（「BET まで止まる」用。tools/fx_viewer.html の holdOf と同じ）
+            float tIn = Mathf.Max(0.01f, fx.inSeconds), tHold = holdSeconds >= 0f ? holdSeconds : Mathf.Max(0f, fx.holdSeconds), tOut = Mathf.Max(0.01f, fx.outSeconds);
             pos = Vector2.zero; scale = Vector2.one; rot = 0f; alpha = 1f; countU = 1f;
             int phase = t < tIn ? 0 : t < tIn + tHold ? 1 : t < tIn + tHold + tOut ? 2 : 3;
             if (phase == 3) return false;

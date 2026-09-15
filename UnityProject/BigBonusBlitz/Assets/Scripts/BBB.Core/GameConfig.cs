@@ -273,6 +273,10 @@ namespace BBB.Core
         public float shakeSeconds = 0f;
         /// <summary>帯が止まった瞬間に種類ごとの音（ソウル / エンバー / EXP / G 数）を鳴らす。</summary>
         public bool sound = true;
+        /// <summary>帯は BET（レバー）まで止まったまま（第三停止で出て、BET で抜ける）。true なら holdSeconds は使わない。</summary>
+        public bool holdUntilBet = false;
+        /// <summary>BET してから抜け始めるまでの秒 / BET が来なくても抜ける秒（0 = 待ち続ける）。</summary>
+        public float betWaitSeconds = 0.3f, betHoldMax = 0f;
         /// <summary>
         /// 数字が 0 から増えていく。どの型にも足せる追加の効果。
         /// 画面で止まった瞬間を 0 として countOffset 秒後に数え始め、countSeconds 秒かけて枚数に届く（負なら止まる前から）。
