@@ -4273,7 +4273,7 @@ namespace BBB.Runtime
             Image glow = fx.showGlow ? UiSkin.Img(band, "Glow", Vector2.zero, new Vector2(bandW + 80, bandH + 80), UiSkin.Glow(96), new Color(1f, 0.55f, 0.15f, 0.35f)) : null;
             // 文字の後ろに大きな炎（ON のとき。文字より先に作るので後ろに描かれる。傾けたり回したりできる）
             Image back = null;
-            if (fx.backIcon)
+            if (fx.backIcon && (unit == null || fx.backIconGames))   // G 数の帯（unit あり）は backIconGames のときだけ
             {
                 back = UiSkin.Img(band, "BackIcon", new Vector2(fx.backIconX, fx.backIconY), new Vector2(fx.backIconSize, fx.backIconSize), UiSkin.Icon(iconName, 64), new Color(1f, 1f, 1f, Mathf.Clamp01(fx.backIconAlpha)));
                 back.preserveAspect = true;

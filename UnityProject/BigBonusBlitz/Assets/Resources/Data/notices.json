@@ -2,6 +2,12 @@
   "entries": [
     {
       "date": "2026-09-16",
+      "version": "dev 238",
+      "title": "「AT +5G GET」の帯は後ろの絵を出さない（切り替えられる）",
+      "body": "・reelFx.emberGain.backIconGames（既定 false）。false なら ＋ と G の付く帯だけ後ろの絵（炎など）を出さない。他の帯（エンバー / ソウル / EXP）は backIcon のまま\n・ビューアの「後ろの炎」に「AT の G 数の帯にも出す」"
+    },
+    {
+      "date": "2026-09-16",
       "version": "dev 237",
       "title": "「AT +5G GET」の ＋ と G の位置（上下左右）",
       "body": "・reelFx.emberGain の plusX / plusY / unitX / unitY（px、上が +。既定 0）。並びの幅は変えず、その絵だけずれる\n・ビューアの「大きさ・位置」に「＋ の左右 / 上下」「G の左右 / 上下」"

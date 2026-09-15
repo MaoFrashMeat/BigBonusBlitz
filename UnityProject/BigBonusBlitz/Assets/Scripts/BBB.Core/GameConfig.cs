@@ -261,6 +261,8 @@ namespace BBB.Core
         /// <summary>文字の後ろに大きな炎の絵を敷く。大きさ（px）/ 濃さ（0〜1）/ ずらし（右+ 上+）/ 傾き（度、反時計回り+）/ 回る速さ（度/秒、0 で止まる）。</summary>
         public bool backIcon = false;
         public float backIconSize = 120f, backIconAlpha = 0.45f, backIconX = 0f, backIconY = 0f, backIconRot = 0f, backIconSpin = 0f;
+        /// <summary>AT の G 数の帯（＋ と G の付く帯）にも後ろの絵を出すか。false なら他の帯だけ（2026-09-16 本人: G 数の帯には要らない）。</summary>
+        public bool backIconGames = false;
         /// <summary>部品ごとの ON/OFF: 黒い帯 / 上下の線 / 後ろの光 / 止まっている間の震え / 止まった瞬間の火花 / 数字の右の炎（手前）。</summary>
         public bool showBand = false, showEdges = false, showGlow = true, shake = true, sparks = true, showIcon = true;
         /// <summary>震え（shake）が止まるまでの秒（帯が止まってから）。0 なら止まっている間ずっと（終わりに向けて弱まる）。</summary>
