@@ -2,6 +2,12 @@
   "entries": [
     {
       "date": "2026-09-16",
+      "version": "dev 237",
+      "title": "「AT +5G GET」の ＋ と G の位置（上下左右）",
+      "body": "・reelFx.emberGain の plusX / plusY / unitX / unitY（px、上が +。既定 0）。並びの幅は変えず、その絵だけずれる\n・ビューアの「大きさ・位置」に「＋ の左右 / 上下」「G の左右 / 上下」"
+    },
+    {
+      "date": "2026-09-16",
       "version": "dev 236",
       "title": "「GET」の帯の震えが止まるまでの秒数",
       "body": "・reelFx.emberGain.shakeSeconds（帯が止まってから震えが止まるまでの秒。まず 0.4）。0 なら今まで通り止まっている間ずっと（終わりに向けて弱まる）\n・ビューアの「部品」に「震えが止まる秒」"

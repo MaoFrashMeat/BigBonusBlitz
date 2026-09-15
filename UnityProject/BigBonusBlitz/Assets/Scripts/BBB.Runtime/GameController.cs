@@ -4304,7 +4304,7 @@ namespace BBB.Runtime
                 float x = -((plusArt != null ? plusW + fx.digitGap : 0f) + numW + markW + picGap + picW) * 0.5f;
                 if (plusArt != null)
                 {
-                    var plus = UiSkin.Img(row, "Plus", new Vector2(x + plusW * 0.5f, 0), new Vector2(plusW, plusH), plusArt, Color.white);
+                    var plus = UiSkin.Img(row, "Plus", new Vector2(x + plusW * 0.5f + fx.plusX, fx.plusY), new Vector2(plusW, plusH), plusArt, Color.white);
                     plus.preserveAspect = true; plus.rectTransform.localRotation = Quaternion.Euler(0, 0, fx.numRot); pieces.Add(plus);
                     x += plusW + fx.digitGap;
                 }
@@ -4320,7 +4320,7 @@ namespace BBB.Runtime
                 if (unitArt != null)   // 単位の絵（G）は数字の続きとして並べる
                 {
                     x += fx.digitGap;
-                    var ug = UiSkin.Img(row, "Unit", new Vector2(x + unitW * 0.5f, 0), new Vector2(unitW, unitH), unitArt, Color.white);
+                    var ug = UiSkin.Img(row, "Unit", new Vector2(x + unitW * 0.5f + fx.unitX, fx.unitY), new Vector2(unitW, unitH), unitArt, Color.white);
                     ug.preserveAspect = true; ug.rectTransform.localRotation = Quaternion.Euler(0, 0, fx.numRot); pieces.Add(ug);
                     x += unitW;
                 }

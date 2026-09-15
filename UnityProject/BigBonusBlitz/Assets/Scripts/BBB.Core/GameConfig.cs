@@ -252,6 +252,8 @@ namespace BBB.Core
         public float picH = 52f, numH = 56f;
         /// <summary>AT の G 数の帯の「＋」と「G」の絵の大きさ（数字の高さ比。1 = 数字と同じ）。</summary>
         public float plusScale = 1f, unitScale = 1f;
+        /// <summary>「＋」と「G」の絵のずらし（px。上が +）。並びの幅は変えず、その絵だけずれる。</summary>
+        public float plusX = 0f, plusY = 0f, unitX = 0f, unitY = 0f;
         /// <summary>炎の絵と「獲得」の絵のずらし（px。右が +、上が +）。数字との並びや詰まり具合を合わせる用。</summary>
         public float iconX = 0f, iconY = 0f, picX = 0f, picY = 0f;
         /// <summary>詰め: 桁と桁の間 / 数字と炎の間 / 炎と「獲得」の間（px。負で重ねる）。傾き: 数字 / 炎 / 「獲得」（度、反時計回り+）。</summary>

@@ -153,6 +153,10 @@
         { group: "大きさ・位置", key: "picH", label: "獲得の絵", min: 24, max: 100, step: 1, def: 39 },
         { group: "大きさ・位置", key: "plusScale", label: "＋ の大きさ（数字比）", min: 0.3, max: 2, step: 0.01, def: 1 },
         { group: "大きさ・位置", key: "unitScale", label: "G の大きさ（数字比）", min: 0.3, max: 2, step: 0.01, def: 1 },
+        { group: "大きさ・位置", key: "plusX", label: "＋ の左右", min: -60, max: 60, step: 1, def: 0 },
+        { group: "大きさ・位置", key: "plusY", label: "＋ の上下", min: -60, max: 60, step: 1, def: 0 },
+        { group: "大きさ・位置", key: "unitX", label: "G の左右", min: -60, max: 60, step: 1, def: 0 },
+        { group: "大きさ・位置", key: "unitY", label: "G の上下", min: -60, max: 60, step: 1, def: 0 },
         { group: "大きさ・位置", key: "iconX", label: "炎の左右", min: -40, max: 40, step: 1, def: 40 },
         { group: "大きさ・位置", key: "iconY", label: "炎の上下", min: -40, max: 40, step: 1, def: 13 },
         { group: "大きさ・位置", key: "picX", label: "獲得の左右", min: -60, max: 60, step: 1, def: 7 },
@@ -301,7 +305,8 @@
         };
         const outlineCopies = draw => { const d = p.outlineSize; g.save(); g.globalAlpha *= p.outlineAlpha; [[d, d], [d, -d], [-d, d], [-d, -d]].forEach(([ox, oy]) => draw(ox, oy, "rgba(64,20,0,1)")); g.restore(); };
         const imgDraw = (im, sx, sy, sw, sh, dx, dy, dw, dh) => (ox, oy, tint) => { if (tint) g.drawImage(silhouette(im, tint), sx, sy, sw, sh, dx + ox, dy + oy, dw, dh); else g.drawImage(im, sx, sy, sw, sh, dx + ox, dy + oy, dw, dh); };
-        if (pArt) { piece(imgDraw(pArt.im, pArt.b.x, pArt.b.y, pArt.b.w, pArt.b.h, x0, cy - plusH / 2, plusW, plusH), x0 + plusW / 2, cy, 0, p.numRot); x0 += plusW + dgap; }
+        const plusX = p.plusX || 0, plusY = p.plusY || 0, unitX = p.unitX || 0, unitY = p.unitY || 0;   // ＋ と G のずらし（上が +）。並びの幅は変えない
+        if (pArt) { piece(imgDraw(pArt.im, pArt.b.x, pArt.b.y, pArt.b.w, pArt.b.h, x0 + plusX, cy - plusH / 2 - plusY, plusW, plusH), x0 + plusW / 2 + plusX, cy - plusY, 0, p.numRot); x0 += plusW + dgap; }
         if (artOk) {
           // 桁の枠は最終の枚数で決め、数え上げ中は右詰め（GameController.SetDigits と同じ）
           const ss = String(shown);
@@ -317,7 +322,7 @@
         }
         if (uArt) {   // 単位の絵（G）は数字の続きとして並べる
           x0 += dgap;
-          piece(imgDraw(uArt.im, uArt.b.x, uArt.b.y, uArt.b.w, uArt.b.h, x0, cy - unitH / 2, unitW, unitH), x0 + unitW / 2, cy, 99, p.numRot);
+          piece(imgDraw(uArt.im, uArt.b.x, uArt.b.y, uArt.b.w, uArt.b.h, x0 + unitX, cy - unitH / 2 - unitY, unitW, unitH), x0 + unitW / 2 + unitX, cy - unitY, 99, p.numRot);
           x0 += unitW;
         }
         else if (showIcon) {
