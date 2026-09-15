@@ -1345,6 +1345,22 @@ namespace BBB.Runtime
             }
         }
 
+        /// <summary>ログに書く役の名前。</summary>
+        private static string WinName(WinType t)
+        {
+            switch (t)
+            {
+                case WinType.BELL: return "ベル";
+                case WinType.REPLAY: return "リプレイ";
+                case WinType.CHERRY: return "チェリー";
+                case WinType.WATERMELON: return "スイカ";
+                case WinType.CHANCE: return "チャンス目";
+                case WinType.BIG: return "BIG BONUS";
+                case WinType.REG: return "REG BONUS";
+                default: return t.ToString();
+            }
+        }
+
         private static string SymbolName(Symbol s)
         {
             switch (s)
@@ -2501,6 +2517,9 @@ namespace BBB.Runtime
             var r = _m.Evaluate();
             _lastPayout = r.win.payout;
             _lastWasReplay = r.win.isReplay;
+            // ログ: 役と払い出し（ハズレは書かない。2026-09-16 本人「役や払い出しも欲しい」）
+            if (r.win.winType != WinType.NONE)
+                LogAdd($"{_m.TotalSpinCount:N0}G  {WinName(r.win.winType)}{(r.win.payout > 0 ? $"  +{r.win.payout} 枚" : "")}{(r.bonusStarted ? "  ボーナス開始" : "")}");
             // 実績: 数えものを進め、解除したら知らせる
             var unlockedNow = AchievementDirector.Track(_m.Achievements, _m.Ach, r, _m);
             foreach (var a in unlockedNow) ShowAchievement(a);
