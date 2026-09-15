@@ -2,6 +2,12 @@
   "entries": [
     {
       "date": "2026-09-16",
+      "version": "dev 240",
+      "title": "「GET」の帯の書体と ＋ / G の置き方（本人がビューアで詰めた値）",
+      "body": "・GET は候補 10（白の斜体）、G は候補 3、＋ は候補 6（白銀）。＋ と G は数字の 0.59 / 0.6 倍で少し上に\n・止まる秒 1 → 5、震えが止まる秒 0.4 → 3、光沢は止まってから 0.35 秒後に 0.8 秒で走る"
+    },
+    {
+      "date": "2026-09-16",
       "version": "dev 239",
       "title": "「GET」の帯の数字に光沢（キランッ）",
       "body": "・帯が止まったあと、各桁の上を斜めの光の筋が左から右へ走る（桁ごとに少しずつずれて）。数字の形の中だけ光る\n・reelFx.emberGain の shine（ON/OFF）/ shineDelay（止まってから秒）/ shineSeconds（走る秒）/ shineStagger（桁ごとのずれ秒）/ shineWidth（筋の太さ、桁の幅比）/ shineAlpha（濃さ）/ shineAngle（傾き）。ビューアの「足す効果」に項目"
