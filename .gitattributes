@@ -2,3 +2,5 @@
 assets/symbols/**/*.png filter=lfs diff=lfs merge=lfs -text
 # ボーナスのロゴ候補（assets/logo/bonus）も LFS。1 枚 1〜2MB
 assets/logo/bonus/*.png filter=lfs diff=lfs merge=lfs -text
+# エンゲージのロゴ候補（assets/logo/engage）も LFS
+assets/logo/engage/*.png filter=lfs diff=lfs merge=lfs -text
