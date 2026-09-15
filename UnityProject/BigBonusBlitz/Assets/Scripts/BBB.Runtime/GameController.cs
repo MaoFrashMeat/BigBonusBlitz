@@ -636,11 +636,12 @@ namespace BBB.Runtime
             var creditInset = UiSkin.Inset(disp, "CreditInset", Lcr.Pos - Ldp.Pos, Lcr.Size, 6, null, UiLayout.Frame("credit") ?? "slot_navy");
             _creditNum = UiSkin.Number(creditInset, "CreditNum", new Vector2(-6, 0), new Vector2(Lcr.w - 20, Lcr.h), "50", 20, ColText);
             // 窓の左側にボーナス（シャードの印 + 進み具合。2026-09-16 本人: 右の枠を左の欄に詰める）。数字は右詰めのまま
-            const float SubW = 126f;
-            float subL = -Lcr.w * 0.5f + 8f;
-            UiSkin.Img(creditInset, "BonusIcon", new Vector2(subL + 6f, 5f), new Vector2(12, 12), UiSkin.Icon("amulet", 64), Color.white);
-            _bonusLabel = UiFactory.Label(creditInset, "BonusLabel", new Vector2(subL + 14f + (SubW - 14f) * 0.5f, 5f), new Vector2(SubW - 14f, 14), "―", 10, TextAnchor.MiddleLeft, ColGold);
-            _bonusFill = UiSkin.Gauge(creditInset, "BonusGauge", new Vector2(subL + SubW * 0.5f, -Lcr.h * 0.5f + 5f), new Vector2(SubW, 4), ColGold, out _bonusTrack);
+            // 印 12 → 札 50 → 短いバー 56 を中央の高さに 1 行で。窓の縁（左 12）に掛からず、右詰めの数字（〜110）とも離す
+            const float SubBar = 56f;
+            float subL = -Lcr.w * 0.5f + 14f;
+            UiSkin.Img(creditInset, "BonusIcon", new Vector2(subL + 6f, 0f), new Vector2(12, 12), UiSkin.Icon("amulet", 64), Color.white);
+            _bonusLabel = UiFactory.Label(creditInset, "BonusLabel", new Vector2(subL + 16f + 25f, 0f), new Vector2(50f, 14), "―", 10, TextAnchor.MiddleLeft, ColGold);
+            _bonusFill = UiSkin.Gauge(creditInset, "BonusGauge", new Vector2(subL + 16f + 50f + 4f + SubBar * 0.5f, 0f), new Vector2(SubBar, 4), ColGold, out _bonusTrack);
             // 3 行目: PAYOUT
             HeadRow("PayoutIcon", "PayoutLabel", "PAYOUT", rowY0 - RowPitch * 2, UiSkin.Circle(32), ColGold);
             UiSkin.Img(disp, "PayoutIconIn", new Vector2(-innerW * 0.5f + HeadIco * 0.5f, rowY0 - RowPitch * 2), new Vector2(HeadIco * 0.5f, HeadIco * 0.5f), UiSkin.Circle(32), UiSkin.GoldDeep);
@@ -648,10 +649,10 @@ namespace BBB.Runtime
             var payInset = UiSkin.Inset(disp, "PayoutInset", Lpo.Pos - Ldp.Pos, Lpo.Size, 6, null, UiLayout.Frame("payout") ?? "pill_coin");
             _payoutNum = UiSkin.Number(payInset, "PayoutNum", new Vector2(-6, 0), new Vector2(Lpo.w - 20, Lpo.h), "0", 20, ColGold);
             // 窓の左側に Lv と EXP の進み具合
-            _player = UiFactory.Label(payInset, "Lv", new Vector2(subL + 40f * 0.5f, 5f), new Vector2(40f, 14), "Lv 1", 11, TextAnchor.MiddleLeft, ColGold);
+            _player = UiFactory.Label(payInset, "Lv", new Vector2(subL + 2f + 17f, 0f), new Vector2(34f, 14), "Lv 1", 11, TextAnchor.MiddleLeft, ColGold);
             _player.fontStyle = FontStyle.Bold;
-            UiFactory.Label(payInset, "ExpLabel", new Vector2(subL + SubW - 16f, 5f), new Vector2(32f, 14), "EXP", 9, TextAnchor.MiddleRight, UiSkin.TextDim);
-            _expFill = UiSkin.Gauge(payInset, "Exp", new Vector2(subL + SubW * 0.5f, -Lpo.h * 0.5f + 5f), new Vector2(SubW, 4), ColGreen, out _expTrack);
+            _expFill = UiSkin.Gauge(payInset, "Exp", new Vector2(subL + 2f + 34f + 4f + SubBar * 0.5f, 0f), new Vector2(SubBar, 4), ColGreen, out _expTrack);
+            UiFactory.Label(payInset, "ExpLabel", new Vector2(subL + 2f + 34f + 4f + SubBar + 4f + 12f, 0f), new Vector2(24f, 14), "EXP", 9, TextAnchor.MiddleLeft, UiSkin.TextDim);
             // 4 行目: 左=設定 / 右=ソウル。アイコンぶんを差し引いて領域を分ける
             const float SoulIco = 14f;
             float halfW = innerW * 0.5f;
