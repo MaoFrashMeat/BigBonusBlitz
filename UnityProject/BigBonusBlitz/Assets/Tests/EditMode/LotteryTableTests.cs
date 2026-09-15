@@ -49,7 +49,8 @@ namespace BBB.Tests
         }
 
         [TestCase(1, 438, 200)]
-        [TestCase(2, 468, 200)]
+        [TestCase(2, 485, 216)]
+        [TestCase(4, 593, 250)]
         [TestCase(6, 748, 300)]
         public void 仕様書の通常時モードA_ボーナス合算(int setting, int bb, int rb)
         {
