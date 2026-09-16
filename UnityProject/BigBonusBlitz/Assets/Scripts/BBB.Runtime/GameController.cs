@@ -2118,6 +2118,9 @@ namespace BBB.Runtime
         /// </summary>
         private IEnumerator EngageTitleRoutine()
         {
+            // 絵の告知（game_config の zoneFx.engage）があればそちら。無ければ従来の文字
+            var zEngage = _m.Config.zoneFx?.engage;
+            if (ZoneFx.Has(zEngage)) { yield return ZoneFx.Play(_stage, zEngage, this, _redGlow); yield break; }
             // 黒帯（表示域の幅より広く、左右は透明にフェード）
             var band = UiSkin.Rect(_area, "EngageBand", Vector2.zero, new Vector2(AreaW * 1.2f, 96));
             var bandImg = UiSkin.Img(band, "Bg", Vector2.zero, new Vector2(AreaW * 1.2f, 96), null, new Color(0, 0, 0, 0.78f));
@@ -2573,7 +2576,7 @@ namespace BBB.Runtime
                 PlayCharacter("victory");
                 StartCoroutine(Effects.Watermelon(_charRt));   // anim-bonus の代用（ジャンプ）
                 if (r.win.winType == WinType.BIG) StartCoroutine(BigBonusStartRoutine());
-                else _audio.Win();
+                else { _audio.Win(); var zReg = _m.Config.zoneFx?.reg; if (ZoneFx.Has(zReg)) StartCoroutine(ZoneFx.Play(_stage, zReg, this, _redGlow)); }
                 SaveData.Save(_m, _audio);
                 RefreshUi();
                 if (r.win.winType != WinType.BIG && _autoMode) StartAuto();
@@ -4872,7 +4875,9 @@ namespace BBB.Runtime
             _inputLocked = true;
             RefreshUi();
             float len = _audio.BbConfirm();
-            StartCoroutine(Effects.Cutin(_cutinRt, _cutinCg, 3f));
+            var zBig = _m.Config.zoneFx?.big;
+            if (ZoneFx.Has(zBig)) StartCoroutine(ZoneFx.Play(_stage, zBig, this, _redGlow));
+            else StartCoroutine(Effects.Cutin(_cutinRt, _cutinCg, 3f));
             yield return new WaitForSeconds(Mathf.Max(len, 3f));
             _inputLocked = false;
             _audio.StartBgm();

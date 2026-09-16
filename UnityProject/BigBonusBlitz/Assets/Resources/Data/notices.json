@@ -2,6 +2,12 @@
   "entries": [
     {
       "date": "2026-09-16",
+      "version": "dev 263",
+      "title": "告知（エンゲージ / BIG / REG）を絵にできるようにした",
+      "body": "・ENEMY ENGAGE!・BIG BONUS・REG の告知を、用意した絵に差し替えられるようにした（今はまだ文字のまま）\n・位置・大きさ・出方・帯・光・揺れ・飛び散りを tools/zone_viewer.html で決めて game_config の zoneFx に写す"
+    },
+    {
+      "date": "2026-09-16",
       "version": "dev 250",
       "title": "EMBER / PAYOUT の窓の小さな札を 1 行に（数字と重ならないように）",
       "body": "・シャードの印・札・短いバー、Lv・バー・EXP を窓の中央の高さに 1 行で並べ、右詰めの数字（エンバー / 払い出し）から離した"

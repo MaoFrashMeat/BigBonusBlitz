@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>ゾーン（告知）ビューア</title>
+<style>
+  :root { --bg:#0f1b2d; --panel:#17263a; --panel2:#1d2f47; --line:#2f4460; --ink:#f4f6fa; --muted:#98a3b8; --gold:#f4cd7c; }
+  html, body { height:100%; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:"Yu Gothic","Hiragino Sans",sans-serif; font-size:14px; }
+  .wrap { display:grid; grid-template-columns: 240px 1fr 420px; gap:14px; padding:14px; height:calc(100vh - 28px); box-sizing:border-box; align-items:start; }
+  .wrap > * { max-height:100%; overflow-y:auto; overscroll-behavior:contain; }
+  @media (max-width:1500px) { .wrap { grid-template-columns: 220px 1fr; height:auto; } .wrap > * { max-height:none; overflow:visible; } .side { grid-column:1 / -1; } }
+  h1 { font-size:17px; margin:0 0 4px; }
+  .sub { color:var(--muted); font-size:12px; line-height:1.6; }
+  .card { background:var(--panel); border-radius:8px; padding:10px 12px; margin-bottom:10px; }
+  .note { color:var(--muted); font-size:12px; line-height:1.6; margin:8px 0 0; }
+  button { font:inherit; background:var(--panel2); color:var(--ink); border:1px solid var(--line); border-radius:6px; padding:6px 12px; cursor:pointer; }
+  button.primary { background:var(--gold); color:#3b2a12; border:0; font-weight:bold; }
+  .btns { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; }
+  .zones { display:flex; gap:6px; margin-bottom:8px; }
+  .zones button.on { background:var(--gold); color:#3b2a12; border:0; font-weight:bold; }
+  .cands { display:flex; flex-wrap:wrap; gap:6px; }
+  .cand { width:100px; height:52px; background:#0b1220; border:2px solid transparent; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+  .cand.sel { border-color:var(--gold); }
+  .cand img { max-width:96px; max-height:48px; }
+  .cand.none { color:var(--muted); font-size:11px; }
+  /* 舞台（ゲームと同じ 1170x540。背景は実機の描き出し） */
+  .stagebox { background:#000; border-radius:8px; overflow:hidden; position:relative; }
+  .stage { position:relative; width:1170px; height:540px; transform-origin:top left; background:#0a0b0f center/cover no-repeat; }
+  .guide { position:absolute; border:1px dashed rgba(120,200,255,.45); pointer-events:none; }
+  .zone { position:absolute; left:50%; top:50%; transform-origin:center; pointer-events:none; }
+  .zone img { display:block; }
+  .band { position:absolute; left:50%; top:50%; transform-origin:center; pointer-events:none; }
+  .glow { position:absolute; left:50%; top:50%; pointer-events:none; border-radius:50%; }
+  .edge { position:absolute; inset:0; pointer-events:none; box-shadow:inset 0 0 0 0 rgba(0,0,0,0); }
+  .shard { position:absolute; pointer-events:none; border-radius:2px; }
+  .form { display:grid; grid-template-columns:78px 1fr; gap:8px 10px; align-items:center; margin-top:6px; }
+  .form > label { color:var(--muted); font-size:12px; text-align:right; }
+  .form > div { display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:12px; color:var(--muted); }
+  .form input[type=range] { width:130px; }
+  label.ck { display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
+  details.sec { background:var(--panel); border-radius:8px; padding:6px 12px 10px; margin-bottom:10px; }
+  details.sec > summary { cursor:pointer; font-weight:bold; font-size:13px; padding:6px 0; list-style:none; }
+  details.sec > summary::before { content:"▸ "; color:var(--muted); }
+  details.sec[open] > summary::before { content:"▾ "; }
+  pre { margin:6px 0 0; background:var(--bg); padding:8px; border-radius:6px; font-size:12px; white-space:pre-wrap; user-select:all; max-height:220px; overflow:auto; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <h1>ゾーン（告知）ビューア</h1>
+    <div class="sub">エンゲージ / BIG / REG の告知を、絵と位置と効果で決める。下の JSON を game_config.json の <code>zoneFx</code> に写す。</div>
+    <div class="card">
+      <div class="zones" id="zones"></div>
+      <b style="font-size:13px">絵の候補</b>
+      <div class="cands" id="cands"></div>
+    </div>
+  </div>
+
+  <div class="stagebox" id="stagebox">
+    <div class="stage" id="stage">
+      <div class="guide" id="guideArea"></div>
+      <div class="band" id="band"></div>
+      <div class="glow" id="glow"></div>
+      <div class="zone" id="zone"><img id="zoneImg" alt=""></div>
+      <div class="edge" id="edge"></div>
+    </div>
+  </div>
+
+  <div class="side">
+    <div class="card">
+      <div class="btns">
+        <button class="primary" id="play">この告知を出す</button>
+        <button id="loop">繰り返す: 切</button>
+        <button id="reset">既定に戻す</button>
+      </div>
+      <div class="form">
+        <label>背景</label><div><select id="bg"><option value="../tools/adventure-ui-qa/adventure-v2-2556.png">冒険画面（実機の描き出し）</option><option value="">なし（黒）</option></select></div>
+        <label>表示域</label><div><label class="ck"><input type="checkbox" id="showGuide" checked> 枠を出す</label></div>
+      </div>
+    </div>
+
+    <details class="sec" open>
+      <summary>位置と大きさ</summary>
+      <div class="form">
+        <label>横 x</label><div><input type="range" id="x" min="-560" max="560" step="1"> <span id="xV"></span></div>
+        <label>縦 y</label><div><input type="range" id="y" min="-260" max="260" step="1"> <span id="yV"></span></div>
+        <label>幅</label><div><input type="range" id="w" min="120" max="1100" step="5"> <span id="wV"></span> px</div>
+        <label>傾き</label><div><input type="range" id="rot" min="-25" max="25" step="0.5"> <span id="rotV"></span>°</div>
+        <label>濃さ</label><div><input type="range" id="alpha" min="0.1" max="1" step="0.05"> <span id="alphaV"></span></div>
+      </div>
+      <div class="note">y は舞台の中心から上が +。表示域（青い枠）の中に収めると、リールやナビに被らない。</div>
+    </details>
+
+    <details class="sec" open>
+      <summary>出方と時間</summary>
+      <div class="form">
+        <label>出方</label><div><select id="inStyle">
+          <option value="slam">叩きつけ（1.5 倍から着地）</option><option value="zoom">ふくらむ（0 → 1.3 → 1）</option>
+          <option value="slide">横から流れる</option><option value="drop">上から落ちる</option><option value="fade">ふわっと</option>
+        </select></div>
+        <label>出る</label><div><input type="range" id="inSec" min="0.05" max="1" step="0.01"> <span id="inSecV"></span> 秒</div>
+        <label>保持</label><div><input type="range" id="holdSec" min="0.3" max="4" step="0.1"> <span id="holdSecV"></span> 秒</div>
+        <label>消える</label><div><input type="range" id="outSec" min="0.05" max="1.2" step="0.05"> <span id="outSecV"></span> 秒</div>
+        <label>保持中</label><div><select id="idle"><option value="none">動かない</option><option value="breathe">呼吸（少し伸縮）</option><option value="pulse">脈打つ（濃さ）</option><option value="sway">ゆらぐ（傾き）</option></select></div>
+      </div>
+    </details>
+
+    <details class="sec" open>
+      <summary>帯（絵の後ろ）</summary>
+      <div class="form">
+        <label>出す</label><div><label class="ck"><input type="checkbox" id="bandOn"> 帯を敷く</label></div>
+        <label>高さ</label><div><input type="range" id="bandH" min="40" max="260" step="4"> <span id="bandHV"></span> px</div>
+        <label>色</label><div><input type="color" id="bandColor"> <input type="range" id="bandAlpha" min="0" max="1" step="0.05"> <span id="bandAlphaV"></span></div>
+        <label>上下の線</label><div><input type="color" id="lineColor"> <input type="range" id="lineW" min="0" max="6" step="1"> <span id="lineWV"></span> px</div>
+        <label>傾き</label><div><input type="range" id="bandRot" min="-15" max="15" step="0.5"> <span id="bandRotV"></span>°</div>
+      </div>
+    </details>
+
+    <details class="sec">
+      <summary>光と揺れ</summary>
+      <div class="form">
+        <label>後ろの光</label><div><input type="color" id="glowColor"> <input type="range" id="glowA" min="0" max="1" step="0.05"> <span id="glowAV"></span></div>
+        <label>広がり</label><div><input type="range" id="glowSize" min="0.8" max="3" step="0.1"> <span id="glowSizeV"></span> 倍</div>
+        <label>画面の縁</label><div><input type="color" id="edgeColor"> <input type="range" id="edgeA" min="0" max="1" step="0.05"> <span id="edgeAV"></span></div>
+        <label>揺れ</label><div><input type="range" id="shake" min="0" max="14" step="1"> <span id="shakeV"></span> px</div>
+        <label>揺れの長さ</label><div><input type="range" id="shakeSec" min="0" max="1.2" step="0.05"> <span id="shakeSecV"></span> 秒</div>
+      </div>
+    </details>
+
+    <details class="sec">
+      <summary>飛び散り</summary>
+      <div class="form">
+        <label>種類</label><div><select id="burst"><option value="none">なし</option><option value="shards">赤い破片</option><option value="confetti">紙吹雪</option><option value="stars">星</option><option value="sparks">火花</option></select></div>
+        <label>数</label><div><input type="range" id="burstN" min="0" max="60" step="2"> <span id="burstNV"></span> 個</div>
+        <label>飛ぶ距離</label><div><input type="range" id="burstR" min="40" max="400" step="10"> <span id="burstRV"></span> px</div>
+      </div>
+    </details>
+
+    <div class="card">
+      <b>この 3 面の設定（game_config.json の zoneFx へ）</b>
+      <pre id="out"></pre>
+      <div class="btns"><button class="primary" id="copy">コピー</button><span id="copied" class="note"></span></div>
+      <div class="note">絵は <code>py -3 tools/ui/install_zone_art.py</code> で Resources/Art/UI/Zones へ入る（この JSON の image を見て写す）。</div>
+    </div>
+  </div>
+</div>
+<script src="zone_defaults.js"></script>
+<script>
+(function () {
+  const STAGE_W = 1170, STAGE_H = 540;          // GameController の StageW / StageH
+  const AREA_W = 940, AREA_H = 300, AREA_Y = 122;   // 表示域（ContentW-4 / StageCardH-BandH-4）と舞台内の中心 y
+  const ZONES = [
+    { key: "engage", label: "エンゲージ", pool: "engage" },
+    { key: "big", label: "BIG", pool: "bonus" },
+    { key: "reg", label: "REG", pool: "bonus" },
+  ];
+  const DEF = {
+    engage: { image: "", x: 0, y: 122, w: 620, rot: 0, alpha: 1, inStyle: "slam", inSec: 0.16, holdSec: 1.5, outSec: 0.3, idle: "breathe",
+              bandOn: true, bandH: 96, bandColor: "#000000", bandAlpha: 0.78, lineColor: "#ff4d6b", lineW: 2, bandRot: 0,
+              glowColor: "#ff4d6b", glowA: 0.45, glowSize: 1.6, edgeColor: "#ff4d6b", edgeA: 0.5, shake: 6, shakeSec: 0.3,
+              burst: "shards", burstN: 24, burstR: 200 },
+    big: { image: "", x: 0, y: 122, w: 520, rot: 0, alpha: 1, inStyle: "zoom", inSec: 0.5, holdSec: 2.5, outSec: 0.3, idle: "breathe",
+           bandOn: false, bandH: 140, bandColor: "#000000", bandAlpha: 0.6, lineColor: "#ffcf3f", lineW: 2, bandRot: 0,
+           glowColor: "#ffcf3f", glowA: 0.6, glowSize: 2, edgeColor: "#ffcf3f", edgeA: 0.5, shake: 4, shakeSec: 0.4,
+           burst: "confetti", burstN: 40, burstR: 320 },
+    reg: { image: "", x: 0, y: 122, w: 420, rot: 0, alpha: 1, inStyle: "zoom", inSec: 0.4, holdSec: 1.8, outSec: 0.3, idle: "pulse",
+           bandOn: false, bandH: 120, bandColor: "#000000", bandAlpha: 0.6, lineColor: "#4da3ff", lineW: 2, bandRot: 0,
+           glowColor: "#4da3ff", glowA: 0.5, glowSize: 1.8, edgeColor: "#4da3ff", edgeA: 0.4, shake: 3, shakeSec: 0.3,
+           burst: "stars", burstN: 24, burstR: 240 },
+  };
+  const NUMS = ["x","y","w","rot","alpha","inSec","holdSec","outSec","bandH","bandAlpha","lineW","bandRot","glowA","glowSize","edgeA","shake","shakeSec","burstN","burstR"];
+  const SELS = ["inStyle","idle","burst"];
+  const COLS = ["bandColor","lineColor","glowColor","edgeColor"];
+  const KEY = "bbb_zone_v1";
+
+  const data = JSON.parse(JSON.stringify(DEF));
+  const saved = (window.BBB_ZONE && window.BBB_ZONE.zoneFx) || {};
+  for (const z of ZONES) if (saved[z.key]) Object.assign(data[z.key], saved[z.key]);
+  try { const st = JSON.parse(localStorage.getItem(KEY) || "{}"); for (const z of ZONES) if (st[z.key]) Object.assign(data[z.key], st[z.key]); } catch (e) {}
+  const IMAGES = (window.BBB_ZONE && window.BBB_ZONE.images) || { engage: [], bonus: [] };
+  let cur = "engage";
+  const el = id => document.getElementById(id);
+  const P = () => data[cur];
+
+  // ---- 舞台の縮尺（窓に合わせる）
+  function fit() {
+    const box = el("stagebox"), k = Math.min(1, (box.clientWidth - 2) / STAGE_W);
+    el("stage").style.transform = "scale(" + k + ")";
+    box.style.height = (STAGE_H * k) + "px";
+  }
+  window.addEventListener("resize", fit);
+
+  // ---- 区画: ゾーンの切り替えと候補
+  function buildZones() {
+    const host = el("zones"); host.innerHTML = "";
+    for (const z of ZONES) {
+      const b = document.createElement("button"); b.textContent = z.label; b.className = z.key === cur ? "on" : "";
+      b.onclick = () => { cur = z.key; buildZones(); buildCands(); readToUi(); place(); };
+      host.appendChild(b);
+    }
+  }
+  function buildCands() {
+    const host = el("cands"); host.innerHTML = "";
+    const pool = IMAGES[ZONES.find(z => z.key === cur).pool] || [];
+    const mk = (src, label) => {
+      const d = document.createElement("div"); d.className = "cand" + (P().image === src ? " sel" : "");
+      if (src) { const im = document.createElement("img"); im.src = src; d.appendChild(im); } else { d.classList.add("none"); d.textContent = "なし（文字）"; }
+      d.title = label; d.onclick = () => { P().image = src; buildCands(); place(); out(); save(); };
+      host.appendChild(d);
+    };
+    mk("", "なし");
+    for (const src of pool) mk(src, src.split("/").pop());
+  }
+
+  // ---- 値の読み書き
+  function readToUi() {
+    const p = P();
+    for (const k of NUMS) { const e = el(k); if (!e) continue; e.value = p[k]; const v = el(k + "V"); if (v) v.textContent = fmt(k, p[k]); }
+    for (const k of SELS) el(k).value = p[k];
+    for (const k of COLS) el(k).value = p[k];
+    el("bandOn").checked = !!p.bandOn;
+  }
+  function fmt(k, v) { return (k === "burstN" || k === "burstR" || k === "bandH" || k === "lineW" || k === "shake" || k === "x" || k === "y" || k === "w") ? String(Math.round(v)) : Number(v).toFixed(2); }
+  function readFromUi() {
+    const p = P();
+    for (const k of NUMS) { const e = el(k); if (!e) continue; p[k] = parseFloat(e.value); const v = el(k + "V"); if (v) v.textContent = fmt(k, p[k]); }
+    for (const k of SELS) p[k] = el(k).value;
+    for (const k of COLS) p[k] = el(k).value;
+    p.bandOn = el("bandOn").checked;
+    place(); out(); save();
+  }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {} }
+
+  // ---- 静止状態の配置（再生していないときの見え方）
+  function place() {
+    const p = P();
+    el("stage").style.backgroundImage = el("bg").value ? "url('" + el("bg").value + "')" : "none";
+    el("guideArea").style.display = el("showGuide").checked ? "block" : "none";
+    Object.assign(el("guideArea").style, { left: (STAGE_W / 2 - AREA_W / 2) + "px", top: (STAGE_H / 2 - AREA_Y - AREA_H / 2) + "px", width: AREA_W + "px", height: AREA_H + "px" });
+    const img = el("zoneImg");
+    img.style.display = p.image ? "block" : "none";
+    if (p.image && img.getAttribute("src") !== p.image) img.src = p.image;
+    img.style.width = p.w + "px"; img.style.height = "auto";
+    if (!anim) applyFrame(1, 1, 0, 0, p.alpha, 0, 0);
+  }
+  // s = 拡大率, a = 濃さ, dx/dy = ずらし, bandS = 帯の横の伸び, glowA = 光, edgeA = 縁
+  function applyFrame(s, bandS, dx, dy, a, glowA, edgeA) {
+    const p = P();
+    const zx = STAGE_W / 2 + p.x + dx, zy = STAGE_H / 2 - p.y + dy;
+    const zone = el("zone");
+    zone.style.left = zx + "px"; zone.style.top = zy + "px";
+    zone.style.transform = "translate(-50%,-50%) rotate(" + p.rot + "deg) scale(" + s + ")";
+    zone.style.opacity = a;
+    const band = el("band");
+    band.style.display = p.bandOn ? "block" : "none";
+    if (p.bandOn) {
+      Object.assign(band.style, { left: (STAGE_W / 2) + "px", top: zy + "px", width: (STAGE_W * 1.2) + "px", height: p.bandH + "px",
+        background: hexA(p.bandColor, p.bandAlpha * a), borderTop: p.lineW + "px solid " + p.lineColor, borderBottom: p.lineW + "px solid " + p.lineColor,
+        transform: "translate(-50%,-50%) rotate(" + p.bandRot + "deg) scaleX(" + bandS + ")", boxSizing: "border-box" });
+    }
+    const glow = el("glow"), gs = p.w * p.glowSize;
+    Object.assign(glow.style, { left: zx + "px", top: zy + "px", width: gs + "px", height: (gs * 0.55) + "px",
+      transform: "translate(-50%,-50%)", background: "radial-gradient(closest-side, " + hexA(p.glowColor, Math.min(1, glowA)) + ", rgba(0,0,0,0))" });
+    el("edge").style.boxShadow = "inset 0 0 90px 30px " + hexA(p.edgeColor, edgeA);
+  }
+  function hexA(hex, a) {
+    const n = parseInt(hex.slice(1), 16);
+    return "rgba(" + (n >> 16 & 255) + "," + (n >> 8 & 255) + "," + (n & 255) + "," + Math.max(0, Math.min(1, a)).toFixed(3) + ")";
+  }
+
+  // ---- 再生（Unity 側の ZoneFx と同じ段取り: 出る → 保持 → 消える）
+  let anim = null, looping = false;
+  function play() {
+    if (anim) cancelAnimationFrame(anim);
+    const p = P(), t0 = performance.now();
+    spawnBurst();
+    const total = p.inSec + p.holdSec + p.outSec;
+    function frame(now) {
+      const t = (now - t0) / 1000;
+      let s = 1, bandS = 1, dx = 0, dy = 0, a = p.alpha, glowA = 0, edgeA = 0;
+      if (t < p.inSec) {                      // 出る
+        const u = Math.min(1, t / p.inSec), e = 1 - Math.pow(1 - u, 3);
+        bandS = e;
+        switch (p.inStyle) {
+          case "zoom": s = u * (1 + 0.3 * Math.sin(u * Math.PI)); a = p.alpha * u; break;
+          case "slide": dx = (1 - e) * -STAGE_W * 0.6; a = p.alpha; break;
+          case "drop": dy = (1 - e) * -260; break;
+          case "fade": a = p.alpha * u; break;
+          default: s = 1.5 - 0.5 * (1 - Math.pow(1 - u, 2)); a = p.alpha;     // slam
+        }
+        glowA = p.glowA * u; edgeA = p.edgeA * u;
+      } else if (t < p.inSec + p.holdSec) {   // 保持
+        const ft = t - p.inSec;
+        if (p.idle === "breathe") s = 1 + 0.03 * Math.sin(ft * Math.PI);
+        else if (p.idle === "pulse") a = p.alpha * (0.82 + 0.18 * Math.sin(ft * Math.PI * 2));
+        else if (p.idle === "sway") dx = 4 * Math.sin(ft * 2);
+        glowA = p.glowA * (0.35 + 0.65 * Math.exp(-ft * 1.6));
+        edgeA = p.edgeA * Math.max(0, 1 - ft / Math.max(0.15, p.shakeSec + 0.2));
+        const st = p.shakeSec > 0 ? Math.max(0, 1 - ft / p.shakeSec) : 0;
+        if (st > 0) { dx += (Math.random() - 0.5) * p.shake * st * 2; dy += (Math.random() - 0.5) * p.shake * st * 2; }
+      } else if (t < total) {                 // 消える
+        const u = (t - p.inSec - p.holdSec) / p.outSec;
+        a = p.alpha * (1 - u); glowA = p.glowA * 0.1 * (1 - u); bandS = 1;
+      } else {
+        applyFrame(1, 1, 0, 0, p.alpha, 0, 0); anim = null;
+        if (looping) setTimeout(play, 400);
+        return;
+      }
+      applyFrame(s, bandS, dx, dy, a, glowA, edgeA);
+      anim = requestAnimationFrame(frame);
+    }
+    anim = requestAnimationFrame(frame);
+  }
+  function spawnBurst() {
+    const p = P(); document.querySelectorAll(".shard").forEach(s => s.remove());
+    if (p.burst === "none" || p.burstN <= 0) return;
+    const colors = { shards: ["#ff4d6b", "#ff8a3a", "#ffffff"], confetti: ["#ffcf3f", "#4da3ff", "#ff73a6", "#66f280"], stars: ["#ffffff", "#ffcf3f"], sparks: ["#ffd27a", "#fff2c4"] }[p.burst];
+    const zx = STAGE_W / 2 + p.x, zy = STAGE_H / 2 - p.y;
+    for (let i = 0; i < p.burstN; i++) {
+      const d = document.createElement("div"); d.className = "shard";
+      const ang = Math.random() * Math.PI * 2, r = p.burstR * (0.4 + Math.random() * 0.6);
+      const size = p.burst === "confetti" ? 10 : p.burst === "stars" ? 8 : 6;
+      Object.assign(d.style, { left: zx + "px", top: zy + "px", width: size + "px", height: (p.burst === "shards" ? size * 2 : size) + "px",
+        background: colors[i % colors.length], opacity: 1, transform: "translate(-50%,-50%)", transition: "transform .9s cubic-bezier(.2,.8,.3,1), opacity .9s linear" });
+      el("stage").appendChild(d);
+      requestAnimationFrame(() => { d.style.transform = "translate(-50%,-50%) translate(" + Math.cos(ang) * r + "px," + Math.sin(ang) * r + "px) rotate(" + (Math.random() * 540 - 270) + "deg)"; d.style.opacity = 0; });
+      setTimeout(() => d.remove(), 1000);
+    }
+  }
+
+  // ---- 出力
+  function out() {
+    const clean = {};
+    for (const z of ZONES) {
+      const p = data[z.key], o = {};
+      o.image = p.image ? p.image.split("/").pop().replace(".png", "") : "";
+      for (const k of ["x","y","w","rot","alpha","inStyle","inSec","holdSec","outSec","idle","bandOn","bandH","bandColor","bandAlpha","lineColor","lineW","bandRot","glowColor","glowA","glowSize","edgeColor","edgeA","shake","shakeSec","burst","burstN","burstR"]) o[k] = p[k];
+      o.src = p.image ? p.image.replace("../", "") : "";
+      clean[z.key] = o;
+    }
+    el("out").textContent = '"zoneFx": ' + JSON.stringify(clean, null, 2);
+  }
+
+  // ---- つなぐ
+  buildZones(); buildCands(); readToUi(); fit(); place(); out();
+  for (const k of NUMS.concat(COLS)) { const e = el(k); if (e) e.addEventListener("input", readFromUi); }
+  for (const k of SELS) el(k).addEventListener("change", () => { readFromUi(); play(); });
+  el("bandOn").addEventListener("change", readFromUi);
+  el("bg").addEventListener("change", place);
+  el("showGuide").addEventListener("change", place);
+  el("play").addEventListener("click", play);
+  el("loop").addEventListener("click", () => { looping = !looping; el("loop").textContent = "繰り返す: " + (looping ? "入" : "切"); if (looping) play(); });
+  el("reset").addEventListener("click", () => { Object.assign(data[cur], JSON.parse(JSON.stringify(DEF[cur]))); readToUi(); buildCands(); place(); out(); save(); });
+  el("copy").addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(el("out").textContent); el("copied").textContent = "コピーした"; }
+    catch (e) { el("copied").textContent = "コピーできなかった。文を選んで Ctrl+C"; }
+  });
+  document.addEventListener("keydown", e => { if (e.key === " " && e.target === document.body) { e.preventDefault(); play(); } });
+})();
+</script>
+</body>
+</html>

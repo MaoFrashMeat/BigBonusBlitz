@@ -100,6 +100,8 @@ namespace BBB.Core
         public CurseConfig curse;
         /// <summary>リールの見せ方（役が決まったコマの点滅）。tools/symbol_viewer.html で試して決める。</summary>
         public ReelFxConfig reelFx = new ReelFxConfig();
+        /// <summary>ゾーン（告知）の演出。エンゲージ / BIG / REG。tools/zone_viewer.html で決める。</summary>
+        public ZoneFxConfig zoneFx = new ZoneFxConfig();
 
         public Payouts PayoutsFor(BonusMode m)
         {
@@ -308,6 +310,42 @@ namespace BBB.Core
         /// zoom（急拡大して消える）/ flip（縦に開く）/ slam（叩きつけ）/ spiral（回りながら収まる）/ pulse（明滅）
         /// </summary>
         public string style = "slideRL";
+    }
+
+    /// <summary>告知 3 面。値の意味は ZoneFxEntry と tools/zone_viewer.html を見る。</summary>
+    public sealed class ZoneFxConfig
+    {
+        public ZoneFxEntry engage = new ZoneFxEntry();
+        public ZoneFxEntry big = new ZoneFxEntry();
+        public ZoneFxEntry reg = new ZoneFxEntry();
+    }
+
+    /// <summary>
+    /// 告知 1 面ぶん。image は Resources/Art/UI/Zones の名前（空なら従来の文字）。src は元絵（tools/ui/install_zone_art.py が見る）。
+    /// x / y は舞台の中心から上が +y。w は絵の幅（高さは比で決まる）。時間は秒。
+    /// </summary>
+    public sealed class ZoneFxEntry
+    {
+        public string image = "", src = "";
+        public float x = 0, y = 122, w = 620, rot = 0, alpha = 1;
+        /// <summary>出方: slam（叩きつけ）/ zoom / slide / drop / fade。</summary>
+        public string inStyle = "slam";
+        public float inSec = 0.16f, holdSec = 1.5f, outSec = 0.3f;
+        /// <summary>保持中の動き: none / breathe / pulse / sway。</summary>
+        public string idle = "breathe";
+        public bool bandOn = true;
+        public float bandH = 96f;
+        public string bandColor = "#000000";
+        public float bandAlpha = 0.78f;
+        public string lineColor = "#ff4d6b";
+        public float lineW = 2f, bandRot = 0f;
+        public string glowColor = "#ff4d6b";
+        public float glowA = 0.45f, glowSize = 1.6f;
+        public string edgeColor = "#ff4d6b";
+        public float edgeA = 0.5f, shake = 6f, shakeSec = 0.3f;
+        /// <summary>飛び散り: none / shards / confetti / stars / sparks。</summary>
+        public string burst = "shards";
+        public float burstN = 24f, burstR = 200f;
     }
 
     public sealed class ReelFxConfig
