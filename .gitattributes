@@ -4,3 +4,6 @@ assets/symbols/**/*.png filter=lfs diff=lfs merge=lfs -text
 assets/logo/bonus/*.png filter=lfs diff=lfs merge=lfs -text
 # エンゲージのロゴ候補（assets/logo/engage）も LFS
 assets/logo/engage/*.png filter=lfs diff=lfs merge=lfs -text
+# 参考資料（assets/refarence）も LFS。スクリーンショットが 0.5〜1MB
+assets/refarence/*.png filter=lfs diff=lfs merge=lfs -text
+assets/refarence/*.jpg filter=lfs diff=lfs merge=lfs -text
