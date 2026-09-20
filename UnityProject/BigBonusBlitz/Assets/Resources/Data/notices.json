@@ -2,6 +2,12 @@
   "entries": [
     {
       "date": "2026-09-21",
+      "version": "dev 276",
+      "title": "AT に入っても曲が変わらなかったのを直した",
+      "body": "・AT の開始は結果ではなくレバーで決まるので、そこで曲を切り替えるように（前は r.atStarted が立たず、洞窟に入っても道中の曲のままだった）\n・「at」のボイスも同じ所で鳴る"
+    },
+    {
+      "date": "2026-09-21",
       "version": "dev 275",
       "title": "ボイススタジオ: 録る → 変換 → 聞く → 場面に入れる を 1 画面で",
       "body": "・py -3 tools/voice_studio.py で http://localhost:8768/ を開く（Chrome / Edge。マイクの許可が要る）\n・左で場面を選び、録音 → 変換（VoiceChangerAI の声・高さ・index）→ 聞いて「この場面に入れる」。入れた声はゲームがその場面で鳴らす\n・録音は tools/voice/raw（git には入れない）"

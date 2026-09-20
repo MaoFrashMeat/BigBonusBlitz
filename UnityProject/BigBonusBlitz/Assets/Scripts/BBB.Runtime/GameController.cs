@@ -2348,7 +2348,7 @@ namespace BBB.Runtime
             ClearBellShow();
             // エンゲージ中は敵との戦闘が主役なので 3 体斬りは出さない
             if (_m.BonusMode != BonusMode.NORMAL && _m.CurrentFlag.IsBell() && !_m.IsTier2 && !_m.EnemyActive && _m.PrecursorRemaining == 0 && !_m.InAt) StartBonusBellShow();
-            if (_m.AtJustStarted) StartCoroutine(AtStartRoutine());                   // 洞窟に入った
+            if (_m.AtJustStarted) { StartCoroutine(AtStartRoutine()); SyncBgm(); _audio.Voice("at"); }   // 洞窟に入った（AT は Lever で始まるので、ここで曲も切り替える）
 
             // ウェイト: リールは即回転。停止ボタンだけ「前回レバーから SpinWaitSeconds」まで無効
             float waitSec = _autoMode ? SpinWaitSeconds / Mathf.Max(1, _autoSpeed) : SpinWaitSeconds;
@@ -2653,7 +2653,6 @@ namespace BBB.Runtime
             if (r.bonusEnded || r.atStarted || r.atEnded || r.enemySpawned || r.enemyResolved.HasValue || r.bonusStarted) SyncBgm();   // 場所が変わったら BGM も
             // 主人公のボイス（あれば）。中ボス出現 / AT 入り / レベルアップ / 章の踏破 / 力尽き
             if (r.enemySpawned && r.enemyTable != null && r.enemyTable.IsBoss) _audio.Voice("boss");
-            if (r.atStarted) _audio.Voice("at");
             if (r.levelUp) _audio.Voice("levelup");
             if (r.chapterCleared) _audio.Voice("clear");
             if (r.ranOutOfCredit || r.outOfTorch) _audio.Voice("death");
