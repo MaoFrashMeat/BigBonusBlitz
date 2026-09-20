@@ -21,3 +21,6 @@ tools/verify/**/obj/
 
 # Springin' Sound Stock の素材（規約で再頒布不可。tools/fetch_springin.py で PC ごとに取る）
 assets/sounds/springin/
+
+# 魔王魂の素材（曲単品の再配布不可。tools/fetch_maou.py で PC ごとに取る。著作表記「音楽：魔王魂」）
+assets/sounds/maou/

@@ -19,7 +19,7 @@ AUDIO = os.path.join(ROOT, "UnityProject", "BigBonusBlitz", "Assets", "Scripts",
 MOTION = os.path.join(ROOT, "UnityProject", "BigBonusBlitz", "Assets", "Scripts", "BBB.Runtime", "AudioManager.Motion.cs")
 BGM_DIR = os.path.join(ROOT, "UnityProject", "BigBonusBlitz", "Assets", "Resources", "Audio", "BGM")
 BGM_SOUNDS = os.path.join(ROOT, "assets", "sounds", "bgm")
-SPRINGIN_BGM = [os.path.join(ROOT, "assets", "sounds", "springin", d) for d in ("bgm", "bgm-short")]
+SPRINGIN_BGM = [os.path.join(ROOT, "assets", "sounds", "springin", d) for d in ("bgm", "bgm-short")] + [os.path.join(ROOT, "assets", "sounds", "maou", d) for d in ("bgm", "song")]
 CONFIG = os.path.join(ROOT, "UnityProject", "BigBonusBlitz", "Assets", "Resources", "Data", "se_config.json")
 SE_DIR = os.path.join(ROOT, "UnityProject", "BigBonusBlitz", "Assets", "Resources", "Audio", "SE")
 SYNTH_DIR = os.path.join(ROOT, "tools", "se", "synth")
@@ -76,7 +76,7 @@ def main():
     candidates = []
     if os.path.isdir(SOUNDS):
         for dp, dirs, fs in os.walk(SOUNDS):
-            dirs[:] = [x for x in dirs if x != "bgm"]   # BGM は効果音でない
+            dirs[:] = [x for x in dirs if x not in ("bgm", "song")]   # BGM と歌は効果音でない（BGM の候補に出す）
             for f in sorted(fs):
                 if os.path.splitext(f)[1].lower() in EXT:
                     p = os.path.join(dp, f)
