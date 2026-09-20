@@ -155,7 +155,7 @@
     $("ctrl").innerHTML = '<h2>' + d.group + ' / ' + d.name + '</h2><div class="note">' + d.when + '</div>' +
       '<div class="btns"><button class="primary" id="playCur">▶ 今の割り当てで鳴らす</button><button class="plain" id="stopCur">■ 止める</button><button class="plain" id="resetOne">この音を既定に戻す</button></div>' +
       '<div class="row seek"><label id="seekName">—</label><input type="range" id="seek" min="0" max="1000" step="1" value="0"><span id="seekT">0.00 / 0.00</span></div>' +
-      '<div class="row"><label>音量</label><input type="range" id="vol" min="0" max="1.5" step="0.05" value="' + volOf(d) + '"><input type="number" id="volN" min="0" max="1.5" step="0.05" value="' + volOf(d) + '"></div>' +
+      '<div class="row"><label>' + (d.bgm ? "音量（倍率）" : "音量") + '</label><input type="range" id="vol" min="0" max="1.5" step="0.05" value="' + volOf(d) + '"><input type="number" id="volN" min="0" max="1.5" step="0.05" value="' + volOf(d) + '"></div>' + (d.bgm ? '<div class="note">BGM の音量は、ゲームの設定の音量に掛ける倍率（1 = そのまま）</div>' : '') +
       (d.bgm ? '' : '<div class="row"><label>高さ</label><input type="range" id="pit" min="0.5" max="2" step="0.01" value="' + c.pitch + '"><input type="number" id="pitN" min="0.5" max="2" step="0.01" value="' + c.pitch + '"></div>') +
       '<div class="note">音の元（押すと割り当て。▶ で試聴だけ）</div><input type="text" id="filt" placeholder="絞り込み（名前かタグ。例: 攻撃 / コイン / 決定 / 8bit）" style="width:100%;box-sizing:border-box;font:inherit;font-size:12px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:4px 6px;margin:4px 0"><div class="cands">' +
       rows.filter(r => r.tag !== "候補").map(rowHtml).join("") + candTree(rows.filter(r => r.tag === "候補"), c) +

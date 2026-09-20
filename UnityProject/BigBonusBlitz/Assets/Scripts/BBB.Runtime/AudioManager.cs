@@ -15,6 +15,8 @@ namespace BBB.Runtime
         private AudioSource _sePitched;   // ピッチを変える SE 用
         private AudioLowPassFilter _bgmLpf;
         private float _bgmBaseVolume = 0.5f;
+        /// <summary>今の場所の曲の倍率（se_config.json の bgm[key].volume。1 = 設定の音量そのまま）。本人の音量設定は _bgmBaseVolume で、こちらは掛けるだけ。</summary>
+        private float _bgmMul = 1f;
         private Coroutine _focusRoutine;
         private AudioClip _bgmNormal, _bet, _spin, _stop, _win, _replay, _attack, _enemyDeath, _bbConfirm, _uiPop;
         /// <summary>敵出現。素材 se_enemy_appear があればそれ 1 本、無ければ合成音（接近＋着地）。</summary>
@@ -79,12 +81,12 @@ namespace BBB.Runtime
         /// <summary>BGM の場所: キー → 既定の素材名（Resources/Audio/BGM）/ 説明。se_config.json の bgm で差し替える。無い場所は adventure → bgm_normal。</summary>
         public static readonly SeDef[] BgmDefs =
         {
-            new SeDef("title", "bgm_normal", 0.5f, null, "BGM", "タイトル", "タイトル画面（TAP TO START）"),
-            new SeDef("town", "bgm_normal", 0.5f, null, "BGM", "街", "街の地図（ショップ / 装備 / 実績 / 設定）"),
-            new SeDef("adventure", "bgm_normal", 0.5f, null, "BGM", "冒険（通常時）", "冒険中の通常時。他の場所に指定が無ければこれ"),
-            new SeDef("bonus", "bgm_normal", 0.5f, null, "BGM", "ボーナス中", "BIG / REG の消化中（確定音のあとから）"),
-            new SeDef("at", "bgm_normal", 0.5f, null, "BGM", "AT（洞窟）", "AT「洞窟」の間"),
-            new SeDef("engage", "bgm_normal", 0.5f, null, "BGM", "エンゲージ", "敵が出ている間（前兆〜決着）"),
+            new SeDef("title", "bgm_normal", 1f, null, "BGM", "タイトル", "タイトル画面（TAP TO START）"),
+            new SeDef("town", "bgm_normal", 1f, null, "BGM", "街", "街の地図（ショップ / 装備 / 実績 / 設定）"),
+            new SeDef("adventure", "bgm_normal", 1f, null, "BGM", "冒険（通常時）", "冒険中の通常時。他の場所に指定が無ければこれ"),
+            new SeDef("bonus", "bgm_normal", 1f, null, "BGM", "ボーナス中", "BIG / REG の消化中（確定音のあとから）"),
+            new SeDef("at", "bgm_normal", 1f, null, "BGM", "AT（洞窟）", "AT「洞窟」の間"),
+            new SeDef("engage", "bgm_normal", 1f, null, "BGM", "エンゲージ", "敵が出ている間（前兆〜決着）"),
         };
         [System.Serializable] public sealed class SeSetting { public string file = ""; public float volume = -1f; public float pitch = 1f; }
         [System.Serializable] private sealed class SeConfigFile
@@ -99,7 +101,7 @@ namespace BBB.Runtime
         /// <summary>その場所の BGM。se_config の bgm[key].file → 既定 → adventure の指定 → bgm_normal。</summary>
         private AudioClip BgmClip(string key, out float vol)
         {
-            vol = 0.5f;
+            vol = 1f;   // 倍率。本人の音量設定（BgmVolume）に掛ける
             SeSetting st = _bgmConfig != null && _bgmConfig.TryGetValue(key, out var s0) ? s0 : null;
             if (st != null && st.volume >= 0f) vol = st.volume;
             else if (_bgmConfig != null && _bgmConfig.TryGetValue("adventure", out var sa) && sa != null && sa.volume >= 0f) vol = sa.volume;
@@ -153,7 +155,7 @@ namespace BBB.Runtime
             catch (System.Exception e) { Debug.LogWarning("se_config.json を読めない: " + e.Message); }
         }
 
-        public float BgmVolume { get => _bgmBaseVolume; set { _bgmBaseVolume = value; _bgm.volume = value; } }
+        public float BgmVolume { get => _bgmBaseVolume; set { _bgmBaseVolume = value; _bgm.volume = value * _bgmMul; } }
         public float SeVolume { get => _se.volume; set { value = Mathf.Clamp01(value); _se.volume = value; _sePitched.volume = value; SetMotionVolume(value); } }
         public bool BgmEnabled { get; private set; } = true;
 
@@ -228,7 +230,7 @@ namespace BBB.Runtime
         private System.Collections.IEnumerator FocusRoutine(bool on)
         {
             float c0 = _bgmLpf.cutoffFrequency, c1 = on ? 500f : 22000f;
-            float v0 = _bgm.volume, v1 = on ? _bgmBaseVolume * 0.6f : _bgmBaseVolume;
+            float v0 = _bgm.volume, v1 = (on ? _bgmBaseVolume * 0.6f : _bgmBaseVolume) * _bgmMul;
             float t = 0, d = on ? 0.25f : 0.15f;
             while (t < d)
             {
@@ -420,7 +422,7 @@ namespace BBB.Runtime
             if (!BgmEnabled || clip == null) return;
             if (_bgm.clip != clip) { _bgm.clip = clip; _bgm.Play(); }
             else if (!_bgm.isPlaying) _bgm.Play();
-            _bgmBaseVolume = vol; _bgm.volume = vol;
+            _bgmMul = vol; _bgm.volume = _bgmBaseVolume * _bgmMul;   // 本人の音量設定は変えない（前は上書きしていて、設定した音量が戻ってしまった）
         }
 
         public void StopBgm() { if (_bgm.isPlaying) _bgm.Stop(); }
