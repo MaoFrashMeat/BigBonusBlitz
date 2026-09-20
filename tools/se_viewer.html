@@ -123,7 +123,7 @@
       '<div class="btns"><button class="primary" id="playCur">▶ 今の割り当てで鳴らす</button><button class="plain" id="resetOne">この音を既定に戻す</button></div>' +
       '<div class="row"><label>音量</label><input type="range" id="vol" min="0" max="1.5" step="0.05" value="' + volOf(d) + '"><input type="number" id="volN" min="0" max="1.5" step="0.05" value="' + volOf(d) + '"></div>' +
       '<div class="row"><label>高さ</label><input type="range" id="pit" min="0.5" max="2" step="0.01" value="' + c.pitch + '"><input type="number" id="pitN" min="0.5" max="2" step="0.01" value="' + c.pitch + '"></div>' +
-      '<div class="note">音の元（押すと割り当て。▶ で試聴だけ）</div><div class="cands">' +
+      '<div class="note">音の元（押すと割り当て。▶ で試聴だけ）</div><input type="text" id="filt" placeholder="絞り込み（例: 剣 / コイン / system）" style="width:100%;box-sizing:border-box;font:inherit;font-size:12px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:4px 6px;margin:4px 0"><div class="cands">' +
       rows.map(r => '<div class="' + ((c.src || "") === r.src ? "sel" : "") + '" data-src="' + r.src + '" data-path="' + (r.path || "") + '"><span class="tag">' + r.tag + '</span><span class="nm" title="' + r.name + '">' + r.name + '</span><button class="mini" data-p="' + (r.path || "") + '">▶</button></div>').join("") +
       '</div><div class="btns"><button class="plain" id="resetAll">全部既定に戻す</button></div>' +
       '<div class="note">JSON（tools/se_choice.json に丸ごと貼る）</div><pre id="json"></pre>';
@@ -138,6 +138,10 @@
       if (e.target.tagName === "BUTTON") { play(e.target.getAttribute("data-p"), volOf(d), c.pitch); return; }
       c.src = el.getAttribute("data-src"); store(); render(); play(pathOf(d), volOf(d), c.pitch);
     }));
+    $("filt").addEventListener("input", e => {
+      const q = e.target.value.trim().toLowerCase();
+      $("ctrl").querySelectorAll(".cands div").forEach(el => { el.style.display = !q || el.textContent.toLowerCase().includes(q) ? "" : "none"; });
+    });
     updateJson();
   }
   function updateJson() {

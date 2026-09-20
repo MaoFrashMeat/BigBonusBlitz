@@ -2,6 +2,12 @@
   "entries": [
     {
       "date": "2026-09-16",
+      "version": "dev 266",
+      "title": "Springin' Sound Stock の効果音 863 本を候補に（tools/fetch_springin.py）",
+      "body": "・9 カテゴリ（戦闘 / 演出 / 生活 / 機械・乗り物 / 環境音 / ボタン・システム / 自然・動物 / レトロゲーム / 声）を assets/sounds/springin に取ってくるスクリプト。規約で再頒布は不可なので git には入れず、PC ごとに py -3 tools/fetch_springin.py で取る（BGM は --bgm）\n・効果音ビューアの候補に出る（絞り込みの箱を足した）"
+    },
+    {
+      "date": "2026-09-16",
       "version": "dev 265",
       "title": "効果音ビューア（tools/se_viewer.html）と、効果音の JSON 化",
       "body": "・場面ごと（レバー・停止 / 役 / 払い出し / ボーナス / エンゲージ / 拾い物・GET / 技術介入 / その他）に「いつ鳴るか」と絵を見ながら、今の音・合成音・assets/sounds の候補を試聴して割り当て、音量と高さを決める\n・決めた JSON は tools/se_choice.json → py -3 tools/se_build.py で Resources/Audio/SE に写り、Resources/Data/se_config.json（素材名・音量・高さ）をゲームが読む。効果音の一覧は AudioManager.SeDefs（28 個）"

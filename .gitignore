@@ -18,3 +18,6 @@ UnityProject/BigBonusBlitz/Assets/Resources/Data/build_info.json.meta
 # tools/verify（dotnet のビルド出力。DLL の写しと obj のキャッシュ）
 tools/verify/**/bin/
 tools/verify/**/obj/
+
+# Springin' Sound Stock の素材（規約で再頒布不可。tools/fetch_springin.py で PC ごとに取る）
+assets/sounds/springin/
