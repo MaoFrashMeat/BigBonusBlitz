@@ -1160,6 +1160,8 @@ namespace BBB.Runtime
                 : byGames ? Mathf.Clamp01((float)_m.BonusGamesPlayed / _m.BonusGamesTotal)
                 : _m.BonusPayoutTarget > 0 ? Mathf.Clamp01((float)_m.BonusEarned / _m.BonusPayoutTarget) : 0f;
             _bonusFill.rectTransform.sizeDelta = new Vector2(_bonusTrack.sizeDelta.x * bonusRatio, _bonusTrack.sizeDelta.y);
+            var bonusCol = inBonus ? (_m.BonusMode == BonusMode.BB ? ColAccent : UiSkin.Blue) : ColGold;   // BB は赤、RB は青。成立中・期待度は金のまま
+            _bonusFill.color = bonusCol; _bonusLabel.color = bonusCol;
             _mode.text = $"設定 {_m.Setting}   総 {_m.TotalSpinCount:N0} G";
             _soulText.text = $"魂 {_m.Wallet.Souls:N0}   火 {_m.Wallet.Embers:N0}";
             _gCount.text = $"{_m.SpinCount} G";
@@ -1201,7 +1203,7 @@ namespace BBB.Runtime
 
             // 帯のモードチップ（色は役割固定: 金=ボーナス / 赤=敵 / 灰=通常）
             string modeText; Color modeBg, modeFg = ColText;
-            if (inBonus) { modeText = _m.BonusMode == BonusMode.BB ? "BIG BONUS" : "REG BONUS"; modeBg = ColGold; modeFg = ColBg; }
+            if (inBonus) { modeText = _m.BonusMode == BonusMode.BB ? "BIG BONUS" : "REG BONUS"; modeBg = _m.BonusMode == BonusMode.BB ? ColAccent : UiSkin.Blue; modeFg = _m.BonusMode == BonusMode.BB ? ColText : ColBg; }   // BB は赤、RB は青（2026-09-20 本人）
             else if (held) { modeText = "BONUS 成立"; modeBg = UiSkin.GoldDeep; modeFg = ColBg; }
             else if (_m.InBattle) { modeText = "狩猟中"; modeBg = new Color(0.75f, 0.25f, 0.1f); }
             else if (_m.InAt) { modeText = "洞窟 AT"; modeBg = Hex("#5b3fd0"); }

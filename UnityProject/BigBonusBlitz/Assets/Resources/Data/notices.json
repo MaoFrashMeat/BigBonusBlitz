@@ -1,6 +1,12 @@
 ﻿{
   "entries": [
     {
+      "date": "2026-09-20",
+      "version": "dev 264",
+      "title": "BIG は赤、REG は青（告知の色と帯のチップ・ボーナスの札）",
+      "body": "・告知（zoneFx.big）の線・光・縁を金 → 赤に。REG は青のまま\n・上の帯のチップ「BIG BONUS」は赤、「REG BONUS」は青。EMBER の窓のボーナスの札とバーも同じ色（成立中・AT期待度は金のまま）"
+    },
+    {
       "date": "2026-09-16",
       "version": "dev 263",
       "title": "告知（エンゲージ / BIG / REG）を絵にできるようにした",
