@@ -457,7 +457,12 @@
     document.getElementById("fxName").textContent = cur.name;
     document.getElementById("fxNote").textContent = cur.note || "";
     document.querySelector("details.picker").style.display = cur.id === "emberGain" ? "" : "none";
-    const host = document.getElementById("params"); host.innerHTML = "";
+    const host = document.getElementById("params");
+    // 描き直してもスクロールと折りたたみを戻さない（本人: クリックのたびに先頭へ戻るのは何度も見た）
+    const ctrl = host.closest(".ctrl") || host; const top = ctrl.scrollTop;
+    const openKeys = new Set([...host.querySelectorAll("details[open] > summary")].map(x => x.textContent));
+    const closedKeys = new Set([...host.querySelectorAll("details:not([open]) > summary")].map(x => x.textContent));
+    host.innerHTML = "";
     const sections = {};
     const sectionOf = name => {
       if (!name) return host;
@@ -492,6 +497,8 @@
       row.appendChild(lb); row.appendChild(rg); row.appendChild(nb); host.appendChild(row);
     });
     output();
+    host.querySelectorAll("details").forEach(dt => { const k = dt.querySelector(":scope > summary").textContent; if (openKeys.has(k)) dt.open = true; else if (closedKeys.has(k)) dt.open = false; });
+    ctrl.scrollTop = top;
   }
   function output() {
     const o = {}; cur.params.forEach(p => { if (!p.local) o[p.key] = params[p.key]; });

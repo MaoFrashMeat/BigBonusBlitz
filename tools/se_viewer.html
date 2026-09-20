@@ -213,7 +213,16 @@
     Object.keys(choice).forEach(k => { const c = choice[k]; if (!(c.src || c.volume >= 0 || Math.abs(c.pitch - 1) > 1e-6)) return; const e = { src: c.src || "", volume: c.volume, pitch: c.pitch }; if (k.startsWith("bgm:")) bgm[k.slice(4)] = e; else se[k] = e; });
     const el = $("json"); if (el) el.textContent = JSON.stringify({ se: se, bgm: bgm }, null, 1);
   }
-  function render() { buildGroups(); buildMain(); buildCtrl(); }
+  // 描き直しでスクロールと折りたたみを戻さない（本人: クリックのたびに先頭へ戻るのは何度も見た）
+  // 描き直す前に、スクロールできる箱の位置と、開いている details の見出しを覚えて、描き直した後に戻す
+  function render() {
+    const scrolls = [...document.querySelectorAll(".main, .ctrl, .cands")].map(el => [el.className, el.scrollTop]);
+    const opened = new Set([...document.querySelectorAll(".cands details[open] > summary")].map(x => x.textContent));
+    const closed = new Set([...document.querySelectorAll(".cands details:not([open]) > summary")].map(x => x.textContent));
+    buildGroups(); buildMain(); buildCtrl();
+    document.querySelectorAll(".cands details").forEach(dt => { const k = dt.querySelector(":scope > summary").textContent; if (opened.has(k)) dt.open = true; else if (closed.has(k)) dt.open = false; });
+    scrolls.forEach(([cls, top]) => { const el = document.querySelector("." + cls.split(" ")[0]); if (el) el.scrollTop = top; });
+  }
   // 右の欄の幅: 境の取っ手をドラッグ。覚えておく
   (function () {
     const grip = $("grip"), wrap = document.querySelector(".wrap");

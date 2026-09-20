@@ -255,6 +255,8 @@
   }
   function build() {
     const list = document.getElementById("list");
+    // 描き直してもスクロールを戻さない（候補をクリックするたびに先頭へ戻っていた）
+    const scrolls = [list, list.parentElement, document.scrollingElement].filter(Boolean).map(el => [el, el.scrollTop]);
     list.innerHTML = "";
     SYMS.forEach(s => {
       const box = document.createElement("div"); box.className = "sym";
@@ -279,6 +281,7 @@
       box.appendChild(row); list.appendChild(box);
     });
     drawAll();
+    scrolls.forEach(([el, top]) => { el.scrollTop = top; });
   }
   // ---- リール（game_config.json の reelStrips と同じ並び）
   const STRIPS = [["WATERMELON","CHERRY","STAR","WATERMELON","RED7","REPLAY","WATERMELON","STAR","REPLAY","STAR","BLUE7","WATERMELON","STAR","REPLAY","REPLAY","CHERRY","STAR","BAR","WATERMELON","REPLAY"],["BLANK","REPLAY","STAR","WATERMELON","RED7","CHERRY","REPLAY","STAR","WATERMELON","BAR","CHERRY","REPLAY","STAR","STAR","BLUE7","BLANK","REPLAY","STAR","STAR","CHERRY"],["WATERMELON","STAR","REPLAY","CHERRY","RED7","WATERMELON","STAR","REPLAY","STAR","BAR","WATERMELON","STAR","REPLAY","BLANK","CHERRY","WATERMELON","STAR","REPLAY","BLUE7","CHERRY"]];

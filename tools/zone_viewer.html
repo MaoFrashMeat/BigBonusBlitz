@@ -202,7 +202,7 @@
     }
   }
   function buildCands() {
-    const host = el("cands"); host.innerHTML = "";
+    const host = el("cands"); const top = host.scrollTop; host.innerHTML = "";   // 描き直してもスクロールを戻さない
     const pool = IMAGES[ZONES.find(z => z.key === cur).pool] || [];
     const mk = (src, label) => {
       const d = document.createElement("div"); d.className = "cand" + (P().image === src ? " sel" : "");
@@ -212,6 +212,7 @@
     };
     mk("", "なし");
     for (const src of pool) mk(src, src.split("/").pop());
+    host.scrollTop = top;
   }
 
   // ---- 値の読み書き
