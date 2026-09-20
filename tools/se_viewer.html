@@ -64,7 +64,7 @@
 <div class="wrap">
   <h1>効果音ビューア</h1>
   <div class="sub">場面ごとに「いつ鳴るか」と絵を見ながら、今の音・合成音・<code>assets/sounds</code> の候補を試聴して割り当てる。音量と高さも決められる。
-  出来た JSON を <code>tools/se_choice.json</code> に貼って <code>py -3 tools/se_build.py</code>（素材を Resources/Audio/SE に写し、se_config.json を書く）。候補を足したら <code>py -3 tools/se_sync.py</code>。</div>
+  右下の「Unity に書き込む」で se_config.json と Resources/Audio に反映（tools/se_viewer.bat から開いたとき）。候補を足したら <code>py -3 tools/se_sync.py</code>。</div>
   <div class="list" id="groups"></div>
   <div class="main" id="main"></div>
   <div class="grip" id="grip" title="ドラッグで右の欄の幅を変える"></div>
@@ -160,7 +160,9 @@
       '<div class="note">音の元（押すと割り当て。▶ で試聴だけ）</div><input type="text" id="filt" placeholder="絞り込み（名前かタグ。例: 攻撃 / コイン / 決定 / 8bit）" style="width:100%;box-sizing:border-box;font:inherit;font-size:12px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:4px 6px;margin:4px 0"><div class="cands">' +
       rows.filter(r => r.tag !== "候補").map(rowHtml).join("") + candTree(rows.filter(r => r.tag === "候補"), c) +
       '</div><div class="btns"><button class="plain" id="resetAll">全部既定に戻す</button></div>' +
-      '<div class="note">JSON（tools/se_choice.json に丸ごと貼る）</div><pre id="json"></pre>';
+      '<div class="btns"><button class="primary" id="applyBtn">Unity に書き込む</button><span class="note" id="applyMsg"></span></div>' +
+      '<div class="note">JSON（tools/se_choice.json。上のボタンで書けないときは丸ごと貼って py -3 tools/se_build.py）</div><pre id="json"></pre>';
+    $("applyBtn").addEventListener("click", applyToUnity);
     $("playCur").addEventListener("click", () => play(pathOf(d), volOf(d), c.pitch, d.bgm));
     $("seek").addEventListener("input", e => { seeking = true; if (audio && isFinite(audio.duration)) { audio.currentTime = audio.duration * e.target.value / 1000; tick(); } });
     $("seek").addEventListener("change", () => { seeking = false; });
@@ -224,6 +226,22 @@
       const tags = [...new Set(l.flatMap(r => r.tags || []))].map(t => '<span class="tg">' + t + '</span>').join("");
       return '<details class="ser"' + (l.some(r => r.src === curSrc) ? " open" : "") + '><summary>' + k + '<small>×' + l.length + '</small>' + tags + '</summary>' + l.map(rowHtml).join("") + '</details>';
     }).join("");
+  }
+  // 「Unity に書き込む」: サーバ（tools/ui_server.py）に JSON を渡して se_choice.json を書き、se_build.py を回す。file:// や静的サーバなら断り書き
+  async function applyToUnity() {
+    const btn = $("applyBtn"), msg = $("applyMsg");
+    btn.disabled = true; msg.textContent = "書き込み中…";
+    try {
+      const r = await fetch("/se_apply", { method: "POST", headers: { "Content-Type": "application/json" }, body: $("json").textContent });
+      const j = await r.json();
+      msg.textContent = j.ok ? "書いた（Unity を Play し直すと反映）" : "失敗: " + (j.error || "");
+      if (j.log) console.log(j.log);
+      const bad = (j.log || "").split(/\r?\n/).filter(l => l.startsWith("無い") || l.includes("失敗"));
+      if (bad.length) msg.textContent += "　" + bad.join(" / ");
+    } catch (e) {
+      msg.textContent = "このページは書き込めない。tools/se_viewer.bat から開くと書ける";
+    }
+    btn.disabled = false;
   }
   function updateJson() {
     const se = {}, bgm = {};

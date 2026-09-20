@@ -1,10 +1,12 @@
 # UI ビューア（tools/ui_viewer.html）を配信し、「保存」を Resources/Data/ui_layout.json に書く小さなサーバ。
 #   python tools/ui_server.py            → http://localhost:8765/ui_viewer.html
+#   効果音ビューア（se_viewer.html）の「Unity に書き込む」は /se_apply: tools/se_choice.json を書いて se_build.py を回す
 #
 # 保存されたファイルは Unity が次の Play で読む（UiLayout.cs）。ブラウザは直接ファイルに書けないので、
 # この 1 本を挟む。GET は tools/ の中をそのまま返す。
 import json
 import os
+import subprocess
 import sys
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
@@ -20,8 +22,7 @@ class Handler(SimpleHTTPRequestHandler):
         super().__init__(*a, directory=HERE, **kw)
 
     def log_message(self, fmt, *args):
-        if '/save' in fmt % args or '/layout' in fmt % args:
-            super().log_message(fmt, *args)
+        pass   # 黒い窓に出さない（窓をクリックすると出力が止まり、サーバごと固まる）
 
     def _json(self, code, obj):
         body = json.dumps(obj, ensure_ascii=False).encode('utf-8')
@@ -66,6 +67,18 @@ class Handler(SimpleHTTPRequestHandler):
             with open(TITLE, 'w', encoding='utf-8') as f:
                 json.dump(out, f, ensure_ascii=False, indent=2)
             return self._json(200, {'ok': True, 'path': TITLE, 'count': len(layers)})
+        if self.path.split('?')[0] == '/se_apply':
+            n = int(self.headers.get('Content-Length', 0))
+            try:
+                data = json.loads(self.rfile.read(n).decode('utf-8'))
+                if not isinstance(data.get('se'), dict) or not isinstance(data.get('bgm'), dict):
+                    raise ValueError('se / bgm が無い')
+            except Exception as e:
+                return self._json(400, {'ok': False, 'error': str(e)})
+            with open(os.path.join(HERE, 'se_choice.json'), 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False, indent=1)
+            r = subprocess.run([sys.executable, os.path.join(HERE, 'se_build.py')], cwd=ROOT, capture_output=True, text=True, encoding='utf-8', errors='replace')
+            return self._json(200, {'ok': r.returncode == 0, 'log': (r.stdout + r.stderr).strip()})
         if self.path.split('?')[0] != '/save':
             return self._json(404, {'ok': False, 'error': 'unknown'})
         n = int(self.headers.get('Content-Length', 0))

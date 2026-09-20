@@ -5,5 +5,10 @@ bgm_engage.mp3
 bgm_title.mp3
 bgm_town.mp3
 se_bet_pick.mp3
+se_precog_strong.mp3
+se_precog_weak.mp3
+se_pullin.mp3
+se_pullin_land.mp3
 se_spin_start_pick.mp3
+se_stop.mp3
 se_title_start.mp3

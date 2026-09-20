@@ -2,49 +2,74 @@
   "se": {
     "spin_start": {
       "file": "se_spin_start_pick",
-      "volume": 1.2,
+      "volume": -1.0,
+      "pitch": 0.7
+    },
+    "stop": {
+      "file": "se_stop",
+      "volume": -1.0,
+      "pitch": 0.62
+    },
+    "pullin": {
+      "file": "se_pullin",
+      "volume": -1.0,
       "pitch": 1.0
     },
-    "bet": {
-      "file": "se_bet_pick",
-      "volume": 1.0,
+    "pullin_land": {
+      "file": "se_pullin_land",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "precog_weak": {
+      "file": "se_precog_weak",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "precog_strong": {
+      "file": "se_precog_strong",
+      "volume": -1.0,
       "pitch": 1.0
     },
     "title_start": {
       "file": "se_title_start",
-      "volume": 1.2,
+      "volume": 1.0,
       "pitch": 1.1
+    },
+    "bet": {
+      "file": "se_bet",
+      "volume": -1.0,
+      "pitch": 1.0
     }
   },
   "bgm": {
     "title": {
       "file": "bgm_title",
-      "volume": 0.75,
+      "volume": -1.0,
       "pitch": 1.0
     },
     "town": {
       "file": "bgm_town",
-      "volume": 0.75,
+      "volume": -1.0,
       "pitch": 1.0
     },
     "adventure": {
       "file": "bgm_adventure",
-      "volume": 0.75,
+      "volume": -1.0,
       "pitch": 1.0
     },
     "bonus": {
       "file": "bgm_bonus",
-      "volume": 0.75,
+      "volume": -1.0,
       "pitch": 1.0
     },
     "at": {
       "file": "bgm_at",
-      "volume": 0.75,
+      "volume": -1.0,
       "pitch": 1.0
     },
     "engage": {
       "file": "bgm_engage",
-      "volume": 0.75,
+      "volume": -1.0,
       "pitch": 1.0
     }
   }

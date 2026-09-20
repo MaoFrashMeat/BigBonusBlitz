@@ -1,51 +1,20 @@
 {
  "se": {
-  "spin_start": {
-   "src": "assets/sounds/maou/se/maou_se_sound05.mp3",
-   "volume": 1.2,
-   "pitch": 1
-  },
-  "bet": {
-   "src": "assets/sounds/maou/se/maou_se_voice_bird03.mp3",
-   "volume": 1.0,
-   "pitch": 1
-  },
-  "title_start": {
-   "src": "assets/sounds/springin/battle/破壊音_短い.mp3",
-   "volume": 1.2,
-   "pitch": 1.1
-  }
+  "spin_start": {"src": "assets/sounds/springin/battle/発射1.mp3", "volume": -1, "pitch": 0.7},
+  "stop": {"src": "assets/sounds/springin/battle/破壊音_短い.mp3", "volume": -1, "pitch": 0.62},
+  "pullin": {"src": "assets/sounds/springin/environment/地響き1ループ.mp3", "volume": -1, "pitch": 1},
+  "pullin_land": {"src": "assets/sounds/springin/battle/破壊音_短い.mp3", "volume": -1, "pitch": 1},
+  "precog_weak": {"src": "assets/sounds/springin/battle/高速斬撃1.mp3", "volume": -1, "pitch": 1},
+  "precog_strong": {"src": "assets/sounds/springin/battle/収束.mp3", "volume": -1, "pitch": 1},
+  "title_start": {"src": "assets/sounds/springin/battle/破壊音_短い.mp3", "volume": 1.5, "pitch": 1.1},
+  "bet": {"src": "resource:se_bet", "volume": -1, "pitch": 1}
  },
  "bgm": {
-  "title": {
-   "src": "assets/sounds/maou/bgm/fantasy/maou_loop_bgm_fantasy01.mp3",
-   "volume": 0.75,
-   "pitch": 1
-  },
-  "town": {
-   "src": "assets/sounds/maou/bgm/fantasy/maou_bgm_fantasy02.mp3",
-   "volume": 0.75,
-   "pitch": 1
-  },
-  "adventure": {
-   "src": "assets/sounds/maou/bgm/fantasy/maou_bgm_fantasy13.mp3",
-   "volume": 0.75,
-   "pitch": 1
-  },
-  "bonus": {
-   "src": "assets/sounds/maou/bgm/fantasy/maou_bgm_fantasy11.mp3",
-   "volume": 0.75,
-   "pitch": 1
-  },
-  "at": {
-   "src": "assets/sounds/maou/bgm/fantasy/maou_bgm_fantasy12.mp3",
-   "volume": 0.75,
-   "pitch": 1
-  },
-  "engage": {
-   "src": "assets/sounds/maou/bgm/fantasy/maou_bgm_fantasy03.mp3",
-   "volume": 0.75,
-   "pitch": 1
-  }
+  "title": {"src": "assets/sounds/maou/bgm/fantasy/maou_loop_bgm_fantasy01.mp3", "volume": -1, "pitch": 1},
+  "town": {"src": "assets/sounds/maou/bgm/fantasy/maou_bgm_fantasy02.mp3", "volume": -1, "pitch": 1},
+  "adventure": {"src": "assets/sounds/maou/bgm/fantasy/maou_bgm_fantasy13.mp3", "volume": -1, "pitch": 1},
+  "bonus": {"src": "assets/sounds/maou/bgm/fantasy/maou_bgm_fantasy11.mp3", "volume": -1, "pitch": 1},
+  "at": {"src": "assets/sounds/maou/bgm/fantasy/maou_bgm_fantasy12.mp3", "volume": -1, "pitch": 1},
+  "engage": {"src": "assets/sounds/maou/bgm/fantasy/maou_bgm_fantasy03.mp3", "volume": -1, "pitch": 1}
  }
 }
