@@ -4904,21 +4904,21 @@ namespace BBB.Runtime
                 case EngageOutcome.Stance:
                     if (st.stance == EngageStance.EnemyAttack)
                     {
-                        _audio.EnemyEscape();   // 低いポップ音を「身構え」に
+                        if (!_audio.TryPlay("engage_stance_enemy")) _audio.EnemyEscape();   // 低いポップ音を「身構え」に
                         StartCoroutine(Effects.Hit(_enemyRt, 0.25f));
                         UiFx.PopText(_enemyRt, "敵の攻撃が来る……", red, 20, new Vector2(0, 70));
                         _hint.text = "……来る"; _hint.color = red;
                     }
                     else if (st.stance == EngageStance.HeroCharge)
                     {
-                        PlayCharacter("cast");
+                        PlayCharacter("cast"); _audio.TryPlay("engage_charge");
                         UiFx.Ring(_charRt, new Color(1f, 0.9f, 0.4f, 0.8f), 30, 220, 0.5f);
                         UiFx.PopText(_charRt, tx.charge, ColGold, 22, new Vector2(0, 70));
                         _hint.text = tx.charge; _hint.color = ColGold;
                     }
                     else
                     {
-                        PlayCharacter("attack-f1");
+                        PlayCharacter("attack-f1"); _audio.TryPlay("engage_confirm");
                         UiFx.Burst(_charRt, UiFx.Preset.Sparks, new Vector2(0, 30));
                         UiFx.PopText(_charRt, "攻撃確定！", ColGold, 24, new Vector2(0, 70));
                         _hint.text = "攻撃確定！"; _hint.color = ColGold;
@@ -4926,12 +4926,13 @@ namespace BBB.Runtime
                     if (st.potionGot)
                     {
                         yield return new WaitForSeconds(0.4f);
-                        _audio.PlayKeyPublic("pickup_item");
+                        if (!_audio.TryPlay("engage_potion_get")) _audio.PlayKeyPublic("pickup_item");
                         UiFx.PopText(_charRt, tx.potionGet, new Color(0.6f, 1f, 0.6f), 24, new Vector2(0, 100));
                     }
                     break;
                 case EngageOutcome.Hit:
-                    _audio.NaviFail(); _audio.Voice("hit");
+                    if (!_audio.TryPlay("engage_hit")) _audio.NaviFail();
+                    _audio.Voice("hit");
                     UiFx.Burst(_charRt, UiFx.Preset.RedShards, new Vector2(10, 30));
                     UiFx.Slash(_charRt, 30f, 200f, new Color(1f, 0.3f, 0.3f));
                     UiFx.PopText(_charRt, EngageBattle.Fill(tx.hit, st.set, st.sets, st.turn, st.damage), red, 24, new Vector2(0, 80));
@@ -4942,13 +4943,14 @@ namespace BBB.Runtime
                     yield return Effects.RedGlow(_redGlow, 0.8f);
                     break;
                 case EngageOutcome.Guard:
-                    PlayCharacter("guard");
+                    PlayCharacter("guard"); _audio.TryPlay("engage_guard");
                     StartCoroutine(Effects.Hit(_enemyRt, 0.3f));
                     UiFx.Ring(_charRt, new Color(0.6f, 0.8f, 1f, 0.9f), 40, 200, 0.4f);
                     UiFx.PopText(_charRt, tx.guard, blue, 24, new Vector2(0, 80));
                     _hint.text = tx.guard; _hint.color = blue;
                     break;
                 case EngageOutcome.Dodge:
+                    _audio.TryPlay("engage_dodge");
                     StartCoroutine(Effects.Hit(_enemyRt, 0.3f));
                     StartCoroutine(Effects.Shake(_charRt, 0.25f, 10f));
                     UiFx.PopText(_charRt, tx.dodge, blue, 24, new Vector2(0, 80));
@@ -4961,7 +4963,9 @@ namespace BBB.Runtime
                     if (counter) { StartCoroutine(Effects.Hit(_enemyRt, 0.25f)); StartCoroutine(Effects.Shake(_charRt, 0.2f, 8f)); yield return new WaitForSeconds(0.25f); }
                     float k = st.attackSize == AttackSize.Large ? 1f : st.attackSize == AttackSize.Medium || st.attackSize == AttackSize.Counter ? 0.6f : 0.3f;
                     PlayCharacter("attack-f3-4");
-                    _audio.Attack(); _audio.Voice("attack");
+                    string atkKey = counter ? "engage_counter" : st.attackSize == AttackSize.Large ? "engage_attack_large" : st.attackSize == AttackSize.Medium ? "engage_attack_medium" : "engage_attack_small";
+                    if (!_audio.TryPlay(atkKey)) _audio.Attack();
+                    _audio.Voice("attack");
                     UiFx.Slash(_enemyRt, -30f, 160f + 140f * k, ColGold);
                     UiFx.Burst(_enemyRt, UiFx.Preset.Sparks, new Vector2(0, 20));
                     StartCoroutine(Effects.Shake(_stage, 0.25f + 0.2f * k, 3f + 8f * k));
@@ -4976,13 +4980,16 @@ namespace BBB.Runtime
                 {
                     // ジャッジ: 率を見せて溜め → とどめ（討伐）か 逃走。決着の演出（DefeatRoutine / EscapeRoutine）は enemyResolved 側が出す
                     UiFx.PopText(_enemyRt, $"JUDGE {st.judgePercent}%", ColGold, 26, new Vector2(0, 90));
-                    _audio.NaviChoice(true);
+                    bool judgeSe = _audio.TryPlay("engage_judge");
+                    if (!judgeSe) _audio.NaviChoice(true);
                     StartCoroutine(Effects.Shake(_stage, 0.9f, 3f));
                     yield return new WaitForSeconds(0.9f);
-                    _audio.NaviChoice(false);
+                    if (!judgeSe) _audio.NaviChoice(false);
                     if (st.defeated)
                     {
-                        PlayCharacter("attack-f3-4"); _audio.Attack(); _audio.Voice("attack");
+                        PlayCharacter("attack-f3-4");
+                        if (!_audio.TryPlay("engage_judge_win")) _audio.Attack();
+                        _audio.Voice("attack");
                         UiFx.Slash(_enemyRt, -30f, 320f, ColGold);
                         UiFx.Burst(_enemyRt, UiFx.Preset.Explode, new Vector2(0, 20));
                         StartCoroutine(Effects.Shake(_stage, 0.5f, 12f));
@@ -4991,6 +4998,7 @@ namespace BBB.Runtime
                     }
                     else
                     {
+                        _audio.TryPlay("engage_judge_lose");
                         UiFx.PopText(_enemyRt, tx.judgeLose, ColTextSub, 24, new Vector2(0, 90));
                         _hint.text = tx.judgeLose; _hint.color = ColTextSub;
                     }
@@ -5021,11 +5029,11 @@ namespace BBB.Runtime
             while (t < 1.6f)
             {
                 t += Time.deltaTime;
-                if (t >= next) { i = (i + 1) % options.Length; label.text = options[i]; _audio.PlayKeyPublic("stop"); next = t + wait; wait = Mathf.Min(0.35f, wait * 1.18f); }
+                if (t >= next) { i = (i + 1) % options.Length; label.text = options[i]; if (!_audio.TryPlay("engage_roulette_tick")) _audio.PlayKeyPublic("stop"); next = t + wait; wait = Mathf.Min(0.35f, wait * 1.18f); }
                 yield return null;
             }
             label.text = final; label.color = color; host.localScale = Vector3.one * 1.3f;
-            _audio.Win();
+            if (!_audio.TryPlay("engage_roulette_stop")) _audio.Win();
             UiFx.Burst(host, UiFx.Preset.SuccessStars, Vector2.zero);
             float u = 0;
             while (u < 0.2f) { u += Time.deltaTime; host.localScale = Vector3.one * Mathf.Lerp(1.3f, 1f, u / 0.2f); yield return null; }

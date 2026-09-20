@@ -66,6 +66,23 @@ namespace BBB.Runtime
             new SeDef("enemy_appear", "se_enemy_appear", 0.9f, null, "エンゲージ", "敵出現", "敵が画面に滑り込んでくる（素材が無ければ 接近 + 着地 の合成音）"),
             new SeDef("attack", "se_attack", 1f, null, "エンゲージ", "攻撃", "役で敵を斬る。押し順ナビ失敗の被弾にも低くして使う（NaviFail）"),
             new SeDef("enemy_death", "se_enemy_death", 1f, null, "エンゲージ", "討伐", "敵を倒した"),
+            // ターン制エンゲージの出来事（素材が無ければ従来の音か無音。EngageStepRoutine）
+            new SeDef("engage_stance_enemy", "se_engage_stance_enemy", 0.8f, null, "エンゲージ", "敵の構え", "1 ターン目ハズレ: 敵が攻撃の構え（無ければ 逃走の低いポップ音）"),
+            new SeDef("engage_charge", "se_engage_charge", 0.8f, null, "エンゲージ", "力を貯める", "1 ターン目小役: 主人公が力を貯める"),
+            new SeDef("engage_confirm", "se_engage_confirm", 0.9f, null, "エンゲージ", "攻撃確定", "1 ターン目レア役: 攻撃確定"),
+            new SeDef("engage_potion_get", "se_engage_potion_get", 0.8f, null, "エンゲージ", "ポーション GET", "レア役でポーションを手に入れた（無ければ 品の音）"),
+            new SeDef("engage_hit", "se_engage_hit", 1f, null, "エンゲージ", "被弾", "敵の攻撃を喰らって LIFE が減る（無ければ ナビ失敗の音）"),
+            new SeDef("engage_guard", "se_engage_guard", 0.9f, null, "エンゲージ", "防御", "敵の攻撃を防いだ"),
+            new SeDef("engage_dodge", "se_engage_dodge", 0.9f, null, "エンゲージ", "回避", "敵の攻撃をかわした"),
+            new SeDef("engage_attack_small", "se_engage_attack_small", 1f, null, "エンゲージ", "小攻撃", "小攻撃（無ければ 攻撃の音）"),
+            new SeDef("engage_attack_medium", "se_engage_attack_medium", 1f, null, "エンゲージ", "中攻撃", "中攻撃（無ければ 攻撃の音）"),
+            new SeDef("engage_attack_large", "se_engage_attack_large", 1f, null, "エンゲージ", "大攻撃", "大攻撃（無ければ 攻撃の音）"),
+            new SeDef("engage_counter", "se_engage_counter", 1f, null, "エンゲージ", "カウンター", "かわしてカウンター（無ければ 攻撃の音）"),
+            new SeDef("engage_roulette_tick", "se_engage_roulette_tick", 0.6f, null, "エンゲージ", "ルーレットの刻み", "ポーションのルーレットが回る間、文が切り替わるたび（無ければ 停止の音）"),
+            new SeDef("engage_roulette_stop", "se_engage_roulette_stop", 1f, null, "エンゲージ", "ルーレット停止", "ルーレットが止まった（無ければ 役の音）"),
+            new SeDef("engage_judge", "se_engage_judge", 0.8f, null, "エンゲージ", "ジャッジの溜め", "3 セット後のジャッジ、結果が出るまでの 0.9 秒（無ければ 心臓の音のループ）"),
+            new SeDef("engage_judge_win", "se_engage_judge_win", 1f, null, "エンゲージ", "ジャッジ とどめ", "ジャッジに勝ってとどめ（無ければ 攻撃の音）"),
+            new SeDef("engage_judge_lose", "se_engage_judge_lose", 0.9f, null, "エンゲージ", "ジャッジ 逃走", "ジャッジに外れて逃げられた（このあと 逃走の音も鳴る）"),
             new SeDef("navi_choice", "se_navi_choice", 0.8f, () => SfxSynth.Heartbeat(), "エンゲージ", "ナビ 2 択（心臓）", "ベル択ナビで 1 つ押して左右の 2 択になっている間、ループで鳴る（決めると止まる。素材が無ければ合成の鼓動）"),
             new SeDef("navi_success", "se_navi_success", 1f, null, "エンゲージ", "ナビ正解", "押し順ナビに従えた（素材が無ければ リプレイ音を高く + コイン）"),
             new SeDef("escape", "se_enemy_escape", 0.8f, null, "エンゲージ", "逃走", "敵が逃げた（素材が無ければ 停止音を低く）"),
@@ -300,6 +317,8 @@ namespace BBB.Runtime
         public void Win() => PlayKey("win");
         /// <summary>キーで鳴らす（外から。エンゲージのルーレットの刻みなど）。</summary>
         public void PlayKeyPublic(string key, float volMul = 1f) => PlayKey(key, volMul);
+        /// <summary>素材（設定か既定のファイル）があれば鳴らして true。無ければ何もせず false（呼ぶ側が従来の音に落とす）。</summary>
+        public bool TryPlay(string key, float volMul = 1f) { if (Clip(key) == null) return false; PlayKey(key, volMul); return true; }
 
         /// <summary>払い出し音: 枚数ぶん「デュルデュル」と連打。ピッチを少しずつ上げて枚数感を出す。</summary>
         public void Payout(int coins)
