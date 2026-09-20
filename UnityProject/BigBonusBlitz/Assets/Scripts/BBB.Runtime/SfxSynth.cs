@@ -206,6 +206,25 @@ namespace BBB.Runtime
             return Make("synth_pullin", d);
         }
 
+        /// <summary>鼓動 1 拍分（ドッ・ドッ）。ループで鳴らす。</summary>
+        public static AudioClip Heartbeat(float seconds = 0.9f)
+        {
+            int n = Mathf.RoundToInt(Sr * seconds);
+            var d = new float[n];
+            float Thump(float t, float f0, float amp)
+            {
+                if (t < 0) return 0f;
+                float f = Mathf.Lerp(f0, f0 * 0.6f, Mathf.Clamp01(t / 0.12f));
+                return Mathf.Sin(2f * Mathf.PI * f * t) * Mathf.Exp(-t / 0.07f) * amp;
+            }
+            for (int i = 0; i < n; i++)
+            {
+                float t = i / (float)Sr;
+                d[i] = Soft(Thump(t, 70f, 1.0f) + Thump(t - 0.16f, 60f, 0.7f)) * 0.9f;
+            }
+            return Make("synth_heartbeat", d);
+        }
+
         /// <summary>引き込み完了: 「ガコン」と重い停止音（低い打撃＋金属の短い響き）。</summary>
         public static AudioClip PullInLand(float seconds = 0.4f)
         {

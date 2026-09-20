@@ -11,7 +11,7 @@ import io, json, os
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CFG = os.path.join(ROOT, "UnityProject", "BigBonusBlitz", "Assets", "Resources", "Data", "game_config.json")
 OUT = os.path.join(ROOT, "tools", "fx_defaults.js")
-KEYS = ["reelFx.emberGain", "tech.rankFx"]
+KEYS = ["reelFx.emberGain", "tech.rankFx", "reelFx.naviCombo"]
 
 
 def main():

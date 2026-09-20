@@ -1831,7 +1831,7 @@ namespace BBB.Runtime
         /// <summary>択の最中: BGM がこもり（水中）、画面が少し沈む＝集中。</summary>
         private void EnterFocus()
         {
-            _audio.SetFocus(true);
+            _audio.SetFocus(true); _audio.NaviChoice(true);
             PlayCharacter("focus");
             _darken.color = new Color(0.02f, 0.05f, 0.12f, 0.35f);
             UiFx.Burst(_charRt, UiFx.Preset.Focus, new Vector2(0, 40));
@@ -1841,7 +1841,7 @@ namespace BBB.Runtime
 
         private void ExitFocus()
         {
-            _audio.SetFocus(false);
+            _audio.SetFocus(false); _audio.NaviChoice(false);
             if (_m.PrecursorRemaining == 0) _darken.color = new Color(0, 0, 0, 0);
         }
 
@@ -1849,6 +1849,9 @@ namespace BBB.Runtime
         {
             ExitFocus();
             _audio.NaviSuccess();
+            _naviCombo++;
+            var comboFx = _m.Config.reelFx?.naviCombo ?? new NaviComboFxConfig();
+            if (_naviCombo >= Mathf.Max(1, comboFx.minCount)) StartCoroutine(NaviComboPop(_naviCombo, comboFx));
             UiFx.Burst(_area, UiFx.Preset.SuccessStars, new Vector2(0, 20));
             UiFx.Ring(_area, new Color(1f, 0.9f, 0.4f, 0.9f), 50, 600, 0.6f);
             UiFx.PopText(_area, "SUCCESS!", ColGold, 34, new Vector2(0, 30));
@@ -1866,8 +1869,38 @@ namespace BBB.Runtime
             _redGlow.color = new Color(1f, 0.1f, 0.1f, 0f);
         }
 
+        /// <summary>ベル択ナビの連続正解。失敗で 0 に戻る。</summary>
+        private int _naviCombo;
+        /// <summary>「n COMBO!」を中リールの上に。TechRankPop と同じ動き（大きく出て縮む → 止まる → 上へ流れて消える）。</summary>
+        private IEnumerator NaviComboPop(int n, NaviComboFxConfig fx)
+        {
+            var reelRt = _reels[1].GetComponent<RectTransform>();
+            Vector2 at = _stage.InverseTransformPoint(reelRt.TransformPoint(Vector3.zero));
+            var pos0 = new Vector2(at.x + fx.x, at.y + fx.y);
+            var host = UiSkin.Rect(_stage, "NaviCombo", pos0, new Vector2(420, fx.fontSize * 1.6f));
+            var color = Hex(string.IsNullOrEmpty(fx.color) ? "#ffd23f" : fx.color);
+            IconText.Render(host, n + " COMBO!", fx.fontSize, color, FontStyle.Bold, fx.fontSize, 1f, 4f, true,
+                            new Color(color.r * 0.25f, color.g * 0.25f, color.b * 0.25f, 1f), new Vector2(2, -3));
+            var cg = host.gameObject.AddComponent<CanvasGroup>(); cg.blocksRaycasts = false;
+            float tIn = Mathf.Max(0.01f, fx.inSeconds), tHold = Mathf.Max(0f, fx.holdSeconds), tOut = Mathf.Max(0.01f, fx.outSeconds);
+            float t = 0;
+            while (t < tIn + tHold + tOut)
+            {
+                t += Time.deltaTime;
+                float sc = 1f, y = 0f, a = 1f;
+                if (t < tIn) { float u = t / tIn; sc = Mathf.Lerp(1.8f, 1f, 1f - Mathf.Pow(1f - u, 3f)); a = Mathf.Min(1f, u * 3f); }
+                else if (t >= tIn + tHold) { float u = Mathf.Clamp01((t - tIn - tHold) / tOut); y = fx.rise * u; a = 1f - u; }
+                host.localScale = Vector3.one * sc;
+                host.anchoredPosition = pos0 + new Vector2(0, y);
+                cg.alpha = a;
+                yield return null;
+            }
+            Destroy(host.gameObject);
+        }
+
         private IEnumerator NaviFailRoutine()
         {
+            _naviCombo = 0;
             ExitFocus();
             _audio.NaviFail(); _audio.Voice("hit");
             UiFx.Burst(_charRt, UiFx.Preset.RedShards, new Vector2(10, 30));

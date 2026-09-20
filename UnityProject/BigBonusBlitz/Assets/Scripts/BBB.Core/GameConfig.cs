@@ -406,6 +406,21 @@ namespace BBB.Core
         public float blinkSeconds = 1.4f;
         /// <summary>ベルの「n EMB 獲得！」の帯。</summary>
         public EmberGainFxConfig emberGain = new EmberGainFxConfig();
+        /// <summary>ベル択ナビを連続で当てたときの「n COMBO!」。</summary>
+        public NaviComboFxConfig naviCombo = new NaviComboFxConfig();
+    }
+
+    /// <summary>ベル択ナビの連続正解「n COMBO!」（tools/fx_viewer.html「ナビの COMBO」）。失敗で 0 に戻る。</summary>
+    public sealed class NaviComboFxConfig
+    {
+        /// <summary>何連続から出すか。</summary>
+        public int minCount = 2;
+        /// <summary>中リールの中心からの位置と文字の大きさ。</summary>
+        public float x = 0f, y = 130f; public int fontSize = 40;
+        /// <summary>色（16 進）。</summary>
+        public string color = "#ffd23f";
+        /// <summary>入る秒 / 止まる秒 / 抜ける秒 / 抜けるときに上へ流れる量。</summary>
+        public float inSeconds = 0.16f, holdSeconds = 0.9f, outSeconds = 0.35f, rise = 40f;
     }
 
     /// <summary>

@@ -399,6 +399,40 @@
         g.restore();
         return true;
       }
+    },
+    {
+      id: "naviCombo", name: "ナビの COMBO（ベル択ナビの連続正解）", key: "reelFx.naviCombo",
+      note: "ベル択ナビを続けて当てると、SUCCESS! と一緒に「n COMBO!」が中リールの上に出る。失敗で 0 に戻る。動きは技術介入のランクと同じ。",
+      params: [
+        { group: "例", key: "n", label: "何連続", min: 1, max: 30, step: 1, def: 3, local: true },
+        { group: "出す条件", key: "minCount", label: "何連続から出すか", min: 1, max: 10, step: 1, def: 2 },
+        { group: "動き", key: "x", label: "左右（中リール中心から）", min: -200, max: 200, step: 1, def: 0 },
+        { group: "動き", key: "y", label: "高さ（中リール中心から）", min: -60, max: 260, step: 1, def: 130 },
+        { group: "動き", key: "fontSize", label: "文字", min: 20, max: 90, step: 1, def: 40 },
+        { group: "動き", key: "color", label: "色", type: "color", def: "#ffd23f" },
+        { group: "動き", key: "inSeconds", label: "入る秒", min: 0.05, max: 1, step: 0.01, def: 0.16 },
+        { group: "動き", key: "holdSeconds", label: "止まる秒", min: 0, max: 3, step: 0.05, def: 0.9 },
+        { group: "動き", key: "outSeconds", label: "抜ける秒", min: 0.05, max: 1.5, step: 0.01, def: 0.35 },
+        { group: "動き", key: "rise", label: "上へ流れる量", min: 0, max: 120, step: 1, def: 40 },
+      ],
+      total: p => p.inSeconds + p.holdSeconds + p.outSeconds,
+      draw(t, p) {
+        // GameController.NaviComboPop と同じ式
+        const tIn = Math.max(0.01, p.inSeconds), tHold = Math.max(0, p.holdSeconds), tOut = Math.max(0.01, p.outSeconds);
+        if (t >= tIn + tHold + tOut) return false;
+        let sc = 1, y = 0, a = 1;
+        if (t < tIn) { const u = t / tIn; sc = lerp(1.8, 1, 1 - Math.pow(1 - u, 3)); a = Math.min(1, u * 3); }
+        else if (t >= tIn + tHold) { const u = Math.min(1, (t - tIn - tHold) / tOut); y = p.rise * u; a = 1 - u; }
+        const text = (p.n || 1) + " COMBO!";
+        const cx = ReelCx(1) + (p.x || 0), cy = ReelCy - p.y - y;
+        g.save(); g.globalAlpha = a; g.translate(cx, cy); g.scale(sc, sc);
+        g.font = "bold " + p.fontSize + "px sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.lineJoin = "round";
+        g.lineWidth = 6; g.strokeStyle = "rgba(0,0,0,0.55)"; g.strokeText(text, 2, 3);
+        g.lineWidth = 4; g.strokeStyle = "rgba(0,0,0,0.75)"; g.strokeText(text, 0, 0);
+        g.fillStyle = p.color || "#ffd23f"; g.fillText(text, 0, 0);
+        g.restore();
+        return true;
+      }
     }
   ];
   // ---- 型ごとの姿勢（GameController.EmberGainPose と同じ式）
@@ -480,6 +514,12 @@
         p.options.forEach(([val, name]) => { const o = document.createElement("option"); o.value = val; o.textContent = name; if (params[p.key] === val) o.selected = true; sel.appendChild(o); });
         sel.addEventListener("change", e => { params[p.key] = e.target.value; store(); output(); play(); });
         row.appendChild(lb); row.appendChild(sel); host.appendChild(row);
+        return;
+      }
+      if (p.type === "color") {
+        const ci = document.createElement("input"); ci.type = "color"; ci.value = params[p.key] || p.def;
+        ci.addEventListener("input", e => { params[p.key] = e.target.value; store(); output(); });
+        row.appendChild(lb); row.appendChild(ci); host.appendChild(row);
         return;
       }
       if (p.type === "bool") {

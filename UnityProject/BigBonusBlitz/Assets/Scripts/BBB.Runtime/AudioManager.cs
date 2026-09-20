@@ -66,6 +66,7 @@ namespace BBB.Runtime
             new SeDef("enemy_appear", "se_enemy_appear", 0.9f, null, "エンゲージ", "敵出現", "敵が画面に滑り込んでくる（素材が無ければ 接近 + 着地 の合成音）"),
             new SeDef("attack", "se_attack", 1f, null, "エンゲージ", "攻撃", "役で敵を斬る。押し順ナビ失敗の被弾にも低くして使う（NaviFail）"),
             new SeDef("enemy_death", "se_enemy_death", 1f, null, "エンゲージ", "討伐", "敵を倒した"),
+            new SeDef("navi_choice", "se_navi_choice", 0.8f, () => SfxSynth.Heartbeat(), "エンゲージ", "ナビ 2 択（心臓）", "ベル択ナビで 1 つ押して左右の 2 択になっている間、ループで鳴る（決めると止まる。素材が無ければ合成の鼓動）"),
             new SeDef("navi_success", "se_navi_success", 1f, null, "エンゲージ", "ナビ正解", "押し順ナビに従えた（素材が無ければ リプレイ音を高く + コイン）"),
             new SeDef("escape", "se_enemy_escape", 0.8f, null, "エンゲージ", "逃走", "敵が逃げた（素材が無ければ 停止音を低く）"),
             new SeDef("pickup_soul", "se_pickup_soul", 0.7f, () => SfxSynth.PickupSoul(), "拾い物・GET", "ソウル", "ソウルを拾った / 「n SOUL GET」の帯が止まった"),
@@ -222,6 +223,17 @@ namespace BBB.Runtime
             _sePitched.PlayOneShot(_stop, Vol("stop") * 1.75f);
         }
         /// <summary>択の最中: BGM を水中のようにこもらせる（ローパス 500Hz、音量 60%）。</summary>
+        // ---- ナビ 2 択の心臓音（ループ。決めると止まる）
+        private AudioSource _choiceSrc;
+        public void NaviChoice(bool on)
+        {
+            if (_choiceSrc == null) { _choiceSrc = gameObject.AddComponent<AudioSource>(); _choiceSrc.playOnAwake = false; _choiceSrc.loop = true; }
+            if (!on) { if (_choiceSrc.isPlaying) _choiceSrc.Stop(); return; }
+            var c = Clip("navi_choice"); if (c == null) return;
+            MarkSound();
+            _choiceSrc.clip = c; _choiceSrc.pitch = Pitch("navi_choice"); _choiceSrc.volume = _se.volume * Vol("navi_choice"); _choiceSrc.Play();
+        }
+
         public void SetFocus(bool on)
         {
             if (_focusRoutine != null) StopCoroutine(_focusRoutine);

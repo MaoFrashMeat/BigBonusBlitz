@@ -5567,7 +5567,8 @@
                    "showBand": false, "showEdges": true, "showGlow": false, "shake": true, "shakeSeconds": 3, "sparks": true, "sound": true, "holdUntilBet": true, "betWaitSeconds": 0.3, "betHoldMax": 0, "showIcon": false, "countUp": true, "countOffset": 0, "countSeconds": 0.3,
                    "shadow": true, "shadowX": 3, "shadowY": -5, "shadowAlpha": 1, "outline": true, "outlineSize": 4, "outlineAlpha": 1,
                    "digitBounce": true, "wobble": false, "wobbleDeg": 0, "wobbleSpeed": 30, "glowPulse": true, "shine": true, "shineDelay": 0.35, "shineSeconds": 0.8, "shineStagger": 0.06, "shineWidth": 0.35, "shineAlpha": 0.9, "shineAngle": 20,
-                   "stackY": 0, "stackGap": 153, "stackStagger": 0.16, "stackScale": 0.47, "stackFit": false, "aboveDialogue": false, "dialogueMargin": 12}
+                   "stackY": 0, "stackGap": 153, "stackStagger": 0.16, "stackScale": 0.47, "stackFit": false, "aboveDialogue": false, "dialogueMargin": 12},
+    "naviCombo": { "minCount": 2, "x": 0, "y": 130, "fontSize": 40, "color": "#ffd23f", "inSeconds": 0.16, "holdSeconds": 0.9, "outSeconds": 0.35, "rise": 40 }
   },
   "curse": {
     "enabled": true,

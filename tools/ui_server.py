@@ -67,6 +67,16 @@ class Handler(SimpleHTTPRequestHandler):
             with open(TITLE, 'w', encoding='utf-8') as f:
                 json.dump(out, f, ensure_ascii=False, indent=2)
             return self._json(200, {'ok': True, 'path': TITLE, 'count': len(layers)})
+        if self.path.split('?')[0] == '/save_png':
+            # ビューアの舞台を docs/art/<日付>/<name>.png に残す（見た目を変えたら 1 枚残す約束。本文は png のバイト列）
+            import datetime, re, urllib.parse
+            q = urllib.parse.parse_qs(self.path.split('?')[1] if '?' in self.path else '')
+            name = re.sub(r'[^A-Za-z0-9_\-]', '', (q.get('name') or ['shot'])[0]) or 'shot'
+            n = int(self.headers.get('Content-Length', 0)); data = self.rfile.read(n)
+            d = os.path.join(ROOT, 'docs', 'art', datetime.date.today().isoformat()); os.makedirs(d, exist_ok=True)
+            out = os.path.join(d, name + '.png')
+            with open(out, 'wb') as f: f.write(data)
+            return self._json(200, {'ok': True, 'path': os.path.relpath(out, ROOT)})
         if self.path.split('?')[0] == '/se_apply':
             n = int(self.headers.get('Content-Length', 0))
             try:
