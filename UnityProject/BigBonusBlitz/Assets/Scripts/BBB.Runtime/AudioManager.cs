@@ -77,6 +77,7 @@ namespace BBB.Runtime
             new SeDef("rank", "se_rank", 0.8f, () => SfxSynth.RankChime(1f, 0.3f), "技術介入", "ランク（Cool 等）", "Perfect!! 以外のランク。tech.ranks の sePitch / seSeconds で高さと長さが変わる（素材は se_rank_<id>）"),
             new SeDef("achievement", "se_achievement", 0.9f, () => SfxSynth.Achievement(), "その他", "実績解除", "実績を解除した"),
             new SeDef("ui_pop", "se_ui_pop", 0.8f, null, "その他", "UI", "窓の開け閉め・ボタン（モーション音の元）"),
+            new SeDef("title_start", "se_title_start", 0.9f, null, "その他", "TAP TO START", "タイトルで TAP TO START を押した（素材が無ければ UI の押す音）"),
         };
         /// <summary>BGM の場所: キー → 既定の素材名（Resources/Audio/BGM）/ 説明。se_config.json の bgm で差し替える。無い場所は adventure → bgm_normal。</summary>
         public static readonly SeDef[] BgmDefs =
@@ -366,6 +367,9 @@ namespace BBB.Runtime
             }
             Play(clip, Vol("rank"));
         }
+
+        /// <summary>タイトルの TAP TO START。素材（se_title_start）があればそれ、無ければ UI の押す音。</summary>
+        public void TitleStart() { if (Clip("title_start") != null) PlayKey("title_start"); else Motion(MotionCue.Click); }
 
         /// <summary>予告音。stage 1=弱 2=強。</summary>
         public void Precog(int stage)

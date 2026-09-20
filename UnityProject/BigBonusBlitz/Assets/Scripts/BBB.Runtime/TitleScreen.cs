@@ -49,6 +49,7 @@ namespace BBB.Runtime
         private Text _press, _confirm;
         /// <summary>TAP TO START の絵（無ければ null で、文字だけ）。</summary>
         private Image _pressArt;
+        private bool _startLineShown;
         private CanvasGroup _fade;
         private Button _btnContinue, _btnNew;
         private GameObject _settingsBox;
@@ -211,7 +212,7 @@ namespace BBB.Runtime
             var tapAll = UiFactory.Panel(stage, "TapArea", Vector2.zero, new Vector2(StageW, StageH), new Color(0, 0, 0, 0));
             var tapBtn = tapAll.gameObject.AddComponent<Button>();
             tapBtn.transition = Selectable.Transition.None;
-            tapBtn.onClick.AddListener(() => { if (!_starting) { _audio.UiPop(); Begin(false); } });
+            tapBtn.onClick.AddListener(() => { if (!_starting) { _audio.TitleStart(); Begin(false); } });
             tapAll.SetAsFirstSibling();     // ボタン類より後ろに置いて、そちらの操作を邪魔しない
 
             // 「はじめから」は 2026-09-11 に外した（本人の判断）。セーブの削除は設定の「セーブ削除」から
@@ -611,6 +612,20 @@ namespace BBB.Runtime
             _press.text = "S T A R T !";
             _press.color = ColGold;
             if (_pressArt != null) _pressArt.gameObject.SetActive(false);   // 絵を引っ込めて START! の文字だけ
+            // 主人公のセリフ（hero.lines["start"] から 1 つ）を START! の下に。暗転の間に読める長さ
+            try
+            {
+                var cfg = GameDataLoader.LoadGameConfig();
+                var lines = cfg?.hero?.lines != null && cfg.hero.lines.TryGetValue("start", out var l) ? l : null;
+                if (lines != null && lines.Count > 0)
+                {
+                    string line = lines[UnityEngine.Random.Range(0, lines.Count)];
+                    var say = UiFactory.Label(_press.transform.parent, "StartLine", _press.rectTransform.anchoredPosition + new Vector2(0, -30), new Vector2(520, 24), "「" + line + "」", 15, TextAnchor.MiddleCenter, ColText);
+                    say.fontStyle = FontStyle.Bold; _startLineShown = true;
+                    var sh = say.gameObject.AddComponent<Shadow>(); sh.effectColor = new Color(0, 0, 0, 0.8f); sh.effectDistance = new Vector2(1, -2);
+                }
+            }
+            catch (System.Exception e) { Debug.LogWarning("start のセリフ: " + e.Message); }
             StartCoroutine(BeginRoutine(clearSave));
         }
 
@@ -618,6 +633,7 @@ namespace BBB.Runtime
         {
             AudioManager.Create().Motion(MotionCue.Travel);
             _fade.blocksRaycasts = true;
+            if (_startLineShown) yield return new WaitForSeconds(0.8f);   // セリフを読む間
             yield return FadeTo(1f, 0.45f);
             if (clearSave) SaveData.Clear();
             // UI だけ片付ける（AudioManager は画面をまたいで使い回すので消さない）

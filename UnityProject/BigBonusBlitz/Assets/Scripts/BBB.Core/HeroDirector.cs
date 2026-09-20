@@ -42,6 +42,7 @@ namespace BBB.Core
             ["miss"] = new List<string> { "……惜しい", "まあ、こんな日もある", "次だ、次", "集中しろ", "焦るな……" },
             ["win"] = new List<string> { "よし！", "まずまずだな", "この調子", "手応えあり", "ふっ、悪くない" },
             ["longRun"] = new List<string> { "長い道だ……", "そろそろ何か起きてもいい頃だ", "……気配がない", "静かすぎる" },
+            ["start"] = new List<string> { "……行くか", "今日も、灯を持って", "さあ、始めよう" },   // タイトルの TAP TO START
         };
     }
 
