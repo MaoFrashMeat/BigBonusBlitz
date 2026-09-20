@@ -47,6 +47,8 @@ namespace BBB.Core
         public EnemyTable enemyTable;
         /// <summary>このGで前兆が始まった（ENEMY 当選）。</summary>
         public bool precursorStarted;
+        /// <summary>エンゲージのこの G の出来事（構え / 被弾 / 攻撃 / ルーレット）。エンゲージ中でなければ null。</summary>
+        public EngageStep engage;
         /// <summary>宝箱の前兆。started = この G で当選して前兆が始まった、stage = 何 G 目か（1〜）。見つかった G は treasure が入る。</summary>
         public bool treasurePrecursorStarted; public int treasurePrecursorStage, treasurePrecursorTotal;
         /// <summary>このGの前兆段階（1..N）。前兆中でなければ 0。出現Gは N。</summary>
@@ -245,6 +247,9 @@ namespace BBB.Core
         public bool IsTier2;
         public bool PendingTier2;
         public int Tier2SpinCount;
+        /// <summary>エンゲージのターン制（Engage.cs）。セット 1〜、ターン 1 / 2、構え、次の G がポーションの回転か、次の攻撃が大攻撃か。</summary>
+        public int EngageSet, EngageTurn; public EngageStance EngageStance; public bool EngagePotionSpin, EngageNextLarge;
+        private bool _engageResolveNow;
         public bool EnemyActive;
         public bool EnemyDefeatWon;
         /// <summary>前兆の残りG（0 なら前兆中でない）。</summary>
@@ -326,9 +331,11 @@ namespace BBB.Core
         public int HealHp(int amount)
             => AdventureDirector.HealHp(Config.adventure, Adv, amount, TorchSpinsPerUnit);
 
-        /// <summary>エンゲージのG数（設定 + テクニック）。</summary>
-        public int EngageMaxSpins => Math.Max(1, Config.tier2MaxSpins
-            + (StatsCfg != null ? (int)(TechniqueStat * StatsCfg.technique.engageSpins) : 0));
+        /// <summary>エンゲージのセット数（設定 + テクニック。テクニックの +G は 2 G で 1 セット）。</summary>
+        public int EngageSets => Math.Max(1, (Config.engage?.sets ?? Math.Max(1, Config.tier2MaxSpins / 2))
+            + (StatsCfg != null ? (int)(TechniqueStat * StatsCfg.technique.engageSpins) / 2 : 0));
+        /// <summary>エンゲージのG数（セット × 2。ポーションの回転は数えない）。</summary>
+        public int EngageMaxSpins => EngageSets * 2;
 
         /// <summary>力尽きたときに補填されるエンバー（設定 + ライフ）。</summary>
         public int RescueCredit => Math.Max(0, (Config.adventure?.resource?.rescueCredit ?? 0)
@@ -536,10 +543,11 @@ namespace BBB.Core
                 IsTier2 = true;
                 Tier2SpinCount = 0;
                 PendingTier2 = false;
+                EngageSet = 1; EngageTurn = 1; EngageStance = EngageStance.None; EngagePotionSpin = false; EngageNextLarge = false; _engageResolveNow = false;
             }
             // エンゲージはボーナス中も進める（止めると「残り G」が凍って見える）。ベル択ナビだけは通常時限定
-            // ボーナスが始まったGは判定を通らず決着処理が飛ぶので、上限で止めて「残り -1 G」を防ぐ
-            if (IsTier2) Tier2SpinCount = Math.Min(Tier2SpinCount + 1, EngageMaxSpins);
+            // ポーションの回転（追加の 1 回転）はターンに数えない
+            if (IsTier2 && !EngagePotionSpin) Tier2SpinCount = Math.Min(Tier2SpinCount + 1, EngageMaxSpins);
 
             // 洞窟に入るまでの前兆。消化しきった次のGで AT が始まる
             AtEntryStage = 0;
@@ -568,7 +576,7 @@ namespace BBB.Core
                 AtZone = null; AtZoneRemaining = 0;
                 // 洞窟に入ったら通常時のエンゲージは持ち込まない（択ナビと押し順ナビが重なるため）
                 IsTier2 = false; PendingTier2 = false; EnemyActive = false; EnemyDefeatWon = false;
-                Tier2SpinCount = 0; PrecursorRemaining = 0; PrecursorTotal = 0; ActiveEnemyTable = null;
+                Tier2SpinCount = 0; PrecursorRemaining = 0; PrecursorTotal = 0; ActiveEnemyTable = null; EngagePotionSpin = false;
             }
             if (InAt && BonusMode == BonusMode.NORMAL)
             {
@@ -891,17 +899,14 @@ namespace BBB.Core
                 if (win.winType == WinType.BELL && Navi.Active && CurrentCommand == BellCommand.Success)
                 {
                     var bc = Config.bellCommand;
-                    if (bc == null || bc.successGuaranteesDefeat) { result.naviDefeatGuaranteed = !EnemyDefeatWon; if (!EnemyDefeatWon && IsTier2 && EnemyActive) LastDefeatPercent = 100; EnemyDefeatWon = true; }
                     int exp = bc?.successExp ?? 25;
                     if (exp > 0) { result.naviExp = exp; if (GainExp(exp)) result.levelUp = true; }
                 }
-                else RollDefeat(win.winType);
             }
             else if (win.isReplay)
             {
                 Bet = BetCost;
                 IsReplay = true;
-                RollDefeat(WinType.REPLAY);
                 // 通常時のリプレイはライフが回復する。
                 // ライフが減るのも通常時だけなので、止まっている間は回復もしない
                 var repRes = Config.adventure?.resource;
@@ -914,16 +919,18 @@ namespace BBB.Core
             else
             {
                 Bet = 0;
-                if (IsTier2) DefeatStreak = 0;
             }
 
+            // エンゲージのターン（構え → 結果 → 次のセット。倒せたらその場で決着、最後のセットで倒せなければ逃げる）
+            if (IsTier2 && EnemyActive) StepEngage(result, win);
             // このGの討伐抽選で使った率を結果に（体力バーの見通し用。抽選が無ければ 0）
             result.defeatPercent = LastDefeatPercent;
             LastDefeatPercent = 0;
 
-            // Tier2 決着（tier2MaxSpins ゲーム目の終わり）
-            if (IsTier2 && Tier2SpinCount >= EngageMaxSpins)
+            // Tier2 決着
+            if (IsTier2 && _engageResolveNow)
             {
+                _engageResolveNow = false;
                 result.enemyResolved = EnemyDefeatWon;
                 var soulCfg = Config.souls ?? new SoulConfig();
                 if (EnemyDefeatWon)
@@ -1373,6 +1380,70 @@ namespace BBB.Core
                 result.precursorStage = 0;
                 result.bossAmbush = true;
             }
+        }
+
+        /// <summary>
+        /// エンゲージの 1 G ぶん。1 ターン目は役で構えを決め、2 ターン目は構え × 役で結果。攻撃が通れば討伐抽選。
+        /// 1 ターン目のレア役はポーションも付き、次の G は追加の 1 回転（ルーレット）。
+        /// </summary>
+        private void StepEngage(GameResult result, WinResult win)
+        {
+            var cfg = Config.engage ?? new EngageConfig();
+            bool naviSuccess = win.winType == WinType.BELL && Navi.Active && CurrentCommand == BellCommand.Success;
+            bool naviFail = Navi.Active && CurrentCommand == BellCommand.Fail;
+            var role = EngageBattle.RoleOf(win.winType, naviSuccess, naviFail, cfg);
+            var step = new EngageStep { set = EngageSet, sets = EngageSets, turn = EngageTurn, role = role, stance = EngageStance };
+            result.engage = step;
+
+            if (EngagePotionSpin)
+            {
+                // 追加の 1 回転: ルーレット
+                EngagePotionSpin = false;
+                step.potionSpin = true;
+                step.outcome = EngageBattle.Roulette(role);
+                switch (step.outcome)
+                {
+                    case EngageOutcome.PotionHeal: step.healed = HealHp(Math.Max(0, cfg.potionHeal)); break;   // hpHealed には足さない（リプレイ・ベルの回復と分けて数える）
+                    case EngageOutcome.PotionLarge: EngageNextLarge = true; break;
+                    case EngageOutcome.PotionDefeat: step.defeated = true; step.defeatPercent = 100; LastDefeatPercent = 100; EnemyDefeatWon = true; _engageResolveNow = true; break;
+                }
+                return;
+            }
+
+            if (EngageTurn == 1)
+            {
+                EngageStance = EngageBattle.StanceOf(role);
+                step.stance = EngageStance;
+                step.outcome = EngageOutcome.Stance;
+                if (role == EngageRole.Rare && cfg.rareGivesPotion) { step.potionGot = true; EngagePotionSpin = true; }
+                EngageTurn = 2;
+                return;
+            }
+
+            // 2 ターン目
+            step.outcome = EngageBattle.Resolve(EngageStance, role, cfg, _rng, out var size);
+            if ((step.outcome == EngageOutcome.Attack || step.outcome == EngageOutcome.Counter) && EngageNextLarge) { size = AttackSize.Large; EngageNextLarge = false; }
+            step.attackSize = size;
+            if (step.outcome == EngageOutcome.Hit)
+            {
+                int dmg = Math.Max(0, cfg.lifeDamage);
+                if (AdventureEnabled && dmg > 0 && (Config.adventure?.resource?.enabled ?? false))
+                {
+                    int before = Hp;
+                    AdventureDirector.SetHp(Config.adventure, Adv, before - dmg, TorchSpinsPerUnit);
+                    step.damage = before - Hp;
+                    if (Hp <= 0) _torchOut = true;
+                }
+            }
+            else if (size != AttackSize.None)
+            {
+                step.defeatPercent = EngageBattle.DefeatPercent(size, cfg, DefeatSkillBonus);
+                LastDefeatPercent = step.defeatPercent;
+                if (_rng.NextDouble() * 100 < step.defeatPercent) { step.defeated = true; EnemyDefeatWon = true; _engageResolveNow = true; return; }
+            }
+            // 次のセットへ。最後のセットなら逃げる
+            EngageSet++; EngageTurn = 1; EngageStance = EngageStance.None;
+            if (EngageSet > EngageSets) _engageResolveNow = true;
         }
 
         private bool RollDefeat(WinType winType, float multiplier = 1f)

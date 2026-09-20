@@ -298,6 +298,8 @@ namespace BBB.Runtime
             _sePitched.PlayOneShot(_uiPop, 0.8f);
         }
         public void Win() => PlayKey("win");
+        /// <summary>キーで鳴らす（外から。エンゲージのルーレットの刻みなど）。</summary>
+        public void PlayKeyPublic(string key, float volMul = 1f) => PlayKey(key, volMul);
 
         /// <summary>払い出し音: 枚数ぶん「デュルデュル」と連打。ピッチを少しずつ上げて枚数感を出す。</summary>
         public void Payout(int coins)

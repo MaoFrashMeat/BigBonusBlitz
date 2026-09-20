@@ -77,7 +77,8 @@ namespace BBB.Tests
             int baseSpins = m.EngageMaxSpins;
             m.Stats.Technique = m.Config.stats.maxPerStat;
             Assert.GreaterOrEqual(m.EngageMaxSpins, baseSpins, "エンゲージのG数が減った");
-            Assert.AreEqual(baseSpins + (int)(m.Stats.Technique * m.Config.stats.technique.engageSpins), m.EngageMaxSpins);
+            // テクニックの +G は 2 G で 1 セット（ターン制）。端数は切り捨て
+            Assert.AreEqual(baseSpins + (int)(m.Stats.Technique * m.Config.stats.technique.engageSpins) / 2 * 2, m.EngageMaxSpins);
         }
 
         [Test]

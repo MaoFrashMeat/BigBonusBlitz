@@ -1253,7 +1253,7 @@ namespace BBB.Runtime
             _expFill.rectTransform.sizeDelta = new Vector2(_expTrack.sizeDelta.x * Mathf.Clamp01((float)_m.PlayerExp / (_m.PlayerLevel * 100)), _expTrack.sizeDelta.y);
 
             _tier2Box.SetActive((_m.IsTier2 || _m.PendingTier2) && !_m.InAt);
-            _tier2.text = _m.IsTier2 ? $"残り {Mathf.Max(0, _m.EngageMaxSpins - _m.Tier2SpinCount)} G" : "NEXT: ENGAGE";
+            _tier2.text = _m.IsTier2 ? EngageStatusText() : "NEXT: ENGAGE";
 
             // AT: 残りG と 獲得枚数（狩猟中は残りGが止まる旨も出す）
             _atChipBox.SetActive(_m.InAt);
@@ -1285,7 +1285,7 @@ namespace BBB.Runtime
             }
             else if (bossBar)
             {
-                _hpLabel.text = $"中ボス {_engagedName}    残り {Mathf.Max(0, _m.EngageMaxSpins - _m.Tier2SpinCount)} G";
+                _hpLabel.text = $"中ボス {_engagedName}    {EngageStatusText()}";
                 SetBossBar(_bossHp);
             }
             if (_resetConfirm.text.Length > 0 && Time.time > _resetConfirmUntil) _resetConfirm.text = "";
@@ -2136,10 +2136,34 @@ namespace BBB.Runtime
         /// エンゲージ中の帯: 表示域の上と下に、−7° に傾いた青い帯を置いて「nゲーム以内に小役を引ければ...CHANCE!?」を流す。
         /// Web 版（#enemy-banner-top / bottom）の見た目を写したもの。主人公と敵の後ろ、背景の前。
         /// </summary>
+        /// <summary>「SET 1/3  ターン 1」（ポーションの回転なら「ポーション」）。</summary>
+        private string EngageStatusText()
+        {
+            if (_m.EngagePotionSpin) return $"SET {_m.EngageSet}/{_m.EngageSets}  ポーション";
+            return $"SET {Mathf.Min(_m.EngageSet, _m.EngageSets)}/{_m.EngageSets}  ターン {_m.EngageTurn}";
+        }
+
+        /// <summary>今の構えに合った帯の文（game_config の engage.texts）。</summary>
+        private string EngageBandText()
+        {
+            var cfg = _m.Config.engage ?? new EngageConfig(); var tx = cfg.texts ?? new EngageTexts();
+            string t;
+            if (_m.EngagePotionSpin) t = tx.potion;
+            else if (_m.EngageTurn == 1) t = tx.turn1;
+            else switch (_m.EngageStance)
+                {
+                    case EngageStance.EnemyAttack: t = tx.enemyAttack; break;
+                    case EngageStance.HeroCharge: t = tx.heroCharge; break;
+                    case EngageStance.HeroAttack: t = tx.heroAttack; break;
+                    default: t = tx.turn1; break;
+                }
+            return EngageBattle.Fill(t, Mathf.Min(_m.EngageSet, _m.EngageSets), _m.EngageSets, _m.EngageTurn);
+        }
+
         private void ShowEngageBanners()
         {
             HideEngageBanners();
-            string unit = $"{_m.EngageMaxSpins}ゲーム以内に小役を引ければ...CHANCE!?";
+            string unit = EngageBandText();
             var bg = new Color(0f, 0.3f, 1f, 0.6f);
             const float bandW = AreaW * 1.3f, bandH = 44f, speed = 45f;
             _engageBandTop = MarqueeBand.Create(_area, "EngageBandTop", new Vector2(0, AreaH * 0.5f - 8), bandW, bandH, -7f, unit, 22, bg, Color.white, speed, 0f);
@@ -2703,6 +2727,13 @@ namespace BBB.Runtime
             }
             if (r.enemyResolved.HasValue && _engagedBoss) _bossBarAnim = StartCoroutine(BossBarResolve(r.enemyResolved == true));
 
+            // エンゲージのターン: 構え / 被弾 / 防御 / 回避 / 攻撃 / ルーレット。帯の文も次のターンのものに
+            if (r.engage != null)
+            {
+                StartCoroutine(EngageStepRoutine(r.engage));
+                if (!r.enemyResolved.HasValue && _engageBandTop != null) ShowEngageBanners();
+            }
+
             if (r.enemyResolved == true)
             {
                 _audio.EnemyDeath(); _audio.Voice("defeat");
@@ -2724,7 +2755,7 @@ namespace BBB.Runtime
             {
                 _audio.EnemyEscape();
                 StartCoroutine(EscapeRoutine());
-                SetMessage("ENEMY ESCAPED...", false, ColTextSub);
+                SetMessage(_m.Config.engage?.texts?.escaped ?? "ENEMY ESCAPED...", false, ColTextSub);
             }
             if (r.precursorStarted)
             {
@@ -3227,6 +3258,25 @@ namespace BBB.Runtime
         /// このGで起きたことを、セリフの枠と同じ吹き出しで 1 つずつ説明する（2026-09-13 本人の依頼）。
         /// 敵・報酬・拾い物・進行・その他の順に集め、多いときは先頭 3 つまで。物語や旅人の会話が流れている間は出さない。
         /// </summary>
+        private string EngageStepLog(EngageStep st)
+        {
+            var tx = _m.Config.engage?.texts ?? new EngageTexts();
+            switch (st.outcome)
+            {
+                case EngageOutcome.Stance:
+                    return (st.stance == EngageStance.EnemyAttack ? "敵が攻撃の構え" : st.stance == EngageStance.HeroCharge ? "力を貯めた" : "攻撃確定") + (st.potionGot ? "。ポーションを手に入れた（次の 1 回転はルーレット）" : "");
+                case EngageOutcome.Hit: return $"敵の攻撃を喰らった。LIFE −{st.damage}";
+                case EngageOutcome.Guard: return "敵の攻撃を防いだ";
+                case EngageOutcome.Dodge: return "敵の攻撃をかわした";
+                case EngageOutcome.Counter: return $"かわしてカウンター（討伐 {st.defeatPercent}%）" + (st.defeated ? " → 倒した！" : "");
+                case EngageOutcome.Attack: return (st.attackSize == AttackSize.Large ? "大攻撃" : st.attackSize == AttackSize.Medium ? "中攻撃" : "小攻撃") + $"（討伐 {st.defeatPercent}%）" + (st.defeated ? " → 倒した！" : " → 耐えられた");
+                case EngageOutcome.PotionHeal: return $"ルーレット: LIFE +{st.healed}";
+                case EngageOutcome.PotionLarge: return "ルーレット: 次の攻撃が大攻撃";
+                case EngageOutcome.PotionDefeat: return "ルーレット: 討伐確定！";
+            }
+            return "";
+        }
+
         private void ExplainEvents(GameResult r, System.Collections.Generic.List<AchievementDef> unlocked)
         {
             if (r.chapterCleared || r.returnedToTown) return;   // 大きな演出と物語に任せる
@@ -3235,8 +3285,9 @@ namespace BBB.Runtime
             if (r.precursorStarted) lines.Add(r.enemyTable != null && r.enemyTable.IsBoss ? "嫌な気配…… 強い敵が近づいてくる" : "気配がする…… 敵が近づいてくる");
             if (r.treasurePrecursorStarted) lines.Add("……何か光った気がする");
             if (r.enemySpawned && r.enemyTable != null)
-                lines.Add(r.enemyTable.IsBoss ? $"中ボス {r.enemyTable.name}。{_m.EngageMaxSpins}G のうちに役を引けば倒せる"
-                                              : $"{r.enemyTable.name}が現れた。{_m.EngageMaxSpins}G の間に役を引けば討伐（ベルはナビ通りに）");
+                lines.Add(r.enemyTable.IsBoss ? $"中ボス {r.enemyTable.name}。{_m.EngageSets} セットのうちに攻撃を通せば倒せる"
+                                              : $"{r.enemyTable.name}が現れた。1 ターン目で構え、2 ターン目で攻撃（{_m.EngageSets} セット）");
+            if (r.engage != null && r.enemyResolved != true) lines.Add(EngageStepLog(r.engage));
             if (r.enemyResolved == true) lines.Add($"{_engagedName}を倒した。EXP +{r.enemyExp}、{{soul}}+{r.soulsGained}");
             else if (r.enemyResolved == false) lines.Add($"{_engagedName}に逃げられた。次はエンゲージ中に役を引こう");
             if (r.levelUp) lines.Add($"Lv {_m.PlayerLevel} に上がった。振れるポイント +{_m.Config.stats?.pointsPerLevel ?? 0}（装備画面のステータス）");
@@ -4865,6 +4916,123 @@ namespace BBB.Runtime
                 yield return null;
             }
             _redGlow.color = new Color(1f, 0.1f, 0.1f, 0f);
+        }
+
+        /// <summary>
+        /// エンゲージの 1 G の出来事を見せる。1 ターン目は構え（敵が身構える / 力を貯める / 攻撃確定）、
+        /// 2 ターン目は被弾（LIFE が減る）/ 防御 / 回避 / 攻撃（大きさで揺れと文字が変わる）。ポーションの回転はルーレット。
+        /// </summary>
+        private IEnumerator EngageStepRoutine(EngageStep st)
+        {
+            var tx = _m.Config.engage?.texts ?? new EngageTexts();
+            var red = new Color(1f, 0.35f, 0.35f); var blue = new Color(0.45f, 0.75f, 1f);
+            switch (st.outcome)
+            {
+                case EngageOutcome.Stance:
+                    if (st.stance == EngageStance.EnemyAttack)
+                    {
+                        _audio.EnemyEscape();   // 低いポップ音を「身構え」に
+                        StartCoroutine(Effects.Hit(_enemyRt, 0.25f));
+                        UiFx.PopText(_enemyRt, "敵の攻撃が来る……", red, 20, new Vector2(0, 70));
+                        _hint.text = "……来る"; _hint.color = red;
+                    }
+                    else if (st.stance == EngageStance.HeroCharge)
+                    {
+                        PlayCharacter("cast");
+                        UiFx.Ring(_charRt, new Color(1f, 0.9f, 0.4f, 0.8f), 30, 220, 0.5f);
+                        UiFx.PopText(_charRt, tx.charge, ColGold, 22, new Vector2(0, 70));
+                        _hint.text = tx.charge; _hint.color = ColGold;
+                    }
+                    else
+                    {
+                        PlayCharacter("attack-f1");
+                        UiFx.Burst(_charRt, UiFx.Preset.Sparks, new Vector2(0, 30));
+                        UiFx.PopText(_charRt, "攻撃確定！", ColGold, 24, new Vector2(0, 70));
+                        _hint.text = "攻撃確定！"; _hint.color = ColGold;
+                    }
+                    if (st.potionGot)
+                    {
+                        yield return new WaitForSeconds(0.4f);
+                        _audio.PlayKeyPublic("pickup_item");
+                        UiFx.PopText(_charRt, tx.potionGet, new Color(0.6f, 1f, 0.6f), 24, new Vector2(0, 100));
+                    }
+                    break;
+                case EngageOutcome.Hit:
+                    _audio.NaviFail(); _audio.Voice("hit");
+                    UiFx.Burst(_charRt, UiFx.Preset.RedShards, new Vector2(10, 30));
+                    UiFx.Slash(_charRt, 30f, 200f, new Color(1f, 0.3f, 0.3f));
+                    UiFx.PopText(_charRt, EngageBattle.Fill(tx.hit, st.set, st.sets, st.turn, st.damage), red, 24, new Vector2(0, 80));
+                    _hint.text = EngageBattle.Fill(tx.hit, st.set, st.sets, st.turn, st.damage); _hint.color = ColAccent;
+                    StartCoroutine(Effects.Hit(_enemyRt, 0.35f));
+                    StartCoroutine(Effects.Miss(_charRt, 0.6f));
+                    StartCoroutine(Effects.Shake(_stage, 0.3f, 6f));
+                    yield return Effects.RedGlow(_redGlow, 0.8f);
+                    break;
+                case EngageOutcome.Guard:
+                    PlayCharacter("guard");
+                    StartCoroutine(Effects.Hit(_enemyRt, 0.3f));
+                    UiFx.Ring(_charRt, new Color(0.6f, 0.8f, 1f, 0.9f), 40, 200, 0.4f);
+                    UiFx.PopText(_charRt, tx.guard, blue, 24, new Vector2(0, 80));
+                    _hint.text = tx.guard; _hint.color = blue;
+                    break;
+                case EngageOutcome.Dodge:
+                    StartCoroutine(Effects.Hit(_enemyRt, 0.3f));
+                    StartCoroutine(Effects.Shake(_charRt, 0.25f, 10f));
+                    UiFx.PopText(_charRt, tx.dodge, blue, 24, new Vector2(0, 80));
+                    _hint.text = tx.dodge; _hint.color = blue;
+                    break;
+                case EngageOutcome.Counter:
+                case EngageOutcome.Attack:
+                {
+                    bool counter = st.outcome == EngageOutcome.Counter;
+                    if (counter) { StartCoroutine(Effects.Hit(_enemyRt, 0.25f)); StartCoroutine(Effects.Shake(_charRt, 0.2f, 8f)); yield return new WaitForSeconds(0.25f); }
+                    float k = st.attackSize == AttackSize.Large ? 1f : st.attackSize == AttackSize.Medium || st.attackSize == AttackSize.Counter ? 0.6f : 0.3f;
+                    PlayCharacter("attack-f3-4");
+                    _audio.Attack(); _audio.Voice("attack");
+                    UiFx.Slash(_enemyRt, -30f, 160f + 140f * k, ColGold);
+                    UiFx.Burst(_enemyRt, UiFx.Preset.Sparks, new Vector2(0, 20));
+                    StartCoroutine(Effects.Shake(_stage, 0.25f + 0.2f * k, 3f + 8f * k));
+                    string label = counter ? tx.counter : st.attackSize == AttackSize.Large ? tx.attackLarge : st.attackSize == AttackSize.Medium ? tx.attackMedium : tx.attackSmall;
+                    UiFx.PopText(_enemyRt, label, ColGold, st.attackSize == AttackSize.Large ? 30 : 24, new Vector2(0, 80));
+                    if (!st.defeated) UiFx.PopText(_enemyRt, $"討伐 {st.defeatPercent}%", ColTextSub, 16, new Vector2(0, 105));
+                    _hint.text = label; _hint.color = ColGold;
+                    break;
+                }
+                case EngageOutcome.PotionHeal:
+                case EngageOutcome.PotionLarge:
+                case EngageOutcome.PotionDefeat:
+                {
+                    string fin = st.outcome == EngageOutcome.PotionHeal ? EngageBattle.Fill(tx.potionHeal, st.set, st.sets, st.turn, 0, st.healed)
+                               : st.outcome == EngageOutcome.PotionLarge ? tx.potionLarge : tx.potionDefeat;
+                    yield return RouletteRoutine(new[] { EngageBattle.Fill(tx.potionHeal, st.set, st.sets, st.turn, 0, _m.Config.engage?.potionHeal ?? 3), tx.potionLarge, tx.potionDefeat }, fin,
+                                                 st.outcome == EngageOutcome.PotionDefeat ? ColGold : st.outcome == EngageOutcome.PotionLarge ? ColGold : new Color(0.6f, 1f, 0.6f));
+                    _hint.text = fin; _hint.color = ColGold;
+                    break;
+                }
+            }
+        }
+
+        /// <summary>ルーレット: 候補の文を速く → だんだん遅く切り替え、最後に結果で止まる（叩きつけ）。</summary>
+        private IEnumerator RouletteRoutine(string[] options, string final, Color color)
+        {
+            var host = UiSkin.Rect(_area, "Roulette", new Vector2(0, 40), new Vector2(AreaW * 0.8f, 60));
+            UiSkin.Img(host, "Bg", Vector2.zero, new Vector2(AreaW * 0.8f, 60), null, new Color(0, 0, 0, 0.7f));
+            var label = UiFactory.Label(host, "Text", Vector2.zero, new Vector2(AreaW * 0.8f, 60), options[0], 26, TextAnchor.MiddleCenter, Color.white);
+            label.fontStyle = FontStyle.Bold;
+            float t = 0, wait = 0.06f, next = 0; int i = 0;
+            while (t < 1.6f)
+            {
+                t += Time.deltaTime;
+                if (t >= next) { i = (i + 1) % options.Length; label.text = options[i]; _audio.PlayKeyPublic("stop"); next = t + wait; wait = Mathf.Min(0.35f, wait * 1.18f); }
+                yield return null;
+            }
+            label.text = final; label.color = color; host.localScale = Vector3.one * 1.3f;
+            _audio.Win();
+            UiFx.Burst(host, UiFx.Preset.SuccessStars, Vector2.zero);
+            float u = 0;
+            while (u < 0.2f) { u += Time.deltaTime; host.localScale = Vector3.one * Mathf.Lerp(1.3f, 1f, u / 0.2f); yield return null; }
+            yield return new WaitForSeconds(1.0f);
+            Destroy(host.gameObject);
         }
 
         private IEnumerator DefeatRoutine()

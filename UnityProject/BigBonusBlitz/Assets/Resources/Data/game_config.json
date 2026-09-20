@@ -1120,6 +1120,23 @@
     }
   },
   "tier2MaxSpins": 3,
+  "engage": {
+    "sets": 3, "lifeDamage": 3,
+    "defeatSmall": 15, "defeatMedium": 35, "defeatLarge": 70, "defeatCounter": 50,
+    "chargeLoseHit": 70, "chargeLoseGuard": 15, "chargeLoseDodge": 15,
+    "rareGivesPotion": true, "potionHeal": 3, "naviSuccessIsRare": true,
+    "texts": {
+      "turn1": "SET {set}/{sets}  ハズレ→敵の攻撃  小役→力を貯める  レア役→攻撃確定＋ポーション",
+      "enemyAttack": "SET {set}/{sets}  敵の攻撃！  ハズレ→被弾  小役→回避  レア役→回避してカウンター",
+      "heroCharge": "SET {set}/{sets}  力を貯めた！  小役→中攻撃  レア役→大攻撃  ハズレ→被弾（たまに防御・回避）",
+      "heroAttack": "SET {set}/{sets}  攻撃確定！  小役以下→中攻撃  レア役→大攻撃",
+      "potion": "ポーション！  ハズレ→LIFE 回復  小役→次が大攻撃  レア役→討伐確定",
+      "hit": "敵の攻撃！  LIFE −{dmg}", "guard": "防御！", "dodge": "回避！", "counter": "カウンター！",
+      "attackSmall": "小攻撃！", "attackMedium": "中攻撃！", "attackLarge": "大攻撃！！", "charge": "力を貯める……",
+      "potionGet": "ポーション GET!", "potionHeal": "LIFE +{heal}", "potionLarge": "次は大攻撃！", "potionDefeat": "討伐確定！！",
+      "escaped": "敵は逃げた……"
+    }
+  },
   "probabilities_AT": {
     "REPLAY_A": 14418,
     "REPLAY_B": 7864,

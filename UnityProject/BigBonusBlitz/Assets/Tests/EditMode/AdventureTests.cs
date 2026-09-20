@@ -447,8 +447,19 @@ namespace BBB.Tests
             m.Credit = 100_000;
             var push = new SystemRandom(4);
             m.DebugForceFlag = Flag.BELL_A;
+            // 宝箱は当選から 2〜4 G の前兆を挟んで見つかる（本人 2026-09-21）。当選の G は treasurePrecursorStarted、見つかった G に treasure
             var r = PlayOne(m, push);
-            Assert.IsNotNull(r.treasure, "ベル 100% で宝が出ない");
+            Assert.IsTrue(r.treasurePrecursorStarted, "ベル 100% で宝に当選しない");
+            Assert.IsNull(r.treasure, "前兆を挟まずに見つかった");
+            int total = r.treasurePrecursorTotal;
+            Assert.That(total, Is.InRange(m.Config.adventure.treasurePrecursorMin, m.Config.adventure.treasurePrecursorMax));
+            for (int g = 1; g <= total; g++)
+            {
+                r = PlayOne(m, push);
+                Assert.AreEqual(g, r.treasurePrecursorStage, "前兆の段階");
+                if (g < total) Assert.IsNull(r.treasure, "前兆の途中で見つかった");
+            }
+            Assert.IsNotNull(r.treasure, "前兆が終わっても宝が出ない");
             Assert.AreEqual("atSpins", r.treasure.kind);
             Assert.AreEqual(7, m.Adv.stockAtSpins);
 

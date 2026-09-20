@@ -126,14 +126,21 @@ namespace BBB.Tests
             Assert.IsTrue(r.enemySpawned, "敵が出現しない");
             Assert.IsNotNull(m.ActiveEnemyTable);
             Assert.IsTrue(m.PendingTier2);
-            int resolvedAt = -1;
-            for (int g = 1; g <= 10; g++)
+            // ターン制: 倒せたらその場で決着、倒せなければ 全セット（2 G × sets。ポーションの回転は数えない）の終わりに逃げる
+            int resolvedAt = -1, potionSpins = 0;
+            for (int g = 1; g <= 20; g++)
             {
+                bool potion = m.EngagePotionSpin;
                 r = PlayOne(m, push);
                 if (m.BonusMode != BonusMode.NORMAL) Assert.Inconclusive("Tier2中にボーナス");
+                Assert.IsNotNull(r.engage, "エンゲージ中なのに出来事が無い");
+                if (potion) { potionSpins++; Assert.IsTrue(r.engage.potionSpin, "ポーションの回転になっていない"); }
                 if (r.enemyResolved.HasValue) { resolvedAt = g; break; }
             }
-            Assert.AreEqual(m.Config.tier2MaxSpins, resolvedAt);
+            Assert.IsTrue(resolvedAt > 0, "決着しない");
+            Assert.LessOrEqual(resolvedAt, m.EngageMaxSpins + potionSpins);
+            if (r.enemyResolved == false) Assert.AreEqual(m.EngageMaxSpins + potionSpins, resolvedAt, "逃げるのは最後のセットの終わり");
+            else Assert.IsTrue(r.engage.defeated, "倒したのに defeated が立っていない");
             Assert.IsFalse(m.IsTier2);
             Assert.IsFalse(m.EnemyActive);
         }
@@ -284,7 +291,7 @@ namespace BBB.Tests
                     Assert.GreaterOrEqual(m.AtSpinsRemaining, 0, "AT の残りGが負");
                     Assert.GreaterOrEqual(m.AtEntryRemaining, 0, "洞窟前兆の残りGが負");
                     Assert.GreaterOrEqual(m.BonusAnnounceRemaining, 0, "ボーナス前兆の残りGが負");
-                    Assert.LessOrEqual(m.Tier2SpinCount, m.Config.tier2MaxSpins, "エンゲージが規定Gを超えて続く");
+                    Assert.LessOrEqual(m.Tier2SpinCount, m.EngageMaxSpins, "エンゲージが規定Gを超えて続く");
 
                     var order = new[] { 0, 1, 2 };
                     if (m.Navi2.Active)

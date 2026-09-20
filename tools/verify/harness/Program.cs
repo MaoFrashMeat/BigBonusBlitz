@@ -137,7 +137,7 @@ static class Program
                 if (m.AtSpinsRemaining < 0) Bad("AT の残りGが負");
                 if (m.AtEntryRemaining < 0) Bad("洞窟前兆の残りGが負");
                 if (m.BonusAnnounceRemaining < 0) Bad("ボーナス前兆の残りGが負");
-                if (m.Tier2SpinCount > cfg.tier2MaxSpins) Bad("エンゲージが規定Gを超えて続く");
+                if (m.Tier2SpinCount > m.EngageMaxSpins) Bad("エンゲージが規定Gを超えて続く");
                 if (m.AdventureEnabled)
                 {
                     if (m.CurrentStage == null) Bad("現在のステージが設定に無い");

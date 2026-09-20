@@ -41,6 +41,8 @@ namespace BBB.Core
         public Dictionary<string, int> ceilings;
         public Dictionary<string, Dictionary<string, Dictionary<string, int>>> modeTransitions;
         public int tier2MaxSpins = 3;
+        /// <summary>ENEMY エンゲージ（ターン制。1 セット 2 G × sets）。tier2MaxSpins は engage が無いときの後方互換。</summary>
+        public EngageConfig engage = new EngageConfig();
         /// <summary>持ち越しボーナスを狙うゲームでの最大滑りコマ数（20 = どこで押しても引き込む。実機どおりの目押しにするなら 4）。</summary>
         public int bonusPullInSlip = 20;
         /// <summary>
