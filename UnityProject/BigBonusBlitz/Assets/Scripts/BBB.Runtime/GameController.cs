@@ -1348,6 +1348,7 @@ namespace BBB.Runtime
                 else
                 {
                     UiFx.PopText(_reels[r.tech.reel].GetComponent<RectTransform>(), "MISS", ColTextSub, 20, new Vector2(0, 40));
+                    _audio.Voice("miss");
                 }
             }
             if (r.missionCleared != null)
@@ -1868,7 +1869,7 @@ namespace BBB.Runtime
         private IEnumerator NaviFailRoutine()
         {
             ExitFocus();
-            _audio.NaviFail();
+            _audio.NaviFail(); _audio.Voice("hit");
             UiFx.Burst(_charRt, UiFx.Preset.RedShards, new Vector2(10, 30));
             UiFx.Slash(_charRt, 30f, 200f, new Color(1f, 0.3f, 0.3f));
             _hint.text = "……外した";
@@ -2529,7 +2530,7 @@ namespace BBB.Runtime
                 else if (pressed == 2)
                 {
                     PlayCharacter("attack-f3-4");
-                    _audio.Attack();
+                    _audio.Attack(); _audio.Voice("attack");
                     if (_m.EnemyActive) _dustRt.gameObject.SetActive(true);   // 敵は消さない（決着は3G目の判定のみ）
                 }
             }
@@ -2650,6 +2651,12 @@ namespace BBB.Runtime
 
             if (r.bonusEnded) SetMessage("BONUS END!", true, Color.yellow);
             if (r.bonusEnded || r.atStarted || r.atEnded || r.enemySpawned || r.enemyResolved.HasValue || r.bonusStarted) SyncBgm();   // 場所が変わったら BGM も
+            // 主人公のボイス（あれば）。中ボス出現 / AT 入り / レベルアップ / 章の踏破 / 力尽き
+            if (r.enemySpawned && r.enemyTable != null && r.enemyTable.IsBoss) _audio.Voice("boss");
+            if (r.atStarted) _audio.Voice("at");
+            if (r.levelUp) _audio.Voice("levelup");
+            if (r.chapterCleared) _audio.Voice("clear");
+            if (r.ranOutOfCredit || r.outOfTorch) _audio.Voice("death");
 
             // 中ボスの体力バー: 当たりごとに、その役の討伐率ぶん「生き残る確率」を掛けて減らす。決着までは 6% を下回らない（3G 目まで結果は言わない）
             // 率は実際の抽選と同じ（基本 + 連続ボーナス × 連続回数 + 装備・技能。GameResult.defeatPercent。棚 c12）
@@ -2666,7 +2673,7 @@ namespace BBB.Runtime
 
             if (r.enemyResolved == true)
             {
-                _audio.EnemyDeath();
+                _audio.EnemyDeath(); _audio.Voice("defeat");
                 if (_engagedBoss)
                 {
                     // 中ボス: 撃破の帯 → 報酬のまとめ → 戦利品 → 装備（落とし物は RogueFx では出さない）
@@ -3630,7 +3637,7 @@ namespace BBB.Runtime
                                       new Color(color.r * 0.25f, color.g * 0.25f, color.b * 0.25f, 1f), new Vector2(2, -3));
             if (rank.rainbow) foreach (var tx in row.texts) RainbowTint.Apply(tx, 1f, 0.75f);
             var cg = host.gameObject.AddComponent<CanvasGroup>(); cg.blocksRaycasts = false;
-            if (rank.bonusPercent >= 100) UiFx.Burst(reelRt, UiFx.Preset.Confetti, new Vector2(0, fx.y));
+            if (rank.bonusPercent >= 100) { UiFx.Burst(reelRt, UiFx.Preset.Confetti, new Vector2(0, fx.y)); _audio.Voice("perfect"); }
             _audio.TechRank(rank);   // ランクごとの高さと長さ。Perfect!! は専用の音（棚 c11）
             float tIn = Mathf.Max(0.01f, fx.inSeconds), tHold = Mathf.Max(0f, fx.holdSeconds), tOut = Mathf.Max(0.01f, fx.outSeconds);
             float t = 0;
@@ -4884,7 +4891,7 @@ namespace BBB.Runtime
         {
             _inputLocked = true;
             RefreshUi();
-            float len = _audio.BbConfirm();
+            float len = _audio.BbConfirm(); _audio.Voice("bonus");
             var zBig = _m.Config.zoneFx?.big;
             if (ZoneFx.Has(zBig)) StartCoroutine(ZoneFx.Play(_stage, zBig, this, _redGlow));
             else StartCoroutine(Effects.Cutin(_cutinRt, _cutinCg, 3f));

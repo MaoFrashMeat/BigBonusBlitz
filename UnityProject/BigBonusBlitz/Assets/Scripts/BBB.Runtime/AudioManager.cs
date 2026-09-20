@@ -371,6 +371,27 @@ namespace BBB.Runtime
         /// <summary>タイトルの TAP TO START。素材（se_title_start）があればそれ、無ければ UI の押す音。</summary>
         public void TitleStart() { if (Clip("title_start") != null) PlayKey("title_start"); else Motion(MotionCue.Click); }
 
+        // ---- 主人公のボイス（docs/voice_script.md。tools/voice_import.py で Resources/Audio/Voice に入れる）
+        private readonly System.Collections.Generic.Dictionary<string, AudioClip[]> _voice = new System.Collections.Generic.Dictionary<string, AudioClip[]>();
+        private AudioSource _voiceSrc;
+        /// <summary>そのキーの声を 1 本（複数あればランダム）。無ければ何もしない。直前の声は止める（重ねない）。</summary>
+        public void Voice(string key)
+        {
+            if (string.IsNullOrEmpty(key)) return;
+            if (!_voice.TryGetValue(key, out var clips))
+            {
+                var list = new System.Collections.Generic.List<AudioClip>();
+                var first = Resources.Load<AudioClip>("Audio/Voice/voice_" + key);
+                if (first != null) list.Add(first);
+                for (int i = 2; i < 20; i++) { var c = Resources.Load<AudioClip>("Audio/Voice/voice_" + key + "_" + i); if (c == null) break; list.Add(c); }
+                clips = list.ToArray(); _voice[key] = clips;
+            }
+            if (clips.Length == 0) return;
+            if (_voiceSrc == null) { _voiceSrc = gameObject.AddComponent<AudioSource>(); _voiceSrc.playOnAwake = false; }
+            MarkSound();
+            _voiceSrc.Stop(); _voiceSrc.volume = _se.volume; _voiceSrc.clip = clips[Random.Range(0, clips.Length)]; _voiceSrc.Play();
+        }
+
         /// <summary>予告音。stage 1=弱 2=強。</summary>
         public void Precog(int stage)
         {

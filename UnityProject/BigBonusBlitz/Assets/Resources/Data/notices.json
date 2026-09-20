@@ -2,6 +2,12 @@
   "entries": [
     {
       "date": "2026-09-16",
+      "version": "dev 274",
+      "title": "主人公のボイスを入れられるように（12 の場面。まだ声は無い）",
+      "body": "・Resources/Audio/Voice/voice_<キー>.wav があれば鳴る（無ければ黙る。同じキーが何本かあればランダム）。場面: start / attack / hit / defeat / boss / bonus / at / perfect / miss / levelup / death / clear\n・録り方と台本は docs/voice_script.md（VoiceChangerAI で録って変換 → py -3 tools/voice_import.py <wav> <キー>）"
+    },
+    {
+      "date": "2026-09-16",
       "version": "dev 273",
       "title": "TAP TO START に押した音と主人公のセリフ",
       "body": "・押すと効果音（title_start。効果音ビューアの「その他」で差し替え。素材が無いときは UI の押す音）\n・START! の下に主人公のセリフ（「……行くか」「今日も、灯を持って」「さあ、始めよう」「……準備はいい」から 1 つ。hero.lines.start）を 0.8 秒見せてから暗転"

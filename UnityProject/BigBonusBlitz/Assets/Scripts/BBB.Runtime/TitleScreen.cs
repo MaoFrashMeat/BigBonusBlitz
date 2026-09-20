@@ -622,6 +622,7 @@ namespace BBB.Runtime
                     string line = lines[UnityEngine.Random.Range(0, lines.Count)];
                     var say = UiFactory.Label(_press.transform.parent, "StartLine", _press.rectTransform.anchoredPosition + new Vector2(0, -30), new Vector2(520, 24), "「" + line + "」", 15, TextAnchor.MiddleCenter, ColText);
                     say.fontStyle = FontStyle.Bold; _startLineShown = true;
+                    _audio.Voice("start");
                     var sh = say.gameObject.AddComponent<Shadow>(); sh.effectColor = new Color(0, 0, 0, 0.8f); sh.effectDistance = new Vector2(1, -2);
                 }
             }
