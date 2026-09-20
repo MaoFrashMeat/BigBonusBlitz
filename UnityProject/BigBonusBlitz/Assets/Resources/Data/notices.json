@@ -98,6 +98,12 @@
     },
     {
       "date": "2026-09-16",
+      "version": "dev 294",
+      "title": "告知が絵になった（エンゲージ / BIG / REG）",
+      "body": "・ENEMY ENGAGE は緑の飾り文字が上から落ちて着地（帯・青い光・火花・揺れ）\n・BIG は紫の HYPER BRITZ BONUS がふくらんで出る（金の光・星）\n・REG は青い BRITZ BONUS（脈打つ・星）\n・値は本人がゾーンビューアで決めた zoneFx"
+    },
+    {
+      "date": "2026-09-16",
       "version": "dev 263",
       "title": "告知（エンゲージ / BIG / REG）を絵にできるようにした",
       "body": "・ENEMY ENGAGE!・BIG BONUS・REG の告知を、用意した絵に差し替えられるようにした（今はまだ文字のまま）\n・位置・大きさ・出方・帯・光・揺れ・飛び散りを tools/zone_viewer.html で決めて game_config の zoneFx に写す"

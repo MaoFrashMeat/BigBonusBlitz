@@ -25,21 +25,18 @@ namespace BBB.Runtime
         }
 
         /// <summary>
-        /// 告知を出す。parent は舞台（StageW x StageH）。座標はビューアと同じ「舞台の中心から上が +y」。
-        /// 終わると作った物は消える。呼び側は yield return で待てる。
+        /// 部品を組む（帯 → 光 → 絵）。Play と Preview で共有する。戻り値は消すためのルート。
+        /// 絵が無ければ null。
         /// </summary>
-        public static IEnumerator Play(RectTransform stage, ZoneFxEntry z, MonoBehaviour host, Image edgeOverlay = null)
+        private static RectTransform Build(RectTransform stage, ZoneFxEntry z, out CanvasGroup cg, out RectTransform band, out Image glow, out RectTransform art)
         {
+            cg = null; band = null; glow = null; art = null;
             var sprite = Art(z.image);
-            if (sprite == null) yield break;
-
+            if (sprite == null) return null;
             var root = UiSkin.Rect(stage, "ZoneFx", Vector2.zero, stage.sizeDelta);
-            var cg = root.gameObject.AddComponent<CanvasGroup>();
+            cg = root.gameObject.AddComponent<CanvasGroup>();
             cg.blocksRaycasts = false;
             var pos = new Vector2(z.x, z.y);
-
-            // 後ろから: 帯 → 光 → 絵
-            RectTransform band = null;
             if (z.bandOn)
             {
                 band = UiSkin.Rect(root, "Band", pos, new Vector2(stage.sizeDelta.x * 1.2f, Mathf.Max(8f, z.bandH)));
@@ -51,14 +48,41 @@ namespace BBB.Runtime
                     UiSkin.Img(band, "LineBottom", new Vector2(0, -band.sizeDelta.y * .5f + z.lineW * .5f), new Vector2(band.sizeDelta.x, z.lineW), null, line);
                 }
                 band.localRotation = Quaternion.Euler(0, 0, z.bandRot);
-                band.localScale = new Vector3(0f, 1f, 1f);
             }
             float w = Mathf.Max(40f, z.w), h = w * sprite.rect.height / Mathf.Max(1f, sprite.rect.width);
-            var glow = UiSkin.Img(root, "Glow", pos, new Vector2(w * z.glowSize, w * z.glowSize * .55f), UiSkin.Glow(96), Col(z.glowColor, Color.white, 0f));
+            glow = UiSkin.Img(root, "Glow", pos, new Vector2(w * z.glowSize, w * z.glowSize * .55f), UiSkin.Glow(96), Col(z.glowColor, Color.white, 0f));
             var img = UiSkin.Img(root, "Art", pos, new Vector2(w, h), sprite, Color.white);
             img.preserveAspect = true;
-            var art = img.rectTransform;
+            art = img.rectTransform;
             art.localRotation = Quaternion.Euler(0, 0, z.rot);
+            return root;
+        }
+
+        /// <summary>
+        /// 保持中の見え方で置いたまま返す（batchmode の描き出し用。Editor/ZoneFxQa.cs）。
+        /// 消すのは呼び側。
+        /// </summary>
+        public static RectTransform Preview(RectTransform stage, ZoneFxEntry z)
+        {
+            var root = Build(stage, z, out var cg, out var band, out var glow, out _);
+            if (root == null) return null;
+            cg.alpha = Mathf.Clamp01(z.alpha <= 0 ? 1f : z.alpha);
+            if (band != null) band.localScale = Vector3.one;
+            glow.color = Col(z.glowColor, Color.white, z.glowA);
+            return root;
+        }
+
+        /// <summary>
+        /// 告知を出す。stage は舞台（StageW x StageH）。座標はビューアと同じ「舞台の中心から上が +y」。
+        /// 終わると作った物は消える。呼び側は yield return で待てる。
+        /// </summary>
+        public static IEnumerator Play(RectTransform stage, ZoneFxEntry z, MonoBehaviour host, Image edgeOverlay = null)
+        {
+            var root = Build(stage, z, out var cg, out var band, out var glow, out var art);
+            if (root == null) yield break;
+            var pos = new Vector2(z.x, z.y);
+            if (band != null) band.localScale = new Vector3(0f, 1f, 1f);
+            cg.alpha = 0f;
 
             if (z.burstN > 0 && z.burst != "none") Burst(root, pos, z);
             if (z.shake > 0.1f && z.shakeSec > 0.01f) host.StartCoroutine(Effects.Shake(stage, z.shakeSec, z.shake));
