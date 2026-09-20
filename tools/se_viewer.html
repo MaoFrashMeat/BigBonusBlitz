@@ -138,7 +138,8 @@
     rows.push({ src: "", tag: "既定", name: d.current ? "今の素材 " + d.currentFile : d.synthWav ? "合成音（素材なし）" : d.composite ? "他の音の組み合わせ（素材なし）" : "音なし", path: d.current || d.synthWav });
     if (d.synthWav) rows.push({ src: "synth", tag: "合成", name: "合成音 " + d.key + ".wav", path: d.synthWav });
     (d.bgm ? D.bgmResources : D.resources).forEach(r => rows.push({ src: "resource:" + r.name, tag: "素材", name: r.name, path: r.path }));
-    (d.bgm ? D.bgmCandidates : D.candidates).forEach(x => rows.push({ src: x.path.replace(/^\.\.\//, ""), tag: "候補", name: x.name, label: x.label || "", size: Math.round(x.size / 1024), path: x.path, series: x.series || "", tags: x.tags || [] }));
+    // 候補は効果音・BGM・歌もの全部（どの場面でも同じ木。魔王魂 → 効果音 / BGM / 歌もの）
+    [].concat(D.candidates || [], D.bgmCandidates || []).forEach(x => rows.push({ src: x.path.replace(/^\.\.\//, ""), tag: "候補", name: x.name, label: x.label || "", size: Math.round(x.size / 1024), path: x.path, series: x.series || "", tags: x.tags || [] }));
     $("ctrl").innerHTML = '<h2>' + d.group + ' / ' + d.name + '</h2><div class="note">' + d.when + '</div>' +
       '<div class="btns"><button class="primary" id="playCur">▶ 今の割り当てで鳴らす</button><button class="plain" id="stopCur">■ 止める</button><button class="plain" id="resetOne">この音を既定に戻す</button></div>' +
       '<div class="row"><label>音量</label><input type="range" id="vol" min="0" max="1.5" step="0.05" value="' + volOf(d) + '"><input type="number" id="volN" min="0" max="1.5" step="0.05" value="' + volOf(d) + '"></div>' +
