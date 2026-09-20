@@ -37,6 +37,17 @@ PROG = {"step": "", "since": 0.0, "log": ""}
 _lock = threading.Lock()
 
 
+LOG = os.path.join(HERE, "voice", "studio.log")
+
+
+def note(msg):
+    """時間の記録はファイルへ（コンソールに書くと窓のクリックで止まる）。"""
+    try:
+        with io.open(LOG, "a", encoding="utf-8") as f: f.write(time.strftime("%H:%M:%S ") + msg + chr(10))
+    except OSError:
+        pass
+
+
 def prog(step, log=None):
     with _lock:
         if step != PROG["step"]: PROG["since"] = time.time()
@@ -86,7 +97,7 @@ class Handler(SimpleHTTPRequestHandler):
         super().__init__(*a, directory=HERE, **kw)
 
     def log_message(self, fmt, *args):
-        if "/api/" in (fmt % args): super().log_message(fmt, *args)
+        pass   # 黒い窓に出さない。窓をクリックすると Windows が出力を止め、サーバごと固まる（クイック編集モード）
 
     def _json(self, code, obj):
         body = json.dumps(obj, ensure_ascii=False).encode("utf-8")
@@ -139,7 +150,7 @@ class Handler(SimpleHTTPRequestHandler):
         t0 = time.time()
         r = subprocess.run([ff, "-hide_banner", "-loglevel", "error", "-y", "-i", src, "-ac", "1", "-ar", "48000", "-sample_fmt", "s16", dst], capture_output=True, text=True)
         os.remove(src)
-        print("record: %d bytes -> wav %.1fs" % (len(blob), time.time() - t0), flush=True)
+        note("record: %d bytes -> wav %.1fs" % (len(blob), time.time() - t0))
         if r.returncode != 0: raise RuntimeError("wav にできない: " + r.stderr[-300:])
         return {"ok": True, "id": "take-%d" % stamp, "raw": "raw/take-%d.wav" % stamp}
 
@@ -158,7 +169,7 @@ class Handler(SimpleHTTPRequestHandler):
             line = line.rstrip()
             if line: lines.append(line); prog(PROG["step"], line[-120:])
         proc.wait()
-        print("convert: %s pitch %+d %.1fs" % (tid, pitch, time.time() - t0), flush=True)
+        note("convert: %s pitch %+d %.1fs" % (tid, pitch, time.time() - t0))
         out = "%s_pitch%+d.wav" % (tid, pitch)
         if not os.path.exists(os.path.join(CONVERTED, out)):
             raise RuntimeError("変換に失敗: " + chr(10).join(lines)[-600:])
@@ -188,4 +199,9 @@ if __name__ == "__main__":
     os.makedirs(RAW, exist_ok=True)
     print("voice studio: http://localhost:%d/  （Ctrl+C で止める）" % PORT)
     print("  ffmpeg:", ffmpeg() or "無い", "| convert:", "ok" if os.path.exists(PY) and os.path.exists(CONVERT) else "無い（VoiceChangerAI）")
-    ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()
+    print("  この窓はクリックしない（クリックすると止まる。止まったら Enter で戻る）")
+    try:
+        srv = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
+    except OSError:
+        sys.exit("もう動いている（前の黒い窓が残っている）。そちらを閉じてからもう一度")
+    srv.serve_forever()

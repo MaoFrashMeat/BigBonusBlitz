@@ -26,4 +26,4 @@ assets/sounds/springin/
 assets/sounds/maou/
 
 # ボイススタジオの録音（自分の声。取り込んだ物は Resources/Audio/Voice に入る）
-tools/voice/raw/
+tools/voice/
