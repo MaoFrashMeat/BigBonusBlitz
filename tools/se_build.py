@@ -11,6 +11,8 @@ se_choice.json（ビューアの「JSON」を貼る）:
 - src が resource:<名前> なら今ある Resources の素材をそのまま使う（写さない）
 - src が synth か空なら素材の指定なし（AudioManager の既定: 既定の素材 → 合成音）
 - volume が -1 なら既定、pitch は 1 でそのまま
+- 注: se_title_start.mp3 は元が 0dB まで振れているので、写した後に ffmpeg で +8dB（リミッタ付き）を掛けてある（2026-09-21 本人「2 倍に」）。
+  se_build.py で作り直すと元に戻るので、戻ったら同じ処理を（VoiceChangerAI/training/.ffmpeg-bin/ffmpeg.exe -af "volume=8dB,alimiter=limit=0.97"）
 """
 import io, json, os, shutil, uuid
 
