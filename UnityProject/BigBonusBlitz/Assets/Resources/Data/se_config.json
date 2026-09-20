@@ -30,6 +30,56 @@
       "volume": -1.0,
       "pitch": 1.0
     },
+    "motion_hover": {
+      "file": "se_motion_hover",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "motion_click": {
+      "file": "se_motion_click",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "achievement": {
+      "file": "se_achievement",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "ui_pop": {
+      "file": "se_ui_pop_pick",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "rank_perfect": {
+      "file": "se_rank_perfect",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "role_bell": {
+      "file": "se_role_bell",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "role_cherry": {
+      "file": "se_role_cherry",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "role_suica": {
+      "file": "se_role_suica",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "role_chance": {
+      "file": "se_role_chance",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "replay": {
+      "file": "se_replay_pick",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
     "title_start": {
       "file": "se_title_start",
       "volume": 1.0,
@@ -37,6 +87,131 @@
     },
     "bet": {
       "file": "se_bet",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "bb_confirm": {
+      "file": "se_bb_confirm_pick",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "enemy_death": {
+      "file": "se_enemy_death_pick",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "engage_stance_enemy": {
+      "file": "se_engage_stance_enemy",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "engage_charge": {
+      "file": "se_engage_charge",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "engage_confirm": {
+      "file": "se_engage_confirm",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "engage_potion_get": {
+      "file": "se_engage_potion_get",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "engage_hit": {
+      "file": "se_engage_hit",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "engage_guard": {
+      "file": "se_engage_guard",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "engage_dodge": {
+      "file": "se_engage_dodge",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "engage_attack_small": {
+      "file": "se_engage_attack_small",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "engage_attack_medium": {
+      "file": "se_engage_attack_medium",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "engage_attack_large": {
+      "file": "se_engage_attack_large",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "engage_counter": {
+      "file": "se_engage_counter",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "engage_judge": {
+      "file": "se_engage_judge",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "engage_judge_win": {
+      "file": "se_engage_judge_win",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "engage_judge_lose": {
+      "file": "se_engage_judge_lose",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "navi_choice": {
+      "file": "se_navi_choice",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "navi_success": {
+      "file": "se_navi_success",
+      "volume": -1.0,
+      "pitch": 1.07
+    },
+    "escape": {
+      "file": "se_escape",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "treasure_hint": {
+      "file": "se_treasure_hint",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "pickup_soul": {
+      "file": "se_pickup_soul",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "pickup_ember": {
+      "file": "se_pickup_ember",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "pickup_item": {
+      "file": "se_pickup_item",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "gain_exp": {
+      "file": "se_gain_exp",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "gain_games": {
+      "file": "se_gain_games",
       "volume": -1.0,
       "pitch": 1.0
     }
