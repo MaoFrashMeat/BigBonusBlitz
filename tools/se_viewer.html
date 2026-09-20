@@ -6,7 +6,9 @@
 <style>
   :root { --bg:#0f1b2d; --panel:#17263a; --panel2:#1d2f47; --line:#2f4460; --ink:#f4f6fa; --muted:#98a3b8; --gold:#f4cd7c; --green:#7ee0a0; --red:#ff7a7a; }
   body { margin:0; background:var(--bg); color:var(--ink); font-family:"Yu Gothic","Hiragino Sans",sans-serif; font-size:14px; }
-  .wrap { display:grid; grid-template-columns: 200px 1fr 360px; gap:14px; padding:14px; height:100vh; box-sizing:border-box; }
+  .wrap { display:grid; grid-template-columns: 200px 1fr 8px var(--ctrlw, 560px); gap:10px; padding:14px; height:100vh; box-sizing:border-box; }
+  .grip { cursor:col-resize; background:var(--line); border-radius:4px; align-self:stretch; }
+  .grip:hover { background:var(--gold); }
   h1 { font-size:18px; margin:0 0 4px; grid-column:1 / -1; }
   .sub { color:var(--muted); font-size:12px; grid-column:1 / -1; margin-top:-4px; line-height:1.6; }
   .list { background:var(--panel); border-radius:8px; padding:8px; align-self:start; }
@@ -45,7 +47,7 @@
   .cands details.ser div { padding-left:44px; }
   .cands .tg { flex:0 0 auto; font-size:10px; padding:0 5px; border-radius:4px; background:#2a3f5c; color:#cfe0ff; }
   .cands .sz { flex:0 0 auto; font-size:10px; color:var(--muted); }
-  .cands div .nm { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .cands div .nm { flex:1; min-width:0; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; word-break:break-all; line-height:1.3; }
   .cands div button { flex:0 0 auto; }
   button.primary { font:inherit; font-weight:bold; background:var(--gold); color:#3b2a12; border:0; border-radius:6px; padding:8px 16px; cursor:pointer; }
   button.plain { font:inherit; background:var(--panel2); color:var(--ink); border:1px solid var(--line); border-radius:6px; padding:6px 12px; cursor:pointer; }
@@ -62,6 +64,7 @@
   出来た JSON を <code>tools/se_choice.json</code> に貼って <code>py -3 tools/se_build.py</code>（素材を Resources/Audio/SE に写し、se_config.json を書く）。候補を足したら <code>py -3 tools/se_sync.py</code>。</div>
   <div class="list" id="groups"></div>
   <div class="main" id="main"></div>
+  <div class="grip" id="grip" title="ドラッグで右の欄の幅を変える"></div>
   <div class="ctrl" id="ctrl"></div>
 </div>
 <script src="se_defaults.js"></script>
@@ -211,6 +214,19 @@
     const el = $("json"); if (el) el.textContent = JSON.stringify({ se: se, bgm: bgm }, null, 1);
   }
   function render() { buildGroups(); buildMain(); buildCtrl(); }
+  // 右の欄の幅: 境の取っ手をドラッグ。覚えておく
+  (function () {
+    const grip = $("grip"), wrap = document.querySelector(".wrap");
+    let w = 560; try { w = +localStorage.getItem("bbb_se_ctrlw") || 560; } catch (e) {}
+    const apply = v => { w = Math.min(window.innerWidth - 420, Math.max(320, v)); wrap.style.setProperty("--ctrlw", w + "px"); };
+    apply(w);
+    grip.addEventListener("mousedown", e => {
+      e.preventDefault(); const x0 = e.clientX, w0 = w;
+      const move = ev => apply(w0 + (x0 - ev.clientX));
+      const up = () => { document.removeEventListener("mousemove", move); document.removeEventListener("mouseup", up); try { localStorage.setItem("bbb_se_ctrlw", w); } catch (e) {} };
+      document.addEventListener("mousemove", move); document.addEventListener("mouseup", up);
+    });
+  })();
   render();
 })();
 </script>
