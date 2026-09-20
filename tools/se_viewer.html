@@ -31,6 +31,8 @@
   .row { display:flex; align-items:center; gap:8px; margin:6px 0; font-size:12px; color:var(--muted); }
   .row label { flex:0 0 72px; }
   .row input[type=range] { flex:1; min-width:0; }
+  .row.seek label { flex:0 0 120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--ink); }
+  .row.seek span { flex:0 0 96px; text-align:right; color:var(--muted); font-variant-numeric:tabular-nums; }
   .row input[type=number] { flex:0 0 66px; width:66px; font:inherit; font-size:12px; background:var(--bg); color:var(--ink); border:1px solid var(--line); border-radius:4px; padding:2px 4px; text-align:right; }
   .cands { max-height:52vh; overflow-y:auto; border:1px solid var(--line); border-radius:6px; margin:6px 0; }
   .cands div { display:flex; align-items:center; gap:6px; padding:5px 8px; font-size:12px; cursor:pointer; border-bottom:1px solid var(--line); }
@@ -88,13 +90,23 @@
 
   // 試聴: 音量と高さ（playbackRate）を掛けて鳴らす。ゲームは AudioSource.pitch で同じ
   let audio = null;
+  let seeking = false;
   function play(path, vol, pitch, loop) {
     if (!path) return;
     if (audio) { audio.pause(); audio = null; }
     audio = new Audio(path); audio.volume = Math.min(1, Math.max(0, vol == null ? 1 : vol)); audio.playbackRate = pitch || 1; audio.preservesPitch = false; audio.loop = !!loop;
+    const nm = $("seekName"); if (nm) nm.textContent = decodeURIComponent(path.split("/").pop());
+    audio.addEventListener("timeupdate", tick); audio.addEventListener("loadedmetadata", tick); audio.addEventListener("ended", tick);
     audio.play().catch(() => {});
   }
-  function stop() { if (audio) { audio.pause(); audio = null; } }
+  function stop() { if (audio) { audio.pause(); audio = null; } tick(); }
+  // 再生バー: 現在 / 長さ（秒）。つまみを動かすと頭出し
+  function tick() {
+    const bar = $("seek"), t = $("seekT"); if (!bar || !t) return;
+    if (!audio || !isFinite(audio.duration)) { if (!audio) { bar.value = 0; t.textContent = "0.00 / 0.00"; } return; }
+    if (!seeking) bar.value = Math.round(audio.currentTime / audio.duration * 1000);
+    t.textContent = audio.currentTime.toFixed(2) + " / " + audio.duration.toFixed(2) + " 秒";
+  }
   // 今この割り当てで鳴る音のパス
   function pathOf(d) {
     const c = chOf(ckey(d));
@@ -142,6 +154,7 @@
     [].concat(D.candidates || [], D.bgmCandidates || []).forEach(x => rows.push({ src: x.path.replace(/^\.\.\//, ""), tag: "候補", name: x.name, label: x.label || "", size: Math.round(x.size / 1024), path: x.path, series: x.series || "", tags: x.tags || [] }));
     $("ctrl").innerHTML = '<h2>' + d.group + ' / ' + d.name + '</h2><div class="note">' + d.when + '</div>' +
       '<div class="btns"><button class="primary" id="playCur">▶ 今の割り当てで鳴らす</button><button class="plain" id="stopCur">■ 止める</button><button class="plain" id="resetOne">この音を既定に戻す</button></div>' +
+      '<div class="row seek"><label id="seekName">—</label><input type="range" id="seek" min="0" max="1000" step="1" value="0"><span id="seekT">0.00 / 0.00</span></div>' +
       '<div class="row"><label>音量</label><input type="range" id="vol" min="0" max="1.5" step="0.05" value="' + volOf(d) + '"><input type="number" id="volN" min="0" max="1.5" step="0.05" value="' + volOf(d) + '"></div>' +
       (d.bgm ? '' : '<div class="row"><label>高さ</label><input type="range" id="pit" min="0.5" max="2" step="0.01" value="' + c.pitch + '"><input type="number" id="pitN" min="0.5" max="2" step="0.01" value="' + c.pitch + '"></div>') +
       '<div class="note">音の元（押すと割り当て。▶ で試聴だけ）</div><input type="text" id="filt" placeholder="絞り込み（名前かタグ。例: 攻撃 / コイン / 決定 / 8bit）" style="width:100%;box-sizing:border-box;font:inherit;font-size:12px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:4px 6px;margin:4px 0"><div class="cands">' +
@@ -149,6 +162,9 @@
       '</div><div class="btns"><button class="plain" id="resetAll">全部既定に戻す</button></div>' +
       '<div class="note">JSON（tools/se_choice.json に丸ごと貼る）</div><pre id="json"></pre>';
     $("playCur").addEventListener("click", () => play(pathOf(d), volOf(d), c.pitch, d.bgm));
+    $("seek").addEventListener("input", e => { seeking = true; if (audio && isFinite(audio.duration)) { audio.currentTime = audio.duration * e.target.value / 1000; tick(); } });
+    $("seek").addEventListener("change", () => { seeking = false; });
+    tick();
     $("stopCur").addEventListener("click", stop);
     $("resetOne").addEventListener("click", () => { delete choice[ckey(d)]; store(); render(); });
     $("resetAll").addEventListener("click", () => { if (confirm("全部の割り当てを既定に戻す？")) { choice = {}; store(); render(); } });
