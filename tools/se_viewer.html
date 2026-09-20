@@ -9,6 +9,7 @@
   .wrap { display:grid; grid-template-columns: 200px 1fr 8px var(--ctrlw, 560px); gap:10px; padding:14px; height:100vh; box-sizing:border-box; }
   .grip { cursor:col-resize; background:var(--line); border-radius:4px; align-self:stretch; }
   .grip:hover { background:var(--gold); }
+  @media (max-width: 1100px) { .wrap { grid-template-columns: 1fr; height:auto; } .grip { display:none; } .main, .ctrl { max-height:70vh; } }
   h1 { font-size:18px; margin:0 0 4px; grid-column:1 / -1; }
   .sub { color:var(--muted); font-size:12px; grid-column:1 / -1; margin-top:-4px; line-height:1.6; }
   .list { background:var(--panel); border-radius:8px; padding:8px; align-self:start; }
@@ -137,7 +138,7 @@
     rows.push({ src: "", tag: "既定", name: d.current ? "今の素材 " + d.currentFile : d.synthWav ? "合成音（素材なし）" : d.composite ? "他の音の組み合わせ（素材なし）" : "音なし", path: d.current || d.synthWav });
     if (d.synthWav) rows.push({ src: "synth", tag: "合成", name: "合成音 " + d.key + ".wav", path: d.synthWav });
     (d.bgm ? D.bgmResources : D.resources).forEach(r => rows.push({ src: "resource:" + r.name, tag: "素材", name: r.name, path: r.path }));
-    (d.bgm ? D.bgmCandidates : D.candidates).forEach(x => rows.push({ src: x.path.replace(/^\.\.\//, ""), tag: "候補", name: x.name, size: Math.round(x.size / 1024), path: x.path, series: x.series || "", tags: x.tags || [] }));
+    (d.bgm ? D.bgmCandidates : D.candidates).forEach(x => rows.push({ src: x.path.replace(/^\.\.\//, ""), tag: "候補", name: x.name, label: x.label || "", size: Math.round(x.size / 1024), path: x.path, series: x.series || "", tags: x.tags || [] }));
     $("ctrl").innerHTML = '<h2>' + d.group + ' / ' + d.name + '</h2><div class="note">' + d.when + '</div>' +
       '<div class="btns"><button class="primary" id="playCur">▶ 今の割り当てで鳴らす</button><button class="plain" id="stopCur">■ 止める</button><button class="plain" id="resetOne">この音を既定に戻す</button></div>' +
       '<div class="row"><label>音量</label><input type="range" id="vol" min="0" max="1.5" step="0.05" value="' + volOf(d) + '"><input type="number" id="volN" min="0" max="1.5" step="0.05" value="' + volOf(d) + '"></div>' +
@@ -169,7 +170,7 @@
   function rowHtml(r) {
     const tags = (r.tags || []).map(t => '<span class="tg">' + t + '</span>').join("");
     const size = r.size ? '<span class="sz">' + r.size + 'KB</span>' : "";
-    return '<div class="' + (curSrc === r.src ? "sel" : "") + '" data-src="' + r.src + '" data-path="' + (r.path || "") + '" data-tags="' + (r.tags || []).join(" ") + '"><span class="tag">' + r.tag + '</span><span class="nm" title="' + r.name + '">' + r.name + '</span>' + tags + size + '<button class="mini" data-p="' + (r.path || "") + '">▶</button></div>';
+    return '<div class="' + (curSrc === r.src ? "sel" : "") + '" data-src="' + r.src + '" data-path="' + (r.path || "") + '" data-tags="' + (r.tags || []).join(" ") + " " + (r.file || "") + '"><span class="tag">' + r.tag + '</span><span class="nm" title="' + (r.file || r.name) + '">' + r.name + '</span>' + tags + size + '<button class="mini" data-p="' + (r.path || "") + '">▶</button></div>';
   }
   let curSrc = "";
   const SOURCE_NAME = { springin: "Springin' Sound Stock", maou: "魔王魂", bgm: "assets/sounds/bgm" };
@@ -181,7 +182,10 @@
       const parts = r.name.split("/");
       const src = parts.length >= 2 ? parts[0] : "（直下）", cat = parts.length >= 3 ? parts[1] : "";
       const disp = parts[parts.length - 1];
-      ((tree[src] = tree[src] || {})[cat] = tree[src][cat] || []).push(Object.assign({}, r, { name: disp }));
+      // 表示名（日本語）があればそれ。シリーズは表示名の末尾の番号を落としたもの（「炎10」→「炎」）
+      const label = r.label && r.label !== disp.replace(/\.[a-z0-9]+$/i, "") ? r.label : disp.replace(/\.[a-z0-9]+$/i, "");
+      const series = r.label ? label.replace(/[ _\-]?[0-9０-９]+$/, "") || label : r.series;
+      ((tree[src] = tree[src] || {})[cat] = tree[src][cat] || []).push(Object.assign({}, r, { name: label, file: disp, series }));
     });
     const has = list => list.some(r => r.src === c.src);
     return Object.keys(tree).sort().map(src => {

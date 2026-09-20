@@ -25,6 +25,7 @@ SE_DIR = os.path.join(ROOT, "UnityProject", "BigBonusBlitz", "Assets", "Resource
 SYNTH_DIR = os.path.join(ROOT, "tools", "se", "synth")
 SOUNDS = os.path.join(ROOT, "assets", "sounds")
 OUT = os.path.join(ROOT, "tools", "se_defaults.js")
+NAMES = os.path.join(ROOT, "tools", "se_names.json")   # ファイル名 → 日本語の表示名（se_names_fetch.py + se_names_manual.json）
 EXT = (".wav", ".mp3", ".ogg")
 # 場面ごとの絵（tools/se/pics。描き出しの切り抜き）
 PICS = {"レバー・停止": "se/pics/reels.png", "役": "se/pics/reels.png", "払い出し": "se/pics/display.png", "ボーナス": "se/pics/display.png",
@@ -93,6 +94,9 @@ def rel(path):
 
 def main():
     defs, bgmdefs = read_defs()
+    try: jp = json.load(io.open(NAMES, encoding="utf-8"))
+    except (OSError, ValueError): jp = {}
+    label = lambda f: jp.get(os.path.splitext(f)[0], os.path.splitext(f)[0])   # 表示名（ファイル名は変えない）
     try:
         config = json.load(io.open(CONFIG, encoding="utf-8-sig")).get("se", {})
     except (OSError, ValueError):
@@ -118,7 +122,7 @@ def main():
                 if os.path.splitext(f)[1].lower() in EXT:
                     p = os.path.join(dp, f)
                     series, tags = tag_of(f)
-                    candidates.append({"path": rel(p), "name": os.path.relpath(p, SOUNDS).replace("\\", "/"), "size": os.path.getsize(p), "series": series, "tags": tags})
+                    candidates.append({"path": rel(p), "name": os.path.relpath(p, SOUNDS).replace("\\", "/"), "label": label(f), "size": os.path.getsize(p), "series": series, "tags": tags})
     # BGM: 今の素材（Resources/Audio/BGM）と候補（assets/sounds/bgm、springin の bgm）
     bgm_cfg = {}
     try: bgm_cfg = json.load(io.open(CONFIG, encoding="utf-8-sig")).get("bgm", {})
@@ -138,7 +142,7 @@ def main():
         for f in sorted(os.listdir(root)):
             if os.path.splitext(f)[1].lower() in EXT:
                 p = os.path.join(root, f); series, tags = tag_of(f)
-                bgm_cands.append({"path": rel(p), "name": os.path.relpath(p, os.path.join(ROOT, "assets", "sounds")).replace("\\", "/"), "size": os.path.getsize(p), "series": series, "tags": tags})
+                bgm_cands.append({"path": rel(p), "name": os.path.relpath(p, os.path.join(ROOT, "assets", "sounds")).replace("\\", "/"), "label": label(f), "size": os.path.getsize(p), "series": series, "tags": tags})
     data = {"defs": defs, "candidates": candidates, "resources": [{"path": v, "name": k} for k, v in current.items()],
             "bgmDefs": bgmdefs, "bgmCandidates": bgm_cands, "bgmResources": [{"path": v, "name": k} for k, v in bgm_res.items()]}
     with io.open(OUT, "w", encoding="utf-8", newline="\n") as f:
