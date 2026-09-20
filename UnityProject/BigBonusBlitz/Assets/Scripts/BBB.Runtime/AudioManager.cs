@@ -69,6 +69,7 @@ namespace BBB.Runtime
             new SeDef("navi_choice", "se_navi_choice", 0.8f, () => SfxSynth.Heartbeat(), "エンゲージ", "ナビ 2 択（心臓）", "ベル択ナビで 1 つ押して左右の 2 択になっている間、ループで鳴る（決めると止まる。素材が無ければ合成の鼓動）"),
             new SeDef("navi_success", "se_navi_success", 1f, null, "エンゲージ", "ナビ正解", "押し順ナビに従えた（素材が無ければ リプレイ音を高く + コイン）"),
             new SeDef("escape", "se_enemy_escape", 0.8f, null, "エンゲージ", "逃走", "敵が逃げた（素材が無ければ 停止音を低く）"),
+            new SeDef("treasure_hint", "se_treasure_hint", 0.6f, () => SfxSynth.SmallCoin(), "拾い物・GET", "宝箱の前兆", "宝箱に当選してから見つかるまでの 2〜4 G、毎 G 鳴る（段階が進むほど高く）"),
             new SeDef("pickup_soul", "se_pickup_soul", 0.7f, () => SfxSynth.PickupSoul(), "拾い物・GET", "ソウル", "ソウルを拾った / 「n SOUL GET」の帯が止まった"),
             new SeDef("pickup_ember", "se_pickup_ember", 0.8f, () => SfxSynth.PickupEmber(), "拾い物・GET", "エンバー", "エンバーを拾った / 「n EMB GET」の帯が止まった"),
             new SeDef("pickup_item", "se_pickup_item", 0.7f, () => SfxSynth.PickupItem(), "拾い物・GET", "品", "回復薬などの品を拾った"),
@@ -223,6 +224,14 @@ namespace BBB.Runtime
             _sePitched.PlayOneShot(_stop, Vol("stop") * 1.75f);
         }
         /// <summary>択の最中: BGM を水中のようにこもらせる（ローパス 500Hz、音量 60%）。</summary>
+        /// <summary>宝箱の前兆。stage が進むほど少し高く（1 段 +8%）。</summary>
+        public void TreasureHint(int stage)
+        {
+            var c = Clip("treasure_hint"); if (c == null) return;
+            MarkSound();
+            _sePitched.pitch = Pitch("treasure_hint") * (1f + 0.08f * Mathf.Max(0, stage)); _sePitched.volume = _se.volume; _sePitched.PlayOneShot(c, Vol("treasure_hint"));
+        }
+
         // ---- ナビ 2 択の心臓音（ループ。決めると止まる）
         private AudioSource _choiceSrc;
         public void NaviChoice(bool on)

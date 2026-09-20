@@ -471,6 +471,14 @@ scratchpad に描いたものはセッションを終える前に写す。本人
 決めるのは `tools/zone_viewer.html`（実機の描き出しを背景にして舞台 1170×540 の上で合わせる）。
 絵は `tools/ui/install_zone_art.py` が Resources/Art/UI/Zones へ入れる。
 
+### 決定: 宝箱は当選してから 2〜4 G の前兆を挟んで見つかる（本人 2026-09-21）
+敵の前兆と同じく「当たっているかも」の間を作る。G 数は `adventure.treasurePrecursorMin / Max`（0〜0 で即発見）。
+前兆中は新しい宝箱を抽選しない。章クリアで残っていた前兆は捨てる。
+前兆の見せ方は足元のきらめき（段階で増える）と SE `treasure_hint`（段階で高く）、文は `_hint`。
+
+### 決定: ベル択ナビは 2 択の間に心臓音、連続正解で「n COMBO!」（本人 2026-09-21）
+心臓音は `navi_choice`（ループ。決めた瞬間に止める）。COMBO は 2 連続から、失敗で 0。値は `reelFx.naviCombo`。
+
 ---
 
 ## 検証の記録

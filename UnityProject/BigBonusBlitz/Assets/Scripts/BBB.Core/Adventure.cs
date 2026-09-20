@@ -144,6 +144,8 @@ namespace BBB.Core
         public int chapterClearSouls = 100;
         /// <summary>章クリア時にもらえる回復薬の個数。</summary>
         public int chapterClearTorches = 2;
+        /// <summary>宝箱の前兆 G 数（この範囲でランダム。0〜0 なら前兆なしで即発見）。当選した G から数えて、最後の G の終わりに見つかる。</summary>
+        public int treasurePrecursorMin = 2, treasurePrecursorMax = 4;
         public List<StageNode> nodes = new List<StageNode>();
         public List<TreasureDef> treasures = new List<TreasureDef>();
         public ResourceConfig resource = new ResourceConfig();

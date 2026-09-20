@@ -2963,6 +2963,7 @@ namespace BBB.Runtime
             var cfg = _m.Config.adventure;
             var tv = _m.Config.travelers ?? TravelerConfig.Default();
             if (r.treasure != null) StartCoroutine(TreasureRoutine(r.treasure));
+            else if (r.treasurePrecursorStarted || r.treasurePrecursorStage > 0) StartCoroutine(TreasurePrecursorRoutine(r.treasurePrecursorStage, r.treasurePrecursorTotal));
             if (r.torchRefilled && r.treasure == null)
             {
                 var res = _m.Config.adventure?.resource;
@@ -3004,6 +3005,19 @@ namespace BBB.Runtime
             UiFx.Burst(_charRt, UiFx.Preset.RainbowStars, new Vector2(0, 40));
             yield return SlamTitle($"条件達成！  {AdventureDirector.DescribeCondition(c)}", ColGold, 1.6f, 40);
             if (to != null) yield return SlamTitle($"{to.id}  {StageName(to)} へ", Hex(AdventureDirector.ColorFor(to)), 1.3f, 44);
+        }
+
+        /// <summary>宝箱の前兆（当選から見つかるまでの数 G）。主人公の足元がきらっと光り、段階が進むほど強く。文は _hint に。</summary>
+        private IEnumerator TreasurePrecursorRoutine(int stage, int total)
+        {
+            float k = total > 0 ? Mathf.Clamp01((stage + 1f) / (total + 1f)) : 0.5f;   // 0.33, 0.66, 1.0 …
+            _audio.TreasureHint(stage);
+            var p = UiFx.Preset.Coins; p.count = 3 + Mathf.RoundToInt(9f * k); p.sizeMin = 6; p.sizeMax = 10; p.speedMin = 120; p.speedMax = 260; p.life = 0.7f;
+            UiFx.Burst(_charRt, p, new Vector2(0, -20));
+            _hint.text = stage <= 0 ? "……何か光った？" : k < 1f ? "……近くに何かある" : "……この先だ";
+            _hint.color = ColGold;
+            yield return new WaitForSeconds(0.8f);
+            if (_m.PendingTreasure == null && _m.PrecursorRemaining == 0) _hint.text = "";
         }
 
         private IEnumerator TreasureRoutine(TreasureDef t)
@@ -3219,6 +3233,7 @@ namespace BBB.Runtime
             var lines = new System.Collections.Generic.List<string>();
             var cfg = _m.Config.adventure;
             if (r.precursorStarted) lines.Add(r.enemyTable != null && r.enemyTable.IsBoss ? "嫌な気配…… 強い敵が近づいてくる" : "気配がする…… 敵が近づいてくる");
+            if (r.treasurePrecursorStarted) lines.Add("……何か光った気がする");
             if (r.enemySpawned && r.enemyTable != null)
                 lines.Add(r.enemyTable.IsBoss ? $"中ボス {r.enemyTable.name}。{_m.EngageMaxSpins}G のうちに役を引けば倒せる"
                                               : $"{r.enemyTable.name}が現れた。{_m.EngageMaxSpins}G の間に役を引けば討伐（ベルはナビ通りに）");

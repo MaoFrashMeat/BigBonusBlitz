@@ -47,6 +47,8 @@ namespace BBB.Core
         public EnemyTable enemyTable;
         /// <summary>このGで前兆が始まった（ENEMY 当選）。</summary>
         public bool precursorStarted;
+        /// <summary>宝箱の前兆。started = この G で当選して前兆が始まった、stage = 何 G 目か（1〜）。見つかった G は treasure が入る。</summary>
+        public bool treasurePrecursorStarted; public int treasurePrecursorStage, treasurePrecursorTotal;
         /// <summary>このGの前兆段階（1..N）。前兆中でなければ 0。出現Gは N。</summary>
         public int precursorStage;
         /// <summary>Tier2 決着: null=未決着, true=討伐, false=逃走。</summary>
@@ -247,6 +249,8 @@ namespace BBB.Core
         public bool EnemyDefeatWon;
         /// <summary>前兆の残りG（0 なら前兆中でない）。</summary>
         public int PrecursorRemaining;
+        /// <summary>宝箱の前兆（当選済みでまだ見つけていない宝と、残り G）。</summary>
+        public TreasureDef PendingTreasure; public int TreasurePrecursorRemaining, TreasurePrecursorTotal;
         /// <summary>前兆の総G数（演出の段階計算用）。</summary>
         public int PrecursorTotal;
         /// <summary>今Gのベル択ナビ（Active=false なら無し）。</summary>
@@ -1235,7 +1239,26 @@ namespace BBB.Core
 
                 result.routeDecided = AdventureDirector.RollRoute(cfg, Adv, key, _rng);
                 if (AdventureDirector.RollRefill(cfg, Adv, key, _rng, TorchSpinsPerUnit)) result.torchRefilled = true;
-                var t = AdventureDirector.RollTreasure(cfg, Adv, key, _rng, TreasureBonus);
+                // 宝箱: 当選したらすぐ見せずに 2〜4 G の前兆を挟む（本人 2026-09-21）。前兆中は新しく抽選しない
+                TreasureDef t = null;
+                if (PendingTreasure != null)
+                {
+                    TreasurePrecursorRemaining--;
+                    result.treasurePrecursorStage = TreasurePrecursorTotal - TreasurePrecursorRemaining;
+                    result.treasurePrecursorTotal = TreasurePrecursorTotal;
+                    if (TreasurePrecursorRemaining <= 0) { t = PendingTreasure; PendingTreasure = null; }
+                }
+                else
+                {
+                    var rolled = AdventureDirector.RollTreasure(cfg, Adv, key, _rng, TreasureBonus);
+                    if (rolled != null)
+                    {
+                        int lo = Math.Max(0, cfg.treasurePrecursorMin), hi = Math.Max(lo, cfg.treasurePrecursorMax);
+                        int n = lo + _rng.Next(hi - lo + 1);
+                        if (n <= 0) t = rolled;
+                        else { PendingTreasure = rolled; TreasurePrecursorTotal = TreasurePrecursorRemaining = n; result.treasurePrecursorStarted = true; result.treasurePrecursorStage = 0; result.treasurePrecursorTotal = n; }
+                    }
+                }
                 if (t != null)
                 {
                     result.treasure = t;
@@ -1308,7 +1331,7 @@ namespace BBB.Core
                 result.soulsGained += result.chapterSouls;
                 if (AdventureDirector.AddTorch(cfg, Adv, cfg.chapterClearTorches, TorchSpinsPerUnit) > 0) result.torchRefilled = true;
                 Adv.chapter++;
-                Adv.treasuresFound = 0;
+                Adv.treasuresFound = 0; PendingTreasure = null; TreasurePrecursorRemaining = 0;
                 AdventureDirector.Reset(cfg, Adv);
                 result.stageTo = Adv.nodeId;
                 return;

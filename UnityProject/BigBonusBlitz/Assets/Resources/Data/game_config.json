@@ -1855,6 +1855,8 @@
     "chapterName": "第1章  はじまりの草原",
     "start": "A-1",
     "hideRoute": true,
+    "treasurePrecursorMin": 2,
+    "treasurePrecursorMax": 4,
     "chapterClearSouls": 300,
     "chapterClearTorches": 1,
     "nodes": [
