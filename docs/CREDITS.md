@@ -6,3 +6,5 @@
 | Springin' Sound Stock（https://www.springin.org/sound-stock/） | まだ無し（候補のみ） | 任意 |
 
 割り当ての実体は `Resources/Data/se_config.json`（`tools/se_choice.json` → `py -3 tools/se_build.py`）。変えたらこの表も直す。
+
+表記はエンディングに出す（本人 2026-09-21。エンディングはまだ無いので保留。作るときにこの表を載せる）。
