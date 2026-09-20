@@ -7,6 +7,27 @@ using UnityEngine;
 // 検証用（scratchpad のバッチ複製だけに置く）。合成 SE を WAV に書き出して、ピークと実効値を出す
 public static class SfxProbe
 {
+    /// <summary>効果音の一覧（AudioManager.SeDefs）の合成音を全部 wav に書く（tools/se/synth。se_viewer の試聴用）。SFX_SYNTH_OUTPUT に。</summary>
+    public static void ExportSynth()
+    {
+        string output = Environment.GetEnvironmentVariable("SFX_SYNTH_OUTPUT");
+        Directory.CreateDirectory(output);
+        foreach (var d in AudioManager.SeDefs)
+        {
+            if (d.synth == null) continue;
+            var clip = d.synth();
+            var data = new float[clip.samples * clip.channels];
+            clip.GetData(data, 0);
+            WriteWav(Path.Combine(output, d.key + ".wav"), data, clip.frequency);
+            Debug.Log($"SYNTH {d.key}: {clip.length:F2}s");
+        }
+        // 素材が無いときの合成（敵出現の 接近 + 着地）
+        foreach (var (name, clip) in new (string, AudioClip)[] { ("enemy_appear_whoosh", SfxSynth.AppearWhoosh(0.5f)), ("enemy_appear_impact", SfxSynth.AppearImpact(0.7f)) })
+        {
+            var data = new float[clip.samples]; clip.GetData(data, 0); WriteWav(Path.Combine(output, name + ".wav"), data, clip.frequency);
+        }
+    }
+
     public static void Run()
     {
         string output = Environment.GetEnvironmentVariable("SFX_OUTPUT");

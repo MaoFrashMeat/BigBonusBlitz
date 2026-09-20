@@ -1,6 +1,12 @@
 ﻿{
   "entries": [
     {
+      "date": "2026-09-16",
+      "version": "dev 265",
+      "title": "効果音ビューア（tools/se_viewer.html）と、効果音の JSON 化",
+      "body": "・場面ごと（レバー・停止 / 役 / 払い出し / ボーナス / エンゲージ / 拾い物・GET / 技術介入 / その他）に「いつ鳴るか」と絵を見ながら、今の音・合成音・assets/sounds の候補を試聴して割り当て、音量と高さを決める\n・決めた JSON は tools/se_choice.json → py -3 tools/se_build.py で Resources/Audio/SE に写り、Resources/Data/se_config.json（素材名・音量・高さ）をゲームが読む。効果音の一覧は AudioManager.SeDefs（28 個）"
+    },
+    {
       "date": "2026-09-20",
       "version": "dev 264",
       "title": "BIG は赤、REG は青（告知の色と帯のチップ・ボーナスの札）",

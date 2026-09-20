@@ -48,6 +48,7 @@ BBB の「やること棚」は claude.ai の Artifact（db 付き）。本人�
 | C# 全般（画面も） | `py -3 tools/verify/run.py --tests` — 本体を複製して Unity バッチで EditMode テスト（数分）。dotnet が無い PC はこれだけでもコンパイルの確認になる |
 | 画面の見た目 | 複製プロジェクトでプローブを回して PNG を描き、目で見る: `Unity.exe -quit -batchmode -projectPath <複製> -executeMethod <Probe>.Run -logFile <log>`（プローブは `Assets/Editor/Probes/*.cs`。出力先は各プローブの環境変数、例 `EXPLAIN_UI_OUTPUT`）。`py -3 docs/check_layout.py` も通す |
 | 演出 | `tools/fx_viewer.html` に項目を足す。数値は game_config.json と同じキー。`py -3 tools/fx_sync.py` で既定を同期 |
+| 効果音 | 音を足すときは `AudioManager.SeDefs` に 1 行（キー・既定の素材名・音量・合成音・場面の説明）。`py -3 tools/se_sync.py` で `tools/se_viewer.html` に出る。合成音を変えたら Unity バッチ `SfxProbe.ExportSynth`（SFX_SYNTH_OUTPUT=tools/se/synth）で試聴用 wav を出し直す |
 | JSON | `json.load(io.open(p, encoding="utf-8-sig"))` で読めることを確認。BOM は触らない |
 
 前提: dotnet SDK 8 以上、Unity（Hub の既定の場所。違えば `UNITY_EDITOR_DIR`）、`UnityProject/BigBonusBlitz/Library`（clone 直後は無い。Unity で本体を一度開く）。

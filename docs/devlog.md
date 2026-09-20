@@ -379,6 +379,13 @@ cherry_1 66% / replay_6 81% / blank_6 73%。旧絵（symbol_src）は使わな�
 効くのは高確ステージ（stage.mode = "D"）と、ボーナス後のモード移行（modeTransitions）で B〜D に入ったとき。
 → 覆すなら: 数字は game_config.json の probabilities_B / C / D。案 2（D のボーナス 1.5 倍）に切り替えるときは別途測る。
 
+### 決定: 効果音も JSON（se_config.json）で素材・音量・高さを決め、ビューアで場面を見ながら選ぶ（2026-09-20）
+本人「効果音を設定するビューアを作成してください。演出や場所等々映像があるとわかりやすい」→ 案 1（一覧 + 試聴 + 差し替え）。
+効果音の一覧（キー・既定の素材名・音量・合成音・場面の説明）は AudioManager.SeDefs の 1 か所。ビューア（tools/se_viewer.html）は
+se_sync.py がそこから読んで作り、合成音は Unity バッチ（SfxProbe.ExportSynth）で tools/se/synth に wav を出して試聴する。
+場面の絵は描き出しの切り抜き（tools/se/pics）。素材の候補は assets/sounds に置く（bgm は除く）。
+→ 覆すなら: 音の追加は SeDefs に 1 行足して se_sync.py。素材の名前は se_<キー>（元からある素材は上書きせず _pick を付ける）。
+
 ### 決定: 章ごとの地図は「同じ形でステージ名だけ変える」。名は story.chapters[].stageNames（棚 t17）
 本人がチェックを入れ直した（提案: 第 2 章は同じ形でステージ名だけ「分けた灯」の後の世界に書き換える。枝は同じ）ので、そのまま。
 地図の形（30 ステージ・枝・条件）は章で変えない。変えるのは名だけで、無いステージは adventure の名のまま。
