@@ -44,7 +44,7 @@ namespace BBB.Runtime
             _m.EndRun();
             if (hadRun) SaveData.Save(_m, _audio);
             ArriveInTown();
-            _audio.StartBgm();
+            _audio.StartBgm("town");
             BuildUi();
         }
 

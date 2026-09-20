@@ -21,6 +21,13 @@ public static class SfxProbe
             WriteWav(Path.Combine(output, d.key + ".wav"), data, clip.frequency);
             Debug.Log($"SYNTH {d.key}: {clip.length:F2}s");
         }
+        // UI の動きの音（MotionSoundSynth）
+        foreach (var m in AudioManager.MotionDefs)
+        {
+            var clip = MotionSoundSynth.Build(m.cue);
+            var data = new float[clip.samples * clip.channels]; clip.GetData(data, 0);
+            WriteWav(Path.Combine(output, "motion_" + m.cue.ToString().ToLowerInvariant() + ".wav"), data, clip.frequency);
+        }
         // 素材が無いときの合成（敵出現の 接近 + 着地）
         foreach (var (name, clip) in new (string, AudioClip)[] { ("enemy_appear_whoosh", SfxSynth.AppearWhoosh(0.5f)), ("enemy_appear_impact", SfxSynth.AppearImpact(0.7f)) })
         {

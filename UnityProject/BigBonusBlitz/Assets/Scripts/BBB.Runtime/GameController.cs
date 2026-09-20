@@ -252,7 +252,7 @@ namespace BBB.Runtime
             BuildUi();
             RefreshUi();
             SetMessage((_m.HeldBonusFlag != Flag.HAZE && _m.BonusAnnounceRemaining <= 0) ? "ボーナス成立中  ―  揃えてください" : "Ctrl または Space で BET");
-            _audio.StartBgm();
+            SyncBgm();
             PlayCharacter("walk");
             // 章の頭に着いたところなら、導入を流す（周回なら「また来たのか」を足す）
             if (_m.AdventureEnabled && _m.Adv.nodeId == _m.Config.adventure.start && _m.Adv.visited.Count <= 1)
@@ -268,6 +268,13 @@ namespace BBB.Runtime
 
         /// <summary>画面に出すステージ名（章ごとに story.stageNames で書き換えられる）。</summary>
         private string StageName(StageNode n) => StoryDirector.StageName(_m.Config.story, _m.Adv.chapter, n);
+
+        /// <summary>今の場所の BGM を流す（ボーナス中 > AT > エンゲージ > 冒険。se_config.json の bgm で場所ごとに変えられる。同じ曲なら切れない）。</summary>
+        private void SyncBgm()
+        {
+            string key = _m.BonusMode != BonusMode.NORMAL ? "bonus" : _m.InAt ? "at" : (_m.IsTier2 || _m.PendingTier2 || _m.EnemyActive) ? "engage" : "adventure";
+            _audio.StartBgm(key);
+        }
 
         private void OnApplicationQuit() { SaveData.Save(_m, _audio); _graph?.Save(); }
 
@@ -2642,6 +2649,7 @@ namespace BBB.Runtime
             }
 
             if (r.bonusEnded) SetMessage("BONUS END!", true, Color.yellow);
+            if (r.bonusEnded || r.atStarted || r.atEnded || r.enemySpawned || r.enemyResolved.HasValue || r.bonusStarted) SyncBgm();   // 場所が変わったら BGM も
 
             // 中ボスの体力バー: 当たりごとに、その役の討伐率ぶん「生き残る確率」を掛けて減らす。決着までは 6% を下回らない（3G 目まで結果は言わない）
             // 率は実際の抽選と同じ（基本 + 連続ボーナス × 連続回数 + 装備・技能。GameResult.defeatPercent。棚 c12）
@@ -4882,7 +4890,7 @@ namespace BBB.Runtime
             else StartCoroutine(Effects.Cutin(_cutinRt, _cutinCg, 3f));
             yield return new WaitForSeconds(Mathf.Max(len, 3f));
             _inputLocked = false;
-            _audio.StartBgm();
+            SyncBgm();
             RefreshUi();
             if (_autoMode) StartAuto();
         }

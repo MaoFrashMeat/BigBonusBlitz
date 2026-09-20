@@ -5,6 +5,17 @@ namespace BBB.Runtime
 {
     public sealed partial class AudioManager
     {
+        /// <summary>UI の動きの音の説明（ビューア用。素材は se_motion_<cue>、無ければ合成。se_config.json の se["motion_<cue>"] で差し替え。volume は倍率）。</summary>
+        public static readonly (MotionCue cue, string name, string when)[] MotionDefs =
+        {
+            (MotionCue.Hover, "なぞる", "ボタンの上にカーソルが乗った / 選択が動いた（小さく）"), (MotionCue.Click, "押す", "ボタンを押した"),
+            (MotionCue.Open, "開く", "窓や画面を開いた"), (MotionCue.Close, "閉じる", "窓を閉じた / 戻る"), (MotionCue.Page, "ページ", "前・次・タブの切り替え / スクロール"),
+            (MotionCue.Toggle, "切り替え", "ON / OFF を切り替えた"), (MotionCue.Slider, "スライダー", "音量などのつまみを動かした（小さく）"),
+            (MotionCue.Purchase, "買う", "ショップで買った"), (MotionCue.Equip, "装備する", "装備を着けた"), (MotionCue.Unequip, "外す", "装備を外した"), (MotionCue.Sell, "売る", "装備を売った"),
+            (MotionCue.Recover, "回復", "回復薬などで回復した"), (MotionCue.Denied, "できない", "押せない・足りない"), (MotionCue.Travel, "移動", "地図で地点へ進む"),
+            (MotionCue.Reveal, "明かす", "地図の地点が見つかった / 開いた"), (MotionCue.Victory, "勝利", "結果画面の勝利"), (MotionCue.Guard, "防ぐ", "攻撃を防いだ"),
+            (MotionCue.Impact, "衝撃", "当たった・叩いた"), (MotionCue.Cloth, "布", "キャラの衣擦れ（環境音。まれに）"), (MotionCue.Sword, "剣", "剣の擦れ（環境音。まれに）"), (MotionCue.Dialogue, "会話", "セリフの吹き出しが出た"),
+        };
         readonly Dictionary<MotionCue, AudioClip> motionClips = new Dictionary<MotionCue, AudioClip>();
         readonly Dictionary<MotionCue, double> nextMotion = new Dictionary<MotionCue, double>();
         readonly List<AudioClip> generatedMotionClips = new List<AudioClip>();
@@ -20,7 +31,9 @@ namespace BBB.Runtime
             for (int i=0;i<motionVoices.Length;i++) { var s=gameObject.AddComponent<AudioSource>(); s.playOnAwake=false;s.spatialBlend=0;s.priority=160;motionVoices[i]=s; }
             foreach (MotionCue cue in System.Enum.GetValues(typeof(MotionCue)))
             {
-                var clip=Resources.Load<AudioClip>("Audio/SE/se_motion_"+cue.ToString().ToLowerInvariant());
+                var st = Setting("motion_" + cue.ToString().ToLowerInvariant());
+                var clip = st != null && !string.IsNullOrEmpty(st.file) ? Resources.Load<AudioClip>("Audio/SE/" + st.file) : null;
+                if (clip==null) clip=Resources.Load<AudioClip>("Audio/SE/se_motion_"+cue.ToString().ToLowerInvariant());
                 if (clip==null) { clip=MotionSoundSynth.Build(cue); generatedMotionClips.Add(clip); }
                 motionClips.Add(cue,clip);
             }
@@ -56,6 +69,7 @@ namespace BBB.Runtime
             voice.pitch=1f;voice.volume=_se.volume;
             voice.clip=motionClips[cue];
             float gain=ambient?.12f:small?.28f:.65f;
+            var stv = Setting("motion_" + cue.ToString().ToLowerInvariant()); if (stv != null && stv.volume >= 0f) gain *= stv.volume;   // se_config: 倍率
             // Clip gain is separate from the master, so changing volume also affects playing voices.
             voice.PlayOneShot(voice.clip,gain);
             SoundSequence++;

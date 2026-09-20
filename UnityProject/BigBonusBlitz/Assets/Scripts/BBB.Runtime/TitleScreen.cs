@@ -65,7 +65,7 @@ namespace BBB.Runtime
             _hasSave = SaveData.Exists();
             _audio = AudioManager.Create();
             SaveData.LoadAudio(_audio);      // 保存済みの音量・BGM ON/OFF をタイトルにも適用
-            _audio.StartBgm();
+            _audio.StartBgm("title");
             BuildUi();
         }
 

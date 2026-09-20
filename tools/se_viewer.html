@@ -56,36 +56,41 @@
 <script src="se_defaults.js"></script>
 <script>
 (function () {
-  const D = window.BBB_SE || { defs: [], candidates: [], resources: [] };
-  const KEY = "bbb_se_choice_v1";
+  const D = window.BBB_SE || { defs: [], candidates: [], resources: [], bgmDefs: [], bgmCandidates: [], bgmResources: [] };
+  // BGM は「BGM」という群として効果音の後ろに並べる（choice は bgm: で分ける）
+  (D.bgmDefs || []).forEach(d => { d.group = "BGM"; d.bgm = true; });
+  const ALL = (D.defs || []).concat(D.bgmDefs || []);
+  const KEY = "bbb_se_choice_v2";
   const $ = id => document.getElementById(id);
-  let choice = {};                                   // key → { src, volume, pitch }
+  let choice = {};                                   // key → { src, volume, pitch }（BGM のキーは "bgm:" を頭に）
   try { choice = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) { choice = {}; }
-  const groups = []; D.defs.forEach(d => { if (!groups.includes(d.group)) groups.push(d.group); });
-  let curGroup = groups[0] || "", curKey = D.defs[0] ? D.defs[0].key : "";
-  const defOf = k => D.defs.find(d => d.key === k);
+  const groups = []; ALL.forEach(d => { if (!groups.includes(d.group)) groups.push(d.group); });
+  let curGroup = groups[0] || "", curKey = ALL[0] ? ALL[0].key : "";
+  const defOf = k => ALL.find(d => d.key === k);
+  const ckey = d => (d.bgm ? "bgm:" : "") + d.key;
   const chOf = k => choice[k] || (choice[k] = { src: "", volume: -1, pitch: 1 });
   const store = () => { try { localStorage.setItem(KEY, JSON.stringify(choice)); } catch (e) {} };
 
   // 試聴: 音量と高さ（playbackRate）を掛けて鳴らす。ゲームは AudioSource.pitch で同じ
   let audio = null;
-  function play(path, vol, pitch) {
+  function play(path, vol, pitch, loop) {
     if (!path) return;
     if (audio) { audio.pause(); audio = null; }
-    audio = new Audio(path); audio.volume = Math.min(1, Math.max(0, vol == null ? 1 : vol)); audio.playbackRate = pitch || 1; audio.preservesPitch = false;
+    audio = new Audio(path); audio.volume = Math.min(1, Math.max(0, vol == null ? 1 : vol)); audio.playbackRate = pitch || 1; audio.preservesPitch = false; audio.loop = !!loop;
     audio.play().catch(() => {});
   }
+  function stop() { if (audio) { audio.pause(); audio = null; } }
   // 今この割り当てで鳴る音のパス
   function pathOf(d) {
-    const c = chOf(d.key);
-    if (c.src && c.src.startsWith("resource:")) { const r = D.resources.find(x => x.name === c.src.slice(9)); return r ? r.path : null; }
+    const c = chOf(ckey(d));
+    if (c.src && c.src.startsWith("resource:")) { const r = (d.bgm ? D.bgmResources : D.resources).find(x => x.name === c.src.slice(9)); return r ? r.path : null; }
     if (c.src === "synth") return d.synthWav;
     if (c.src) return "../" + c.src;
     return d.current || d.synthWav;                      // 既定: 今の素材 → 合成音
   }
-  function volOf(d) { const c = chOf(d.key); return c.volume >= 0 ? c.volume : d.volume; }
+  function volOf(d) { const c = chOf(ckey(d)); return c.volume >= 0 ? c.volume : d.volume; }
   function labelOf(d) {
-    const c = chOf(d.key);
+    const c = chOf(ckey(d));
     if (c.src && c.src.startsWith("resource:")) return "素材 " + c.src.slice(9);
     if (c.src === "synth") return "合成音";
     if (c.src) return c.src.replace(/^assets\/sounds\//, "");
@@ -93,50 +98,51 @@
   }
 
   function buildGroups() {
-    $("groups").innerHTML = groups.map(g => '<button class="' + (g === curGroup ? "sel" : "") + '" data-g="' + g + '">' + g + '<small>' + D.defs.filter(d => d.group === g).length + '</small></button>').join("");
+    $("groups").innerHTML = groups.map(g => '<button class="' + (g === curGroup ? "sel" : "") + '" data-g="' + g + '">' + g + '<small>' + ALL.filter(d => d.group === g).length + '</small></button>').join("");
     $("groups").querySelectorAll("button").forEach(b => b.addEventListener("click", () => { curGroup = b.getAttribute("data-g"); const f = D.defs.find(d => d.group === curGroup); if (f) curKey = f.key; render(); }));
   }
   function buildMain() {
-    const defs = D.defs.filter(d => d.group === curGroup);
+    const defs = ALL.filter(d => d.group === curGroup);
     const pic = defs[0] ? defs[0].pic : "";
     $("main").innerHTML = '<div class="scene">' + (pic ? '<img src="' + pic + '" alt="">' : "") +
       defs.map(d => {
-        const changed = chOf(d.key).src || chOf(d.key).volume >= 0 || Math.abs(chOf(d.key).pitch - 1) > 1e-6;
+        const changed = chOf(ckey(d)).src || chOf(ckey(d)).volume >= 0 || Math.abs(chOf(ckey(d)).pitch - 1) > 1e-6;
         return '<div class="ev ' + (d.key === curKey ? "sel" : "") + '" data-k="' + d.key + '">' +
           '<div class="name">' + d.name + '</div>' +
-          '<div class="cur">今: <b class="' + (changed ? "changed" : "") + '">' + labelOf(d) + '</b>　音量 ' + volOf(d).toFixed(2) + (Math.abs(chOf(d.key).pitch - 1) > 1e-6 ? '　高さ ×' + chOf(d.key).pitch.toFixed(2) : "") +
+          '<div class="cur">今: <b class="' + (changed ? "changed" : "") + '">' + labelOf(d) + '</b>　音量 ' + volOf(d).toFixed(2) + (Math.abs(chOf(ckey(d)).pitch - 1) > 1e-6 ? '　高さ ×' + chOf(ckey(d)).pitch.toFixed(2) : "") +
           ' <button class="mini" data-play="' + d.key + '">▶ 鳴らす</button></div>' +
           '<div class="when">' + d.when + '</div></div>';
       }).join("") + "</div>";
     $("main").querySelectorAll(".ev").forEach(el => el.addEventListener("click", e => { if (e.target.tagName === "BUTTON") return; curKey = el.getAttribute("data-k"); render(); }));
-    $("main").querySelectorAll("button[data-play]").forEach(b => b.addEventListener("click", () => { const d = defOf(b.getAttribute("data-play")); play(pathOf(d), volOf(d), chOf(d.key).pitch); }));
+    $("main").querySelectorAll("button[data-play]").forEach(b => b.addEventListener("click", () => { const d = defOf(b.getAttribute("data-play")); play(pathOf(d), volOf(d), chOf(ckey(d)).pitch, d.bgm); }));
   }
   function buildCtrl() {
     const d = defOf(curKey); if (!d) { $("ctrl").innerHTML = ""; return; }
-    const c = chOf(d.key);
+    const c = chOf(ckey(d));
     const rows = [];
     rows.push({ src: "", tag: "既定", name: d.current ? "今の素材 " + d.currentFile : d.synthWav ? "合成音（素材なし）" : d.composite ? "他の音の組み合わせ（素材なし）" : "音なし", path: d.current || d.synthWav });
     if (d.synthWav) rows.push({ src: "synth", tag: "合成", name: "合成音 " + d.key + ".wav", path: d.synthWav });
-    D.resources.forEach(r => rows.push({ src: "resource:" + r.name, tag: "素材", name: r.name, path: r.path }));
-    D.candidates.forEach(x => rows.push({ src: x.path.replace(/^\.\.\//, ""), tag: "候補", name: x.name + "（" + Math.round(x.size / 1024) + "KB）", path: x.path }));
+    (d.bgm ? D.bgmResources : D.resources).forEach(r => rows.push({ src: "resource:" + r.name, tag: "素材", name: r.name, path: r.path }));
+    (d.bgm ? D.bgmCandidates : D.candidates).forEach(x => rows.push({ src: x.path.replace(/^\.\.\//, ""), tag: "候補", name: x.name + "（" + Math.round(x.size / 1024) + "KB）", path: x.path }));
     $("ctrl").innerHTML = '<h2>' + d.group + ' / ' + d.name + '</h2><div class="note">' + d.when + '</div>' +
-      '<div class="btns"><button class="primary" id="playCur">▶ 今の割り当てで鳴らす</button><button class="plain" id="resetOne">この音を既定に戻す</button></div>' +
+      '<div class="btns"><button class="primary" id="playCur">▶ 今の割り当てで鳴らす</button><button class="plain" id="stopCur">■ 止める</button><button class="plain" id="resetOne">この音を既定に戻す</button></div>' +
       '<div class="row"><label>音量</label><input type="range" id="vol" min="0" max="1.5" step="0.05" value="' + volOf(d) + '"><input type="number" id="volN" min="0" max="1.5" step="0.05" value="' + volOf(d) + '"></div>' +
-      '<div class="row"><label>高さ</label><input type="range" id="pit" min="0.5" max="2" step="0.01" value="' + c.pitch + '"><input type="number" id="pitN" min="0.5" max="2" step="0.01" value="' + c.pitch + '"></div>' +
+      (d.bgm ? '' : '<div class="row"><label>高さ</label><input type="range" id="pit" min="0.5" max="2" step="0.01" value="' + c.pitch + '"><input type="number" id="pitN" min="0.5" max="2" step="0.01" value="' + c.pitch + '"></div>') +
       '<div class="note">音の元（押すと割り当て。▶ で試聴だけ）</div><input type="text" id="filt" placeholder="絞り込み（例: 剣 / コイン / system）" style="width:100%;box-sizing:border-box;font:inherit;font-size:12px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:4px 6px;margin:4px 0"><div class="cands">' +
       rows.map(r => '<div class="' + ((c.src || "") === r.src ? "sel" : "") + '" data-src="' + r.src + '" data-path="' + (r.path || "") + '"><span class="tag">' + r.tag + '</span><span class="nm" title="' + r.name + '">' + r.name + '</span><button class="mini" data-p="' + (r.path || "") + '">▶</button></div>').join("") +
       '</div><div class="btns"><button class="plain" id="resetAll">全部既定に戻す</button></div>' +
       '<div class="note">JSON（tools/se_choice.json に丸ごと貼る）</div><pre id="json"></pre>';
-    $("playCur").addEventListener("click", () => play(pathOf(d), volOf(d), c.pitch));
-    $("resetOne").addEventListener("click", () => { delete choice[d.key]; store(); render(); });
+    $("playCur").addEventListener("click", () => play(pathOf(d), volOf(d), c.pitch, d.bgm));
+    $("stopCur").addEventListener("click", stop);
+    $("resetOne").addEventListener("click", () => { delete choice[ckey(d)]; store(); render(); });
     $("resetAll").addEventListener("click", () => { if (confirm("全部の割り当てを既定に戻す？")) { choice = {}; store(); render(); } });
     const syncVol = v => { c.volume = Math.round(v * 100) / 100; store(); $("vol").value = c.volume; $("volN").value = c.volume; buildMain(); updateJson(); };
     const syncPit = v => { c.pitch = Math.round(v * 100) / 100; store(); $("pit").value = c.pitch; $("pitN").value = c.pitch; buildMain(); updateJson(); };
     $("vol").addEventListener("input", e => syncVol(+e.target.value)); $("volN").addEventListener("change", e => syncVol(+e.target.value));
-    $("pit").addEventListener("input", e => syncPit(+e.target.value)); $("pitN").addEventListener("change", e => syncPit(+e.target.value));
+    if ($("pit")) { $("pit").addEventListener("input", e => syncPit(+e.target.value)); $("pitN").addEventListener("change", e => syncPit(+e.target.value)); }
     $("ctrl").querySelectorAll(".cands div").forEach(el => el.addEventListener("click", e => {
-      if (e.target.tagName === "BUTTON") { play(e.target.getAttribute("data-p"), volOf(d), c.pitch); return; }
-      c.src = el.getAttribute("data-src"); store(); render(); play(pathOf(d), volOf(d), c.pitch);
+      if (e.target.tagName === "BUTTON") { play(e.target.getAttribute("data-p"), volOf(d), c.pitch, d.bgm); return; }
+      c.src = el.getAttribute("data-src"); store(); render(); play(pathOf(d), volOf(d), c.pitch, d.bgm);
     }));
     $("filt").addEventListener("input", e => {
       const q = e.target.value.trim().toLowerCase();
@@ -145,9 +151,9 @@
     updateJson();
   }
   function updateJson() {
-    const out = {};
-    Object.keys(choice).forEach(k => { const c = choice[k]; if (c.src || c.volume >= 0 || Math.abs(c.pitch - 1) > 1e-6) out[k] = { src: c.src || "", volume: c.volume, pitch: c.pitch }; });
-    const el = $("json"); if (el) el.textContent = JSON.stringify({ se: out }, null, 1);
+    const se = {}, bgm = {};
+    Object.keys(choice).forEach(k => { const c = choice[k]; if (!(c.src || c.volume >= 0 || Math.abs(c.pitch - 1) > 1e-6)) return; const e = { src: c.src || "", volume: c.volume, pitch: c.pitch }; if (k.startsWith("bgm:")) bgm[k.slice(4)] = e; else se[k] = e; });
+    const el = $("json"); if (el) el.textContent = JSON.stringify({ se: se, bgm: bgm }, null, 1);
   }
   function render() { buildGroups(); buildMain(); buildCtrl(); }
   render();

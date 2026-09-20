@@ -18,10 +18,11 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CHOICE = os.path.join(ROOT, "tools", "se_choice.json")
 SE_DIR = os.path.join(ROOT, "UnityProject", "BigBonusBlitz", "Assets", "Resources", "Audio", "SE")
 CONFIG = os.path.join(ROOT, "UnityProject", "BigBonusBlitz", "Assets", "Resources", "Data", "se_config.json")
+BGM_DIR = os.path.join(ROOT, "UnityProject", "BigBonusBlitz", "Assets", "Resources", "Audio", "BGM")
 
 
 def meta_for(ext):
-    """同じ拡張子の既存 .meta を型にする（無ければ wav のもの）。guid は新しく。"""
+    """同じ拡張子の既存 .meta（Audio/SE）を型にする（無ければ wav のもの）。guid は新しく。"""
     cands = [f for f in os.listdir(SE_DIR) if f.endswith(ext + ".meta")] or [f for f in os.listdir(SE_DIR) if f.endswith(".wav.meta")]
     src = io.open(os.path.join(SE_DIR, cands[0]), encoding="utf-8").read()
     lines = src.splitlines()
@@ -30,10 +31,10 @@ def meta_for(ext):
     return "\n".join(lines) + "\n"
 
 
-def main():
-    choice = json.load(io.open(CHOICE, encoding="utf-8"))
+def build_section(choice, section, dir_, prefix):
+    """choice[section] を dir_ に写して設定を返す。prefix は写す名前の頭（se_ / bgm_）。motion_<cue> は se_motion_<cue>。"""
     out = {}
-    for key, c in (choice.get("se") or {}).items():
+    for key, c in (choice.get(section) or {}).items():
         src = (c.get("src") or "").replace("\\", "/")
         entry = {"file": "", "volume": float(c.get("volume", -1)), "pitch": float(c.get("pitch", 1))}
         if src.startswith("resource:"):
@@ -42,12 +43,12 @@ def main():
             path = os.path.join(ROOT, src)
             if not os.path.exists(path): print("無い:", src); continue
             ext = os.path.splitext(path)[1].lower()
-            name = "se_" + key
-            dst = os.path.join(SE_DIR, name + ext)
-            if os.path.exists(dst) and not is_built(dst): name += "_pick"; dst = os.path.join(SE_DIR, name + ext)   # 元からある素材は上書きしない
+            name = ("se_" if key.startswith("motion_") else prefix) + key
+            dst = os.path.join(dir_, name + ext)
+            if os.path.exists(dst) and not is_built(dst): name += "_pick"; dst = os.path.join(dir_, name + ext)   # 元からある素材は上書きしない
             # 同じ名前で別の拡張子が残っていると Unity が 2 つ読むので消す（自分が写した素材だけ。元からある物は触らない）
             for other in (".wav", ".mp3", ".ogg"):
-                p = os.path.join(SE_DIR, name + other)
+                p = os.path.join(dir_, name + other)
                 if other != ext and os.path.exists(p) and os.path.exists(p + ".meta") and is_built(p):
                     os.remove(p); os.remove(p + ".meta")
             shutil.copyfile(path, dst)
@@ -57,8 +58,15 @@ def main():
             print("%s: %s -> %s" % (key, src, os.path.relpath(dst, ROOT)))
         if entry["file"] == "" and entry["volume"] < 0 and abs(entry["pitch"] - 1) < 1e-6: continue   # 全部既定なら書かない
         out[key] = entry
-    io.open(CONFIG, "w", encoding="utf-8", newline="\n").write(json.dumps({"se": out}, ensure_ascii=False, indent=2) + "\n")
-    print("%s: %d 件" % (os.path.relpath(CONFIG, ROOT), len(out)))
+    return out
+
+
+def main():
+    choice = json.load(io.open(CHOICE, encoding="utf-8"))
+    se = build_section(choice, "se", SE_DIR, "se_")
+    bgm = build_section(choice, "bgm", BGM_DIR, "bgm_")
+    io.open(CONFIG, "w", encoding="utf-8", newline="\n").write(json.dumps({"se": se, "bgm": bgm}, ensure_ascii=False, indent=2) + "\n")
+    print("%s: 効果音 %d 件, BGM %d 件" % (os.path.relpath(CONFIG, ROOT), len(se), len(bgm)))
 
 
 BUILT = os.path.join(ROOT, "tools", "se", "built.txt")   # se_build.py が写した素材の一覧（消してよいのはこれだけ）

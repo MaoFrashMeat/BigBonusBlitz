@@ -76,8 +76,38 @@ namespace BBB.Runtime
             new SeDef("achievement", "se_achievement", 0.9f, () => SfxSynth.Achievement(), "その他", "実績解除", "実績を解除した"),
             new SeDef("ui_pop", "se_ui_pop", 0.8f, null, "その他", "UI", "窓の開け閉め・ボタン（モーション音の元）"),
         };
+        /// <summary>BGM の場所: キー → 既定の素材名（Resources/Audio/BGM）/ 説明。se_config.json の bgm で差し替える。無い場所は adventure → bgm_normal。</summary>
+        public static readonly SeDef[] BgmDefs =
+        {
+            new SeDef("title", "bgm_normal", 0.5f, null, "BGM", "タイトル", "タイトル画面（TAP TO START）"),
+            new SeDef("town", "bgm_normal", 0.5f, null, "BGM", "街", "街の地図（ショップ / 装備 / 実績 / 設定）"),
+            new SeDef("adventure", "bgm_normal", 0.5f, null, "BGM", "冒険（通常時）", "冒険中の通常時。他の場所に指定が無ければこれ"),
+            new SeDef("bonus", "bgm_normal", 0.5f, null, "BGM", "ボーナス中", "BIG / REG の消化中（確定音のあとから）"),
+            new SeDef("at", "bgm_normal", 0.5f, null, "BGM", "AT（洞窟）", "AT「洞窟」の間"),
+            new SeDef("engage", "bgm_normal", 0.5f, null, "BGM", "エンゲージ", "敵が出ている間（前兆〜決着）"),
+        };
         [System.Serializable] public sealed class SeSetting { public string file = ""; public float volume = -1f; public float pitch = 1f; }
-        [System.Serializable] private sealed class SeConfigFile { public System.Collections.Generic.Dictionary<string, SeSetting> se = new System.Collections.Generic.Dictionary<string, SeSetting>(); }
+        [System.Serializable] private sealed class SeConfigFile
+        {
+            public System.Collections.Generic.Dictionary<string, SeSetting> se = new System.Collections.Generic.Dictionary<string, SeSetting>();
+            public System.Collections.Generic.Dictionary<string, SeSetting> bgm = new System.Collections.Generic.Dictionary<string, SeSetting>();
+        }
+        private System.Collections.Generic.Dictionary<string, SeSetting> _bgmConfig = new System.Collections.Generic.Dictionary<string, SeSetting>();
+        private readonly System.Collections.Generic.Dictionary<string, AudioClip> _bgmClips = new System.Collections.Generic.Dictionary<string, AudioClip>();
+        private string _bgmKey = "adventure";
+
+        /// <summary>その場所の BGM。se_config の bgm[key].file → 既定 → adventure の指定 → bgm_normal。</summary>
+        private AudioClip BgmClip(string key, out float vol)
+        {
+            vol = 0.5f;
+            SeSetting st = _bgmConfig != null && _bgmConfig.TryGetValue(key, out var s0) ? s0 : null;
+            if (st != null && st.volume >= 0f) vol = st.volume;
+            else if (_bgmConfig != null && _bgmConfig.TryGetValue("adventure", out var sa) && sa != null && sa.volume >= 0f) vol = sa.volume;
+            string file = st != null && !string.IsNullOrEmpty(st.file) ? st.file
+                : _bgmConfig != null && _bgmConfig.TryGetValue("adventure", out var s1) && s1 != null && !string.IsNullOrEmpty(s1.file) ? s1.file : "bgm_normal";
+            if (!_bgmClips.TryGetValue(file, out var clip) || clip == null) { clip = Resources.Load<AudioClip>("Audio/BGM/" + file); _bgmClips[file] = clip; }
+            return clip ?? _bgmNormal;
+        }
         private System.Collections.Generic.Dictionary<string, SeSetting> _seConfig = new System.Collections.Generic.Dictionary<string, SeSetting>();
         private readonly System.Collections.Generic.Dictionary<string, AudioClip> _seClips = new System.Collections.Generic.Dictionary<string, AudioClip>();
 
@@ -119,7 +149,7 @@ namespace BBB.Runtime
             _seConfig = new System.Collections.Generic.Dictionary<string, SeSetting>();
             var ta = Resources.Load<TextAsset>("Data/se_config");
             if (ta == null) return;
-            try { var f = Newtonsoft.Json.JsonConvert.DeserializeObject<SeConfigFile>(ta.text); if (f?.se != null) _seConfig = f.se; }
+            try { var f = Newtonsoft.Json.JsonConvert.DeserializeObject<SeConfigFile>(ta.text); if (f?.se != null) _seConfig = f.se; if (f?.bgm != null) _bgmConfig = f.bgm; }
             catch (System.Exception e) { Debug.LogWarning("se_config.json を読めない: " + e.Message); }
         }
 
@@ -382,11 +412,15 @@ namespace BBB.Runtime
             return _bbConfirm.length;
         }
 
-        public void StartBgm()
+        /// <summary>BGM を流す。key は場所（BgmDefs。null なら今の場所のまま）。同じ曲なら続けて流す（切れない）。</summary>
+        public void StartBgm(string key = null)
         {
-            if (!BgmEnabled || _bgmNormal == null) return;
-            if (_bgm.clip != _bgmNormal) _bgm.clip = _bgmNormal;
-            if (!_bgm.isPlaying) _bgm.Play();
+            if (key != null) _bgmKey = key;
+            var clip = BgmClip(_bgmKey, out float vol);
+            if (!BgmEnabled || clip == null) return;
+            if (_bgm.clip != clip) { _bgm.clip = clip; _bgm.Play(); }
+            else if (!_bgm.isPlaying) _bgm.Play();
+            _bgmBaseVolume = vol; _bgm.volume = vol;
         }
 
         public void StopBgm() { if (_bgm.isPlaying) _bgm.Stop(); }
