@@ -114,7 +114,7 @@
 
   function buildGroups() {
     $("groups").innerHTML = groups.map(g => '<button class="' + (g === curGroup ? "sel" : "") + '" data-g="' + g + '">' + g + '<small>' + ALL.filter(d => d.group === g).length + '</small></button>').join("");
-    $("groups").querySelectorAll("button").forEach(b => b.addEventListener("click", () => { curGroup = b.getAttribute("data-g"); const f = D.defs.find(d => d.group === curGroup); if (f) curKey = f.key; render(); }));
+    $("groups").querySelectorAll("button").forEach(b => b.addEventListener("click", () => { curGroup = b.getAttribute("data-g"); const f = ALL.find(d => d.group === curGroup); if (f) curKey = f.key; render(); }));
   }
   function buildMain() {
     const defs = ALL.filter(d => d.group === curGroup);
