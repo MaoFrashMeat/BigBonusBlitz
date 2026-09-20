@@ -9,6 +9,11 @@
       "file": "se_bet_pick",
       "volume": -1.0,
       "pitch": 1.0
+    },
+    "title_start": {
+      "file": "se_title_start",
+      "volume": -1.0,
+      "pitch": 1.1
     }
   },
   "bgm": {

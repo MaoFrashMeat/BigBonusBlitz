@@ -6,3 +6,4 @@ bgm_title.mp3
 bgm_town.mp3
 se_bet_pick.mp3
 se_spin_start_pick.mp3
+se_title_start.mp3
