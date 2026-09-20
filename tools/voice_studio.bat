@@ -1,6 +1,6 @@
 @echo off
-rem ボイススタジオを起動してブラウザで開く（閉じるときはこの窓を閉じる）
+rem �{�C�X�X�^�W�I���N�����ău���E�U�ŊJ���i����Ƃ��͂��̑������j
 cd /d "%~dp0.."
 start "" http://localhost:8768/
-py -3 toolsoice_studio.py
+py -3 tools/voice_studio.py
 pause
