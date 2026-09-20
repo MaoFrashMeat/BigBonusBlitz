@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-魔王魂（https://maou.audio/）のフリー素材を assets/sounds/maou/<se|bgm|song>/ に取ってくる（mp3 だけ）。
+魔王魂（https://maou.audio/）のフリー素材を assets/sounds/maou/<se|bgm|song>/<種類>/ に取ってくる（mp3 だけ）。
+se は種類（voice / magic / battle / system …）、bgm はスタイル（neorock / acoustic / 8bit …）、song は曲ごとのフォルダ。
 
     py -3 tools/fetch_maou.py                # se / bgm / song 全部
     py -3 tools/fetch_maou.py se bgm         # 種類を絞る
@@ -60,6 +61,23 @@ def links(kind):
     return urls
 
 
+def subdir(kind, name):
+    """ファイル名から入れる場所（kind の下）。se は種類（voice / magic / battle …）、bgm はスタイル（neorock / acoustic …）、song は曲ごと。"""
+    base = os.path.splitext(name)[0]
+    if kind == "se":
+        m = re.match(r"maou_se_([a-z0-9]+)", base)
+        return re.sub(r"\d+$", "", m.group(1)) if m else "other"
+    if kind == "bgm":
+        m = re.match(r"maou_(?:loop_)?bgm_([a-z0-9]+)", base)
+        if m: return re.sub(r"\d+[a-z]?$", "", m.group(1))
+        if "karaoke" in base: return "karaoke"
+        return "other"
+    if kind == "song":
+        m = re.match(r"maou_(?:inst_short_|inst_|short_)?(\d+_[a-z0-9_\-]+?)(?:_jp)?$", base)
+        return m.group(1) if m else "other"
+    return ""
+
+
 def main():
     kinds = [a for a in sys.argv[1:] if a in KINDS] or list(KINDS)
     listing = "--list" in sys.argv
@@ -76,12 +94,14 @@ def main():
         d = os.path.join(OUT, kind); os.makedirs(d, exist_ok=True)
         got = 0
         for u in urls:
-            dst = os.path.join(d, u.rsplit("/", 1)[-1])
+            name = u.rsplit("/", 1)[-1]
+            sub = os.path.join(d, subdir(kind, name)); os.makedirs(sub, exist_ok=True)
+            dst = os.path.join(sub, name)
             if os.path.exists(dst) and os.path.getsize(dst) > 0: continue
             try: data = get(u, binary=True)
             except Exception as e: print("  取れない:", u, e); continue
             io.open(dst, "wb").write(data); got += 1; time.sleep(0.3)
-        n = len([f for f in os.listdir(d) if f.endswith(".mp3")]); total += n
+        n = sum(len([f for f in fs if f.endswith(".mp3")]) for _, _, fs in os.walk(d)); total += n
         print("%s: %d 本（新しく %d）" % (kind, n, got))
     if not listing: print("合計 %d 本 → %s（著作表記: 音楽：魔王魂）" % (total, os.path.relpath(OUT, ROOT)))
 

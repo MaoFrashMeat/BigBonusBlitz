@@ -174,32 +174,28 @@
   }
   let curSrc = "";
   const SOURCE_NAME = { springin: "Springin' Sound Stock", maou: "魔王魂", bgm: "assets/sounds/bgm" };
-  const CAT_NAME = { battle: "戦闘", staging: "演出", life: "生活", machine: "機械・乗り物", environment: "環境音", system: "ボタン・システム", "nature-animals": "自然・動物", retrogame: "レトロゲーム", voice: "声", bgm: "BGM", "bgm-short": "10 秒 BGM", se: "効果音", song: "歌もの", attack: "攻撃", enemy: "敵", materials: "素材" };
-  // 候補を 出どころ（assets/sounds の 1 段目）→ カテゴリ（2 段目）の木に。選んでいる物のある枝は開いておく
+  const CAT_NAME = { voice: "声", magic: "魔法", magical: "マジカル", inst: "楽器", sound: "生活音", system: "システム", onepoint: "ワンポイント", effect: "エフェクト", chime: "チャイム", jingle: "ジングル", neorock: "ネオロック", acoustic: "アコースティック", cyber: "サイバー", ethnic: "エスニック", piano: "ピアノ", orchestra: "オーケストラ", fantasy: "ファンタジー", healing: "ヒーリング", karaoke: "カラオケ", other: "その他", battle: "戦闘", staging: "演出", life: "生活", machine: "機械・乗り物", environment: "環境音", system: "ボタン・システム", "nature-animals": "自然・動物", retrogame: "レトロゲーム", voice: "声", bgm: "BGM", "bgm-short": "10 秒 BGM", se: "効果音", song: "歌もの", attack: "攻撃", enemy: "敵", materials: "素材" };
+  // 候補を フォルダの段（出どころ → カテゴリ → 種類 …）どおりの木に。選んでいる物のある枝は開いておく
   function candTree(rows, c) {
-    const tree = {};
+    const root = { dirs: {}, files: [] };
     rows.forEach(r => {
-      const parts = r.name.split("/");
-      const src = parts.length >= 2 ? parts[0] : "（直下）", cat = parts.length >= 3 ? parts[1] : "";
-      const disp = parts[parts.length - 1];
-      // 表示名（日本語）があればそれ。シリーズは表示名の末尾の番号を落としたもの（「炎10」→「炎」）
+      const parts = r.name.split("/"); const disp = parts.pop();
       const label = r.label && r.label !== disp.replace(/\.[a-z0-9]+$/i, "") ? r.label : disp.replace(/\.[a-z0-9]+$/i, "");
       const series = r.label ? label.replace(/[ _\-]?[0-9０-９]+$/, "") || label : r.series;
-      ((tree[src] = tree[src] || {})[cat] = tree[src][cat] || []).push(Object.assign({}, r, { name: label, file: disp, series }));
+      let node = root;
+      (parts.length ? parts : ["（直下）"]).forEach(seg => { node = node.dirs[seg] = node.dirs[seg] || { dirs: {}, files: [] }; });
+      node.files.push(Object.assign({}, r, { name: label, file: disp, series }));
     });
-    const has = list => list.some(r => r.src === c.src);
-    return Object.keys(tree).sort().map(src => {
-      const cats = tree[src];
-      const n = Object.values(cats).reduce((a, l) => a + l.length, 0);
-      const openSrc = Object.values(cats).some(has);
-      const inner = Object.keys(cats).sort().map(cat => {
-        const list = cats[cat];
-        const body = seriesHtml(list);
-        if (!cat) return body;
-        return '<details' + (has(list) ? " open" : "") + '><summary>' + (CAT_NAME[cat] || cat) + '<small>' + list.length + '</small></summary>' + body + '</details>';
-      }).join("");
-      return '<details' + (openSrc ? " open" : "") + '><summary>' + (SOURCE_NAME[src] || src) + '<small>' + n + '</small></summary>' + inner + '</details>';
-    }).join("");
+    const count = n => n.files.length + Object.values(n.dirs).reduce((a, d) => a + count(d), 0);
+    const hasSel = n => n.files.some(r => r.src === c.src) || Object.values(n.dirs).some(hasSel);
+    const html = (n, depth) => Object.keys(n.dirs).sort().map(k => {
+      const d = n.dirs[k];
+      // 曲ごとのフォルダ（歌もの）は、その曲の歌ありの表示名を見出しにする
+      const own = d.files.find(r => r.file === "maou_" + k + ".mp3");
+      const nm = depth === 0 ? (SOURCE_NAME[k] || k) : (CAT_NAME[k] || (own ? own.name : k));
+      return '<details' + (hasSel(d) ? " open" : "") + '><summary>' + nm + '<small>' + count(d) + '</small></summary>' + html(d, depth + 1) + seriesHtml(d.files) + '</details>';
+    }).join("") + (depth === 0 ? seriesHtml(n.files) : "");
+    return html(root, 0);
   }
   // シリーズ（末尾の番号を除いた名前）が同じ物は 1 つに畳む
   function seriesHtml(list) {

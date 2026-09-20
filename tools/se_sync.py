@@ -139,9 +139,10 @@ def main():
     bgm_cands = []
     for root in [BGM_SOUNDS] + SPRINGIN_BGM:
         if not os.path.isdir(root): continue
-        for f in sorted(os.listdir(root)):
+        for dp, _, fs in os.walk(root):
+          for f in sorted(fs):
             if os.path.splitext(f)[1].lower() in EXT:
-                p = os.path.join(root, f); series, tags = tag_of(f)
+                p = os.path.join(dp, f); series, tags = tag_of(f)
                 bgm_cands.append({"path": rel(p), "name": os.path.relpath(p, os.path.join(ROOT, "assets", "sounds")).replace("\\", "/"), "label": label(f), "size": os.path.getsize(p), "series": series, "tags": tags})
     data = {"defs": defs, "candidates": candidates, "resources": [{"path": v, "name": k} for k, v in current.items()],
             "bgmDefs": bgmdefs, "bgmCandidates": bgm_cands, "bgmResources": [{"path": v, "name": k} for k, v in bgm_res.items()]}
