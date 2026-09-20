@@ -35,6 +35,13 @@
   .take .conv { display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin:4px 0; font-size:12px; }
   .note { color:var(--muted); font-size:12px; line-height:1.6; }
   .status { color:var(--gold); font-size:12px; min-height:18px; }
+  .prog { display:none; margin:6px 0; }
+  .prog.on { display:block; }
+  .prog .bar { height:8px; background:var(--bg); border-radius:4px; overflow:hidden; position:relative; }
+  .prog .bar i { position:absolute; top:0; left:-40%; width:40%; height:100%; background:var(--gold); border-radius:4px; animation:slide 1.2s linear infinite; }
+  @keyframes slide { to { left:100%; } }
+  .prog .txt { font-size:12px; color:var(--gold); margin-top:3px; }
+  .prog .log { font-size:11px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .err { color:var(--red); }
   .voices { display:flex; gap:6px; flex-wrap:wrap; }
   .voices audio { height:28px; width:180px; }
@@ -47,6 +54,7 @@
   <span id="ready"></span></div>
   <div class="panel" id="keys"></div>
   <div class="panel" id="work"></div>
+  <div class="prog" id="prog" style="grid-column:1 / -1"><div class="bar"><i></i></div><div class="txt" id="progTxt"></div><div class="log" id="progLog"></div></div>
 </div>
 <script>
 (function () {
@@ -58,6 +66,21 @@
   async function api(path, body, raw) {
     const r = await fetch(path, body === undefined ? {} : { method: "POST", body: raw ? body : JSON.stringify(body), headers: raw ? {} : { "Content-Type": "application/json" } });
     return r.json();
+  }
+  let progTimer = null;
+  function busy(on, label) {
+    const el = $("prog"); el.classList.toggle("on", on);
+    if (progTimer) { clearInterval(progTimer); progTimer = null; }
+    if (!on) return;
+    const t0 = performance.now();
+    const tick = async () => {
+      let p = { step: "", seconds: 0, log: "" };
+      try { p = await api("/api/progress"); } catch (e) {}
+      const total = ((performance.now() - t0) / 1000).toFixed(1);
+      $("progTxt").textContent = (p.step ? p.step + "（" + p.seconds + " 秒）" : label) + "　合計 " + total + " 秒";
+      $("progLog").textContent = p.log || "";
+    };
+    tick(); progTimer = setInterval(tick, 500);
   }
   async function load() { S = await api("/api/state"); if (!curKey && S.keys.length) curKey = S.keys[0].key; render(); }
 
@@ -81,7 +104,7 @@
       '<div class="row"><label>声</label><select id="model">' + S.models.map(m => '<option value="' + m + '"' + (m === "rika2.pth" ? " selected" : "") + '>' + m + '</option>').join("") + '</select>' +
       '<label>高さ（半音）</label><input type="number" id="pitch" value="12" min="-12" max="24" step="1"><label>index</label><input type="number" id="idx" value="0.75" min="0" max="1" step="0.05">' +
       '<button class="primary" id="convBtn" disabled>変換</button><span class="status" id="status"></span></div>' +
-      '<h2>この場面に入っている声（' + voices.length + '）</h2><div class="voices">' + (voices.length ? voices.map(v => '<audio controls src="/audio/' + v + '"></audio>').join("") : '<span class="note">まだ無い</span>') + '</div>' +
+      '<h2>この場面に入っている声（' + voices.length + '）</h2><div class="voices">' + (voices.length ? voices.map(v => '<audio controls preload="none" src="/audio/' + v + '"></audio>').join("") : '<span class="note">まだ無い</span>') + '</div>' +
       '<h2>録音（新しい順）</h2><div id="takes">' + (takes.length ? takes.map(t => takeHtml(t)).join("") : '<div class="note">まだ無い</div>') + '</div>';
     $("recBtn").addEventListener("click", toggleRec);
     $("convBtn").addEventListener("click", convert);
@@ -92,8 +115,8 @@
   }
   function takeHtml(t) {
     return '<div class="take ' + (t.id === curTake ? "sel" : "") + '" data-id="' + t.id + '"><div class="row"><span class="nm">' + t.id + '</span><button class="plain" data-import="raw/' + t.id + '.wav">そのまま入れる</button><button class="plain" data-del="' + t.id + '">消す</button></div>' +
-      '<audio controls src="/audio/' + t.raw + '"></audio>' +
-      t.converted.map(c => '<div class="conv"><span>変換 ' + (c.pitch >= 0 ? "+" : "") + c.pitch + ' 半音</span><audio controls src="/audio/' + c.file + '"></audio><button class="primary" data-import="' + c.file + '">この場面に入れる</button></div>').join("") +
+      '<audio controls preload="none" src="/audio/' + t.raw + '"></audio>' +
+      t.converted.map(c => '<div class="conv"><span>変換 ' + (c.pitch >= 0 ? "+" : "") + c.pitch + ' 半音</span><audio controls preload="none" src="/audio/' + c.file + '"></audio><button class="primary" data-import="' + c.file + '">この場面に入れる</button></div>').join("") +
       '</div>';
   }
   function esc(s) { return String(s || "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
@@ -110,8 +133,8 @@
     rec.ondataavailable = e => chunks.push(e.data);
     rec.onstop = async () => {
       clearInterval(meterTimer); stream.getTracks().forEach(t => t.stop()); ctx.close(); rec = null;
-      $("status").textContent = "保存中…";
-      const r = await api("/api/record", new Blob(chunks, { type: chunks[0] ? chunks[0].type : "audio/webm" }), true);
+      $("status").textContent = "保存中…"; busy(true, "録音を送っている");
+      const r = await api("/api/record", new Blob(chunks, { type: chunks[0] ? chunks[0].type : "audio/webm" }), true); busy(false);
       if (!r.ok) { $("status").innerHTML = '<span class="err">' + esc(r.error) + "</span>"; return; }
       curTake = r.id; curFile = r.raw; $("status").textContent = ""; await load();
     };
@@ -119,15 +142,15 @@
   }
   async function convert() {
     if (!curTake) return;
-    $("convBtn").disabled = true; $("status").textContent = "変換中（数十秒）…";
-    const r = await api("/api/convert", { id: curTake, pitch: +$("pitch").value, model: $("model").value, indexRate: +$("idx").value });
+    $("convBtn").disabled = true; $("status").textContent = "変換中…"; busy(true, "変換を頼んでいる");
+    const r = await api("/api/convert", { id: curTake, pitch: +$("pitch").value, model: $("model").value, indexRate: +$("idx").value }); busy(false);
     if (!r.ok) { $("status").innerHTML = '<span class="err">' + esc(r.error) + "</span>"; $("convBtn").disabled = false; return; }
     curFile = r.file; $("status").textContent = "変換した。聞いて良ければ「この場面に入れる」"; await load();
   }
   async function importFile(file) {
     if (!curKey) return;
-    $("status").textContent = "取り込み中…";
-    const r = await api("/api/import", { key: curKey, file });
+    $("status").textContent = "取り込み中…"; busy(true, "取り込み");
+    const r = await api("/api/import", { key: curKey, file }); busy(false);
     if (!r.ok) { $("status").innerHTML = '<span class="err">' + esc(r.error) + "</span>"; return; }
     $("status").textContent = "入れた: " + r.log; await load();
   }

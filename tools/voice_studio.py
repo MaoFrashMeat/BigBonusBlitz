@@ -10,7 +10,7 @@
 - 台本と場面のキーは docs/voice_script.md の表から読む
 ffmpeg は VoiceChangerAI の同梱（training/.ffmpeg-bin）を使う。
 """
-import io, json, os, re, subprocess, sys, time, urllib.parse
+import io, json, os, re, subprocess, sys, threading, time, urllib.parse
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -30,6 +30,18 @@ import voice_import   # noqa: E402  取り込みの処理（無音切り・meta�
 
 def ffmpeg():
     return voice_import.ffmpeg()
+
+
+# いま何をしているか（UI が 0.5 秒ごとに聞きに来る）。step="" なら暇
+PROG = {"step": "", "since": 0.0, "log": ""}
+_lock = threading.Lock()
+
+
+def prog(step, log=None):
+    with _lock:
+        if step != PROG["step"]: PROG["since"] = time.time()
+        PROG["step"] = step
+        if log is not None: PROG["log"] = log
 
 
 def script_keys():
@@ -93,6 +105,8 @@ class Handler(SimpleHTTPRequestHandler):
         if p == "/api/state":
             return self._json(200, {"keys": script_keys(), "voices": existing_voices(), "takes": takes(), "models": models(),
                                     "ready": {"ffmpeg": bool(ffmpeg()), "python": os.path.exists(PY), "convert": os.path.exists(CONVERT)}})
+        if p == "/api/progress":
+            with _lock: return self._json(200, {"step": PROG["step"], "seconds": round(time.time() - PROG["since"], 1) if PROG["step"] else 0, "log": PROG["log"]})
         if p.startswith("/audio/raw/"): return self._file(os.path.join(RAW, os.path.basename(p)))
         if p.startswith("/audio/converted/"): return self._file(os.path.join(CONVERTED, os.path.basename(p)))
         if p.startswith("/audio/voice/"): return self._file(os.path.join(VOICE, os.path.basename(p)))
@@ -102,6 +116,7 @@ class Handler(SimpleHTTPRequestHandler):
         p = self.path.split("?")[0]
         n = int(self.headers.get("Content-Length", 0)); body = self.rfile.read(n)
         try:
+            prog("受け取り", "")
             if p == "/api/record": return self._json(200, self.record(body))
             data = json.loads(body.decode("utf-8")) if n else {}
             if p == "/api/convert": return self._json(200, self.convert(data))
@@ -110,6 +125,8 @@ class Handler(SimpleHTTPRequestHandler):
             return self._json(404, {"ok": False, "error": "unknown"})
         except Exception as e:
             return self._json(500, {"ok": False, "error": str(e)})
+        finally:
+            prog("")
 
     def record(self, blob):
         """ブラウザの録音（webm / ogg）を wav に。"""
@@ -118,8 +135,11 @@ class Handler(SimpleHTTPRequestHandler):
         io.open(src, "wb").write(blob)
         ff = ffmpeg()
         if not ff: raise RuntimeError("ffmpeg が無い（VoiceChangerAI/training/.ffmpeg-bin）")
+        prog("wav に変換（ffmpeg）")
+        t0 = time.time()
         r = subprocess.run([ff, "-hide_banner", "-loglevel", "error", "-y", "-i", src, "-ac", "1", "-ar", "48000", "-sample_fmt", "s16", dst], capture_output=True, text=True)
         os.remove(src)
+        print("record: %d bytes -> wav %.1fs" % (len(blob), time.time() - t0), flush=True)
         if r.returncode != 0: raise RuntimeError("wav にできない: " + r.stderr[-300:])
         return {"ok": True, "id": "take-%d" % stamp, "raw": "raw/take-%d.wav" % stamp}
 
@@ -131,10 +151,17 @@ class Handler(SimpleHTTPRequestHandler):
         if not os.path.exists(PY): raise RuntimeError("VoiceChangerAI の python が無い: " + PY)
         cmd = [PY, CONVERT, "--input", src, "--model", model, "--pitch", str(pitch)]
         if d.get("indexRate") is not None: cmd += ["--index-rate", str(float(d["indexRate"]))]
-        r = subprocess.run(cmd, cwd=VC, capture_output=True, text=True, encoding="utf-8", errors="replace")
+        prog("声を変換（RVC。最初の 1 回はモデルの読み込みで長い）", "")
+        t0 = time.time(); lines = []
+        proc = subprocess.Popen(cmd, cwd=VC, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace")
+        for line in proc.stdout:
+            line = line.rstrip()
+            if line: lines.append(line); prog(PROG["step"], line[-120:])
+        proc.wait()
+        print("convert: %s pitch %+d %.1fs" % (tid, pitch, time.time() - t0), flush=True)
         out = "%s_pitch%+d.wav" % (tid, pitch)
         if not os.path.exists(os.path.join(CONVERTED, out)):
-            raise RuntimeError("変換に失敗: " + (r.stderr or r.stdout)[-600:])
+            raise RuntimeError("変換に失敗: " + chr(10).join(lines)[-600:])
         return {"ok": True, "file": "converted/" + out, "pitch": pitch}
 
     def do_import(self, d):
@@ -143,6 +170,7 @@ class Handler(SimpleHTTPRequestHandler):
         if not key: raise RuntimeError("キーが無い")
         path = os.path.join(CONVERTED, os.path.basename(f)) if f.startswith("converted/") else os.path.join(RAW, os.path.basename(f))
         if not os.path.exists(path): raise RuntimeError("無い: " + f)
+        prog("無音を切って Resources に写す")
         sys.argv = ["voice_import.py", path, key]
         buf = io.StringIO(); old = sys.stdout; sys.stdout = buf
         try: voice_import.main()
