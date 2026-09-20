@@ -50,6 +50,43 @@ def read_defs():
     return se + motion, bgm
 
 
+# 場面の語（ファイル名にこの語があればタグを付ける。日本語・英語どちらでも）
+TAGS = [
+    ("攻撃", ["剣", "斬", "slash", "sword", "攻撃", "attack", "打撃", "殴", "punch", "kick", "蹴", "hit", "会心", "一撃", "矢", "arrow", "銃", "gun", "shot"]),
+    ("被弾", ["ダメージ", "damage", "痛", "くらう", "hurt"]),
+    ("魔法", ["魔法", "magic", "呪文", "spell"]), ("炎", ["炎", "火", "fire", "flame", "burn"]), ("氷", ["氷", "ice", "freeze"]), ("雷", ["雷", "thunder", "電", "elec"]),
+    ("水", ["水", "water", "泡", "bubble", "splash"]), ("風", ["風", "wind"]), ("闇", ["闇", "dark", "呪", "curse"]), ("光", ["光", "light", "holy", "聖"]),
+    ("爆発", ["爆発", "explosion", "bomb", "爆"]), ("回復", ["回復", "heal", "cure"]), ("レベルアップ", ["レベルアップ", "levelup", "level_up", "level"]),
+    ("決定", ["決定", "select", "ok", "click", "enter", "決"]), ("キャンセル", ["キャンセル", "cancel", "戻る", "back"]), ("カーソル", ["カーソル", "cursor", "move", "移動"]),
+    ("ボタン", ["ボタン", "button", "system", "システム", "menu", "メニュー", "ピッ", "pi"]), ("警告", ["警告", "error", "エラー", "ブザー", "buzzer", "ng", "不正解"]),
+    ("正解", ["正解", "correct", "成功", "success", "クリア", "clear"]), ("コイン", ["コイン", "coin", "お金", "money", "小銭", "チャリ", "gold"]),
+    ("開く", ["宝箱", "chest", "open", "開", "扉", "door", "ドア"]), ("閉じる", ["閉", "close"]), ("足音", ["足音", "walk", "step", "歩"]), ("ジャンプ", ["ジャンプ", "jump"]),
+    ("鐘", ["鐘", "bell", "チャイム", "chime", "鈴"]), ("歓声", ["歓声", "拍手", "cheer", "clap", "applause"]), ("敵の声", ["鳴き声", "monster", "モンスター", "クリーチャー", "creature", "animal", "獣", "唸", "吠"]),
+    ("声", ["voice", "ボイス", "人", "human", "叫", "悲鳴", "scream", "笑"]), ("ジングル", ["ジングル", "jingle", "ファンファーレ", "fanfare", "drum", "ドラム", "ロール"]),
+    ("スロット", ["スロット", "slot", "リール", "reel", "レバー", "コイン投入", "パチ"]), ("8bit", ["8bit", "レトロ", "retro", "ピコ"]), ("環境音", ["環境", "ambient", "雨", "rain", "波", "wave", "森", "forest", "鳥", "bird"]),
+    ("機械", ["機械", "machine", "エンジン", "engine", "モーター", "motor", "ロボ", "robot", "車", "car"]), ("演出", ["演出", "キラ", "sparkle", "shine", "ワープ", "warp", "登場", "出現", "appear"]),
+    ("ヒット", ["衝撃", "impact", "ガン", "ドン", "ズドン", "バーン", "壁にヒビ", "地響き", "落下", "骨折", "割れる", "つぶす", "叩く"]),
+    ("戦闘", ["battle", "戦闘", "ショット", "振り回す", "気を溜める", "刀", "energy", "エネルギー", "発射"]),
+    ("楽器", ["inst_", "guitar", "bass", "piano", "ピアノ", "グリッサンド", "マリンバ", "グロッケン", "チェレスタ", "ホイッスル", "スクラッチ", "ジャジャーン", "onepoint", "ワンポイント"]),
+    ("生活", ["sound_", "カメラ", "スイッチ", "グラス", "掃除機", "カード", "タイピング", "料理", "ミキサー", "焼き", "缶", "ペットボトル", "ダイス", "証書", "電話", "phone", "pc", "elevator", "エレベーター", "鍵"]),
+    ("動物", ["イヌ", "ネコ", "カラス", "犬", "猫", "鳥", "cat", "dog", "crow"]),
+    ("上昇", ["上昇", "up", "rise"]), ("下降", ["下降", "down", "fall"]),
+    ("警告", ["警報", "通信不良", "制限時間", "alarm", "siren"]), ("完了", ["完了", "complete", "done", "finish"]), ("選択", ["選択", "choose"]),
+    ("演出", ["effect", "エフェクト", "グラビティ", "近未来", "クラッカー", "パフッ", "凍る", "ignition"]),
+]
+
+
+def tag_of(name):
+    """ファイル名から シリーズ名（末尾の番号を除いた名前）と 場面のタグ を作る。"""
+    import unicodedata
+    base = os.path.splitext(os.path.basename(name))[0]
+    series = re.sub(r"[_\- ]?(\d+|[０-９]+)$", "", base)          # 末尾の番号を落とす（会心の一撃1 → 会心の一撃、maou_se_magic_fire10 → maou_se_magic_fire）
+    series = re.sub(r"^maou_(se|bgm|inst_short|inst|short)_?", "", series)   # 魔王魂の頭の印は落とす
+    low = unicodedata.normalize("NFKC", base).lower()
+    tags = [t for t, words in TAGS if any(w.lower() in low for w in words)]
+    return series or base, tags
+
+
 def rel(path):
     return os.path.relpath(path, os.path.join(ROOT, "tools")).replace("\\", "/")
 
@@ -80,7 +117,8 @@ def main():
             for f in sorted(fs):
                 if os.path.splitext(f)[1].lower() in EXT:
                     p = os.path.join(dp, f)
-                    candidates.append({"path": rel(p), "name": os.path.relpath(p, SOUNDS).replace("\\", "/"), "size": os.path.getsize(p)})
+                    series, tags = tag_of(f)
+                    candidates.append({"path": rel(p), "name": os.path.relpath(p, SOUNDS).replace("\\", "/"), "size": os.path.getsize(p), "series": series, "tags": tags})
     # BGM: 今の素材（Resources/Audio/BGM）と候補（assets/sounds/bgm、springin の bgm）
     bgm_cfg = {}
     try: bgm_cfg = json.load(io.open(CONFIG, encoding="utf-8-sig")).get("bgm", {})
@@ -99,7 +137,8 @@ def main():
         if not os.path.isdir(root): continue
         for f in sorted(os.listdir(root)):
             if os.path.splitext(f)[1].lower() in EXT:
-                p = os.path.join(root, f); bgm_cands.append({"path": rel(p), "name": os.path.relpath(p, os.path.join(ROOT, "assets", "sounds")).replace("\\", "/"), "size": os.path.getsize(p)})
+                p = os.path.join(root, f); series, tags = tag_of(f)
+                bgm_cands.append({"path": rel(p), "name": os.path.relpath(p, os.path.join(ROOT, "assets", "sounds")).replace("\\", "/"), "size": os.path.getsize(p), "series": series, "tags": tags})
     data = {"defs": defs, "candidates": candidates, "resources": [{"path": v, "name": k} for k, v in current.items()],
             "bgmDefs": bgmdefs, "bgmCandidates": bgm_cands, "bgmResources": [{"path": v, "name": k} for k, v in bgm_res.items()]}
     with io.open(OUT, "w", encoding="utf-8", newline="\n") as f:

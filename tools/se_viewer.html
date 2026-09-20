@@ -29,11 +29,22 @@
   .row label { flex:0 0 72px; }
   .row input[type=range] { flex:1; min-width:0; }
   .row input[type=number] { flex:0 0 66px; width:66px; font:inherit; font-size:12px; background:var(--bg); color:var(--ink); border:1px solid var(--line); border-radius:4px; padding:2px 4px; text-align:right; }
-  .cands { max-height:40vh; overflow-y:auto; border:1px solid var(--line); border-radius:6px; margin:6px 0; }
+  .cands { max-height:52vh; overflow-y:auto; border:1px solid var(--line); border-radius:6px; margin:6px 0; }
   .cands div { display:flex; align-items:center; gap:6px; padding:5px 8px; font-size:12px; cursor:pointer; border-bottom:1px solid var(--line); }
   .cands div:hover { background:var(--panel2); }
   .cands div.sel { background:var(--panel2); color:var(--gold); }
   .cands div .tag { flex:0 0 auto; font-size:10px; padding:1px 6px; border-radius:999px; background:var(--bg); color:var(--muted); }
+  .cands details { border-bottom:1px solid var(--line); }
+  .cands summary { cursor:pointer; padding:5px 8px; font-size:12px; color:var(--gold); user-select:none; list-style:none; }
+  .cands summary::before { content:"▸ "; color:var(--muted); }
+  .cands details[open] > summary::before { content:"▾ "; }
+  .cands summary small { color:var(--muted); margin-left:6px; }
+  .cands details details summary { padding-left:20px; color:var(--ink); }
+  .cands details details div { padding-left:32px; }
+  .cands details.ser summary { color:var(--ink); padding-left:32px; }
+  .cands details.ser div { padding-left:44px; }
+  .cands .tg { flex:0 0 auto; font-size:10px; padding:0 5px; border-radius:4px; background:#2a3f5c; color:#cfe0ff; }
+  .cands .sz { flex:0 0 auto; font-size:10px; color:var(--muted); }
   .cands div .nm { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .cands div button { flex:0 0 auto; }
   button.primary { font:inherit; font-weight:bold; background:var(--gold); color:#3b2a12; border:0; border-radius:6px; padding:8px 16px; cursor:pointer; }
@@ -118,18 +129,18 @@
   }
   function buildCtrl() {
     const d = defOf(curKey); if (!d) { $("ctrl").innerHTML = ""; return; }
-    const c = chOf(ckey(d));
+    const c = chOf(ckey(d)); curSrc = c.src || "";
     const rows = [];
     rows.push({ src: "", tag: "既定", name: d.current ? "今の素材 " + d.currentFile : d.synthWav ? "合成音（素材なし）" : d.composite ? "他の音の組み合わせ（素材なし）" : "音なし", path: d.current || d.synthWav });
     if (d.synthWav) rows.push({ src: "synth", tag: "合成", name: "合成音 " + d.key + ".wav", path: d.synthWav });
     (d.bgm ? D.bgmResources : D.resources).forEach(r => rows.push({ src: "resource:" + r.name, tag: "素材", name: r.name, path: r.path }));
-    (d.bgm ? D.bgmCandidates : D.candidates).forEach(x => rows.push({ src: x.path.replace(/^\.\.\//, ""), tag: "候補", name: x.name + "（" + Math.round(x.size / 1024) + "KB）", path: x.path }));
+    (d.bgm ? D.bgmCandidates : D.candidates).forEach(x => rows.push({ src: x.path.replace(/^\.\.\//, ""), tag: "候補", name: x.name, size: Math.round(x.size / 1024), path: x.path, series: x.series || "", tags: x.tags || [] }));
     $("ctrl").innerHTML = '<h2>' + d.group + ' / ' + d.name + '</h2><div class="note">' + d.when + '</div>' +
       '<div class="btns"><button class="primary" id="playCur">▶ 今の割り当てで鳴らす</button><button class="plain" id="stopCur">■ 止める</button><button class="plain" id="resetOne">この音を既定に戻す</button></div>' +
       '<div class="row"><label>音量</label><input type="range" id="vol" min="0" max="1.5" step="0.05" value="' + volOf(d) + '"><input type="number" id="volN" min="0" max="1.5" step="0.05" value="' + volOf(d) + '"></div>' +
       (d.bgm ? '' : '<div class="row"><label>高さ</label><input type="range" id="pit" min="0.5" max="2" step="0.01" value="' + c.pitch + '"><input type="number" id="pitN" min="0.5" max="2" step="0.01" value="' + c.pitch + '"></div>') +
-      '<div class="note">音の元（押すと割り当て。▶ で試聴だけ）</div><input type="text" id="filt" placeholder="絞り込み（例: 剣 / コイン / system）" style="width:100%;box-sizing:border-box;font:inherit;font-size:12px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:4px 6px;margin:4px 0"><div class="cands">' +
-      rows.map(r => '<div class="' + ((c.src || "") === r.src ? "sel" : "") + '" data-src="' + r.src + '" data-path="' + (r.path || "") + '"><span class="tag">' + r.tag + '</span><span class="nm" title="' + r.name + '">' + r.name + '</span><button class="mini" data-p="' + (r.path || "") + '">▶</button></div>').join("") +
+      '<div class="note">音の元（押すと割り当て。▶ で試聴だけ）</div><input type="text" id="filt" placeholder="絞り込み（名前かタグ。例: 攻撃 / コイン / 決定 / 8bit）" style="width:100%;box-sizing:border-box;font:inherit;font-size:12px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:4px 6px;margin:4px 0"><div class="cands">' +
+      rows.filter(r => r.tag !== "候補").map(rowHtml).join("") + candTree(rows.filter(r => r.tag === "候補"), c) +
       '</div><div class="btns"><button class="plain" id="resetAll">全部既定に戻す</button></div>' +
       '<div class="note">JSON（tools/se_choice.json に丸ごと貼る）</div><pre id="json"></pre>';
     $("playCur").addEventListener("click", () => play(pathOf(d), volOf(d), c.pitch, d.bgm));
@@ -146,9 +157,53 @@
     }));
     $("filt").addEventListener("input", e => {
       const q = e.target.value.trim().toLowerCase();
-      $("ctrl").querySelectorAll(".cands div").forEach(el => { el.style.display = !q || el.textContent.toLowerCase().includes(q) ? "" : "none"; });
+      $("ctrl").querySelectorAll(".cands div[data-src]").forEach(el => { el.style.display = !q || (el.textContent + " " + el.getAttribute("data-src") + " " + (el.getAttribute("data-tags") || "")).toLowerCase().includes(q) ? "" : "none"; });
+      $("ctrl").querySelectorAll(".cands details").forEach(dt => { const vis = [...dt.querySelectorAll("div[data-src]")].some(el => el.style.display !== "none"); dt.style.display = vis ? "" : "none"; if (q) dt.open = true; });
     });
     updateJson();
+  }
+  // 候補の 1 行
+  function rowHtml(r) {
+    const tags = (r.tags || []).map(t => '<span class="tg">' + t + '</span>').join("");
+    const size = r.size ? '<span class="sz">' + r.size + 'KB</span>' : "";
+    return '<div class="' + (curSrc === r.src ? "sel" : "") + '" data-src="' + r.src + '" data-path="' + (r.path || "") + '" data-tags="' + (r.tags || []).join(" ") + '"><span class="tag">' + r.tag + '</span><span class="nm" title="' + r.name + '">' + r.name + '</span>' + tags + size + '<button class="mini" data-p="' + (r.path || "") + '">▶</button></div>';
+  }
+  let curSrc = "";
+  const SOURCE_NAME = { springin: "Springin' Sound Stock", maou: "魔王魂", bgm: "assets/sounds/bgm" };
+  const CAT_NAME = { battle: "戦闘", staging: "演出", life: "生活", machine: "機械・乗り物", environment: "環境音", system: "ボタン・システム", "nature-animals": "自然・動物", retrogame: "レトロゲーム", voice: "声", bgm: "BGM", "bgm-short": "10 秒 BGM", se: "効果音", song: "歌もの", attack: "攻撃", enemy: "敵", materials: "素材" };
+  // 候補を 出どころ（assets/sounds の 1 段目）→ カテゴリ（2 段目）の木に。選んでいる物のある枝は開いておく
+  function candTree(rows, c) {
+    const tree = {};
+    rows.forEach(r => {
+      const parts = r.name.split("/");
+      const src = parts.length >= 2 ? parts[0] : "（直下）", cat = parts.length >= 3 ? parts[1] : "";
+      const disp = parts[parts.length - 1];
+      ((tree[src] = tree[src] || {})[cat] = tree[src][cat] || []).push(Object.assign({}, r, { name: disp }));
+    });
+    const has = list => list.some(r => r.src === c.src);
+    return Object.keys(tree).sort().map(src => {
+      const cats = tree[src];
+      const n = Object.values(cats).reduce((a, l) => a + l.length, 0);
+      const openSrc = Object.values(cats).some(has);
+      const inner = Object.keys(cats).sort().map(cat => {
+        const list = cats[cat];
+        const body = seriesHtml(list);
+        if (!cat) return body;
+        return '<details' + (has(list) ? " open" : "") + '><summary>' + (CAT_NAME[cat] || cat) + '<small>' + list.length + '</small></summary>' + body + '</details>';
+      }).join("");
+      return '<details' + (openSrc ? " open" : "") + '><summary>' + (SOURCE_NAME[src] || src) + '<small>' + n + '</small></summary>' + inner + '</details>';
+    }).join("");
+  }
+  // シリーズ（末尾の番号を除いた名前）が同じ物は 1 つに畳む
+  function seriesHtml(list) {
+    const by = {}; const order = [];
+    list.forEach(r => { const k = r.series || r.name; if (!by[k]) { by[k] = []; order.push(k); } by[k].push(r); });
+    return order.map(k => {
+      const l = by[k];
+      if (l.length < 2) return rowHtml(l[0]);
+      const tags = [...new Set(l.flatMap(r => r.tags || []))].map(t => '<span class="tg">' + t + '</span>').join("");
+      return '<details class="ser"' + (l.some(r => r.src === curSrc) ? " open" : "") + '><summary>' + k + '<small>×' + l.length + '</small>' + tags + '</summary>' + l.map(rowHtml).join("") + '</details>';
+    }).join("");
   }
   function updateJson() {
     const se = {}, bgm = {};
