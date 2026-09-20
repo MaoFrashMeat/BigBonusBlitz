@@ -1,3 +1,14 @@
 {
- "se": {}
+ "se": {
+  "spin_start": { "src": "assets/sounds/maou/se/maou_se_sound05.mp3", "volume": -1, "pitch": 1 },
+  "bet": { "src": "assets/sounds/maou/se/maou_se_voice_bird03.mp3", "volume": -1, "pitch": 1 }
+ },
+ "bgm": {
+  "title": { "src": "assets/sounds/maou/bgm/fantasy/maou_loop_bgm_fantasy01.mp3", "volume": -1, "pitch": 1 },
+  "town": { "src": "assets/sounds/maou/bgm/fantasy/maou_bgm_fantasy02.mp3", "volume": -1, "pitch": 1 },
+  "adventure": { "src": "assets/sounds/maou/bgm/fantasy/maou_bgm_fantasy13.mp3", "volume": -1, "pitch": 1 },
+  "bonus": { "src": "assets/sounds/maou/bgm/fantasy/maou_bgm_fantasy11.mp3", "volume": -1, "pitch": 1 },
+  "at": { "src": "assets/sounds/maou/bgm/fantasy/maou_bgm_fantasy12.mp3", "volume": -1, "pitch": 1 },
+  "engage": { "src": "assets/sounds/maou/bgm/fantasy/maou_bgm_fantasy03.mp3", "volume": -1, "pitch": 1 }
+ }
 }

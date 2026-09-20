@@ -41,11 +41,16 @@ def build_section(choice, section, dir_, prefix):
             entry["file"] = src[len("resource:"):]
         elif src and src != "synth":
             path = os.path.join(ROOT, src)
-            if not os.path.exists(path): print("無い:", src); continue
+            if not os.path.exists(path):
+                # フォルダを整理して場所が変わった素材は、同じ名前を assets/sounds の下から探す
+                found = [os.path.join(dp, f) for dp, _, fs in os.walk(os.path.join(ROOT, "assets", "sounds")) for f in fs if f == os.path.basename(src)]
+                if not found: print("無い:", src); continue
+                path = found[0]; print("  場所が変わっていた:", src, "->", os.path.relpath(path, ROOT))
             ext = os.path.splitext(path)[1].lower()
             name = ("se_" if key.startswith("motion_") else prefix) + key
             dst = os.path.join(dir_, name + ext)
-            if os.path.exists(dst) and not is_built(dst): name += "_pick"; dst = os.path.join(dir_, name + ext)   # 元からある素材は上書きしない
+            # 元からある素材（拡張子違いも）は上書きしない。同じ名前が別の拡張子であると Unity が 2 つ読むので _pick を付ける
+            if any(os.path.exists(os.path.join(dir_, name + e)) and not is_built(os.path.join(dir_, name + e)) for e in (".wav", ".mp3", ".ogg")): name += "_pick"; dst = os.path.join(dir_, name + ext)
             # 同じ名前で別の拡張子が残っていると Unity が 2 つ読むので消す（自分が写した素材だけ。元からある物は触らない）
             for other in (".wav", ".mp3", ".ogg"):
                 p = os.path.join(dir_, name + other)

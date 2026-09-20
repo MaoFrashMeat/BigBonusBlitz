@@ -1,0 +1,8 @@
+bgm_adventure.mp3
+bgm_at.mp3
+bgm_bonus.mp3
+bgm_engage.mp3
+bgm_title.mp3
+bgm_town.mp3
+se_bet_pick.mp3
+se_spin_start_pick.mp3

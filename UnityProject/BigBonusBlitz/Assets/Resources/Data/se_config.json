@@ -1,3 +1,46 @@
 {
-  "se": {}
+  "se": {
+    "spin_start": {
+      "file": "se_spin_start_pick",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "bet": {
+      "file": "se_bet_pick",
+      "volume": -1.0,
+      "pitch": 1.0
+    }
+  },
+  "bgm": {
+    "title": {
+      "file": "bgm_title",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "town": {
+      "file": "bgm_town",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "adventure": {
+      "file": "bgm_adventure",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "bonus": {
+      "file": "bgm_bonus",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "at": {
+      "file": "bgm_at",
+      "volume": -1.0,
+      "pitch": 1.0
+    },
+    "engage": {
+      "file": "bgm_engage",
+      "volume": -1.0,
+      "pitch": 1.0
+    }
+  }
 }
