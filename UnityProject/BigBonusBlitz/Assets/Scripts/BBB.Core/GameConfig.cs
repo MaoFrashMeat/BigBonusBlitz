@@ -239,6 +239,8 @@ namespace BBB.Core
         public string color;
         /// <summary>討伐時の EXP。0 なら game_config の expPerDefeat を使う。</summary>
         public int expOnDefeat;
+        /// <summary>エンゲージでの HP（0 なら engage.enemyHp）。</summary>
+        public int engageHp;
 
         public bool IsBoss => string.Equals(group, "boss", System.StringComparison.OrdinalIgnoreCase);
     }

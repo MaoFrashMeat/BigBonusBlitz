@@ -126,21 +126,23 @@ namespace BBB.Tests
             Assert.IsTrue(r.enemySpawned, "敵が出現しない");
             Assert.IsNotNull(m.ActiveEnemyTable);
             Assert.IsTrue(m.PendingTier2);
-            // ターン制: 倒せたらその場で決着、倒せなければ 全セット（2 G × sets。ポーションの回転は数えない）の終わりに逃げる
-            int resolvedAt = -1, potionSpins = 0;
+            // ターン制: HP を削り切ればその場で決着、削り切れなければ 全セット（2 G × sets。ポーションの回転は数えない）の後に
+            // ジャッジの 1 G（削った分だけ倒せる）。逃げるのはジャッジに外れたときだけ
+            int resolvedAt = -1, potionSpins = 0; bool judged = false;
             for (int g = 1; g <= 20; g++)
             {
-                bool potion = m.EngagePotionSpin;
+                bool potion = m.EngagePotionSpin, judge = m.EngageJudgeSpin;
                 r = PlayOne(m, push);
                 if (m.BonusMode != BonusMode.NORMAL) Assert.Inconclusive("Tier2中にボーナス");
                 Assert.IsNotNull(r.engage, "エンゲージ中なのに出来事が無い");
                 if (potion) { potionSpins++; Assert.IsTrue(r.engage.potionSpin, "ポーションの回転になっていない"); }
+                if (judge) { judged = true; Assert.IsTrue(r.engage.judgeSpin, "ジャッジの G になっていない"); Assert.IsTrue(r.enemyResolved.HasValue, "ジャッジで決着しない"); }
                 if (r.enemyResolved.HasValue) { resolvedAt = g; break; }
             }
             Assert.IsTrue(resolvedAt > 0, "決着しない");
-            Assert.LessOrEqual(resolvedAt, m.EngageMaxSpins + potionSpins);
-            if (r.enemyResolved == false) Assert.AreEqual(m.EngageMaxSpins + potionSpins, resolvedAt, "逃げるのは最後のセットの終わり");
-            else Assert.IsTrue(r.engage.defeated, "倒したのに defeated が立っていない");
+            Assert.LessOrEqual(resolvedAt, m.EngageMaxSpins + potionSpins + 1);
+            if (r.enemyResolved == false) { Assert.IsTrue(judged, "ジャッジ無しで逃げた"); Assert.AreEqual(m.EngageMaxSpins + potionSpins + 1, resolvedAt, "逃げるのはジャッジの G"); }
+            else { Assert.IsTrue(r.engage.defeated, "倒したのに defeated が立っていない"); Assert.AreEqual(0, r.engage.hpLeft, "倒したのに HP が残っている"); }
             Assert.IsFalse(m.IsTier2);
             Assert.IsFalse(m.EnemyActive);
         }

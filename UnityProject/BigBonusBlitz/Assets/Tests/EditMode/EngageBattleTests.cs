@@ -75,16 +75,26 @@ namespace BBB.Tests
         }
 
         [Test]
-        public void 討伐率とルーレット()
+        public void ダメージとルーレット()
         {
-            Assert.AreEqual(Cfg.defeatMedium, EngageBattle.DefeatPercent(AttackSize.Medium, Cfg));
-            Assert.AreEqual(Cfg.defeatLarge, EngageBattle.DefeatPercent(AttackSize.Large, Cfg));
-            Assert.AreEqual(Cfg.defeatCounter, EngageBattle.DefeatPercent(AttackSize.Counter, Cfg));
-            Assert.AreEqual(100, EngageBattle.DefeatPercent(AttackSize.Large, Cfg, 50), "100 で頭打ち");
-            Assert.AreEqual(0, EngageBattle.DefeatPercent(AttackSize.None, Cfg));
+            Assert.AreEqual(Cfg.damageMedium, EngageBattle.Damage(AttackSize.Medium, Cfg));
+            Assert.AreEqual(Cfg.damageLarge, EngageBattle.Damage(AttackSize.Large, Cfg));
+            Assert.AreEqual(Cfg.damageCounter, EngageBattle.Damage(AttackSize.Counter, Cfg));
+            Assert.AreEqual(Cfg.damageLarge + 10, EngageBattle.Damage(AttackSize.Large, Cfg, 10), "装備・技能の上乗せはダメージに足す");
+            Assert.AreEqual(0, EngageBattle.Damage(AttackSize.None, Cfg));
             Assert.AreEqual(EngageOutcome.PotionHeal, EngageBattle.Roulette(EngageRole.Lose));
             Assert.AreEqual(EngageOutcome.PotionLarge, EngageBattle.Roulette(EngageRole.Small));
             Assert.AreEqual(EngageOutcome.PotionDefeat, EngageBattle.Roulette(EngageRole.Rare));
+        }
+
+        [Test]
+        public void ジャッジの率は削った分と役で決まる()
+        {
+            Assert.AreEqual(0, EngageBattle.JudgePercent(100, 100, EngageRole.Lose, Cfg), "無傷のハズレは 0");
+            Assert.AreEqual(35, EngageBattle.JudgePercent(65, 100, EngageRole.Lose, Cfg));
+            Assert.AreEqual(45, EngageBattle.JudgePercent(65, 100, EngageRole.Small, Cfg));
+            Assert.AreEqual(75, EngageBattle.JudgePercent(65, 100, EngageRole.Rare, Cfg));
+            Assert.AreEqual(Cfg.judgeMax, EngageBattle.JudgePercent(5, 100, EngageRole.Rare, Cfg), "上限で頭打ち");
         }
 
         [Test]

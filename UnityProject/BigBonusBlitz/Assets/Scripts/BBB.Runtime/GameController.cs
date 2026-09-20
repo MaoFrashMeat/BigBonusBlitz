@@ -1273,8 +1273,8 @@ namespace BBB.Runtime
             if (_m.InAt) _caveTint.color = new Color(0.06f, 0.04f, 0.16f, 0.45f);
             else if (_m.AtEntryRemaining <= 0) _caveTint.color = new Color(0.06f, 0.04f, 0.16f, 0f);
 
-            // 狩猟中のモンスター HP。中ボスのエンゲージ中は同じ箱で体力バー（討伐への近さ。棚 c04）
-            bool bossBar = _engagedBoss && _m.EnemyActive && _m.IsTier2 && !_m.InBattle;
+            // 狩猟中のモンスター HP。エンゲージ中は同じ箱で敵の HP（攻撃のダメージで削る。2026-09-21 案3）
+            bool bossBar = _m.EnemyActive && _m.IsTier2 && !_m.InBattle;
             _hpBox.SetActive((_m.InBattle && _m.BattleMonster != null) || bossBar || _bossBarAnim != null);
             if (_m.InBattle && _m.BattleMonster != null)
             {
@@ -1285,7 +1285,8 @@ namespace BBB.Runtime
             }
             else if (bossBar)
             {
-                _hpLabel.text = $"中ボス {_engagedName}    {EngageStatusText()}";
+                _hpLabel.text = $"{(_engagedBoss ? "中ボス " : "")}{_engagedName}  HP {_m.EngageHp}/{_m.EngageHpMax}    {EngageStatusText()}";
+                _bossHp = _m.EngageHpMax > 0 ? (float)_m.EngageHp / _m.EngageHpMax : 0f;
                 SetBossBar(_bossHp);
             }
             if (_resetConfirm.text.Length > 0 && Time.time > _resetConfirmUntil) _resetConfirm.text = "";
@@ -2109,7 +2110,7 @@ namespace BBB.Runtime
         private IEnumerator BossBarResolve(bool won)
         {
             _hpBox.SetActive(true);
-            _hpLabel.text = won ? $"中ボス {_engagedName}    撃破！" : $"中ボス {_engagedName}    逃げられた…";
+            _hpLabel.text = won ? $"{(_engagedBoss ? "中ボス " : "")}{_engagedName}    撃破！" : $"{(_engagedBoss ? "中ボス " : "")}{_engagedName}    逃げられた…";
             float from = _bossHp, to = won ? 0f : 1f, t = 0f;
             while (t < 0.6f) { t += Time.deltaTime; SetBossBar(Mathf.Lerp(from, to, Mathf.SmoothStep(0f, 1f, t / 0.6f))); yield return null; }
             SetBossBar(to);
@@ -2139,6 +2140,7 @@ namespace BBB.Runtime
         /// <summary>「SET 1/3  ターン 1」（ポーションの回転なら「ポーション」）。</summary>
         private string EngageStatusText()
         {
+            if (_m.EngageJudgeSpin) return "JUDGE";
             if (_m.EngagePotionSpin) return $"SET {_m.EngageSet}/{_m.EngageSets}  ポーション";
             return $"SET {Mathf.Min(_m.EngageSet, _m.EngageSets)}/{_m.EngageSets}  ターン {_m.EngageTurn}";
         }
@@ -2148,7 +2150,8 @@ namespace BBB.Runtime
         {
             var cfg = _m.Config.engage ?? new EngageConfig(); var tx = cfg.texts ?? new EngageTexts();
             string t;
-            if (_m.EngagePotionSpin) t = tx.potion;
+            if (_m.EngageJudgeSpin) t = tx.judge;
+            else if (_m.EngagePotionSpin) t = tx.potion;
             else if (_m.EngageTurn == 1) t = tx.turn1;
             else switch (_m.EngageStance)
                 {
@@ -2714,48 +2717,17 @@ namespace BBB.Runtime
             if (r.chapterCleared) _audio.Voice("clear");
             if (r.ranOutOfCredit || r.outOfTorch) _audio.Voice("death");
 
-            // 中ボスの体力バー: 当たりごとに、その役の討伐率ぶん「生き残る確率」を掛けて減らす。決着までは 6% を下回らない（3G 目まで結果は言わない）
-            // 率は実際の抽選と同じ（基本 + 連続ボーナス × 連続回数 + 装備・技能。GameResult.defeatPercent。棚 c12）
-            if (_engagedBoss && r.win.winType != WinType.NONE && (_m.IsTier2 || r.enemyResolved.HasValue) && _m.ActiveEnemyTable != null)
-            {
-                int p = r.defeatPercent;
-                if (p > 0)
-                {
-                    _bossHp = Mathf.Max(0.06f, _bossHp * (1f - Mathf.Clamp01(p / 100f)));
-                    UiFx.PopText(_enemyRt, $"−{p}%", Hex("#ff9a3c"), 18, new Vector2(0, 70));
-                }
-            }
-            if (r.enemyResolved.HasValue && _engagedBoss) _bossBarAnim = StartCoroutine(BossBarResolve(r.enemyResolved == true));
-
-            // エンゲージのターン: 構え / 被弾 / 防御 / 回避 / 攻撃 / ルーレット。帯の文も次のターンのものに
+            // エンゲージのターン: 構え / 被弾 / 防御 / 回避 / 攻撃 / ルーレット / ジャッジ。帯の文も次のターンのものに
             if (r.engage != null)
             {
                 StartCoroutine(EngageStepRoutine(r.engage));
                 if (!r.enemyResolved.HasValue && _engageBandTop != null) ShowEngageBanners();
             }
-
-            if (r.enemyResolved == true)
+            // 決着の見せ方。ジャッジの G は溜めのあと（EngageStepRoutine の 0.9 秒）に出す
+            if (r.enemyResolved.HasValue)
             {
-                _audio.EnemyDeath(); _audio.Voice("defeat");
-                if (_engagedBoss)
-                {
-                    // 中ボス: 撃破の帯 → 報酬のまとめ → 戦利品 → 装備（落とし物は RogueFx では出さない）
-                    StartCoroutine(BossDefeatRoutine(r));
-                    SetMessage($"中ボス撃破！  EXP +{r.enemyExp}{(r.levelUp ? $"   LEVEL UP! Lv.{_m.PlayerLevel}" : "")}", true, Hex("#ff9a3c"));
-                    StartCoroutine(Effects.Shake(_stage, 0.6f, 9f));
-                }
-                else
-                {
-                    StartCoroutine(DefeatRoutine());
-                    SetMessage($"ENEMY DEFEATED!  EXP +{_m.Config.expPerDefeat}{(r.levelUp ? $"   LEVEL UP! Lv.{_m.PlayerLevel}" : "")}", true, ColGold);
-                    StartCoroutine(Effects.Shake(_stage, 0.3f, 5f));
-                }
-            }
-            else if (r.enemyResolved == false)
-            {
-                _audio.EnemyEscape();
-                StartCoroutine(EscapeRoutine());
-                SetMessage(_m.Config.engage?.texts?.escaped ?? "ENEMY ESCAPED...", false, ColTextSub);
+                if (r.engage != null && r.engage.judgeSpin) StartCoroutine(ResolveEnemyAfter(r, 0.9f));
+                else ResolveEnemyVisuals(r);
             }
             if (r.precursorStarted)
             {
@@ -3268,8 +3240,9 @@ namespace BBB.Runtime
                 case EngageOutcome.Hit: return $"敵の攻撃を喰らった。LIFE −{st.damage}";
                 case EngageOutcome.Guard: return "敵の攻撃を防いだ";
                 case EngageOutcome.Dodge: return "敵の攻撃をかわした";
-                case EngageOutcome.Counter: return $"かわしてカウンター（討伐 {st.defeatPercent}%）" + (st.defeated ? " → 倒した！" : "");
-                case EngageOutcome.Attack: return (st.attackSize == AttackSize.Large ? "大攻撃" : st.attackSize == AttackSize.Medium ? "中攻撃" : "小攻撃") + $"（討伐 {st.defeatPercent}%）" + (st.defeated ? " → 倒した！" : " → 耐えられた");
+                case EngageOutcome.Counter: return $"かわしてカウンター −{st.dealt}" + (st.defeated ? " → 倒した！" : $"（残り HP {st.hpLeft}）");
+                case EngageOutcome.Attack: return (st.attackSize == AttackSize.Large ? "大攻撃" : st.attackSize == AttackSize.Medium ? "中攻撃" : "小攻撃") + $" −{st.dealt}" + (st.defeated ? " → 倒した！" : $"（残り HP {st.hpLeft}）");
+                case EngageOutcome.Judge: return $"ジャッジ {st.judgePercent}%" + (st.defeated ? " → とどめ！" : " → 逃げられた");
                 case EngageOutcome.PotionHeal: return $"ルーレット: LIFE +{st.healed}";
                 case EngageOutcome.PotionLarge: return "ルーレット: 次の攻撃が大攻撃";
                 case EngageOutcome.PotionDefeat: return "ルーレット: 討伐確定！";
@@ -4994,8 +4967,33 @@ namespace BBB.Runtime
                     StartCoroutine(Effects.Shake(_stage, 0.25f + 0.2f * k, 3f + 8f * k));
                     string label = counter ? tx.counter : st.attackSize == AttackSize.Large ? tx.attackLarge : st.attackSize == AttackSize.Medium ? tx.attackMedium : tx.attackSmall;
                     UiFx.PopText(_enemyRt, label, ColGold, st.attackSize == AttackSize.Large ? 30 : 24, new Vector2(0, 80));
-                    if (!st.defeated) UiFx.PopText(_enemyRt, $"討伐 {st.defeatPercent}%", ColTextSub, 16, new Vector2(0, 105));
+                    UiFx.PopText(_enemyRt, $"−{st.dealt}", Hex("#ff9a3c"), 22, new Vector2(0, 105));
+                    if (!st.defeated) UiFx.PopText(_enemyRt, $"HP {st.hpLeft}/{st.hpMax}", ColTextSub, 14, new Vector2(0, 128));
                     _hint.text = label; _hint.color = ColGold;
+                    break;
+                }
+                case EngageOutcome.Judge:
+                {
+                    // ジャッジ: 率を見せて溜め → とどめ（討伐）か 逃走。決着の演出（DefeatRoutine / EscapeRoutine）は enemyResolved 側が出す
+                    UiFx.PopText(_enemyRt, $"JUDGE {st.judgePercent}%", ColGold, 26, new Vector2(0, 90));
+                    _audio.NaviChoice(true);
+                    StartCoroutine(Effects.Shake(_stage, 0.9f, 3f));
+                    yield return new WaitForSeconds(0.9f);
+                    _audio.NaviChoice(false);
+                    if (st.defeated)
+                    {
+                        PlayCharacter("attack-f3-4"); _audio.Attack(); _audio.Voice("attack");
+                        UiFx.Slash(_enemyRt, -30f, 320f, ColGold);
+                        UiFx.Burst(_enemyRt, UiFx.Preset.Explode, new Vector2(0, 20));
+                        StartCoroutine(Effects.Shake(_stage, 0.5f, 12f));
+                        UiFx.PopText(_enemyRt, tx.judgeWin, ColGold, 32, new Vector2(0, 90));
+                        _hint.text = tx.judgeWin; _hint.color = ColGold;
+                    }
+                    else
+                    {
+                        UiFx.PopText(_enemyRt, tx.judgeLose, ColTextSub, 24, new Vector2(0, 90));
+                        _hint.text = tx.judgeLose; _hint.color = ColTextSub;
+                    }
                     break;
                 }
                 case EngageOutcome.PotionHeal:
@@ -5033,6 +5031,41 @@ namespace BBB.Runtime
             while (u < 0.2f) { u += Time.deltaTime; host.localScale = Vector3.one * Mathf.Lerp(1.3f, 1f, u / 0.2f); yield return null; }
             yield return new WaitForSeconds(1.0f);
             Destroy(host.gameObject);
+        }
+
+        private IEnumerator ResolveEnemyAfter(GameResult r, float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            ResolveEnemyVisuals(r);
+        }
+
+        /// <summary>討伐 / 逃走の見せ方（HP バーの決着、音、帯、揺れ）。</summary>
+        private void ResolveEnemyVisuals(GameResult r)
+        {
+            if (_m.ActiveEnemyTable != null || _engagedName != null) _bossBarAnim = StartCoroutine(BossBarResolve(r.enemyResolved == true));
+            if (r.enemyResolved == true)
+            {
+                _audio.EnemyDeath(); _audio.Voice("defeat");
+                if (_engagedBoss)
+                {
+                    // 中ボス: 撃破の帯 → 報酬のまとめ → 戦利品 → 装備（落とし物は RogueFx では出さない）
+                    StartCoroutine(BossDefeatRoutine(r));
+                    SetMessage($"中ボス撃破！  EXP +{r.enemyExp}{(r.levelUp ? $"   LEVEL UP! Lv.{_m.PlayerLevel}" : "")}", true, Hex("#ff9a3c"));
+                    StartCoroutine(Effects.Shake(_stage, 0.6f, 9f));
+                }
+                else
+                {
+                    StartCoroutine(DefeatRoutine());
+                    SetMessage($"ENEMY DEFEATED!  EXP +{_m.Config.expPerDefeat}{(r.levelUp ? $"   LEVEL UP! Lv.{_m.PlayerLevel}" : "")}", true, ColGold);
+                    StartCoroutine(Effects.Shake(_stage, 0.3f, 5f));
+                }
+            }
+            else
+            {
+                _audio.EnemyEscape();
+                StartCoroutine(EscapeRoutine());
+                SetMessage(_m.Config.engage?.texts?.escaped ?? "ENEMY ESCAPED...", false, ColTextSub);
+            }
         }
 
         private IEnumerator DefeatRoutine()

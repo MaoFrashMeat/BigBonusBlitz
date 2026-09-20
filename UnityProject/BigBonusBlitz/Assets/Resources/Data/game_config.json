@@ -1122,9 +1122,10 @@
   "tier2MaxSpins": 3,
   "engage": {
     "sets": 3, "lifeDamage": 3,
-    "defeatSmall": 15, "defeatMedium": 35, "defeatLarge": 70, "defeatCounter": 50,
+    "enemyHp": 100, "damageSmall": 15, "damageMedium": 35, "damageLarge": 70, "damageCounter": 50,
     "chargeLoseHit": 70, "chargeLoseGuard": 15, "chargeLoseDodge": 15,
     "rareGivesPotion": true, "potionHeal": 3, "naviSuccessIsRare": true,
+    "judgeEnabled": true, "judgeRatioScale": 1, "judgeSmallBonus": 10, "judgeRareBonus": 40, "judgeMin": 0, "judgeMax": 95,
     "texts": {
       "turn1": "SET {set}/{sets}  ハズレ→敵の攻撃  小役→力を貯める  レア役→攻撃確定＋ポーション",
       "enemyAttack": "SET {set}/{sets}  敵の攻撃！  ハズレ→被弾  小役→回避  レア役→回避してカウンター",
@@ -1134,7 +1135,8 @@
       "hit": "敵の攻撃！  LIFE −{dmg}", "guard": "防御！", "dodge": "回避！", "counter": "カウンター！",
       "attackSmall": "小攻撃！", "attackMedium": "中攻撃！", "attackLarge": "大攻撃！！", "charge": "力を貯める……",
       "potionGet": "ポーション GET!", "potionHeal": "LIFE +{heal}", "potionLarge": "次は大攻撃！", "potionDefeat": "討伐確定！！",
-      "escaped": "敵は逃げた……"
+      "escaped": "敵は逃げた……",
+      "judge": "JUDGE！  削った分だけ倒せる  小役・レア役で上乗せ", "judgeWin": "とどめ！！", "judgeLose": "……逃げられた"
     }
   },
   "probabilities_AT": {

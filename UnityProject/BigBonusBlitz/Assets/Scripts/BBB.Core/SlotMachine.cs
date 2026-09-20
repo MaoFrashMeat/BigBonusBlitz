@@ -249,6 +249,10 @@ namespace BBB.Core
         public int Tier2SpinCount;
         /// <summary>エンゲージのターン制（Engage.cs）。セット 1〜、ターン 1 / 2、構え、次の G がポーションの回転か、次の攻撃が大攻撃か。</summary>
         public int EngageSet, EngageTurn; public EngageStance EngageStance; public bool EngagePotionSpin, EngageNextLarge;
+        /// <summary>次の G が 3 セット後のジャッジ（追加の 1 G。倒すか逃げるかが決まる）。</summary>
+        public bool EngageJudgeSpin;
+        /// <summary>敵の HP（攻撃のダメージで削る。0 で討伐）。</summary>
+        public int EngageHp, EngageHpMax;
         private bool _engageResolveNow;
         public bool EnemyActive;
         public bool EnemyDefeatWon;
@@ -543,11 +547,13 @@ namespace BBB.Core
                 IsTier2 = true;
                 Tier2SpinCount = 0;
                 PendingTier2 = false;
-                EngageSet = 1; EngageTurn = 1; EngageStance = EngageStance.None; EngagePotionSpin = false; EngageNextLarge = false; _engageResolveNow = false;
+                EngageSet = 1; EngageTurn = 1; EngageStance = EngageStance.None; EngagePotionSpin = false; EngageNextLarge = false; EngageJudgeSpin = false; _engageResolveNow = false;
+                EngageHpMax = Math.Max(1, ActiveEnemyTable != null && ActiveEnemyTable.engageHp > 0 ? ActiveEnemyTable.engageHp : (Config.engage?.enemyHp ?? 100));
+                EngageHp = EngageHpMax;
             }
             // エンゲージはボーナス中も進める（止めると「残り G」が凍って見える）。ベル択ナビだけは通常時限定
             // ポーションの回転（追加の 1 回転）はターンに数えない
-            if (IsTier2 && !EngagePotionSpin) Tier2SpinCount = Math.Min(Tier2SpinCount + 1, EngageMaxSpins);
+            if (IsTier2 && !EngagePotionSpin && !EngageJudgeSpin) Tier2SpinCount = Math.Min(Tier2SpinCount + 1, EngageMaxSpins);
 
             // 洞窟に入るまでの前兆。消化しきった次のGで AT が始まる
             AtEntryStage = 0;
@@ -576,7 +582,7 @@ namespace BBB.Core
                 AtZone = null; AtZoneRemaining = 0;
                 // 洞窟に入ったら通常時のエンゲージは持ち込まない（択ナビと押し順ナビが重なるため）
                 IsTier2 = false; PendingTier2 = false; EnemyActive = false; EnemyDefeatWon = false;
-                Tier2SpinCount = 0; PrecursorRemaining = 0; PrecursorTotal = 0; ActiveEnemyTable = null; EngagePotionSpin = false;
+                Tier2SpinCount = 0; PrecursorRemaining = 0; PrecursorTotal = 0; ActiveEnemyTable = null; EngagePotionSpin = false; EngageJudgeSpin = false;
             }
             if (InAt && BonusMode == BonusMode.NORMAL)
             {
@@ -1392,8 +1398,21 @@ namespace BBB.Core
             bool naviSuccess = win.winType == WinType.BELL && Navi.Active && CurrentCommand == BellCommand.Success;
             bool naviFail = Navi.Active && CurrentCommand == BellCommand.Fail;
             var role = EngageBattle.RoleOf(win.winType, naviSuccess, naviFail, cfg);
-            var step = new EngageStep { set = EngageSet, sets = EngageSets, turn = EngageTurn, role = role, stance = EngageStance };
+            var step = new EngageStep { set = EngageSet, sets = EngageSets, turn = EngageTurn, role = role, stance = EngageStance, hpLeft = EngageHp, hpMax = EngageHpMax };
             result.engage = step;
+
+            if (EngageJudgeSpin)
+            {
+                // 3 セット後のジャッジ: 削った HP の分だけ倒せる（役で上乗せ）。倒すか逃げるかがここで決まる
+                EngageJudgeSpin = false;
+                step.judgeSpin = true;
+                step.outcome = EngageOutcome.Judge;
+                step.judgePercent = EngageBattle.JudgePercent(EngageHp, EngageHpMax, role, cfg);
+                LastDefeatPercent = step.judgePercent;
+                if (_rng.NextDouble() * 100 < step.judgePercent) { step.dealt = EngageHp; EngageHp = 0; step.hpLeft = 0; step.defeated = true; EnemyDefeatWon = true; }
+                _engageResolveNow = true;
+                return;
+            }
 
             if (EngagePotionSpin)
             {
@@ -1405,7 +1424,7 @@ namespace BBB.Core
                 {
                     case EngageOutcome.PotionHeal: step.healed = HealHp(Math.Max(0, cfg.potionHeal)); break;   // hpHealed には足さない（リプレイ・ベルの回復と分けて数える）
                     case EngageOutcome.PotionLarge: EngageNextLarge = true; break;
-                    case EngageOutcome.PotionDefeat: step.defeated = true; step.defeatPercent = 100; LastDefeatPercent = 100; EnemyDefeatWon = true; _engageResolveNow = true; break;
+                    case EngageOutcome.PotionDefeat: step.dealt = EngageHp; EngageHp = 0; step.hpLeft = 0; step.defeated = true; LastDefeatPercent = 100; EnemyDefeatWon = true; _engageResolveNow = true; break;
                 }
                 return;
             }
@@ -1437,13 +1456,20 @@ namespace BBB.Core
             }
             else if (size != AttackSize.None)
             {
-                step.defeatPercent = EngageBattle.DefeatPercent(size, cfg, DefeatSkillBonus);
-                LastDefeatPercent = step.defeatPercent;
-                if (_rng.NextDouble() * 100 < step.defeatPercent) { step.defeated = true; EnemyDefeatWon = true; _engageResolveNow = true; return; }
+                // 攻撃が通った: ダメージで HP を削る。0 になればその場で討伐
+                step.dealt = Math.Min(EngageHp, EngageBattle.Damage(size, cfg, DefeatSkillBonus));
+                EngageHp = Math.Max(0, EngageHp - step.dealt);
+                step.hpLeft = EngageHp;
+                LastDefeatPercent = EngageHpMax > 0 ? step.dealt * 100 / EngageHpMax : 0;
+                if (EngageHp <= 0) { step.defeated = true; EnemyDefeatWon = true; _engageResolveNow = true; return; }
             }
-            // 次のセットへ。最後のセットなら逃げる
+            // 次のセットへ。最後のセットが終わったらジャッジ（無効なら逃げる）
             EngageSet++; EngageTurn = 1; EngageStance = EngageStance.None;
-            if (EngageSet > EngageSets) _engageResolveNow = true;
+            if (EngageSet > EngageSets)
+            {
+                if (cfg.judgeEnabled) EngageJudgeSpin = true;
+                else _engageResolveNow = true;
+            }
         }
 
         private bool RollDefeat(WinType winType, float multiplier = 1f)

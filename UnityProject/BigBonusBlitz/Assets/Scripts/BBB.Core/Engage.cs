@@ -21,7 +21,8 @@ namespace BBB.Core
         Attack,          // 主人公の攻撃（attackSize が 小 / 中 / 大）
         PotionHeal,      // ルーレット: LIFE 回復
         PotionLarge,     // ルーレット: 次の攻撃が大攻撃
-        PotionDefeat     // ルーレット: 討伐確定
+        PotionDefeat,    // ルーレット: 討伐確定
+        Judge            // 3 セット後のジャッジ（削った HP の分だけ倒せる。defeated で結果）
     }
 
     public enum AttackSize { None, Small, Medium, Large, Counter }
@@ -36,8 +37,10 @@ namespace BBB.Core
         public int sets = 3;
         /// <summary>敵の攻撃を喰らったときに減る LIFE（回転数）。</summary>
         public int lifeDamage = 3;
-        /// <summary>攻撃の大きさごとの討伐率（%）。装備・技能の上乗せは別に足す。</summary>
-        public int defeatSmall = 15, defeatMedium = 35, defeatLarge = 70, defeatCounter = 50;
+        /// <summary>敵の HP（EnemyTable.engageHp が 0 のときの既定）。攻撃のダメージで削り、0 で討伐。</summary>
+        public int enemyHp = 100;
+        /// <summary>攻撃の大きさごとのダメージ。装備・技能の討伐率の上乗せ（%）はダメージにそのまま足す。</summary>
+        public int damageSmall = 15, damageMedium = 35, damageLarge = 70, damageCounter = 50;
         /// <summary>「力を貯める」の 2 ターン目にハズレたときの内訳（重み）: 被弾 / 防御 / 回避。</summary>
         public int chargeLoseHit = 70, chargeLoseGuard = 15, chargeLoseDodge = 15;
         /// <summary>1 ターン目のレア役でポーション（次の G が追加の 1 回転 = ルーレット）。</summary>
@@ -46,6 +49,13 @@ namespace BBB.Core
         public int potionHeal = 3;
         /// <summary>ベル択ナビの正解をレア役扱いにするか（false なら小役）。</summary>
         public bool naviSuccessIsRare = true;
+        /// <summary>
+        /// 全セットで HP を削り切れなかったときのジャッジ（追加の 1 G）。倒せる率 = 削った割合（%）× judgeRatioScale + 役の上乗せ。
+        /// judgeMin 〜 judgeMax に収める。0 なら逃走確定。
+        /// </summary>
+        public bool judgeEnabled = true;
+        public float judgeRatioScale = 1f;
+        public int judgeSmallBonus = 10, judgeRareBonus = 40, judgeMin = 0, judgeMax = 95;
         /// <summary>帯の文（{set} {sets} {turn} が入る）。</summary>
         public EngageTexts texts = new EngageTexts();
     }
@@ -70,6 +80,9 @@ namespace BBB.Core
         public string potionLarge = "次は大攻撃！";
         public string potionDefeat = "討伐確定！！";
         public string escaped = "敵は逃げた……";
+        public string judge = "JUDGE！  削った分だけ倒せる  小役・レア役で上乗せ";
+        public string judgeWin = "とどめ！！";
+        public string judgeLose = "……逃げられた";
     }
 
     /// <summary>この G のエンゲージで起きたこと（GameResult.engage）。</summary>
@@ -82,12 +95,14 @@ namespace BBB.Core
         public AttackSize attackSize;
         /// <summary>被弾で減った LIFE。</summary>
         public int damage;
-        /// <summary>攻撃したときの討伐率（%）と、倒せたか。</summary>
-        public int defeatPercent; public bool defeated;
+        /// <summary>攻撃で与えたダメージ、残り HP と最大 HP、倒せたか。</summary>
+        public int dealt, hpLeft, hpMax; public bool defeated;
         /// <summary>この G でポーションを得た / この G がポーションの回転だった。</summary>
         public bool potionGot, potionSpin;
         /// <summary>ルーレットの回復量。</summary>
         public int healed;
+        /// <summary>この G がジャッジだった / その率（%）。</summary>
+        public bool judgeSpin; public int judgePercent;
     }
 
     /// <summary>エンゲージの判定（乱数以外は純粋関数。テストしやすいように SlotMachine から切り出し）。</summary>
@@ -153,19 +168,27 @@ namespace BBB.Core
             }
         }
 
-        /// <summary>攻撃の大きさ → 討伐率（%）。</summary>
-        public static int DefeatPercent(AttackSize size, EngageConfig cfg, int bonus = 0)
+        /// <summary>攻撃の大きさ → ダメージ（bonus は装備・技能の上乗せ）。</summary>
+        public static int Damage(AttackSize size, EngageConfig cfg, int bonus = 0)
         {
             int p;
             switch (size)
             {
-                case AttackSize.Small: p = cfg.defeatSmall; break;
-                case AttackSize.Medium: p = cfg.defeatMedium; break;
-                case AttackSize.Large: p = cfg.defeatLarge; break;
-                case AttackSize.Counter: p = cfg.defeatCounter; break;
+                case AttackSize.Small: p = cfg.damageSmall; break;
+                case AttackSize.Medium: p = cfg.damageMedium; break;
+                case AttackSize.Large: p = cfg.damageLarge; break;
+                case AttackSize.Counter: p = cfg.damageCounter; break;
                 default: return 0;
             }
-            return Math.Max(0, Math.Min(100, p + bonus));
+            return Math.Max(0, p + bonus);
+        }
+
+        /// <summary>ジャッジの率（%）: 削った割合 × scale + 役の上乗せ。min〜max に収める。</summary>
+        public static int JudgePercent(int hpLeft, int hpMax, EngageRole role, EngageConfig cfg)
+        {
+            float ratio = hpMax > 0 ? 1f - Math.Max(0, Math.Min(hpLeft, hpMax)) / (float)hpMax : 0f;
+            int p = (int)Math.Round(ratio * 100f * cfg.judgeRatioScale) + (role == EngageRole.Rare ? cfg.judgeRareBonus : role == EngageRole.Small ? cfg.judgeSmallBonus : 0);
+            return Math.Max(Math.Max(0, cfg.judgeMin), Math.Min(Math.Min(100, cfg.judgeMax), p));
         }
 
         /// <summary>ポーションの回転: 役 → ルーレットの結果。</summary>
