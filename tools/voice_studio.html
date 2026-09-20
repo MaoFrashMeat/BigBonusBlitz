@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>ボイススタジオ</title>
+<style>
+  :root { --bg:#0f1b2d; --panel:#17263a; --panel2:#1d2f47; --line:#2f4460; --ink:#f4f6fa; --muted:#98a3b8; --gold:#f4cd7c; --green:#7ee0a0; --red:#ff7a7a; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:"Yu Gothic","Hiragino Sans",sans-serif; font-size:14px; }
+  .wrap { display:grid; grid-template-columns: 380px 1fr; gap:14px; padding:14px; height:100vh; box-sizing:border-box; }
+  h1 { font-size:18px; margin:0 0 4px; grid-column:1 / -1; }
+  .sub { color:var(--muted); font-size:12px; grid-column:1 / -1; margin-top:-4px; line-height:1.6; }
+  .panel { background:var(--panel); border-radius:8px; padding:10px 12px; overflow-y:auto; min-height:0; }
+  h2 { font-size:14px; color:var(--gold); margin:4px 0 8px; }
+  .key { display:grid; grid-template-columns: 1fr auto; gap:4px 8px; padding:8px; border-radius:6px; border:1px solid transparent; cursor:pointer; }
+  .key:hover { background:var(--panel2); }
+  .key.sel { background:var(--panel2); border-color:var(--gold); }
+  .key b { color:var(--gold); }
+  .key .scene { color:var(--muted); font-size:12px; grid-column:1 / -1; }
+  .key .lines { font-size:12px; grid-column:1 / -1; }
+  .key .cnt { font-size:11px; color:var(--green); white-space:nowrap; }
+  .key .cnt.none { color:var(--muted); }
+  .row { display:flex; align-items:center; gap:8px; margin:8px 0; flex-wrap:wrap; }
+  .row label { color:var(--muted); font-size:12px; }
+  button.primary { font:inherit; font-weight:bold; background:var(--gold); color:#3b2a12; border:0; border-radius:6px; padding:9px 18px; cursor:pointer; }
+  button.rec { font:inherit; font-weight:bold; background:var(--red); color:#2d0b0b; border:0; border-radius:6px; padding:9px 18px; cursor:pointer; }
+  button.plain { font:inherit; background:var(--panel2); color:var(--ink); border:1px solid var(--line); border-radius:6px; padding:6px 12px; cursor:pointer; }
+  button:disabled { opacity:.45; cursor:default; }
+  select, input[type=number] { font:inherit; font-size:13px; background:var(--bg); color:var(--ink); border:1px solid var(--line); border-radius:4px; padding:4px 6px; }
+  .meter { height:10px; background:var(--bg); border-radius:5px; overflow:hidden; flex:1; min-width:120px; }
+  .meter i { display:block; height:100%; width:0; background:var(--green); }
+  .take { border-top:1px solid var(--line); padding:8px 0; }
+  .take.sel { background:var(--panel2); border-radius:6px; padding:8px; }
+  .take .nm { font-weight:bold; }
+  .take audio { width:100%; height:32px; margin:4px 0; }
+  .take .conv { display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin:4px 0; font-size:12px; }
+  .note { color:var(--muted); font-size:12px; line-height:1.6; }
+  .status { color:var(--gold); font-size:12px; min-height:18px; }
+  .err { color:var(--red); }
+  .voices { display:flex; gap:6px; flex-wrap:wrap; }
+  .voices audio { height:28px; width:180px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>ボイススタジオ</h1>
+  <div class="sub">左で場面を選ぶ → 録音（1 本 1 セリフ）→ 変換（声質を主人公に）→ 聞いて → 「この場面に入れる」。入った声はゲームがその場面で鳴らす（何本かあればランダム）。
+  <span id="ready"></span></div>
+  <div class="panel" id="keys"></div>
+  <div class="panel" id="work"></div>
+</div>
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  let S = { keys: [], voices: {}, takes: [], models: [], ready: {} };
+  let curKey = "", curTake = "", curFile = "";
+  let rec = null, chunks = [], stream = null, meterTimer = null;
+
+  async function api(path, body, raw) {
+    const r = await fetch(path, body === undefined ? {} : { method: "POST", body: raw ? body : JSON.stringify(body), headers: raw ? {} : { "Content-Type": "application/json" } });
+    return r.json();
+  }
+  async function load() { S = await api("/api/state"); if (!curKey && S.keys.length) curKey = S.keys[0].key; render(); }
+
+  function render() {
+    const rd = S.ready || {};
+    $("ready").innerHTML = (rd.ffmpeg ? "" : '<span class="err">ffmpeg が無い（VoiceChangerAI/training/.ffmpeg-bin）。</span>') + (rd.python && rd.convert ? "" : '<span class="err">VoiceChangerAI の変換環境が無い（training/.venv-rvc）。録音と取り込みだけできる。</span>');
+    $("keys").innerHTML = "<h2>場面（docs/voice_script.md）</h2>" + S.keys.map(k => {
+      const v = S.voices[k.key] || [];
+      return '<div class="key ' + (k.key === curKey ? "sel" : "") + '" data-k="' + k.key + '"><b>' + k.key + '</b><span class="cnt ' + (v.length ? "" : "none") + '">' + (v.length ? "声 " + v.length + " 本" : "まだ無い") + '</span><span class="scene">' + k.scene + '</span><span class="lines">' + k.lines + '</span></div>';
+    }).join("");
+    $("keys").querySelectorAll(".key").forEach(el => el.addEventListener("click", () => { curKey = el.getAttribute("data-k"); render(); }));
+
+    const k = S.keys.find(x => x.key === curKey) || { key: curKey, scene: "", lines: "" };
+    const voices = (S.voices[curKey] || []);
+    const takes = S.takes;
+    $("work").innerHTML =
+      '<h2>' + esc(k.key) + '　<span class="note">' + esc(k.scene) + '</span></h2>' +
+      '<div class="note">セリフの例: ' + esc(k.lines) + '</div>' +
+      '<div class="row"><button class="rec" id="recBtn">● 録音</button><div class="meter"><i id="meter"></i></div><span class="note" id="recT"></span></div>' +
+      '<div class="note">録音は 1 本 1 セリフ。押して言って、もう一度押して止める。マイクの許可を聞かれたら許可。</div>' +
+      '<div class="row"><label>声</label><select id="model">' + S.models.map(m => '<option value="' + m + '"' + (m === "rika2.pth" ? " selected" : "") + '>' + m + '</option>').join("") + '</select>' +
+      '<label>高さ（半音）</label><input type="number" id="pitch" value="12" min="-12" max="24" step="1"><label>index</label><input type="number" id="idx" value="0.75" min="0" max="1" step="0.05">' +
+      '<button class="primary" id="convBtn" disabled>変換</button><span class="status" id="status"></span></div>' +
+      '<h2>この場面に入っている声（' + voices.length + '）</h2><div class="voices">' + (voices.length ? voices.map(v => '<audio controls src="/audio/' + v + '"></audio>').join("") : '<span class="note">まだ無い</span>') + '</div>' +
+      '<h2>録音（新しい順）</h2><div id="takes">' + (takes.length ? takes.map(t => takeHtml(t)).join("") : '<div class="note">まだ無い</div>') + '</div>';
+    $("recBtn").addEventListener("click", toggleRec);
+    $("convBtn").addEventListener("click", convert);
+    $("work").querySelectorAll(".take").forEach(el => el.addEventListener("click", e => { if (e.target.tagName === "BUTTON" || e.target.tagName === "AUDIO") return; curTake = el.getAttribute("data-id"); curFile = "raw/" + curTake + ".wav"; render(); }));
+    $("work").querySelectorAll("button[data-import]").forEach(b => b.addEventListener("click", () => importFile(b.getAttribute("data-import"))));
+    $("work").querySelectorAll("button[data-del]").forEach(b => b.addEventListener("click", async () => { if (!confirm("この録音を消す？")) return; await api("/api/delete_take", { id: b.getAttribute("data-del") }); if (curTake === b.getAttribute("data-del")) curTake = ""; load(); }));
+    $("convBtn").disabled = !curTake;
+  }
+  function takeHtml(t) {
+    return '<div class="take ' + (t.id === curTake ? "sel" : "") + '" data-id="' + t.id + '"><div class="row"><span class="nm">' + t.id + '</span><button class="plain" data-import="raw/' + t.id + '.wav">そのまま入れる</button><button class="plain" data-del="' + t.id + '">消す</button></div>' +
+      '<audio controls src="/audio/' + t.raw + '"></audio>' +
+      t.converted.map(c => '<div class="conv"><span>変換 ' + (c.pitch >= 0 ? "+" : "") + c.pitch + ' 半音</span><audio controls src="/audio/' + c.file + '"></audio><button class="primary" data-import="' + c.file + '">この場面に入れる</button></div>').join("") +
+      '</div>';
+  }
+  function esc(s) { return String(s || "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+  // ---- 録音（ブラウザ）。レベルの目安は AnalyserNode
+  async function toggleRec() {
+    if (rec) { rec.stop(); return; }
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); }
+    catch (e) { $("status").innerHTML = '<span class="err">マイクを使えない: ' + e.message + "</span>"; return; }
+    const ctx = new AudioContext(); const src = ctx.createMediaStreamSource(stream); const an = ctx.createAnalyser(); an.fftSize = 1024; src.connect(an);
+    const buf = new Float32Array(an.fftSize); const t0 = performance.now();
+    meterTimer = setInterval(() => { an.getFloatTimeDomainData(buf); let p = 0; for (const v of buf) p = Math.max(p, Math.abs(v)); $("meter").style.width = Math.min(100, p * 140) + "%"; $("meter").style.background = p > 0.95 ? "var(--red)" : "var(--green)"; $("recT").textContent = ((performance.now() - t0) / 1000).toFixed(1) + " 秒"; }, 60);
+    chunks = []; rec = new MediaRecorder(stream);
+    rec.ondataavailable = e => chunks.push(e.data);
+    rec.onstop = async () => {
+      clearInterval(meterTimer); stream.getTracks().forEach(t => t.stop()); ctx.close(); rec = null;
+      $("status").textContent = "保存中…";
+      const r = await api("/api/record", new Blob(chunks, { type: chunks[0] ? chunks[0].type : "audio/webm" }), true);
+      if (!r.ok) { $("status").innerHTML = '<span class="err">' + esc(r.error) + "</span>"; return; }
+      curTake = r.id; curFile = r.raw; $("status").textContent = ""; await load();
+    };
+    rec.start(); $("recBtn").textContent = "■ 止める";
+  }
+  async function convert() {
+    if (!curTake) return;
+    $("convBtn").disabled = true; $("status").textContent = "変換中（数十秒）…";
+    const r = await api("/api/convert", { id: curTake, pitch: +$("pitch").value, model: $("model").value, indexRate: +$("idx").value });
+    if (!r.ok) { $("status").innerHTML = '<span class="err">' + esc(r.error) + "</span>"; $("convBtn").disabled = false; return; }
+    curFile = r.file; $("status").textContent = "変換した。聞いて良ければ「この場面に入れる」"; await load();
+  }
+  async function importFile(file) {
+    if (!curKey) return;
+    $("status").textContent = "取り込み中…";
+    const r = await api("/api/import", { key: curKey, file });
+    if (!r.ok) { $("status").innerHTML = '<span class="err">' + esc(r.error) + "</span>"; return; }
+    $("status").textContent = "入れた: " + r.log; await load();
+  }
+  load();
+})();
+</script>
+</body>
+</html>

@@ -24,3 +24,6 @@ assets/sounds/springin/
 
 # 魔王魂の素材（曲単品の再配布不可。tools/fetch_maou.py で PC ごとに取る。著作表記「音楽：魔王魂」）
 assets/sounds/maou/
+
+# ボイススタジオの録音（自分の声。取り込んだ物は Resources/Audio/Voice に入る）
+tools/voice/raw/

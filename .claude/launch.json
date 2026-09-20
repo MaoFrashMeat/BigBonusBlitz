@@ -20,6 +20,16 @@
         "8766"
       ],
       "port": 8766
+    },
+    {
+      "name": "voice-studio",
+      "runtimeExecutable": "py",
+      "runtimeArgs": [
+        "-3",
+        "tools/voice_studio.py",
+        "8768"
+      ],
+      "port": 8768
     }
   ]
 }

@@ -1,6 +1,12 @@
 ﻿{
   "entries": [
     {
+      "date": "2026-09-21",
+      "version": "dev 275",
+      "title": "ボイススタジオ: 録る → 変換 → 聞く → 場面に入れる を 1 画面で",
+      "body": "・py -3 tools/voice_studio.py で http://localhost:8768/ を開く（Chrome / Edge。マイクの許可が要る）\n・左で場面を選び、録音 → 変換（VoiceChangerAI の声・高さ・index）→ 聞いて「この場面に入れる」。入れた声はゲームがその場面で鳴らす\n・録音は tools/voice/raw（git には入れない）"
+    },
+    {
       "date": "2026-09-16",
       "version": "dev 274",
       "title": "主人公のボイスを入れられるように（12 の場面。まだ声は無い）",
