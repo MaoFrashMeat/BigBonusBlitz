@@ -3,7 +3,7 @@
 #   効果音ビューア（se_viewer.html）の「Unity に書き込む」は /se_apply: tools/se_choice.json を書いて se_build.py を回す
 #
 # 保存されたファイルは Unity が次の Play で読む（UiLayout.cs）。ブラウザは直接ファイルに書けないので、
-# この 1 本を挟む。GET は tools/ の中をそのまま返す。
+# この 1 本を挟む。GET は tools/ の中をそのまま返し、無ければリポジトリのルート（assets/ や UnityProject/）から返す。
 import json
 import os
 import subprocess
@@ -23,6 +23,16 @@ class Handler(SimpleHTTPRequestHandler):
 
     def log_message(self, fmt, *args):
         pass   # 黒い窓に出さない（窓をクリックすると出力が止まり、サーバごと固まる）
+
+    def translate_path(self, path):
+        # ビューアは「../assets/sounds/…」「../UnityProject/…」を参照する。ブラウザは ../ を消して /assets/… で頼んでくるので、
+        # tools/ の中に無ければリポジトリのルートから探す（2026-09-21: bat から開くと試聴が鳴らなかった原因）
+        p = super().translate_path(path)
+        if os.path.exists(p): return p
+        rel = os.path.relpath(p, HERE).replace(os.sep, '/')
+        if rel.split('/')[0] not in ('assets', 'UnityProject', 'tools', 'docs'): return p     # ルート直下はこの 4 つだけ（.git などは出さない）
+        alt = os.path.normpath(os.path.join(ROOT, rel))
+        return alt if alt.startswith(ROOT) and os.path.exists(alt) else p
 
     def _json(self, code, obj):
         body = json.dumps(obj, ensure_ascii=False).encode('utf-8')
