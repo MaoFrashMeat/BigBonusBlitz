@@ -118,6 +118,8 @@ namespace BBB.Core
         public int bonusBellHealAmount = 8;
         /// <summary>通常時にリプレイが揃ったとき回復するライフ。0 で回復なし。</summary>
         public int replayHealAmount = 3;
+        /// <summary>回復したときの LOG の一言（ランダム。「＋n 回復した」の前に付く。本人 2026-09-21「回りくどい言い方いらない」）。</summary>
+        public List<string> healLines = new List<string> { "おにぎりを食べた！", "水を飲んだ", "薬草をかじった", "一息ついた", "干し肉をかじった" };
         /// <summary>エンバー 1 口のソウル価格と、もらえる量。</summary>
         public int creditCost = 30;
         public int creditAmount = 50;

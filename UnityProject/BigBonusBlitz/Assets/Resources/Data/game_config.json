@@ -4623,6 +4623,7 @@
       "bonusBellHealRate": 30,
       "bonusBellHealAmount": 8,
       "replayHealAmount": 3,
+      "healLines": ["おにぎりを食べた！", "水を飲んだ", "薬草をかじった", "一息ついた", "干し肉をかじった", "焚き火にあたった"],
       "creditCost": 30,
       "creditAmount": 50,
       "rescueCredit": 50,

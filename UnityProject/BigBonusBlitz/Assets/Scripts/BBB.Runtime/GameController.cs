@@ -3279,7 +3279,12 @@ namespace BBB.Runtime
             if (r.enemyResolved == true) lines.Add($"{_engagedName}を倒した。EXP +{r.enemyExp}、{{soul}}+{r.soulsGained}");
             else if (r.enemyResolved == false) lines.Add($"{_engagedName}に逃げられた。次はエンゲージ中に役を引こう");
             if (r.levelUp) lines.Add($"Lv {_m.PlayerLevel} に上がった。振れるポイント +{_m.Config.stats?.pointsPerLevel ?? 0}（装備画面のステータス）");
-            if (r.hpHealed > 0) lines.Add(r.win.isReplay ? $"リプレイでライフが {r.hpHealed} 回復した" : $"ベルでライフが {r.hpHealed} 回復した");
+            if (r.hpHealed > 0)
+            {
+                var hl = _m.Config.adventure?.resource?.healLines;
+                string flavor = hl != null && hl.Count > 0 ? hl[_fxRng.Next(hl.Count)] + "  " : "";
+                lines.Add($"{flavor}＋{r.hpHealed} 回復した");
+            }
             if (r.equipDropped != null)
             {
                 var rar = EquipDirector.RarityOf(_m.Config.equipment, r.equipDropped);
