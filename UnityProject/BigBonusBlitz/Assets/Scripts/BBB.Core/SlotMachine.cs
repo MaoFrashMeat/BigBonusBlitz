@@ -541,6 +541,21 @@ namespace BBB.Core
             return false;
         }
 
+        /// <summary>通常時の 1 G を数え、冒険中なら灯（LIFE）を 1 減らす。</summary>
+        private void CountSpinAndBurn()
+        {
+            SpinCount++;
+            TotalSpinCount++;
+            if (AdventureEnabled && !InAt)
+            {
+                if (Adv.spinsLeft > 0) Adv.spinsLeft--;
+                // 装備や祝福を失うと 1 本ぶんのG数が下がる。残量がそれを超えていたら詰める
+                int perTorch = TorchSpinsPerUnit;
+                if (Adv.torchSpins > perTorch) Adv.torchSpins = perTorch;
+                if (AdventureDirector.BurnTorch(Config.adventure, Adv, perTorch)) _torchOut = true;
+            }
+        }
+
         private void DrawLottery()
         {
             PseudoPlay = false;
@@ -599,6 +614,8 @@ namespace BBB.Core
                 CurrentFlag = DebugForceFlag.Value;
                 DebugForceFlag = null;
                 if (CurrentFlag.IsBonus() && BonusMode == BonusMode.NORMAL) HoldBonus(CurrentFlag);
+                // 役を固定しても、通常時なら G は進み灯は減る（序章の逃走で LIFE が減らなかった 2026-09-22）
+                if (BonusMode == BonusMode.NORMAL && HeldBonusFlag == Flag.HAZE) CountSpinAndBurn();
                 return;
             }
 
@@ -630,16 +647,7 @@ namespace BBB.Core
                 return;
             }
 
-            SpinCount++;
-            TotalSpinCount++;
-            if (AdventureEnabled && !InAt)
-            {
-                if (Adv.spinsLeft > 0) Adv.spinsLeft--;
-                // 装備や祝福を失うと 1 本ぶんのG数が下がる。残量がそれを超えていたら詰める
-                int perTorch = TorchSpinsPerUnit;
-                if (Adv.torchSpins > perTorch) Adv.torchSpins = perTorch;
-                if (AdventureDirector.BurnTorch(Config.adventure, Adv, perTorch)) _torchOut = true;
-            }
+            CountSpinAndBurn();
             if (SpinCount >= Config.CeilingFor(Mode))
             {
                 // 天井: game_config.ceilingBonus の重みで成立ボーナスを選ぶ
