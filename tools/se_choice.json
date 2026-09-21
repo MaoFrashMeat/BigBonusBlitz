@@ -1,7 +1,7 @@
 {
  "se": {
   "spin_start": {
-   "src": "assets/sounds/springin/battle/発射1.mp3",
+   "src": "assets/sounds/maou/se/8bit/maou_se_8bit25.mp3",
    "volume": -1,
    "pitch": 0.7
   },
