@@ -413,8 +413,9 @@ namespace BBB.Runtime
                 btn.onClick.AddListener(() =>
                 {
                     head.text = $"{entry.date}   {entry.title}";
+                    Ellipsize(head, headW);   // 長い題は「…」（版の番号に重ならない）。全文は本文の 1 行目に出す
                     headVer.text = entry.version ?? "";
-                    body.text = entry.body ?? "";
+                    body.text = (head.text.EndsWith("…") ? "【" + entry.title + "】\n\n" : "") + (entry.body ?? "");
                     bodyView.verticalNormalizedPosition = 1f;
                     _newsList.SetActive(false);
                     _newsDetail.SetActive(true);
