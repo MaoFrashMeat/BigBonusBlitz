@@ -1,5 +1,6 @@
 {
  "se": {
+<<<<<<< Updated upstream
   "spin_start": {
    "src": "assets/sounds/maou/se/8bit/maou_se_8bit25.mp3",
    "volume": -1,
@@ -215,6 +216,51 @@
    "volume": -1,
    "pitch": 1
   }
+=======
+  "spin_start": {"src": "assets/sounds/maou/se/8bit/maou_se_8bit25.mp3", "volume": -1, "pitch": 0.7},
+  "stop": {"src": "assets/sounds/springin/battle/破壊音_短い.mp3", "volume": -1, "pitch": 0.62},
+  "pullin": {"src": "assets/sounds/springin/environment/地響き1ループ.mp3", "volume": -1, "pitch": 1},
+  "pullin_land": {"src": "assets/sounds/springin/battle/破壊音_短い.mp3", "volume": -1, "pitch": 1},
+  "precog_weak": {"src": "assets/sounds/springin/battle/高速斬撃1.mp3", "volume": -1, "pitch": 1},
+  "precog_strong": {"src": "assets/sounds/springin/battle/収束.mp3", "volume": -1, "pitch": 1},
+  "motion_hover": {"src": "assets/sounds/springin/retrogame/8bit選択1.mp3", "volume": -1, "pitch": 1},
+  "motion_click": {"src": "assets/sounds/springin/retrogame/8bit選択5.mp3", "volume": -1, "pitch": 1},
+  "achievement": {"src": "assets/sounds/springin/retrogame/8bit詠唱5.mp3", "volume": -1, "pitch": 1},
+  "ui_pop": {"src": "assets/sounds/springin/retrogame/8bit選択8.mp3", "volume": -1, "pitch": 1},
+  "rank_perfect": {"src": "assets/sounds/springin/retrogame/8bit詠唱5.mp3", "volume": -1, "pitch": 1},
+  "role_bell": {"src": "assets/sounds/maou/se/8bit/maou_se_8bit07.mp3", "volume": -1, "pitch": 1},
+  "role_cherry": {"src": "assets/sounds/maou/se/8bit/maou_se_8bit07.mp3", "volume": -1, "pitch": 1},
+  "role_suica": {"src": "assets/sounds/maou/se/8bit/maou_se_8bit08.mp3", "volume": -1, "pitch": 1},
+  "role_chance": {"src": "assets/sounds/maou/se/8bit/maou_se_8bit14.mp3", "volume": -1, "pitch": 1},
+  "replay": {"src": "assets/sounds/maou/se/8bit/maou_se_8bit03.mp3", "volume": -1, "pitch": 1},
+  "title_start": {"src": "assets/sounds/springin/battle/破壊音_短い.mp3", "volume": 1.5, "pitch": 1.1},
+  "bet": {"src": "resource:se_bet", "volume": -1, "pitch": 1},
+  "bb_confirm": {"src": "assets/sounds/materials/nc263467_【ジャグラー】_B_I_G_確_定_【スーパーミラクルジャグラー】.wav", "volume": -1, "pitch": 1},
+  "enemy_death": {"src": "assets/sounds/springin/battle/クリーチャーボイス9.mp3", "volume": -1, "pitch": 1},
+  "engage_stance_enemy": {"src": "assets/sounds/springin/battle/クリーチャー_ステレオ12.mp3", "volume": -1, "pitch": 1},
+  "engage_charge": {"src": "assets/sounds/springin/battle/モンスター召喚から出現.mp3", "volume": -1, "pitch": 1},
+  "engage_confirm": {"src": "assets/sounds/maou/se/battle/maou_se_battle_explosion06.mp3", "volume": -1, "pitch": 1},
+  "engage_potion_get": {"src": "assets/sounds/maou/se/magical/maou_se_magical08.mp3", "volume": -1, "pitch": 1},
+  "engage_hit": {"src": "assets/sounds/maou/se/magical/maou_se_magical06.mp3", "volume": -1, "pitch": 1},
+  "engage_guard": {"src": "assets/sounds/maou/se/8bit/maou_se_8bit07.mp3", "volume": -1, "pitch": 1},
+  "engage_dodge": {"src": "assets/sounds/maou/se/8bit/maou_se_8bit08.mp3", "volume": -1, "pitch": 1},
+  "engage_attack_small": {"src": "assets/sounds/springin/battle/打撃6.mp3", "volume": -1, "pitch": 1},
+  "engage_attack_medium": {"src": "assets/sounds/maou/se/8bit/maou_se_8bit12.mp3", "volume": -1, "pitch": 1},
+  "engage_attack_large": {"src": "assets/sounds/maou/se/8bit/maou_se_8bit13.mp3", "volume": -1, "pitch": 1},
+  "engage_counter": {"src": "assets/sounds/maou/se/8bit/maou_se_8bit19.mp3", "volume": -1, "pitch": 1},
+  "engage_judge": {"src": "assets/sounds/springin/retrogame/8bit獲得6.mp3", "volume": -1, "pitch": 1},
+  "engage_judge_win": {"src": "assets/sounds/springin/retrogame/8bit上昇7.mp3", "volume": -1, "pitch": 1},
+  "engage_judge_lose": {"src": "assets/sounds/springin/retrogame/8bit下降3.mp3", "volume": -1, "pitch": 1},
+  "navi_choice": {"src": "assets/sounds/maou/se/sound/maou_se_sound_heartbeat01.mp3", "volume": -1, "pitch": 1},
+  "navi_success": {"src": "assets/sounds/springin/retrogame/8bit上昇6.mp3", "volume": -1, "pitch": 1.07},
+  "escape": {"src": "assets/sounds/maou/se/sound/maou_se_sound_escape.mp3", "volume": -1, "pitch": 1},
+  "treasure_hint": {"src": "assets/sounds/springin/retrogame/8bit詠唱3.mp3", "volume": -1, "pitch": 1},
+  "pickup_soul": {"src": "assets/sounds/springin/retrogame/8bit獲得2.mp3", "volume": -1, "pitch": 1},
+  "pickup_ember": {"src": "assets/sounds/springin/retrogame/8bit獲得1.mp3", "volume": -1, "pitch": 1},
+  "pickup_item": {"src": "assets/sounds/springin/retrogame/8bit獲得6.mp3", "volume": -1, "pitch": 1},
+  "gain_exp": {"src": "assets/sounds/springin/retrogame/8bit獲得1.mp3", "volume": -1, "pitch": 1},
+  "gain_games": {"src": "assets/sounds/springin/retrogame/8bit獲得1.mp3", "volume": -1, "pitch": 1}
+>>>>>>> Stashed changes
  },
  "bgm": {
   "title": {

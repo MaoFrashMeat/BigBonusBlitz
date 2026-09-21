@@ -6,6 +6,9 @@ Shader "BBB/UI/AdventureSeamless"
         _Color("Tint",Color)=(1,1,1,1)
         _Row("Row start / height / top feather / bottom feather",Vector)=(0,1,.065,0)
         _Overlap("Horizontal overlap",Range(.05,.3))=.16
+        _SeamTex("Content seam lookup (linear data)",2D)="gray"{}
+        _UseSeam("Use content seam",Float)=0
+        _SeamFeather("Seam half width",Float)=.012
         _StencilComp("Stencil Comparison",Float)=8
         _Stencil("Stencil ID",Float)=0
         _StencilOp("Stencil Operation",Float)=0
@@ -33,7 +36,7 @@ Shader "BBB/UI/AdventureSeamless"
             #include "UnityUI.cginc"
             struct appdata{float4 vertex:POSITION;float4 color:COLOR;float2 uv:TEXCOORD0;};
             struct v2f{float4 vertex:SV_POSITION;fixed4 color:COLOR;float2 uv:TEXCOORD0;float4 local:TEXCOORD1;};
-            sampler2D _MainTex;fixed4 _Color;float4 _Row,_ClipRect;float _Overlap;
+            sampler2D _MainTex, _SeamTex;fixed4 _Color;float4 _Row,_ClipRect;float _Overlap,_UseSeam,_SeamFeather;
             v2f vert(appdata v){v2f o;o.local=v.vertex;o.vertex=UnityObjectToClipPos(v.vertex);o.uv=v.uv;o.color=v.color*_Color;return o;}
             fixed4 frag(v2f i):SV_Target
             {
@@ -42,6 +45,10 @@ Shader "BBB/UI/AdventureSeamless"
                 fixed4 a=tex2D(_MainTex,float2(x,i.uv.y));
                 fixed4 b=tex2D(_MainTex,float2(min(1,x+span),i.uv.y));
                 float blend=smoothstep(0,_Overlap,x);
+                // The editor finds a low-error route through the overlapping artwork.
+                // A narrow, curved join preserves solid landmarks instead of ghosting a wide strip.
+                float seam=tex2D(_SeamTex,float2(.5,i.uv.y)).r*_Overlap;
+                blend=lerp(blend,smoothstep(seam-_SeamFeather,seam+_SeamFeather,x),_UseSeam);
                 float alpha=lerp(b.a,a.a,blend);
                 float3 premul=lerp(b.rgb*b.a,a.rgb*a.a,blend);
                 fixed4 c=fixed4(premul/max(alpha,.0001),alpha)*i.color;

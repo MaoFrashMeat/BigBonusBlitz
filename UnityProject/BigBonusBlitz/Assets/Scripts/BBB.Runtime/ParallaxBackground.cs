@@ -33,7 +33,9 @@ namespace BBB.Runtime
         float weatherSeconds=2, hourFrom, hourTarget, hourBlend=1, hourSeconds=2;
         float offset, meshTimer;
         readonly float[] speeds={.007f,.024f,.065f};
-        readonly Vector2[] heights={new Vector2(.9f,.13f),new Vector2(.85f,-.01f),new Vector2(.34f,-.035f)};
+        // Tall middle-plane trees/columns touch the atlas crop. Keep that crop above the
+        // viewport instead of exposing a horizontal line at 84% of the screen height.
+        readonly Vector2[] heights={new Vector2(.9f,.13f),new Vector2(1.06f,-.01f),new Vector2(.34f,-.035f)};
         public static ParallaxBackground Create(RectTransform area)
         {
             var bg=area.gameObject.AddComponent<ParallaxBackground>();bg.Initialize(area);return bg;
@@ -72,6 +74,7 @@ namespace BBB.Runtime
             if(!instant && Profile!=null && Profile.id==next.id && HasIllustration)return;
             Profile=next;
             var tex=Resources.Load<Texture2D>(next.atlas);
+            var seam=Resources.Load<Texture2D>("Art/Adventure/Seams/"+next.id);
             if(tex==null)Debug.LogWarning("Adventure illustration missing: "+next.atlas);
             if(tex!=null){tex.wrapModeU=TextureWrapMode.Clamp;tex.wrapModeV=TextureWrapMode.Clamp;}
             activeBank=1-activeBank;
@@ -86,6 +89,11 @@ namespace BBB.Runtime
                     // MaskableGraphic caches stencil material copies. Use a new base when atlas rows change.
                     var old=layerMaterials[activeBank][i];var material=new Material(old.shader);
                     material.SetVector("_Row",new Vector4(im.uvRect.y,im.uvRect.height,.07f,i==2?0:.035f));
+                    if(seam!=null)
+                    {
+                        material.SetTexture("_SeamTex",seam);material.SetFloat("_UseSeam",1);
+                        material.SetFloat("_Overlap",.22f);material.SetFloat("_SeamFeather",.012f);
+                    }
                     layerMaterials[activeBank][i]=material;im.material=material;
                     if(Application.isPlaying)Destroy(old);else DestroyImmediate(old);
                 }
