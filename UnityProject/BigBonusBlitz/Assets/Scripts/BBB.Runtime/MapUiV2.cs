@@ -51,6 +51,7 @@ namespace BBB.Runtime
             var button = rt.gameObject.AddComponent<Button>(); button.targetGraphic = im;
             var colors = button.colors; colors.highlightedColor = new Color(1.12f, 1.12f, 1.12f); colors.pressedColor = new Color(.68f, .78f, .9f); colors.selectedColor = new Color(1.1f, 1.1f, 1.1f); colors.fadeDuration = .08f; button.colors = colors;
             button.onClick.AddListener(() => action?.Invoke());
+            HoverGlow.Attach(button, im);
             var label = UiFactory.Label(rt, "Label", Vector2.zero, size - new Vector2(48, 8), text, 18, TextAnchor.MiddleCenter, Color.white);
             label.fontStyle = FontStyle.Bold;
             var shadow = label.gameObject.AddComponent<Shadow>(); shadow.effectColor = new Color(0, 0, 0, .85f); shadow.effectDistance = new Vector2(0, -1);

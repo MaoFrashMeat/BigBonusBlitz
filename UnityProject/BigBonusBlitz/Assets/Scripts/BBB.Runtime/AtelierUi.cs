@@ -56,7 +56,7 @@ namespace BBB.Runtime
             var b = r.gameObject.AddComponent<Button>(); b.targetGraphic = im;
             var c = b.colors; c.highlightedColor = new Color(1.15f,1.15f,1.15f); c.selectedColor = new Color(1.2f,1.2f,1.2f); c.pressedColor = new Color(.7f,.8f,.85f); c.disabledColor = new Color(.55f,.55f,.55f); b.colors = c;
             Text(r,"Label",0,0,w-(w<60?6:20),h-4,text,fontSize,fg ?? Light,true,TextAnchor.MiddleCenter);   // 小さな四角のボタンは文字の幅をぎりぎりまで取る
-            MotionSound.Attach(b);
+            MotionSound.Attach(b); HoverGlow.Attach(b, im);
             b.onClick.AddListener(() => MotionSound.Invoke(name, action));
             r.gameObject.AddComponent<AtelierFocus>(); return b;
         }

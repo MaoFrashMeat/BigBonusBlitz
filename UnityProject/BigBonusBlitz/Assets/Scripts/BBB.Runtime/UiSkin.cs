@@ -971,6 +971,7 @@ namespace BBB.Runtime
                 cb0.fadeDuration = 0.06f;
                 btn0.colors = cb0;
                 MotionSound.Attach(btn0);
+                HoverGlow.Attach(btn0, body);   // 乗ったらうっすら明るく
             btn0.onClick.AddListener(() => MotionSound.Invoke(name, onClick));
                 if (lamp) Img(root, "Lamp", new Vector2(0, size.y * 0.5f - 7), new Vector2(size.x * 0.4f, 3), Rounded(2), new Color(1, 1, 1, 0.15f)).name = "Lamp";
                 return btn0;
@@ -993,6 +994,7 @@ namespace BBB.Runtime
             cb.fadeDuration = 0.06f;
             btn.colors = cb;
             MotionSound.Attach(btn);
+            HoverGlow.Attach(btn, body);
             btn.onClick.AddListener(() => MotionSound.Invoke(name, onClick));
             if (lamp)
             {
@@ -1067,6 +1069,7 @@ namespace BBB.Runtime
             cb.normalColor = color; cb.highlightedColor = color; cb.pressedColor = color * 0.7f; cb.selectedColor = color; cb.disabledColor = BtnDisabled; cb.colorMultiplier = 1f; cb.fadeDuration = 0.06f;
             btn.colors = cb;
             MotionSound.Attach(btn);
+            HoverGlow.Attach(btn, body);
             btn.onClick.AddListener(() => MotionSound.Invoke(name, onClick));
             return btn;
         }
