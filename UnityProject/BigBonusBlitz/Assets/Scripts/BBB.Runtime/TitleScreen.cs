@@ -342,7 +342,21 @@ namespace BBB.Runtime
 
         private void BuildSettings(Transform stage)
         {
-            _settingsBox = AtelierSettings.Build(stage, _audio, ToggleSettings);
+            // 「データ」の頁: セーブを消して最初から（2 度押しで確定。本人 2026-09-22「データを消すがタイトルの設定にない」）
+            _settingsBox = AtelierSettings.Build(stage, _audio, ToggleSettings, page =>
+            {
+                AtelierUi.Text(page, "ResetLabel", -52, 120, 312, 24, "セーブデータを消して最初から", 17, AtelierUi.Light, true);
+                AtelierUi.Text(page, "ResetDesc", -52, 88, 312, 40, "ソウル・装備・進み具合・実績がすべて消え、序章から始まります。\n音量などの設定は残ります。", 12, AtelierUi.Sub);
+                Text state = AtelierUi.Text(page, "ResetState", 0, 20, 400, 24, "", 13, UiSkin.Hex("#ffb2b4"), true, TextAnchor.MiddleCenter);
+                Button b = null;
+                b = AtelierUi.Button(page, "ResetSave", 0, -20, 300, "消して最初から始める", () =>
+                {
+                    if (Time.time <= _confirmUntil) { _audio.UiPop(); Begin(true); return; }
+                    _confirmUntil = Time.time + 4f;
+                    state.text = "本当に消します。4 秒以内にもう一度押すと確定";
+                    _audio.UiPop();
+                }, UiSkin.Hex("#6b3a44"), AtelierUi.Light, 48);
+            }, "データ");
             _settingsBox.SetActive(false);
         }
 

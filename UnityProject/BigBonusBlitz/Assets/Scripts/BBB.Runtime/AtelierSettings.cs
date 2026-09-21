@@ -17,7 +17,7 @@ namespace BBB.Runtime
     }
     public static class AtelierSettings
     {
-        public static GameObject Build(Transform stage,AudioManager audio,Action close,Action<RectTransform> gameControls=null)
+        public static GameObject Build(Transform stage,AudioManager audio,Action close,Action<RectTransform> gameControls=null,string page4Name="ゲーム設定")
         {
             var body=AtelierUi.Screen(stage,"Settings",AtelierUi.Night,close,out var overlay);
             AtelierUi.Header(body,"MAKE IT YOURS / PREFERENCES","あなたのための冒険",AtelierUi.Light);
@@ -30,7 +30,7 @@ namespace BBB.Runtime
             var summary=AtelierUi.Text(preview,"Summary",0,-144,200,44,"",12,AtelierUi.Sub);
             void Preview(){subtitle.gameObject.SetActive(AtelierPreferences.Subtitles);subtitle.fontSize=Mathf.RoundToInt(14*AtelierPreferences.Scale/100f);subtitleBg.GetComponent<Image>().color=AtelierPreferences.Contrast?Color.black:AtelierUi.Ink;summary.text=$"字幕 {AtelierPreferences.Scale}%\nタイトル演出 {(AtelierPreferences.Motion?"控えめ":"標準")}";}
             var roots=new RectTransform[gameControls==null?3:4];var tabs=new Button[roots.Length];
-            string[] names={"表示・演出","サウンド","操作ガイド","ゲーム設定"};
+            string[] names={"表示・演出","サウンド","操作ガイド",page4Name};
             for(int i=0;i<roots.Length;i++){roots[i]=UiSkin.Rect(body,"Page"+i,new Vector2(-36,-15),new Vector2(450,360));int ix=i;tabs[i]=AtelierUi.Button(body,"Tab"+i,-378,131-i*56,148,names[i],()=>{for(int j=0;j<roots.Length;j++){roots[j].gameObject.SetActive(j==ix);tabs[j].GetComponent<Image>().color=j==ix?UiSkin.Hex("#4c4265"):AtelierUi.Night;}Preview();},AtelierUi.Night);}
             void Row(Transform p,string id,float y,string label,string desc,Func<bool> get,Action<bool> set)
             {
