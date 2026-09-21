@@ -2408,7 +2408,14 @@ namespace BBB.Runtime
             ClearBellShow();
             // エンゲージ中は敵との戦闘が主役なので 3 体斬りは出さない
             if (_m.BonusMode != BonusMode.NORMAL && _m.CurrentFlag.IsBell() && !_m.IsTier2 && !_m.EnemyActive && _m.PrecursorRemaining == 0 && !_m.InAt) StartBonusBellShow();
-            if (_m.AtJustStarted) { StartCoroutine(AtStartRoutine()); SyncBgm(); _audio.Voice("at"); }   // 洞窟に入った（AT は Lever で始まるので、ここで曲も切り替える）
+            if (_m.AtJustStarted)
+            {
+                // 洞窟に入った（AT は Lever で始まるので、ここで曲も切り替える）
+                // Core は洞窟に入るとエンゲージを黙って捨てる（enemyResolved が来ない）ので、出ている敵と帯はここで逃がす
+                if (_enemyCg.alpha > 0f || _engageBandTop != null) { _audio.EnemyEscape(); StartCoroutine(EscapeRoutine()); SetMessage(_m.Config.engage?.texts?.escaped ?? "ENEMY ESCAPED...", false, ColTextSub); }
+                if (_precursorRoutine != null || _shadowImg.color.a > 0f) StopPrecursor();
+                StartCoroutine(AtStartRoutine()); SyncBgm(); _audio.Voice("at");
+            }
 
             // ウェイト: リールは即回転。停止ボタンだけ「前回レバーから SpinWaitSeconds」まで無効
             float waitSec = _autoMode ? SpinWaitSeconds / Mathf.Max(1, _autoSpeed) : SpinWaitSeconds;
