@@ -197,6 +197,9 @@ namespace BBB.Core
         /// <summary>街へ強制帰還する理由（"torch" / "credit"）。街に着いたら空に戻す。</summary>
         public string returnReason;
         public bool MustReturn => !string.IsNullOrEmpty(returnReason);
+        /// <summary>序章を見終えたか。opStep は途中で閉じたときの続き（"" = 逃走から / "town" = 街から / "gate" = 門の回転から）。</summary>
+        public bool opDone;
+        public string opStep = "";
     }
 
     public static class AdventureDirector

@@ -254,7 +254,19 @@ namespace BBB.Runtime
             SetMessage((_m.HeldBonusFlag != Flag.HAZE && _m.BonusAnnounceRemaining <= 0) ? "ボーナス成立中  ―  揃えてください" : "Ctrl または Space で BET");
             SyncBgm();
             PlayCharacter("walk");
-            // 章の頭に着いたところなら、導入を流す（周回なら「また来たのか」を足す）
+            // 序章（最初からゲームを始めたときだけ。docs/scenario_op.md）: 逃走 → 倒れる → 街 → 門の回転 → 本編
+            if (OpeningActive)
+            {
+                if (_m.Adv.opStep == "gate") StartCoroutine(OpeningGateRoutine());
+                else StartCoroutine(OpeningEscapeRoutine());
+                return;
+            }
+            PlayChapterOpening();
+        }
+
+        /// <summary>章の頭に着いたところなら、導入を流す（周回なら「また来たのか」を足す）。</summary>
+        private void PlayChapterOpening()
+        {
             if (_m.AdventureEnabled && _m.Adv.nodeId == _m.Config.adventure.start && _m.Adv.visited.Count <= 1)
             {
                 var lines = new System.Collections.Generic.List<StoryLine>();
@@ -264,6 +276,123 @@ namespace BBB.Runtime
                 if (lap != null) lines.AddRange(lap);
                 PlayStory(lines);
             }
+        }
+
+        // ================================================================== 序章（docs/scenario_op.md）
+        private OpeningPlayer _op;
+        /// <summary>逃走の場面（毎回ハズレで LIFE が尽きる）/ 門の回転（ベルが揃う）の間 true。</summary>
+        private bool _opEscape, _opGate;
+        private bool OpeningActive => _m.AdventureEnabled && _m.Config.story?.op != null && _m.Config.story.op.enabled && !_m.Adv.opDone
+                                      && _m.Config.story.op.scenes != null && _m.Config.story.op.scenes.Count > 0;
+        private string OpHeroName => (_m.Config.travelers ?? TravelerConfig.Default()).heroName ?? "主人公";
+
+        /// <summary>場面 1〜2: 岩場を逃げる台詞 → LIFE を数 G だけ持たせて回させる。尽きたら OpeningCollapseRoutine。</summary>
+        private IEnumerator OpeningEscapeRoutine()
+        {
+            var cfg = _m.Config.story.op;
+            _inputLocked = true;
+            _op = OpeningPlayer.Create(OpeningSkip, OpHeroName);
+            yield return _op.Play(cfg.Find("escape"));
+            if (_op == null || _op.Skipped) yield break;
+            // 灯は指先ほど: LIFE を lifeSpins に。回転はぜんぶハズレ
+            AdventureDirector.SetHp(_m.Config.adventure, _m.Adv, Mathf.Max(1, cfg.lifeSpins), _m.TorchSpinsPerUnit);
+            _m.Adv.returnReason = null;
+            RefreshUi();
+            yield return _op.FadeDim(0f, 0.5f);
+            _opEscape = true;
+            _inputLocked = false;
+            SetMessage("街へ ―― 灯が尽きる前に", true, ColAccent);
+            var sc = cfg.Find("collapse");
+            int shown = 0, baseSpins = _m.TotalSpinCount;
+            while (_opEscape && _op != null && !_op.Skipped)
+            {
+                // 回るたびに 1 行（灯が減る…）
+                if (sc != null && shown < sc.lines.Count && _m.TotalSpinCount - baseSpins > shown && !_m.IsGameActive && _dialogRoutine == null)
+                {
+                    var ln = sc.lines[shown++];
+                    if (ln != null && !string.IsNullOrEmpty(ln.text)) _dialogRoutine = StartCoroutine(HeroLineRoutine(OpHeroName, ln.text, 1.6f));
+                }
+                yield return null;
+            }
+        }
+
+        /// <summary>場面 3: 倒れて暗転。声だけの場面のあと、街（宿屋）へ。</summary>
+        private IEnumerator OpeningCollapseRoutine()
+        {
+            _opEscape = false;
+            _inputLocked = true; _leaving = true;
+            if (_autoMode) SetAuto(false, _autoSpeed);
+            PlayCharacter("hit");
+            _audio.EnemyEscape();
+            StartCoroutine(Effects.Miss(_charRt));
+            yield return new WaitForSeconds(0.6f);
+            if (_op != null && !_op.Skipped)
+            {
+                yield return _op.FadeDim(1f, 1.4f);
+                yield return new WaitForSeconds(0.6f);
+                yield return _op.Play(_m.Config.story.op.Find("dark"));
+            }
+            OpeningToTown("town");
+        }
+
+        /// <summary>街へ（序章の続きは MapScreen が opStep を見て進める）。</summary>
+        private void OpeningToTown(string step)
+        {
+            _m.Adv.opStep = step;
+            _m.Adv.returnReason = null;
+            _opEscape = false; _opGate = false;
+            SaveData.Save(_m, _audio);
+            _graph?.Save();
+            if (_op != null) { _op.Close(); _op = null; }
+            CloseModals();
+            var canvasGo = _stage != null ? _stage.GetComponentInParent<Canvas>()?.gameObject : null;
+            if (canvasGo != null) Destroy(canvasGo);
+            MapScreen.Open();
+            Destroy(gameObject);
+        }
+
+        /// <summary>場面 5 の門: 最初の本当の回転（ベルが揃う）。揃ったら場面 6 → 序章おわり → 章の導入。</summary>
+        private IEnumerator OpeningGateRoutine()
+        {
+            _opGate = true;
+            _inputLocked = false;
+            SetMessage("BET を押して、レバーを叩いて、三つ止める", true, ColGold);
+            yield break;
+        }
+
+        private IEnumerator OpeningOutroRoutine()
+        {
+            _opGate = false;
+            _inputLocked = true;
+            yield return new WaitForSeconds(1.2f);
+            _op = OpeningPlayer.Create(OpeningSkip, OpHeroName);
+            yield return _op.Play(_m.Config.story.op.Find("gate_out"));
+            OpeningFinish();
+            _inputLocked = false;
+            PlayChapterOpening();
+        }
+
+        private void OpeningFinish()
+        {
+            _m.Adv.opDone = true; _m.Adv.opStep = "";
+            _opEscape = false; _opGate = false;
+            if (_m.Adv.torches <= 0) AdventureDirector.ResetTorches(_m.Config.adventure, _m.Adv, _m.TorchSpinsPerUnit);
+            SaveData.Save(_m, _audio);
+            if (_op != null) { _op.Close(); _op = null; }
+            RefreshUi();
+        }
+
+        /// <summary>「飛ばす」: 序章を見終えた扱いにして街へ（門の場面なら、そのまま本編へ）。</summary>
+        private void OpeningSkip()
+        {
+            _audio.UiPop();
+            bool atGate = _opGate || _m.Adv.opStep == "gate";
+            StopAllCoroutines();
+            _dialogRoutine = null; HideDialogue();
+            _leaving = false;
+            OpeningFinish();
+            if (atGate) { _inputLocked = false; PlayChapterOpening(); }
+            else OpeningToTown("");
         }
 
         /// <summary>画面に出すステージ名（章ごとに story.stageNames で書き換えられる）。</summary>
@@ -2388,6 +2517,8 @@ namespace BBB.Runtime
 
         private void Lever()
         {
+            if (_opEscape) _m.DebugForceFlag = Flag.HAZE;        // 逃走: 灯が減るだけ
+            else if (_opGate) _m.DebugForceFlag = Flag.BELL_A;   // 門: 揃って灯が戻る
             _lastPayout = 0;
             _gainBetSerial++;
             CloseModals();
@@ -2793,6 +2924,8 @@ namespace BBB.Runtime
             if (_graph != null && _graph.Spins % 10 == 0) _graph.Save();   // 波形は 10G ごと（街へ戻るときと終了時にも）
             RefreshUi();
             if (r.chapterCleared) { StartCoroutine(ChapterClearRoutine(r)); return; }   // 街へ戻るのでオートは止める
+            if (_opEscape && (r.returnedToTown || _m.Hp <= 0)) { StartCoroutine(OpeningCollapseRoutine()); return; }   // 序章: 倒れる
+            if (_opGate) { StartCoroutine(OpeningOutroRoutine()); }                                                  // 序章: 門の回転が終わった
             if (r.returnedToTown) { StartCoroutine(ReturnToTownRoutine(r)); return; }        // ライフ切れ・エンバー切れ
             if (_autoMode) StartAuto();
         }

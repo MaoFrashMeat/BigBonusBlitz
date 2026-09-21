@@ -63,6 +63,8 @@ namespace BBB.Runtime
         public int[] advCounterValues = new int[0];
         public int advReplayChain;
         public int advDecidedPriority;
+        public bool advOpDone;
+        public string advOpStep = "";
         // 潜行中の拾い物と呪い（構造が深いので JSON 文字列で持つ）
         public string runEquip = "";
         public string runCurse = "";
@@ -110,6 +112,8 @@ namespace BBB.Runtime
                 advReturnReason = m.Adv.returnReason ?? "",
                 advReplayChain = m.Adv.replayChain,
                 advDecidedPriority = m.Adv.decidedPriority,
+                advOpDone = m.Adv.opDone,
+                advOpStep = m.Adv.opStep ?? "",
                 runEquip = RunIO.SaveEquip(m.Equip),
                 runCurse = RunIO.SaveCurse(m.Curse),
                 achievements = RunIO.SaveAchievements(m.Ach),
@@ -210,6 +214,8 @@ namespace BBB.Runtime
                         if (!string.IsNullOrEmpty(d.advCounterKeys[i])) m.Adv.counters[d.advCounterKeys[i]] = d.advCounterValues[i];
                 m.Adv.replayChain = Mathf.Max(0, d.advReplayChain);
                 m.Adv.decidedPriority = Mathf.Max(0, d.advDecidedPriority);
+                m.Adv.opDone = d.advOpDone;
+                m.Adv.opStep = d.advOpStep ?? "";
                 RunIO.LoadEquip(m.Equip, d.runEquip);
                 RunIO.LoadCurse(m.Curse, d.runCurse);
             }

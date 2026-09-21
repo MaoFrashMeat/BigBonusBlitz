@@ -2,6 +2,12 @@
   "entries": [
     {
       "date": "2026-09-21",
+      "version": "dev 308",
+      "title": "序章「灯の落ちた夜」を追加（新しいゲームのとき）",
+      "body": "・最初からゲームを始めると序章「灯の落ちた夜」（約 5 分）。逃走 → 灯が尽きて倒れる → 暗転 → 宿屋で目覚める → 灯守・商店・門 → 最初の回転 → 第 1 章\n・タップ / Space で台詞を送る。右上の「飛ばす」でいつでも本編へ。途中で閉じても続きから\n・台詞は game_config.json の story.op（docs/scenario_op.md）"
+    },
+    {
+      "date": "2026-09-21",
       "version": "dev 307",
       "title": "回復の LOG を短く（一言 + ＋n 回復した）",
       "body": "・「リプレイでライフが 3 回復した」→「おにぎりを食べた！  ＋3 回復した」のように短く。一言は game_config.json の adventure.resource.healLines からランダム"

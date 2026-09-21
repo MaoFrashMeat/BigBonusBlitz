@@ -60,10 +60,33 @@ namespace BBB.Core
         }
     }
 
+    /// <summary>序章の 1 場面（docs/scenario_op.md）。speaker: "" = 主人公、"声" = 姿のない語り手、"*" = ト書き、それ以外 = その名前。</summary>
+    [Serializable]
+    public sealed class OpeningScene
+    {
+        public string id = "";
+        /// <summary>画面を暗くする度合い（0 = そのまま、1 = 真っ黒）。</summary>
+        public float dim = 0.7f;
+        public List<StoryLine> lines = new List<StoryLine>();
+    }
+
+    /// <summary>序章（最初からゲームを始めたときだけ。本人の骨組み 2026-09-21）。</summary>
+    [Serializable]
+    public sealed class OpeningConfig
+    {
+        public bool enabled = true;
+        /// <summary>逃走の場面で持たせる LIFE（回転数）。これが尽きて倒れる。</summary>
+        public int lifeSpins = 4;
+        public List<OpeningScene> scenes = new List<OpeningScene>();
+        public OpeningScene Find(string id) { foreach (var s in scenes) if (s != null && s.id == id) return s; return null; }
+    }
+
     [Serializable]
     public sealed class StoryConfig
     {
         public bool enabled = true;
+        /// <summary>序章。</summary>
+        public OpeningConfig op = new OpeningConfig();
         /// <summary>「上の枝」とみなす枝番号の上限（1 なら最上位だけ）。</summary>
         public int highBranchMax = 2;
         /// <summary>「下の枝」とみなす、下からの枝数。</summary>

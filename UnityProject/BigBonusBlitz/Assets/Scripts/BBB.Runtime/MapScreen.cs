@@ -43,6 +43,10 @@ namespace BBB.Runtime
             bool hadRun = _m.Equip.Bag.Count > 0 || _m.Equip.Worn.Count > 0 || _m.Curse.Taken.Count > 0;
             _m.EndRun();
             if (hadRun) SaveData.Save(_m, _audio);
+            // 序章（docs/scenario_op.md）: 最初からなら逃走の場面へ（ゲーム画面）。倒れて戻ってきたなら宿屋の場面から
+            var opCfg = _m.Config.story?.op;
+            bool opening = _m.AdventureEnabled && opCfg != null && opCfg.enabled && opCfg.scenes != null && opCfg.scenes.Count > 0 && !_m.Adv.opDone;
+            if (opening && string.IsNullOrEmpty(_m.Adv.opStep)) { GameController.Launch(); Destroy(gameObject); return; }
             ArriveInTown();
             _audio.StartBgm("town");
             BuildUi();
@@ -80,15 +84,56 @@ namespace BBB.Runtime
         {
             UiFactory.EnsureEventSystem();
             _canvas = UiFactory.CreateCanvas("MapCanvas");
-            var bg = UiSkin.Img(_canvas.transform, "BG", Vector2.zero, Vector2.zero, null, UiSkin.Hex("#122e32"));
-            UiSkin.Stretch(bg.rectTransform);
-            _safe = SafeStage.Create(_canvas);
+            AzureMapSkin.Backdrop(_canvas.transform);
+            _safe = SafeStage.Create(_canvas,AzureMapSkin.Width,AzureMapSkin.Height);
             _atelierRefresh = AtelierMap.Build(_safe.Stage, _m, GoAdventure, OpenShop, OpenEquip, OpenTrophy, OpenSettings,
                 () => { _audio.UiPop(); StartCoroutine(BackToTitle()); }, out _infoText);
             _infoText.text = _arriveMessage;
             var fade = UiFactory.Panel(_canvas.transform,"Fade",Vector2.zero,new Vector2(4000,4000),Color.black);
             _fade = fade.gameObject.AddComponent<CanvasGroup>(); _fade.alpha=1; _fade.blocksRaycasts=false;
             StartCoroutine(FadeTo(0,.4f));
+            if (_m.AdventureEnabled && _m.Config.story?.op != null && !_m.Adv.opDone && _m.Adv.opStep == "town") StartCoroutine(OpeningTownRoutine());
+        }
+
+        // ---- 序章の街（場面 4〜5）: 宿屋で目覚める → 灯守（LIFE をもらう）→ 商店 → 門 → 冒険へ
+        private OpeningPlayer _op;
+        private IEnumerator OpeningTownRoutine()
+        {
+            var cfg = _m.Config.story.op;
+            _busy = true;
+            string hero = (_m.Config.travelers ?? TravelerConfig.Default()).heroName ?? "主人公";
+            _op = OpeningPlayer.Create(OpeningSkipInTown, hero);
+            _op.SetDim(1f);
+            yield return _op.Play(cfg.Find("inn"));
+            if (_op == null || _op.Skipped) yield break;
+            yield return _op.FadeDim(0.55f, 0.6f);
+            yield return _op.Play(cfg.Find("keeper"));
+            if (_op == null || _op.Skipped) yield break;
+            // 灯守が灯を分ける: LIFE が戻る
+            if (_m.Adv.torches <= 0) AdventureDirector.ResetTorches(_m.Config.adventure, _m.Adv, _m.TorchSpinsPerUnit);
+            _atelierRefresh?.Invoke();
+            yield return _op.Play(cfg.Find("shop"));
+            if (_op == null || _op.Skipped) yield break;
+            yield return _op.Play(cfg.Find("gate"));
+            if (_op == null || _op.Skipped) yield break;
+            _m.Adv.opStep = "gate";
+            SaveData.Save(_m, _audio);
+            _op.Close(); _op = null;
+            _busy = false;
+            GoAdventure();
+        }
+
+        private void OpeningSkipInTown()
+        {
+            _audio.UiPop();
+            StopAllCoroutines();
+            _m.Adv.opDone = true; _m.Adv.opStep = "";
+            if (_m.Adv.torches <= 0) AdventureDirector.ResetTorches(_m.Config.adventure, _m.Adv, _m.TorchSpinsPerUnit);
+            SaveData.Save(_m, _audio);
+            if (_op != null) { _op.Close(); _op = null; }
+            _busy = false;
+            _atelierRefresh?.Invoke();
+            if (_fade != null) _fade.alpha = 0;
         }
 
         private void OpenSettings()
