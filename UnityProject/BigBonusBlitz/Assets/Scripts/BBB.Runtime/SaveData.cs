@@ -294,6 +294,7 @@ namespace BBB.Runtime
         {
             PlayerPrefs.DeleteKey(Key);
             RunHistory.Clear();          // 冒険履歴も進行の記録なので一緒に消す
+            SlumpGraph.ClearSaved();     // スランプグラフの波形も（最初からなのに続きが出ていた 2026-09-22）
             PlayerPrefs.Save();
         }
     }
