@@ -148,7 +148,7 @@ namespace BBB.Core
         }
 
         /// <summary>2 ターン目: 構え × 役 → 結果と攻撃の大きさ。「力を貯める」のハズレだけ乱数。</summary>
-        public static EngageOutcome Resolve(EngageStance stance, EngageRole role, EngageConfig cfg, IRandom rng, out AttackSize size)
+        public static EngageOutcome Resolve(EngageStance stance, EngageRole role, EngageConfig cfg, IRandom rng, out AttackSize size, int guardBonus = 0, int dodgeBonus = 0)
         {
             size = AttackSize.None;
             switch (stance)
@@ -161,7 +161,7 @@ namespace BBB.Core
                     if (role == EngageRole.Small) { size = AttackSize.Medium; return EngageOutcome.Attack; }
                     if (role == EngageRole.Rare) { size = AttackSize.Large; return EngageOutcome.Attack; }
                     {
-                        int h = Math.Max(0, cfg.chargeLoseHit), g = Math.Max(0, cfg.chargeLoseGuard), d = Math.Max(0, cfg.chargeLoseDodge);
+                        int h = Math.Max(0, cfg.chargeLoseHit), g = Math.Max(0, cfg.chargeLoseGuard + guardBonus), d = Math.Max(0, cfg.chargeLoseDodge + dodgeBonus);
                         int total = h + g + d; if (total <= 0) return EngageOutcome.Hit;
                         int r = rng.Next(total);
                         if (r < h) return EngageOutcome.Hit;
@@ -191,20 +191,20 @@ namespace BBB.Core
         }
 
         /// <summary>ジャッジの率（%）: 削った割合 × scale + 役の上乗せ。min〜max に収める。</summary>
-        public static int JudgePercent(int hpLeft, int hpMax, EngageRole role, EngageConfig cfg)
+        public static int JudgePercent(int hpLeft, int hpMax, EngageRole role, EngageConfig cfg, int bonus = 0)
         {
             float ratio = hpMax > 0 ? 1f - Math.Max(0, Math.Min(hpLeft, hpMax)) / (float)hpMax : 0f;
-            int p = (int)Math.Round(ratio * 100f * cfg.judgeRatioScale) + (role == EngageRole.Rare ? cfg.judgeRareBonus : role == EngageRole.Small ? cfg.judgeSmallBonus : 0);
+            int p = (int)Math.Round(ratio * 100f * cfg.judgeRatioScale) + (role == EngageRole.Rare ? cfg.judgeRareBonus : role == EngageRole.Small ? cfg.judgeSmallBonus : 0) + bonus;
             return Math.Max(Math.Max(0, cfg.judgeMin), Math.Min(Math.Min(100, cfg.judgeMax), p));
         }
 
-        /// <summary>ポーションの回転: 役 → ルーレットの結果。</summary>
-        public static EngageOutcome Roulette(EngageRole role)
+        /// <summary>ポーションの回転: 役 → ルーレットの結果。smallDefeatPercent は装備で「小役でも討伐確定」になる率。</summary>
+        public static EngageOutcome Roulette(EngageRole role, IRandom rng = null, int smallDefeatPercent = 0)
         {
             switch (role)
             {
                 case EngageRole.Rare: return EngageOutcome.PotionDefeat;
-                case EngageRole.Small: return EngageOutcome.PotionLarge;
+                case EngageRole.Small: return rng != null && smallDefeatPercent > 0 && rng.NextDouble() * 100 < smallDefeatPercent ? EngageOutcome.PotionDefeat : EngageOutcome.PotionLarge;
                 default: return EngageOutcome.PotionHeal;
             }
         }

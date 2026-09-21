@@ -1120,6 +1120,1033 @@
     }
   },
   "tier2MaxSpins": 3,
+  "craft": {
+    "enabled": true,
+    "materials": [
+      {
+        "id": "iron",
+        "name": "鉄鉱",
+        "icon": "shield"
+      },
+      {
+        "id": "hide",
+        "name": "獣の革",
+        "icon": "boots"
+      },
+      {
+        "id": "gem",
+        "name": "魔石",
+        "icon": "amulet"
+      },
+      {
+        "id": "scale",
+        "name": "竜の鱗",
+        "icon": "oil"
+      }
+    ],
+    "recipes": [
+      {
+        "id": "sh_h_cap",
+        "name": "麻の帽子",
+        "slot": "head",
+        "icon": "lantern",
+        "tier": 1,
+        "effect": "torchSpins",
+        "value": 3,
+        "souls": 120,
+        "materialIds": [
+          "gem"
+        ],
+        "materialCounts": [
+          2
+        ],
+        "unlockChapter": 0,
+        "desc": "回復薬の効き +3G"
+      },
+      {
+        "id": "sh_h_band",
+        "name": "鉢巻",
+        "slot": "head",
+        "icon": "amulet",
+        "tier": 1,
+        "effect": "statTechnique",
+        "value": 1,
+        "souls": 150,
+        "materialIds": [
+          "gem"
+        ],
+        "materialCounts": [
+          2
+        ],
+        "unlockChapter": 0,
+        "desc": "テクニック +1"
+      },
+      {
+        "id": "sh_h_hood",
+        "name": "旅の頭巾",
+        "slot": "head",
+        "icon": "book",
+        "tier": 2,
+        "effect": "expGain",
+        "value": 6,
+        "souls": 380,
+        "materialIds": [
+          "gem",
+          "iron"
+        ],
+        "materialCounts": [
+          4,
+          1
+        ],
+        "unlockChapter": 1,
+        "desc": "EXP +6%"
+      },
+      {
+        "id": "sh_h_helm",
+        "name": "鉄の兜",
+        "slot": "head",
+        "icon": "shield",
+        "tier": 2,
+        "effect": "lifeDamageCut",
+        "value": 1,
+        "souls": 420,
+        "materialIds": [
+          "gem",
+          "iron"
+        ],
+        "materialCounts": [
+          4,
+          1
+        ],
+        "unlockChapter": 1,
+        "desc": "被弾の LIFE 減少 −1"
+      },
+      {
+        "id": "sh_h_circlet",
+        "name": "銀のサークレット",
+        "slot": "head",
+        "icon": "amulet",
+        "tier": 3,
+        "effect": "atStartPercent",
+        "value": 3,
+        "souls": 900,
+        "materialIds": [
+          "gem",
+          "iron"
+        ],
+        "materialCounts": [
+          7,
+          3
+        ],
+        "unlockChapter": 2,
+        "desc": "AT 期待度 +3%"
+      },
+      {
+        "id": "sh_h_owl",
+        "name": "梟の仮面",
+        "slot": "head",
+        "icon": "eye",
+        "tier": 3,
+        "effect": "treasureRate",
+        "value": 15,
+        "souls": 950,
+        "materialIds": [
+          "gem",
+          "iron"
+        ],
+        "materialCounts": [
+          7,
+          3
+        ],
+        "unlockChapter": 2,
+        "desc": "宝箱の当選率 +15%"
+      },
+      {
+        "id": "sh_h_crown",
+        "name": "古王の冠",
+        "slot": "head",
+        "icon": "amulet",
+        "tier": 4,
+        "effect": "statLife",
+        "value": 3,
+        "souls": 2200,
+        "materialIds": [
+          "gem",
+          "iron",
+          "scale"
+        ],
+        "materialCounts": [
+          10,
+          5,
+          2
+        ],
+        "unlockChapter": 3,
+        "desc": "ライフ +3"
+      },
+      {
+        "id": "sh_h_halo",
+        "name": "聖者の光輪",
+        "slot": "head",
+        "icon": "soul",
+        "tier": 4,
+        "effect": "judgeBonus",
+        "value": 10,
+        "souls": 2600,
+        "materialIds": [
+          "gem",
+          "iron",
+          "scale"
+        ],
+        "materialCounts": [
+          10,
+          5,
+          2
+        ],
+        "unlockChapter": 3,
+        "desc": "ジャッジ率 +10%"
+      },
+      {
+        "id": "sh_b_tunic",
+        "name": "布の服",
+        "slot": "body",
+        "icon": "potion",
+        "tier": 1,
+        "effect": "torchSpins",
+        "value": 4,
+        "souls": 130,
+        "materialIds": [
+          "hide"
+        ],
+        "materialCounts": [
+          2
+        ],
+        "unlockChapter": 0,
+        "desc": "回復薬の効き +4G"
+      },
+      {
+        "id": "sh_b_leather",
+        "name": "革鎧",
+        "slot": "body",
+        "icon": "shield",
+        "tier": 1,
+        "effect": "lifeDamageCut",
+        "value": 1,
+        "souls": 180,
+        "materialIds": [
+          "hide"
+        ],
+        "materialCounts": [
+          2
+        ],
+        "unlockChapter": 0,
+        "desc": "被弾の LIFE 減少 −1"
+      },
+      {
+        "id": "sh_b_robe",
+        "name": "学徒のローブ",
+        "slot": "body",
+        "icon": "book",
+        "tier": 2,
+        "effect": "soulGain",
+        "value": 6,
+        "souls": 400,
+        "materialIds": [
+          "hide",
+          "gem"
+        ],
+        "materialCounts": [
+          4,
+          1
+        ],
+        "unlockChapter": 1,
+        "desc": "ソウル +6%"
+      },
+      {
+        "id": "sh_b_chain",
+        "name": "鎖帷子",
+        "slot": "body",
+        "icon": "shield",
+        "tier": 2,
+        "effect": "statLife",
+        "value": 2,
+        "souls": 450,
+        "materialIds": [
+          "hide",
+          "gem"
+        ],
+        "materialCounts": [
+          4,
+          1
+        ],
+        "unlockChapter": 1,
+        "desc": "ライフ +2"
+      },
+      {
+        "id": "sh_b_scale",
+        "name": "鱗の鎧",
+        "slot": "body",
+        "icon": "shield",
+        "tier": 3,
+        "effect": "lifeDamageCut",
+        "value": 2,
+        "souls": 1000,
+        "materialIds": [
+          "hide",
+          "gem"
+        ],
+        "materialCounts": [
+          7,
+          3
+        ],
+        "unlockChapter": 2,
+        "desc": "被弾の LIFE 減少 −2"
+      },
+      {
+        "id": "sh_b_cloak",
+        "name": "夜霧の外套",
+        "slot": "body",
+        "icon": "boots",
+        "tier": 3,
+        "effect": "chargeDodgeRate",
+        "value": 10,
+        "souls": 950,
+        "materialIds": [
+          "hide",
+          "gem"
+        ],
+        "materialCounts": [
+          7,
+          3
+        ],
+        "unlockChapter": 2,
+        "desc": "力を貯めたハズレの回避率 +10%"
+      },
+      {
+        "id": "sh_b_plate",
+        "name": "竜騎士の板金",
+        "slot": "body",
+        "icon": "shield",
+        "tier": 4,
+        "effect": "statLife",
+        "value": 4,
+        "souls": 2400,
+        "materialIds": [
+          "hide",
+          "gem",
+          "scale"
+        ],
+        "materialCounts": [
+          10,
+          5,
+          2
+        ],
+        "unlockChapter": 3,
+        "desc": "ライフ +4"
+      },
+      {
+        "id": "sh_b_saint",
+        "name": "聖衣",
+        "slot": "body",
+        "icon": "potion",
+        "tier": 4,
+        "effect": "potionHeal",
+        "value": 3,
+        "souls": 2300,
+        "materialIds": [
+          "hide",
+          "gem",
+          "scale"
+        ],
+        "materialCounts": [
+          10,
+          5,
+          2
+        ],
+        "unlockChapter": 3,
+        "desc": "ポーションの回復 +3"
+      },
+      {
+        "id": "sh_g_cloth",
+        "name": "布の手袋",
+        "slot": "hands",
+        "icon": "amulet",
+        "tier": 1,
+        "effect": "statTechnique",
+        "value": 1,
+        "souls": 120,
+        "materialIds": [
+          "iron"
+        ],
+        "materialCounts": [
+          2
+        ],
+        "unlockChapter": 0,
+        "desc": "テクニック +1"
+      },
+      {
+        "id": "sh_g_work",
+        "name": "作業手袋",
+        "slot": "hands",
+        "icon": "sword",
+        "tier": 1,
+        "effect": "battleDamage",
+        "value": 5,
+        "souls": 160,
+        "materialIds": [
+          "iron"
+        ],
+        "materialCounts": [
+          2
+        ],
+        "unlockChapter": 0,
+        "desc": "狩猟ダメージ +5%"
+      },
+      {
+        "id": "sh_g_bracer",
+        "name": "鉄の腕輪",
+        "slot": "hands",
+        "icon": "sword",
+        "tier": 2,
+        "effect": "engageDamage",
+        "value": 5,
+        "souls": 420,
+        "materialIds": [
+          "iron",
+          "gem"
+        ],
+        "materialCounts": [
+          4,
+          1
+        ],
+        "unlockChapter": 1,
+        "desc": "エンゲージの攻撃ダメージ +5"
+      },
+      {
+        "id": "sh_g_thief",
+        "name": "盗賊の指貫",
+        "slot": "hands",
+        "icon": "eye",
+        "tier": 2,
+        "effect": "statLuck",
+        "value": 2,
+        "souls": 400,
+        "materialIds": [
+          "iron",
+          "gem"
+        ],
+        "materialCounts": [
+          4,
+          1
+        ],
+        "unlockChapter": 1,
+        "desc": "ラック +2"
+      },
+      {
+        "id": "sh_g_gauntlet",
+        "name": "鋼の籠手",
+        "slot": "hands",
+        "icon": "sword",
+        "tier": 3,
+        "effect": "battleDamage",
+        "value": 12,
+        "souls": 950,
+        "materialIds": [
+          "iron",
+          "gem"
+        ],
+        "materialCounts": [
+          7,
+          3
+        ],
+        "unlockChapter": 2,
+        "desc": "狩猟ダメージ +12%"
+      },
+      {
+        "id": "sh_g_guard",
+        "name": "守り手の手甲",
+        "slot": "hands",
+        "icon": "shield",
+        "tier": 3,
+        "effect": "chargeGuardRate",
+        "value": 12,
+        "souls": 950,
+        "materialIds": [
+          "iron",
+          "gem"
+        ],
+        "materialCounts": [
+          7,
+          3
+        ],
+        "unlockChapter": 2,
+        "desc": "力を貯めたハズレの防御率 +12%"
+      },
+      {
+        "id": "sh_g_dragon",
+        "name": "竜爪の籠手",
+        "slot": "hands",
+        "icon": "sword",
+        "tier": 4,
+        "effect": "engageDamage",
+        "value": 12,
+        "souls": 2500,
+        "materialIds": [
+          "iron",
+          "gem",
+          "scale"
+        ],
+        "materialCounts": [
+          10,
+          5,
+          2
+        ],
+        "unlockChapter": 3,
+        "desc": "エンゲージの攻撃ダメージ +12"
+      },
+      {
+        "id": "sh_g_fate",
+        "name": "運命の手袋",
+        "slot": "hands",
+        "icon": "eye",
+        "tier": 4,
+        "effect": "statLuck",
+        "value": 4,
+        "souls": 2300,
+        "materialIds": [
+          "iron",
+          "gem",
+          "scale"
+        ],
+        "materialCounts": [
+          10,
+          5,
+          2
+        ],
+        "unlockChapter": 3,
+        "desc": "ラック +4"
+      },
+      {
+        "id": "sh_f_sandal",
+        "name": "草鞋",
+        "slot": "feet",
+        "icon": "boots",
+        "tier": 1,
+        "effect": "statLuck",
+        "value": 1,
+        "souls": 110,
+        "materialIds": [
+          "hide"
+        ],
+        "materialCounts": [
+          2
+        ],
+        "unlockChapter": 0,
+        "desc": "ラック +1"
+      },
+      {
+        "id": "sh_f_shoes",
+        "name": "革靴",
+        "slot": "feet",
+        "icon": "boots",
+        "tier": 1,
+        "effect": "torchSpins",
+        "value": 3,
+        "souls": 130,
+        "materialIds": [
+          "hide"
+        ],
+        "materialCounts": [
+          2
+        ],
+        "unlockChapter": 0,
+        "desc": "回復薬の効き +3G"
+      },
+      {
+        "id": "sh_f_boots",
+        "name": "旅人の長靴",
+        "slot": "feet",
+        "icon": "boots",
+        "tier": 2,
+        "effect": "expGain",
+        "value": 7,
+        "souls": 400,
+        "materialIds": [
+          "hide",
+          "gem"
+        ],
+        "materialCounts": [
+          4,
+          1
+        ],
+        "unlockChapter": 1,
+        "desc": "EXP +7%"
+      },
+      {
+        "id": "sh_f_wind",
+        "name": "疾風の靴",
+        "slot": "feet",
+        "icon": "boots",
+        "tier": 2,
+        "effect": "statTechnique",
+        "value": 2,
+        "souls": 430,
+        "materialIds": [
+          "hide",
+          "gem"
+        ],
+        "materialCounts": [
+          4,
+          1
+        ],
+        "unlockChapter": 1,
+        "desc": "テクニック +2"
+      },
+      {
+        "id": "sh_f_seeker",
+        "name": "探索靴",
+        "slot": "feet",
+        "icon": "boots",
+        "tier": 3,
+        "effect": "treasureRate",
+        "value": 20,
+        "souls": 950,
+        "materialIds": [
+          "hide",
+          "gem"
+        ],
+        "materialCounts": [
+          7,
+          3
+        ],
+        "unlockChapter": 2,
+        "desc": "宝箱の当選率 +20%"
+      },
+      {
+        "id": "sh_f_iron",
+        "name": "鉄靴",
+        "slot": "feet",
+        "icon": "boots",
+        "tier": 3,
+        "effect": "statLife",
+        "value": 3,
+        "souls": 1000,
+        "materialIds": [
+          "hide",
+          "gem"
+        ],
+        "materialCounts": [
+          7,
+          3
+        ],
+        "unlockChapter": 2,
+        "desc": "ライフ +3"
+      },
+      {
+        "id": "sh_f_hermes",
+        "name": "韋駄天の靴",
+        "slot": "feet",
+        "icon": "boots",
+        "tier": 4,
+        "effect": "engageSets",
+        "value": 1,
+        "souls": 2600,
+        "materialIds": [
+          "hide",
+          "gem",
+          "scale"
+        ],
+        "materialCounts": [
+          10,
+          5,
+          2
+        ],
+        "unlockChapter": 3,
+        "desc": "エンゲージのセット数 +1"
+      },
+      {
+        "id": "sh_f_pilgrim",
+        "name": "巡礼者の靴",
+        "slot": "feet",
+        "icon": "boots",
+        "tier": 4,
+        "effect": "replayHeal",
+        "value": 2,
+        "souls": 2200,
+        "materialIds": [
+          "hide",
+          "gem",
+          "scale"
+        ],
+        "materialCounts": [
+          10,
+          5,
+          2
+        ],
+        "unlockChapter": 3,
+        "desc": "リプレイの回復 +2G"
+      },
+      {
+        "id": "sh_w_knife",
+        "name": "小刀",
+        "slot": "weapon",
+        "icon": "sword",
+        "tier": 1,
+        "effect": "engageDamage",
+        "value": 4,
+        "souls": 150,
+        "materialIds": [
+          "iron"
+        ],
+        "materialCounts": [
+          2
+        ],
+        "unlockChapter": 0,
+        "desc": "エンゲージの攻撃ダメージ +4"
+      },
+      {
+        "id": "sh_w_club",
+        "name": "棍棒",
+        "slot": "weapon",
+        "icon": "sword",
+        "tier": 1,
+        "effect": "battleDamage",
+        "value": 6,
+        "souls": 150,
+        "materialIds": [
+          "iron"
+        ],
+        "materialCounts": [
+          2
+        ],
+        "unlockChapter": 0,
+        "desc": "狩猟ダメージ +6%"
+      },
+      {
+        "id": "sh_w_sword",
+        "name": "鉄の剣",
+        "slot": "weapon",
+        "icon": "sword",
+        "tier": 2,
+        "effect": "engageDamage",
+        "value": 8,
+        "souls": 450,
+        "materialIds": [
+          "iron",
+          "gem"
+        ],
+        "materialCounts": [
+          4,
+          1
+        ],
+        "unlockChapter": 1,
+        "desc": "エンゲージの攻撃ダメージ +8"
+      },
+      {
+        "id": "sh_w_spear",
+        "name": "槍",
+        "slot": "weapon",
+        "icon": "sword",
+        "tier": 2,
+        "effect": "battleDamage",
+        "value": 12,
+        "souls": 450,
+        "materialIds": [
+          "iron",
+          "gem"
+        ],
+        "materialCounts": [
+          4,
+          1
+        ],
+        "unlockChapter": 1,
+        "desc": "狩猟ダメージ +12%"
+      },
+      {
+        "id": "sh_w_bow",
+        "name": "短弓",
+        "slot": "weapon",
+        "icon": "sword",
+        "tier": 2,
+        "effect": "engageCounterDamage",
+        "value": 15,
+        "souls": 480,
+        "materialIds": [
+          "iron",
+          "gem"
+        ],
+        "materialCounts": [
+          4,
+          1
+        ],
+        "unlockChapter": 1,
+        "desc": "カウンターのダメージ +15"
+      },
+      {
+        "id": "sh_w_axe",
+        "name": "戦斧",
+        "slot": "weapon",
+        "icon": "sword",
+        "tier": 3,
+        "effect": "engageLargeDamage",
+        "value": 20,
+        "souls": 1000,
+        "materialIds": [
+          "iron",
+          "gem"
+        ],
+        "materialCounts": [
+          7,
+          3
+        ],
+        "unlockChapter": 2,
+        "desc": "大攻撃のダメージ +20"
+      },
+      {
+        "id": "sh_w_rapier",
+        "name": "細剣",
+        "slot": "weapon",
+        "icon": "sword",
+        "tier": 3,
+        "effect": "engageDamage",
+        "value": 14,
+        "souls": 1050,
+        "materialIds": [
+          "iron",
+          "gem"
+        ],
+        "materialCounts": [
+          7,
+          3
+        ],
+        "unlockChapter": 2,
+        "desc": "エンゲージの攻撃ダメージ +14"
+      },
+      {
+        "id": "sh_w_staff",
+        "name": "賢者の杖",
+        "slot": "weapon",
+        "icon": "soul",
+        "tier": 3,
+        "effect": "soulGain",
+        "value": 12,
+        "souls": 1000,
+        "materialIds": [
+          "iron",
+          "gem"
+        ],
+        "materialCounts": [
+          7,
+          3
+        ],
+        "unlockChapter": 2,
+        "desc": "ソウル +12%"
+      },
+      {
+        "id": "sh_w_hammer",
+        "name": "大槌",
+        "slot": "weapon",
+        "icon": "sword",
+        "tier": 4,
+        "effect": "battleDamage",
+        "value": 25,
+        "souls": 2500,
+        "materialIds": [
+          "iron",
+          "gem",
+          "scale"
+        ],
+        "materialCounts": [
+          10,
+          5,
+          2
+        ],
+        "unlockChapter": 3,
+        "desc": "狩猟ダメージ +25%"
+      },
+      {
+        "id": "sh_w_holy",
+        "name": "聖剣",
+        "slot": "weapon",
+        "icon": "sword",
+        "tier": 4,
+        "effect": "engageDamage",
+        "value": 22,
+        "souls": 3000,
+        "materialIds": [
+          "iron",
+          "gem",
+          "scale"
+        ],
+        "materialCounts": [
+          10,
+          5,
+          2
+        ],
+        "unlockChapter": 3,
+        "desc": "エンゲージの攻撃ダメージ +22"
+      },
+      {
+        "id": "sh_t_charm",
+        "name": "木のお守り",
+        "slot": "accessory",
+        "icon": "soul",
+        "tier": 1,
+        "effect": "soulGain",
+        "value": 5,
+        "souls": 120,
+        "materialIds": [
+          "gem"
+        ],
+        "materialCounts": [
+          2
+        ],
+        "unlockChapter": 0,
+        "desc": "ソウル +5%"
+      },
+      {
+        "id": "sh_t_ring",
+        "name": "銅の指輪",
+        "slot": "accessory",
+        "icon": "amulet",
+        "tier": 1,
+        "effect": "atStartPercent",
+        "value": 2,
+        "souls": 160,
+        "materialIds": [
+          "gem"
+        ],
+        "materialCounts": [
+          2
+        ],
+        "unlockChapter": 0,
+        "desc": "AT 期待度 +2%"
+      },
+      {
+        "id": "sh_t_lens",
+        "name": "小さな水晶",
+        "slot": "accessory",
+        "icon": "lantern",
+        "tier": 2,
+        "effect": "atInitialSpins",
+        "value": 3,
+        "souls": 450,
+        "materialIds": [
+          "gem",
+          "iron"
+        ],
+        "materialCounts": [
+          4,
+          1
+        ],
+        "unlockChapter": 1,
+        "desc": "AT 初期G +3G"
+      },
+      {
+        "id": "sh_t_clover",
+        "name": "四つ葉",
+        "slot": "accessory",
+        "icon": "eye",
+        "tier": 2,
+        "effect": "statLuck",
+        "value": 2,
+        "souls": 420,
+        "materialIds": [
+          "gem",
+          "iron"
+        ],
+        "materialCounts": [
+          4,
+          1
+        ],
+        "unlockChapter": 1,
+        "desc": "ラック +2"
+      },
+      {
+        "id": "sh_t_locket",
+        "name": "銀のロケット",
+        "slot": "accessory",
+        "icon": "book",
+        "tier": 3,
+        "effect": "expGain",
+        "value": 12,
+        "souls": 950,
+        "materialIds": [
+          "gem",
+          "iron"
+        ],
+        "materialCounts": [
+          7,
+          3
+        ],
+        "unlockChapter": 2,
+        "desc": "EXP +12%"
+      },
+      {
+        "id": "sh_t_fang",
+        "name": "狼の牙",
+        "slot": "accessory",
+        "icon": "sword",
+        "tier": 3,
+        "effect": "judgeBonus",
+        "value": 8,
+        "souls": 1000,
+        "materialIds": [
+          "gem",
+          "iron"
+        ],
+        "materialCounts": [
+          7,
+          3
+        ],
+        "unlockChapter": 2,
+        "desc": "ジャッジ率 +8%"
+      },
+      {
+        "id": "sh_t_orb",
+        "name": "魂の宝珠",
+        "slot": "accessory",
+        "icon": "soul",
+        "tier": 4,
+        "effect": "soulGain",
+        "value": 20,
+        "souls": 2600,
+        "materialIds": [
+          "gem",
+          "iron",
+          "scale"
+        ],
+        "materialCounts": [
+          10,
+          5,
+          2
+        ],
+        "unlockChapter": 3,
+        "desc": "ソウル +20%"
+      },
+      {
+        "id": "sh_t_hourglass",
+        "name": "砂時計",
+        "slot": "accessory",
+        "icon": "lantern",
+        "tier": 4,
+        "effect": "potionDefeatSmall",
+        "value": 25,
+        "souls": 3000,
+        "materialIds": [
+          "gem",
+          "iron",
+          "scale"
+        ],
+        "materialCounts": [
+          10,
+          5,
+          2
+        ],
+        "unlockChapter": 3,
+        "desc": "ルーレットの小役で討伐確定になる率 +25%"
+      }
+    ]
+  },
   "engage": {
     "sets": 3, "lifeDamage": 3,
     "enemyHp": 100, "damageSmall": 15, "damageMedium": 35, "damageLarge": 70, "damageCounter": 50,
@@ -5865,7 +6892,9 @@
           "name": "地図の切れ端",
           "amount": 5,
           "rate": 4
-        }
+        },
+        { "kind": "material", "id": "iron", "name": "鉄鉱", "amount": 1, "rate": 35 },
+        { "kind": "material", "id": "hide", "name": "獣の革", "amount": 1, "rate": 25 }
       ]
     },
     "boss": {
@@ -5902,12 +6931,9 @@
           "amount": 15,
           "rate": 40
         },
-        {
-          "kind": "exp",
-          "name": "竜の鱗",
-          "amount": 120,
-          "rate": 50
-        }
+        { "kind": "exp", "name": "竜の記憶", "amount": 120, "rate": 50 },
+        { "kind": "material", "id": "scale", "name": "竜の鱗", "amount": 1, "rate": 100 },
+        { "kind": "material", "id": "gem", "name": "魔石", "amount": 2, "rate": 60 }
       ]
     },
     "hunt": {
@@ -5931,7 +6957,9 @@
           "name": "地図の切れ端",
           "amount": 5,
           "rate": 10
-        }
+        },
+        { "kind": "material", "id": "hide", "name": "獣の革", "amount": 2, "rate": 45 },
+        { "kind": "material", "id": "iron", "name": "鉄鉱", "amount": 1, "rate": 25 }
       ]
     },
     "treasure": {
@@ -5949,7 +6977,9 @@
           "name": "回復薬",
           "amount": 1,
           "rate": 10
-        }
+        },
+        { "kind": "material", "id": "gem", "name": "魔石", "amount": 1, "rate": 50 },
+        { "kind": "material", "id": "iron", "name": "鉄鉱", "amount": 2, "rate": 30 }
       ]
     }
   }

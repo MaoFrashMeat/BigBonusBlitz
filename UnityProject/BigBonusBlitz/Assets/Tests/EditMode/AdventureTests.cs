@@ -155,6 +155,9 @@ namespace BBB.Tests
         {
             var m = NewMachine(31);
             m.Config.adventure = TinyConfig();
+            m.Config.adventure.resource.replayHealAmount = 0;   // 回復と混ざると乱数次第で 500 G 以内に尽きない（落とし物の抽選が増えて乱数列が変わった 2026-09-21）
+            m.Config.adventure.resource.bonusBellHealRate = 0;
+            m.Config.adventure.chapterClearTorches = 0;         // 5 G × 3 ステージで章が終わり、回復薬 +2 で生き返ってしまう
             AdventureDirector.Reset(m.Config.adventure, m.Adv);
             AdventureDirector.ResetTorches(m.Config.adventure, m.Adv, m.TorchSpinsPerUnit);
             Assert.AreEqual(1, m.Adv.torches);
@@ -162,7 +165,7 @@ namespace BBB.Tests
             m.Credit = 100_000;
             var push = new SystemRandom(6);
             GameResult hit = null;
-            for (int g = 0; g < 500 && hit == null; g++)
+            for (int g = 0; g < 4000 && hit == null; g++)   // AT（洞窟）の間はライフが減らないので、長めに回す
             {
                 var r = PlayOne(m, push);
                 if (r.outOfTorch) hit = r;

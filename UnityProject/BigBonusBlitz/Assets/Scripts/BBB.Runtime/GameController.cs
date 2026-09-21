@@ -3264,6 +3264,12 @@ namespace BBB.Runtime
             var cfg = _m.Config.adventure;
             if (r.precursorStarted) lines.Add(r.enemyTable != null && r.enemyTable.IsBoss ? "嫌な気配…… 強い敵が近づいてくる" : "気配がする…… 敵が近づいてくる");
             if (r.treasurePrecursorStarted) lines.Add("……何か光った気がする");
+            if (r.materialsGained != null && r.materialsGained.Count > 0)
+            {
+                var ms = new System.Collections.Generic.List<string>();
+                foreach (var g in r.materialsGained) ms.Add($"{g.name} ×{g.amount}（{_m.Wallet.MaterialCount(g.id)}）");
+                lines.Add("素材: " + string.Join("、", ms) + "。街の工房で装備にできる");
+            }
             if (r.enemySpawned && r.enemyTable != null)
                 lines.Add(r.enemyTable.IsBoss ? $"中ボス {r.enemyTable.name}。{_m.EngageSets} セットのうちに攻撃を通せば倒せる"
                                               : $"{r.enemyTable.name}が現れた。1 ターン目で構え、2 ターン目で攻撃（{_m.EngageSets} セット）");

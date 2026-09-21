@@ -49,6 +49,8 @@ namespace BBB.Core
         public bool precursorStarted;
         /// <summary>エンゲージのこの G の出来事（構え / 被弾 / 攻撃 / ルーレット）。エンゲージ中でなければ null。</summary>
         public EngageStep engage;
+        /// <summary>この G で拾った素材（工房用）。</summary>
+        public List<MaterialGain> materialsGained = new List<MaterialGain>();
         /// <summary>宝箱の前兆。started = この G で当選して前兆が始まった、stage = 何 G 目か（1〜）。見つかった G は treasure が入る。</summary>
         public bool treasurePrecursorStarted; public int treasurePrecursorStage, treasurePrecursorTotal;
         /// <summary>このGの前兆段階（1..N）。前兆中でなければ 0。出現Gは N。</summary>
@@ -335,9 +337,9 @@ namespace BBB.Core
         public int HealHp(int amount)
             => AdventureDirector.HealHp(Config.adventure, Adv, amount, TorchSpinsPerUnit);
 
-        /// <summary>エンゲージのセット数（設定 + テクニック。テクニックの +G は 2 G で 1 セット）。</summary>
+        /// <summary>エンゲージのセット数（設定 + テクニック + 装備。テクニックの +G は 2 G で 1 セット）。</summary>
         public int EngageSets => Math.Max(1, (Config.engage?.sets ?? Math.Max(1, Config.tier2MaxSpins / 2))
-            + (StatsCfg != null ? (int)(TechniqueStat * StatsCfg.technique.engageSpins) / 2 : 0));
+            + (StatsCfg != null ? (int)(TechniqueStat * StatsCfg.technique.engageSpins) / 2 : 0) + BonusOf(ShopEffects.EngageSets));
         /// <summary>エンゲージのG数（セット × 2。ポーションの回転は数えない）。</summary>
         public int EngageMaxSpins => EngageSets * 2;
 
@@ -919,7 +921,7 @@ namespace BBB.Core
                 if (AdventureEnabled && repRes != null && repRes.enabled
                     && !heldAtLever && !StageHeld && repRes.replayHealAmount > 0)
                 {
-                    result.hpHealed += HealHp(repRes.replayHealAmount);
+                    result.hpHealed += HealHp(repRes.replayHealAmount + BonusOf(ShopEffects.ReplayHeal));
                 }
             }
             else
@@ -1179,6 +1181,11 @@ namespace BBB.Core
                     case "atSpins": Adv.stockAtSpins += e.amount; break;
                     case "atExpect": Adv.stockAtExpect += e.amount; break;
                     case "exp": got = ApplyExpBonus(e.amount); if (GainExp(got)) result.levelUp = true; break;
+                    case "material":
+                        if (string.IsNullOrEmpty(e.id)) continue;
+                        Wallet.AddMaterial(e.id, e.amount);
+                        result.materialsGained.Add(new MaterialGain { id = e.id, name = e.name, amount = e.amount });
+                        break;
                     default: continue;
                 }
                 result.itemDrops.Add(new DropEntry { kind = e.kind, name = e.name, amount = got, rate = e.rate });
@@ -1263,7 +1270,7 @@ namespace BBB.Core
                 }
                 else
                 {
-                    var rolled = AdventureDirector.RollTreasure(cfg, Adv, key, _rng, TreasureBonus);
+                    var rolled = AdventureDirector.RollTreasure(cfg, Adv, key, _rng, TreasureBonus + BonusOf(ShopEffects.TreasureRate));
                     if (rolled != null)
                     {
                         int lo = Math.Max(0, cfg.treasurePrecursorMin), hi = Math.Max(lo, cfg.treasurePrecursorMax);
@@ -1407,7 +1414,7 @@ namespace BBB.Core
                 EngageJudgeSpin = false;
                 step.judgeSpin = true;
                 step.outcome = EngageOutcome.Judge;
-                step.judgePercent = EngageBattle.JudgePercent(EngageHp, EngageHpMax, role, cfg);
+                step.judgePercent = EngageBattle.JudgePercent(EngageHp, EngageHpMax, role, cfg, BonusOf(ShopEffects.JudgeBonus));
                 LastDefeatPercent = step.judgePercent;
                 if (_rng.NextDouble() * 100 < step.judgePercent) { step.dealt = EngageHp; EngageHp = 0; step.hpLeft = 0; step.defeated = true; EnemyDefeatWon = true; }
                 _engageResolveNow = true;
@@ -1419,10 +1426,10 @@ namespace BBB.Core
                 // 追加の 1 回転: ルーレット
                 EngagePotionSpin = false;
                 step.potionSpin = true;
-                step.outcome = EngageBattle.Roulette(role);
+                step.outcome = EngageBattle.Roulette(role, _rng, BonusOf(ShopEffects.PotionDefeatSmall));
                 switch (step.outcome)
                 {
-                    case EngageOutcome.PotionHeal: step.healed = HealHp(Math.Max(0, cfg.potionHeal)); break;   // hpHealed には足さない（リプレイ・ベルの回復と分けて数える）
+                    case EngageOutcome.PotionHeal: step.healed = HealHp(Math.Max(0, cfg.potionHeal + BonusOf(ShopEffects.PotionHeal))); break;   // hpHealed には足さない（リプレイ・ベルの回復と分けて数える）
                     case EngageOutcome.PotionLarge: EngageNextLarge = true; break;
                     case EngageOutcome.PotionDefeat: step.dealt = EngageHp; EngageHp = 0; step.hpLeft = 0; step.defeated = true; LastDefeatPercent = 100; EnemyDefeatWon = true; _engageResolveNow = true; break;
                 }
@@ -1440,12 +1447,12 @@ namespace BBB.Core
             }
 
             // 2 ターン目
-            step.outcome = EngageBattle.Resolve(EngageStance, role, cfg, _rng, out var size);
+            step.outcome = EngageBattle.Resolve(EngageStance, role, cfg, _rng, out var size, BonusOf(ShopEffects.ChargeGuardRate), BonusOf(ShopEffects.ChargeDodgeRate));
             if ((step.outcome == EngageOutcome.Attack || step.outcome == EngageOutcome.Counter) && EngageNextLarge) { size = AttackSize.Large; EngageNextLarge = false; }
             step.attackSize = size;
             if (step.outcome == EngageOutcome.Hit)
             {
-                int dmg = Math.Max(0, cfg.lifeDamage);
+                int dmg = Math.Max(cfg.lifeDamage > 0 ? 1 : 0, cfg.lifeDamage - BonusOf(ShopEffects.LifeDamageCut));   // 装備で減らせるが 1 は減る
                 if (AdventureEnabled && dmg > 0 && (Config.adventure?.resource?.enabled ?? false))
                 {
                     int before = Hp;
@@ -1457,7 +1464,10 @@ namespace BBB.Core
             else if (size != AttackSize.None)
             {
                 // 攻撃が通った: ダメージで HP を削る。0 になればその場で討伐
-                step.dealt = Math.Min(EngageHp, EngageBattle.Damage(size, cfg, DefeatSkillBonus));
+                int bonus = DefeatSkillBonus + BonusOf(ShopEffects.EngageDamage)
+                          + (size == AttackSize.Large ? BonusOf(ShopEffects.EngageLargeDamage) : 0)
+                          + (size == AttackSize.Counter ? BonusOf(ShopEffects.EngageCounterDamage) : 0);
+                step.dealt = Math.Min(EngageHp, EngageBattle.Damage(size, cfg, bonus));
                 EngageHp = Math.Max(0, EngageHp - step.dealt);
                 step.hpLeft = EngageHp;
                 LastDefeatPercent = EngageHpMax > 0 ? step.dealt * 100 / EngageHpMax : 0;
@@ -1506,10 +1516,17 @@ namespace BBB.Core
             return got;
         }
 
+        /// <summary>踏破した章の数（工房の解放に使う）。</summary>
+        public int ChaptersCleared => Math.Max(0, Adv.chapter - 1);
+
+        /// <summary>工房で作る。作れなければ null。</summary>
+        public EquipItem Craft(CraftRecipe r, out bool worn)
+            => CraftDirector.Craft(Config.craft, Wallet, Equip, r, ChaptersCleared, out worn);
+
         /// <summary>潜行が終わったとき（街に着いたとき）に、拾い物と呪いを流す。</summary>
         public void EndRun()
         {
-            Equip.Clear();
+            Equip.ClearFound();   // 工房の品（crafted）は残す
             Curse.Clear();
         }
 

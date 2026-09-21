@@ -59,6 +59,30 @@ namespace BBB.Core
         public const string StatLuck = "statLuck";
         /// <summary>回復薬 1 個で回復するライフに + する。</summary>
         public const string TorchSpins = "torchSpins";
+        // ---- ターン制エンゲージ（2026-09-21。工房の装備が主に持つ）
+        /// <summary>エンゲージの攻撃ダメージ +n（全部の大きさ）。</summary>
+        public const string EngageDamage = "engageDamage";
+        /// <summary>大攻撃だけ +n。</summary>
+        public const string EngageLargeDamage = "engageLargeDamage";
+        /// <summary>カウンターだけ +n。</summary>
+        public const string EngageCounterDamage = "engageCounterDamage";
+        /// <summary>被弾の LIFE 減少 −n（最低 1）。</summary>
+        public const string LifeDamageCut = "lifeDamageCut";
+        /// <summary>「力を貯める」のハズレで防御 / 回避になる重みに +n。</summary>
+        public const string ChargeGuardRate = "chargeGuardRate";
+        public const string ChargeDodgeRate = "chargeDodgeRate";
+        /// <summary>ジャッジの率 +n%。</summary>
+        public const string JudgeBonus = "judgeBonus";
+        /// <summary>ルーレットの回復 +n。</summary>
+        public const string PotionHeal = "potionHeal";
+        /// <summary>ルーレットの小役で討伐確定になる率 %。</summary>
+        public const string PotionDefeatSmall = "potionDefeatSmall";
+        /// <summary>エンゲージのセット数 +n。</summary>
+        public const string EngageSets = "engageSets";
+        /// <summary>宝箱の当選率 +n（率に足す）。</summary>
+        public const string TreasureRate = "treasureRate";
+        /// <summary>リプレイの回復 +nG。</summary>
+        public const string ReplayHeal = "replayHeal";
     }
 
     public sealed class ShopConfig
@@ -77,10 +101,19 @@ namespace BBB.Core
         public int TotalEmbers;
         /// <summary>品ID → 所持レベル。</summary>
         public readonly Dictionary<string, int> Owned = new Dictionary<string, int>();
+        /// <summary>素材 id → 個数（工房で使う。恒久）。</summary>
+        public readonly Dictionary<string, int> Materials = new Dictionary<string, int>();
 
         public int LevelOf(string id) => id != null && Owned.TryGetValue(id, out var l) ? l : 0;
+        public int MaterialCount(string id) => id != null && Materials.TryGetValue(id, out var n) ? n : 0;
+        public void AddMaterial(string id, int delta)
+        {
+            if (string.IsNullOrEmpty(id)) return;
+            int n = System.Math.Max(0, MaterialCount(id) + delta);
+            if (n == 0) Materials.Remove(id); else Materials[id] = n;
+        }
 
-        public void Clear() { Souls = 0; TotalSouls = 0; Embers = 0; TotalEmbers = 0; Owned.Clear(); }
+        public void Clear() { Souls = 0; TotalSouls = 0; Embers = 0; TotalEmbers = 0; Owned.Clear(); Materials.Clear(); }
     }
 
     public static class ShopDirector

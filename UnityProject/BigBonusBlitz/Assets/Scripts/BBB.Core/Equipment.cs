@@ -151,6 +151,9 @@ namespace BBB.Core
         /// <summary>効果キー → 値。接辞と基礎をまとめたもの。</summary>
         public List<string> effectKeys = new List<string>();
         public List<int> effectValues = new List<int>();
+        /// <summary>工房で作った品（恒久。街に戻っても流れない。鞄の数に入らない。売れない）。</summary>
+        public bool crafted;
+        public string craftId = "";
 
         public int Of(string effect)
         {
@@ -194,6 +197,17 @@ namespace BBB.Core
 
         public void Clear() { Worn.Clear(); Bag.Clear(); }
 
+        /// <summary>鞄の数（工房の品は数えない）。</summary>
+        public int BagCount { get { int n = 0; foreach (var it in Bag) if (it != null && !it.crafted) n++; return n; } }
+
+        /// <summary>潜行の終わり: 拾い物だけ流し、工房の品は残す。</summary>
+        public void ClearFound()
+        {
+            Bag.RemoveAll(it => it == null || !it.crafted);
+            var keys = new List<string>(Worn.Keys);
+            foreach (var k in keys) if (Worn[k] == null || !Worn[k].crafted) Worn.Remove(k);
+        }
+
         /// <summary>装備中の合計。</summary>
         public int EffectTotal(string effect)
         {
@@ -211,6 +225,8 @@ namespace BBB.Core
         public string name = "";
         public int amount = 10;
         public int rate = 20;
+        /// <summary>kind が material のときの素材 id（craft.materials）。</summary>
+        public string id = "";
     }
 
     /// <summary>落とし物の出どころ 1 つ（敵 / ボス / 狩猟 / 宝箱）。</summary>
@@ -343,11 +359,11 @@ namespace BBB.Core
         {
             if (inv == null || item == null) return false;
             int cap = Math.Max(1, cfg?.bagSize ?? 12);
-            if (inv.Bag.Count < cap) { inv.Bag.Add(item); return true; }
-            // いっぱいなら、鞄の中で一番弱いものと比べる。弱ければ入れ替える
+            if (inv.BagCount < cap) { inv.Bag.Add(item); return true; }
+            // いっぱいなら、鞄の中で一番弱いものと比べる。弱ければ入れ替える（工房の品は入れ替えない）
             int worst = -1, worstPower = int.MaxValue;
             for (int i = 0; i < inv.Bag.Count; i++)
-                if (inv.Bag[i] != null && inv.Bag[i].Power < worstPower) { worstPower = inv.Bag[i].Power; worst = i; }
+                if (inv.Bag[i] != null && !inv.Bag[i].crafted && inv.Bag[i].Power < worstPower) { worstPower = inv.Bag[i].Power; worst = i; }
             if (worst < 0 || worstPower >= item.Power) return false;
             inv.Bag[worst] = item;
             return true;
@@ -420,7 +436,7 @@ namespace BBB.Core
         {
             var r = new List<EquipItem>();
             if (inv == null) return r;
-            foreach (var it in inv.Bag) if (it != null && it.rarity <= maxRarity && !inv.IsWorn(it)) r.Add(it);
+            foreach (var it in inv.Bag) if (it != null && !it.crafted && it.rarity <= maxRarity && !inv.IsWorn(it)) r.Add(it);
             return r;
         }
 
@@ -435,7 +451,7 @@ namespace BBB.Core
         /// <summary>売る: 着けていれば外し、鞄から消してソウルを足す。戻り値は入ったソウル。</summary>
         public static int Sell(EquipConfig cfg, EquipInventory inv, PlayerWallet wallet, EquipItem item)
         {
-            if (inv == null || item == null) return 0;
+            if (inv == null || item == null || item.crafted) return 0;   // 工房の品は売れない
             int value = SellValue(cfg, item);
             var wornAt = inv.WornSlotOf(item);
             if (wornAt != null) Unequip(inv, wornAt);
@@ -479,6 +495,18 @@ namespace BBB.Core
                 case ShopEffects.StatLife: return "ライフ";
                 case ShopEffects.StatTechnique: return "テクニック";
                 case ShopEffects.StatLuck: return "ラック";
+                case ShopEffects.EngageDamage: return "攻撃ダメージ";
+                case ShopEffects.EngageLargeDamage: return "大攻撃ダメージ";
+                case ShopEffects.EngageCounterDamage: return "カウンターダメージ";
+                case ShopEffects.LifeDamageCut: return "被弾の LIFE 減少";
+                case ShopEffects.ChargeGuardRate: return "防御率";
+                case ShopEffects.ChargeDodgeRate: return "回避率";
+                case ShopEffects.JudgeBonus: return "ジャッジ率";
+                case ShopEffects.PotionHeal: return "ポーションの回復";
+                case ShopEffects.PotionDefeatSmall: return "小役で討伐確定";
+                case ShopEffects.EngageSets: return "エンゲージのセット";
+                case ShopEffects.TreasureRate: return "宝箱の当選率";
+                case ShopEffects.ReplayHeal: return "リプレイの回復";
                 default: return effect;
             }
         }
@@ -508,9 +536,16 @@ namespace BBB.Core
             {
                 case ShopEffects.AtInitialSpins:
                 case ShopEffects.TorchSpins: return "G";
+                case ShopEffects.ReplayHeal: return "G";
                 case ShopEffects.StatLife:
                 case ShopEffects.StatTechnique:
-                case ShopEffects.StatLuck: return "";
+                case ShopEffects.StatLuck:
+                case ShopEffects.EngageDamage:
+                case ShopEffects.EngageLargeDamage:
+                case ShopEffects.EngageCounterDamage:
+                case ShopEffects.LifeDamageCut:
+                case ShopEffects.PotionHeal:
+                case ShopEffects.EngageSets: return "";
                 default: return "%";
             }
         }

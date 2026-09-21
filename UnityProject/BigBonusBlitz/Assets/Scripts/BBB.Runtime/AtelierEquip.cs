@@ -7,7 +7,8 @@ namespace BBB.Runtime
 {
     public static class AtelierEquip
     {
-        static readonly string[] Effects={ShopEffects.StatLife,ShopEffects.StatTechnique,ShopEffects.StatLuck,ShopEffects.DefeatBonus,ShopEffects.BattleDamage,ShopEffects.TorchSpins,ShopEffects.SoulGain,ShopEffects.ExpGain,ShopEffects.AtStartPercent,ShopEffects.AtInitialSpins};
+        static readonly string[] Effects={ShopEffects.StatLife,ShopEffects.StatTechnique,ShopEffects.StatLuck,ShopEffects.DefeatBonus,ShopEffects.BattleDamage,ShopEffects.TorchSpins,ShopEffects.SoulGain,ShopEffects.ExpGain,ShopEffects.AtStartPercent,ShopEffects.AtInitialSpins,
+            ShopEffects.EngageDamage,ShopEffects.EngageLargeDamage,ShopEffects.EngageCounterDamage,ShopEffects.LifeDamageCut,ShopEffects.ChargeGuardRate,ShopEffects.ChargeDodgeRate,ShopEffects.JudgeBonus,ShopEffects.PotionHeal,ShopEffects.PotionDefeatSmall,ShopEffects.EngageSets,ShopEffects.TreasureRate,ShopEffects.ReplayHeal};
         public static GameObject Build(Transform stage,SlotMachine m,AudioManager audio,Action onChanged,Action onClose,Action onStats=null,Action onCurses=null)
         {
             var body=AtelierUi.Screen(stage,"EquipCard",UiSkin.Hex("#e1e7e3"),onClose,out var overlay);
@@ -28,7 +29,7 @@ namespace BBB.Runtime
                 var items=new List<EquipItem>();foreach(var slot in EquipSlot.All){var it=m.Equip.WornOf(slot);if(it!=null)items.Add(it);}if(!wornOnly)items.AddRange(m.Equip.Bag);
                 if(selected==null||!items.Contains(selected))selected=items.Count>0?items[0]:null;
                 page=Mathf.Clamp(page,0,Mathf.Max(0,(items.Count-1)/4));
-                AtelierUi.Text(bag,"BagTitle",0,175,244,24,$"装備 {m.Equip.Worn.Count}/8  鞄 {m.Equip.Bag.Count}/{m.Config.equipment?.bagSize ?? 12}",14,AtelierUi.Ink,true);
+                AtelierUi.Text(bag,"BagTitle",0,175,244,24,$"装備 {m.Equip.Worn.Count}/8  鞄 {m.Equip.BagCount}/{m.Config.equipment?.bagSize ?? 12}",14,AtelierUi.Ink,true);
                 AtelierUi.Button(bag,"Filter",0,140,244,wornOnly?"装備中のみ  /  すべてを見る":"すべて  /  装備中のみ見る",()=>{wornOnly=!wornOnly;page=0;Refresh();},UiSkin.Hex("#cbd8d4"),AtelierUi.Ink,34);
                 // まとめ売り（棚 c13）: 鞄の中でレア度が bulkRarity 以下の品を全部（着けている物は売らない）。右の ▸ でレア度を回す
                 var rarities=m.Config.equipment?.rarities;var rr=rarities!=null&&bulkRarity<rarities.Count?rarities[bulkRarity]:new EquipRarity();
@@ -44,7 +45,7 @@ namespace BBB.Runtime
                     var b=AtelierUi.Button(bag,"Item"+i,0,y,244,"",()=>{selected=it;audio?.UiPop();Refresh();},it==selected?UiSkin.Hex("#b8d1cb"):UiSkin.Hex("#f0f3ed"),AtelierUi.Ink,54);
                     AtelierUi.Art(b.transform,"Icon",-91,0,42,42,AtelierUi.Icon(string.IsNullOrEmpty(it.icon)?"sword":it.icon));
                     AtelierUi.Text(b.transform,"Name",29,11,174,30,it.name,14,AtelierUi.Ink,true);
-                    AtelierUi.Text(b.transform,"State",29,-18,174,18,m.Equip.IsWorn(it)?"✓ 装備中 / "+EquipSlot.DisplayName(m.Equip.WornSlotOf(it)):EquipSlot.DisplayName(it.slot)+" / 鞄",11,AtelierUi.Muted);
+                    AtelierUi.Text(b.transform,"State",29,-18,174,18,(m.Equip.IsWorn(it)?"✓ 装備中 / "+EquipSlot.DisplayName(m.Equip.WornSlotOf(it)):EquipSlot.DisplayName(it.slot)+" / 鞄")+(it.crafted?"  工房":""),11,AtelierUi.Muted);
                 }
                 if(items.Count==0)AtelierUi.Text(bag,"Empty",0,-30,224,140,"まだ装備がありません。\n\n冒険中に敵や宝箱から入手できます。帰還すると探索装備は失われます。",17,AtelierUi.Muted);
                 var prev=AtelierUi.Button(bag,"Previous",-83,-190,78,"前",()=>{page--;Refresh();},UiSkin.Hex("#cbd8d4"),AtelierUi.Ink,40);prev.interactable=page>0;
@@ -53,7 +54,7 @@ namespace BBB.Runtime
                 if(selected==null){AtelierUi.Text(detail,"Empty",0,0,244,100,"装備を選んで\n強さを確かめよう。",23,AtelierUi.Light,true);return;}
                 var s=selected;string worn=m.Equip.WornSlotOf(s);var rarity=EquipDirector.RarityOf(m.Config.equipment,s);
                 AtelierUi.Text(detail,"Name",0,157,244,58,s.name,22,AtelierUi.Light,true);
-                AtelierUi.Text(detail,"Meta",0,113,244,24,$"{rarity?.name} / {EquipSlot.DisplayName(worn??s.slot)} / 深さ{s.level}",12,AtelierUi.Gold);
+                AtelierUi.Text(detail,"Meta",0,113,244,24,s.crafted?$"工房の品（恒久）/ {EquipSlot.DisplayName(worn??s.slot)} / 段 {s.level}":$"{rarity?.name} / {EquipSlot.DisplayName(worn??s.slot)} / 深さ{s.level}",12,AtelierUi.Gold);
                 AtelierUi.Text(detail,"CompareTitle",0,76,244,24,worn!=null?"外したあとの効果":"着け替え後の効果",16,AtelierUi.Light,true);
                 var replaced=worn!=null?s:m.Equip.WornOf(EquipDirector.TargetSlotFor(m.Equip,s)??"");
                 var lines=new List<string>();var colors=new List<Color>();
@@ -65,8 +66,8 @@ namespace BBB.Runtime
                 for(int i=0;i<lines.Count;i++){var t=AtelierUi.Text(content,"Effect"+i,0,-22-i*44,244,44,lines[i],14,colors[i]);t.rectTransform.anchorMin=t.rectTransform.anchorMax=new Vector2(.5f,1);}
                 if(lines.Count==0)AtelierUi.Text(view,"NoEffect",0,0,244,40,"効果の変化なし",16,AtelierUi.Sub);
                 var equip=AtelierUi.Button(detail,"Equip",0,-127,244,worn!=null?"装備を外す":"この装備を身に着ける",()=>{if(worn!=null)EquipDirector.Unequip(m.Equip,worn);else EquipDirector.Equip(m.Equip,s);SaveData.Save(m,audio);audio?.Motion(worn!=null?MotionCue.Unequip:MotionCue.Equip);onChanged?.Invoke();Refresh();},AtelierUi.Mint,AtelierUi.Ink);
-                equip.interactable=worn==null||m.Equip.Bag.Count<(m.Config.equipment?.bagSize??12);
-                AtelierUi.Button(detail,"Sell",0,-177,244,$"売却  +{EquipDirector.SellValue(m.Config.equipment,s):N0} ソウル",()=>AtelierUi.Confirm(body,$"{s.name} を売却します。\n装備中の場合は外れます。",()=>{int got=m.SellEquip(s);selected=null;SaveData.Save(m,audio);audio?.Motion(MotionCue.Sell);onChanged?.Invoke();footer.text=$"売却しました  +{got:N0} ソウル";Refresh();}),UiSkin.Hex("#384453"),AtelierUi.Light);
+                equip.interactable=worn==null||s.crafted||m.Equip.BagCount<(m.Config.equipment?.bagSize??12);
+                var sell=AtelierUi.Button(detail,"Sell",0,-177,244,s.crafted?"工房の品は売れない":$"売却  +{EquipDirector.SellValue(m.Config.equipment,s):N0} ソウル",()=>AtelierUi.Confirm(body,$"{s.name} を売却します。\n装備中の場合は外れます。",()=>{int got=m.SellEquip(s);selected=null;SaveData.Save(m,audio);audio?.Motion(MotionCue.Sell);onChanged?.Invoke();footer.text=$"売却しました  +{got:N0} ソウル";Refresh();}),UiSkin.Hex("#384453"),AtelierUi.Light);sell.interactable=!s.crafted;
             }
             if(onStats!=null)AtelierUi.Button(body,"Stats",198,231,112,"ステータス",onStats,UiSkin.Hex("#cad8d2"),AtelierUi.Ink);
             if(onCurses!=null)AtelierUi.Button(body,"Curses",328,231,112,"呪い",onCurses,UiSkin.Hex("#cad8d2"),AtelierUi.Ink);

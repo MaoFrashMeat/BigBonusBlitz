@@ -43,6 +43,9 @@ namespace BBB.Runtime
         public int[] missionProgress = new int[0];
         public string[] ownedIds = new string[0];
         public int[] ownedLevels = new int[0];
+        /// <summary>工房の素材（id と個数）。</summary>
+        public string[] materialIds = new string[0];
+        public int[] materialCounts = new int[0];
         // --- 冒険（ステージ制マップ）---
         public string advNode = "";
         public int advSpinsLeft;
@@ -121,6 +124,9 @@ namespace BBB.Runtime
             foreach (var kv in m.Wallet.Owned) { if (kv.Value <= 0) continue; ids.Add(kv.Key); lvs.Add(kv.Value); }
             d.ownedIds = ids.ToArray();
             d.ownedLevels = lvs.ToArray();
+            var matIds = new System.Collections.Generic.List<string>(); var matN = new System.Collections.Generic.List<int>();
+            foreach (var kv in m.Wallet.Materials) { if (kv.Value <= 0) continue; matIds.Add(kv.Key); matN.Add(kv.Value); }
+            d.materialIds = matIds.ToArray(); d.materialCounts = matN.ToArray();
             var mid = new System.Collections.Generic.List<string>();
             var mpr = new System.Collections.Generic.List<int>();
             foreach (var ms in m.Missions) { mid.Add(ms.id); mpr.Add(ms.progress); }
@@ -172,6 +178,10 @@ namespace BBB.Runtime
             if (d.ownedIds != null && d.ownedLevels != null)
                 for (int i = 0; i < d.ownedIds.Length && i < d.ownedLevels.Length; i++)
                     if (!string.IsNullOrEmpty(d.ownedIds[i]) && d.ownedLevels[i] > 0) m.Wallet.Owned[d.ownedIds[i]] = d.ownedLevels[i];
+            m.Wallet.Materials.Clear();
+            if (d.materialIds != null && d.materialCounts != null)
+                for (int i = 0; i < d.materialIds.Length && i < d.materialCounts.Length; i++)
+                    if (!string.IsNullOrEmpty(d.materialIds[i]) && d.materialCounts[i] > 0) m.Wallet.Materials[d.materialIds[i]] = d.materialCounts[i];
             // 冒険の進行。ステージが今の設定に無ければ章の最初へ
             if (m.AdventureEnabled)
             {
