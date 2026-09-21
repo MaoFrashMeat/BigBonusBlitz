@@ -22,6 +22,16 @@ namespace BBB.Tests
         }
 
         [Test]
+        public void リプレイは_揃った結果からでも小役()
+        {
+            // WinEvaluator はリプレイを isReplay だけで返す（winType は NONE）。その形のまま渡しても小役になること
+            var replay = new WinResult { isReplay = true, winType = WinType.NONE };
+            Assert.AreEqual(EngageRole.Small, EngageBattle.RoleOf(replay, false, false, Cfg), "EE ではリプレイも小役（2026-09-21）");
+            Assert.AreEqual(EngageRole.Lose, EngageBattle.RoleOf(new WinResult { winType = WinType.NONE }, false, false, Cfg));
+            Assert.AreEqual(EngageRole.Rare, EngageBattle.RoleOf(new WinResult { winType = WinType.CHERRY }, false, false, Cfg));
+        }
+
+        [Test]
         public void 一ターン目_役で構えが決まる()
         {
             Assert.AreEqual(EngageStance.EnemyAttack, EngageBattle.StanceOf(EngageRole.Lose));

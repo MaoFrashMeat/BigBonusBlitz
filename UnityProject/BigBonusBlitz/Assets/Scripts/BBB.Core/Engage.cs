@@ -108,6 +108,13 @@ namespace BBB.Core
     /// <summary>エンゲージの判定（乱数以外は純粋関数。テストしやすいように SlotMachine から切り出し）。</summary>
     public static class EngageBattle
     {
+        /// <summary>
+        /// 揃った結果から役の 3 分類。リプレイは WinResult.isReplay だけが立って winType は NONE のままなので、ここで REPLAY に読み替える
+        /// （本人の指示 2026-09-21「EE ではリプレイも小役扱い」。読み替えないとハズレ = 敵の攻撃になっていた）。
+        /// </summary>
+        public static EngageRole RoleOf(WinResult win, bool naviSuccess, bool naviFail, EngageConfig cfg)
+            => RoleOf(win.isReplay && win.winType == WinType.NONE ? WinType.REPLAY : win.winType, naviSuccess, naviFail, cfg);
+
         /// <summary>役の 3 分類。ベルの択ナビは success で分ける（失敗はこぼれてハズレ）。</summary>
         public static EngageRole RoleOf(WinType win, bool naviSuccess, bool naviFail, EngageConfig cfg)
         {

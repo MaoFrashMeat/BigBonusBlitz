@@ -1397,7 +1397,7 @@ namespace BBB.Core
             var cfg = Config.engage ?? new EngageConfig();
             bool naviSuccess = win.winType == WinType.BELL && Navi.Active && CurrentCommand == BellCommand.Success;
             bool naviFail = Navi.Active && CurrentCommand == BellCommand.Fail;
-            var role = EngageBattle.RoleOf(win.winType, naviSuccess, naviFail, cfg);
+            var role = EngageBattle.RoleOf(win, naviSuccess, naviFail, cfg);      // リプレイ（isReplay）も小役として数える
             var step = new EngageStep { set = EngageSet, sets = EngageSets, turn = EngageTurn, role = role, stance = EngageStance, hpLeft = EngageHp, hpMax = EngageHpMax };
             result.engage = step;
 
