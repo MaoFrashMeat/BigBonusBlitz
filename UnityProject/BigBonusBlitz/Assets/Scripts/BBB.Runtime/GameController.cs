@@ -976,6 +976,8 @@ namespace BBB.Runtime
             if (_m.IsGameActive || _inputLocked) { SetMessage("回転中は街へ戻れません", false, ColAccent); return; }
             _audio.UiPop();
             if (!_runRecorded) { RecordRun(_runEndReason); _runRecorded = true; }
+            // 章を踏破したらスランプグラフを取り直す（本人 2026-09-21）。履歴には踏破までの波形が残っている
+            if (_runEndReason == "clear" && _graph != null) { _graph.ResetTo(_m.Credit); _graph.SetGhost(null); _histPicked = -1; _mini?.ResetTo(_m.Credit); RedrawMini(); }
             SaveData.Save(_m, _audio);
             _graph?.Save();
             CloseModals();
