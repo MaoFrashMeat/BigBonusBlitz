@@ -25,7 +25,11 @@ BGM_DIR = os.path.join(ROOT, "UnityProject", "BigBonusBlitz", "Assets", "Resourc
 
 def meta_for(ext):
     """同じ拡張子の既存 .meta（Audio/SE）を型にする（無ければ wav のもの）。guid は新しく。"""
-    cands = [f for f in os.listdir(SE_DIR) if f.endswith(ext + ".meta")] or [f for f in os.listdir(SE_DIR) if f.endswith(".wav.meta")]
+    # 中身のある .meta だけを型にする（空の .meta を型にすると空が増殖し、Unity が読み込めず音が鳴らない。2026-09-21 に 32 件）
+    def valid(f):
+        try: return "AudioImporter:" in io.open(os.path.join(SE_DIR, f), encoding="utf-8").read()
+        except Exception: return False
+    cands = [f for f in sorted(os.listdir(SE_DIR)) if f.endswith(ext + ".meta") and valid(f)] or [f for f in sorted(os.listdir(SE_DIR)) if f.endswith(".meta") and valid(f)]
     src = io.open(os.path.join(SE_DIR, cands[0]), encoding="utf-8").read()
     lines = src.splitlines()
     for i, l in enumerate(lines):
