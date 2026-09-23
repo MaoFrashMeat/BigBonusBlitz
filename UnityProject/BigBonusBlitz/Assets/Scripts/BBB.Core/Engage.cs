@@ -62,11 +62,11 @@ namespace BBB.Core
 
     public sealed class EngageTexts
     {
-        public string turn1 = "SET {set}/{sets}  ハズレ→敵の攻撃  小役→力を貯める  レア役→攻撃確定＋ポーション";
-        public string enemyAttack = "SET {set}/{sets}  敵の攻撃！  ハズレ→被弾  小役→回避  レア役→回避してカウンター";
-        public string heroCharge = "SET {set}/{sets}  力を貯めた！  小役→中攻撃  レア役→大攻撃  ハズレ→被弾（たまに防御・回避）";
-        public string heroAttack = "SET {set}/{sets}  攻撃確定！  小役以下→中攻撃  レア役→大攻撃";
-        public string potion = "ポーション！  ハズレ→LIFE 回復  小役→次が大攻撃  レア役→討伐確定";
+        public string turn1 = "小役を引いて魔物を討伐しろ！";
+        public string enemyAttack = "敵の攻撃が来る！ 小役でかわせ！";
+        public string heroCharge = "力を貯めた！ 小役で斬れ！";
+        public string heroAttack = "攻撃確定！ レア役で大ダメージ！";
+        public string potion = "ポーション！ 役で効果が決まる！";
         public string hit = "敵の攻撃！  LIFE −{dmg}";
         public string guard = "防御！";
         public string dodge = "回避！";
@@ -80,7 +80,7 @@ namespace BBB.Core
         public string potionLarge = "次は大攻撃！";
         public string potionDefeat = "討伐確定！！";
         public string escaped = "敵は逃げた……";
-        public string judge = "JUDGE！  削った分だけ倒せる  小役・レア役で上乗せ";
+        public string judge = "JUDGE！ とどめを刺せ！";
         public string judgeWin = "とどめ！！";
         public string judgeLose = "……逃げられた";
     }
