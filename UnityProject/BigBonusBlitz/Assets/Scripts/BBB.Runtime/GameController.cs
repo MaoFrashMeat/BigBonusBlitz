@@ -976,6 +976,7 @@ namespace BBB.Runtime
 
             // ===== モーダル: 音量・設定 =====
             _autoStopMask = SaveData.LoadAutoStop();
+            _m.AutoEquipDrops = SaveData.LoadAutoEquip();
             _settingsBox = AtelierSettings.Build(_stage, _audio, ToggleSettings, sBody =>
             {
                 AzureUiControls.Label(sBody,"GameOptions",0,148,426,36,"冒険とAUTOの設定",22,true);
@@ -987,13 +988,16 @@ namespace BBB.Runtime
                 for(int i=0;i<3;i++)
                 {
                     int bit=bits[i];
-                    float y=14-i*46;
+                    float y=14-i*40;
                     AzureUiControls.Label(sBody,"AutoStopCaption"+i,-56,y,312,30,labels[i],16,true);
                     _autoStopBtns[i]=AzureUiControls.Switch(sBody,"AutoStop"+i,178,y,()=> (_autoStopMask&bit)!=0,
                         on=>{if(on)_autoStopMask|=bit;else _autoStopMask&=~bit;SaveData.SaveAutoStop(_autoStopMask);},RefreshAutoStopButtons);
                 }
-                AtelierUi.Button(sBody,"ResetSave",0,-139,426,"セーブデータを削除",OnResetSavePressed,UiSkin.Hex("#653642"));
-                _resetConfirm=AtelierUi.Text(sBody,"ResetConfirm",0,-193,426,48,"",15,AtelierUi.Gold);
+                // 拾った装備: 空き枠があれば着ける / 鞄へ入れるだけ（本人 2026-09-24）
+                AzureUiControls.Label(sBody,"AutoEquipCaption",-56,-112,312,30,"拾った装備を空き枠に着ける",16,true);
+                AzureUiControls.Switch(sBody,"AutoEquip",178,-112,()=>_m.AutoEquipDrops,on=>{_m.AutoEquipDrops=on;SaveData.SaveAutoEquip(on);},()=>{});
+                AtelierUi.Button(sBody,"ResetSave",0,-156,426,"セーブデータを削除",OnResetSavePressed,UiSkin.Hex("#653642"));
+                _resetConfirm=AtelierUi.Text(sBody,"ResetConfirm",0,-190,426,28,"",14,AtelierUi.Gold);
                 RefreshAutoStopButtons();RefreshGraphAlwaysLabel();
             });
             _settingsBox.SetActive(false);

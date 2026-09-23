@@ -288,6 +288,8 @@ namespace BBB.Core
         public List<AchievementDef> Achievements = new List<AchievementDef>();
         /// <summary>潜行中に拾った装備。街に戻ると流す。</summary>
         public readonly EquipInventory Equip = new EquipInventory();
+        /// <summary>拾った装備を、空いている枠があれば自動で着けるか（false なら鞄へ入れるだけ）。設定のオプション（本人 2026-09-24）。</summary>
+        public bool AutoEquipDrops = true;
         /// <summary>受けている呪いと祝福。</summary>
         public readonly CurseState Curse = new CurseState();
         public int PlayerLevel = 1;
@@ -1228,8 +1230,8 @@ namespace BBB.Core
             if (item == null) return;
             if (!EquipDirector.PickUp(ec, Equip, item)) { result.equipBagFull = true; result.equipDropped = item; return; }
             result.equipDropped = item;
-            // 空き枠があれば勝手に着る（埋まっていれば鞄に入れるだけ）
-            if (Equip.FreeSlotFor(item.slot) != null) { EquipDirector.Equip(Equip, item); result.equipAutoWorn = true; }
+            // 空き枠があれば勝手に着る（埋まっていれば鞄に入れるだけ）。設定で切ってあれば鞄へ
+            if (AutoEquipDrops && Equip.FreeSlotFor(item.slot) != null) { EquipDirector.Equip(Equip, item); result.equipAutoWorn = true; }
         }
 
         /// <summary>エンバーが尽きたら「力尽きた」として街へ帰す（ライフ切れは AdvanceAdventure 側）。</summary>

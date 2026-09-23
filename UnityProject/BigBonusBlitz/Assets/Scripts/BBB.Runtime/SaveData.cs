@@ -15,6 +15,7 @@ namespace BBB.Runtime
         private const string KeyAutoSpeed = "bbb_opt_auto_speed";
         private const string KeyGraphAlways = "bbb_graph_always";
         private const string KeyAutoStop = "bbb_opt_auto_stop";
+        private const string KeyAutoEquip = "bbb_opt_auto_equip";
         private const string KeyNewsSeen = "bbb_news_seen";
 
         public int credit;
@@ -279,6 +280,9 @@ namespace BBB.Runtime
         public const int AutoStopAchievement = 1, AutoStopRareEquip = 2, AutoStopBoss = 4, AutoStopDefault = 7;
         public static void SaveAutoStop(int mask) { PlayerPrefs.SetInt(KeyAutoStop, mask & 7); PlayerPrefs.Save(); }
         public static int LoadAutoStop() => PlayerPrefs.GetInt(KeyAutoStop, AutoStopDefault) & 7;
+        /// <summary>拾った装備を空き枠に自動で着けるか（既定 ON）。</summary>
+        public static void SaveAutoEquip(bool on) { PlayerPrefs.SetInt(KeyAutoEquip, on ? 1 : 0); PlayerPrefs.Save(); }
+        public static bool LoadAutoEquip() => PlayerPrefs.GetInt(KeyAutoEquip, 1) != 0;
 
         /// <summary>音量だけを別キーに保存する（セーブデータを消しても残る）。</summary>
         public static void SaveAudio(AudioManager audio)
