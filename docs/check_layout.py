@@ -213,19 +213,16 @@ for _i in range(5):
 _g.append(('取り直しボタン', -grH / 2 + 20, 28))
 stack('グラフの窓の縦', _g, top=grH / 2 - 38, bottom=-grH / 2 + CardEdge)
 
-# ---------------------------------------------------------------- 街のショップ
-W, H = 780.0, 500.0
-pad, closeD, soulW, tabW, titleW = 12.0, 30.0, 170.0, 104.0, 190.0
-closeCx = W / 2 - 14 - closeD / 2
-soulCx = closeCx - closeD / 2 - pad - soulW / 2
-tab3Cx = soulCx - soulW / 2 - pad - tabW / 2
-tab2Cx = tab3Cx - tabW - 8
-tab1Cx = tab2Cx - tabW - 8
-row('ショップの見出し行',
-    [('題名', -W / 2 + 20 + titleW / 2, titleW),
-     ('装備タブ', tab1Cx, tabW), ('補給タブ', tab2Cx, tabW), ('ステタブ', tab3Cx, tabW),
-     ('ソウル', soulCx, soulW), ('閉じる', closeCx, closeD)],
-    left=-W / 2, right=W / 2)
+# ---------------------------------------------------------------- 旅支度の商店（2026-09-21）
+row('ショップの見出し行', [('戻る',-490,150),('題名',-237,340),('ソウル',124,156),('エンバー',296,156),('副題',450,132),('閉じる',550,44)],left=-585,right=585)
+row('ショップの三列', [('分類',-398,176),('商品',-78,456),('詳細',318,328)],left=-585,right=585)
+row('ショップの縦スクロール', [('一覧',-19,386),('スクロールバー',202,44)],left=-228,right=228)
+stack('ショップの商品一覧', [('見出し',151,34),('スクロール表示域',-43,344),('操作ヒント',-227,18)],top=184,bottom=-244)
+row('ショップのコンパクト行', [('絵',-167,26),('名前',-47,202),('通貨',84,16),('価格',142,76)],left=-189,right=189)
+stack('ショップの10行表示', [(f'商品{i+1}',-18-i*34,32) for i in range(10)],top=0,bottom=-344)
+# 商品行のみ32px: ユーザー指定の約10行密度を優先。購入などの主要操作は44px以上を維持。
+stack('ショップの商品詳細', [('絵',99,142),('名前',6,44),('説明',-68,84),('所持',-127,26),('価格',-156,26),('購入',-207,52)],top=184,bottom=-244)
+if -207-52/2 < -270+24: FAIL.append('ショップ: 購入ボタンの下端余白不足')
 
 # ---------------------------------------------------------------- ミニマップ
 nodeW, nodeH = 264.0, 180.0
@@ -247,31 +244,26 @@ row('V2 map columns', [('actions', -324, 264), ('route', 142, 628)], left=-456, 
 row('V2 footer', [('back', -376, 160), ('life', -180, 196), ('supply', 40, 196), ('ember', 260, 196)], left=-480, right=480)
 stack('V2 map headings', [('chapter',150,28), ('current',124,20), ('columns',104,18), ('nodes',-22,227), ('legend',-158,22)], top=187, bottom=-187)
 
-# ---------------------------------------------------------------- 街の地図（アトリエ風、2026-09-14 組み直し）
-# AtelierMap.cs の定数を写す。下のボタン列は端から 24 以上、板どうし 20、上の要素と 16 以上（docs/ui_rules.md 12）
+# ---------------------------------------------------------------- 蒼の大陸マップ（2026-09-21）
 MARGIN, ROW_Y, ROW_H = 24.0, -224.0, 44.0
-VIEW_X, VIEW_Y, VIEW_W, VIEW_H = -158.0, -12.0, 592.0, 340.0
-DETAIL_X, DETAIL_W = 313.0, 282.0
-row('街の地図: 板の横並び', [('地図', VIEW_X, VIEW_W), ('詳細', DETAIL_X, DETAIL_W)], left=-480 + MARGIN, right=480 - MARGIN)
-tileW, tileGap = 118.0, 8.0
-tiles = []
-tx = 480 - MARGIN - tileW / 2
-for name in ['ソウル', 'エンバー', '補給', 'ライフ']:
-    tiles.append((name, tx, tileW)); tx -= tileW + tileGap
-row('街の地図: 上の札と見出し', [('見出し', -264, 380)] + tiles, left=-480 + MARGIN, right=480 - MARGIN)
-x = -480 + MARGIN
-btns = []
-for name, w in [('街のショップ', 150), ('装備', 108), ('実績', 108), ('設定', 108)]:
-    btns.append((name, x + w / 2, w)); x += w + 10
-btns.append(('タイトルへ', 480 - MARGIN - 75, 150))
-row('街の地図: 下のボタン列', btns, left=-480 + MARGIN, right=480 - MARGIN)
-stack('街の地図: 縦', [('小見出し', 235, 18), ('見出し', 203, 38), ('ヒント', 170, 20), ('地図', VIEW_Y, VIEW_H), ('ボタン列', ROW_Y, ROW_H)], top=270, bottom=-270)
-if ROW_Y - ROW_H / 2 < -270 + MARGIN - 0.5:
-    FAIL.append('街の地図: 下のボタン列が端から 24 未満')
-if (VIEW_Y - VIEW_H / 2) - (ROW_Y + ROW_H / 2) < 16 - 0.5:
-    FAIL.append('街の地図: 地図とボタン列の間が 16 未満')
-half = VIEW_H / 2
-stack('街の地図: 右の板の中', [('絵', 110, 96), ('状態', 53, 14), ('名前', 29, 30), ('事実', -19, 60), ('分岐条件', -82, 44), ('出発', -134, 44)], top=half - 12, bottom=-half + 12)
+VIEW_X, VIEW_Y, VIEW_W, VIEW_H = -186.0, -30.0, 726.0, 304.0
+DETAIL_X, DETAIL_W = 376.0, 356.0
+row('街の地図: 板の横並び', [('地図', VIEW_X, VIEW_W), ('詳細', DETAIL_X, DETAIL_W)], left=-585+MARGIN, right=585-MARGIN)
+tiles=[('戻る',-470,178),('ロゴ',-237,260),('ライフ',78,156),('補給',227,126),('エンバー',361,126),('ソウル',495,126)]
+row('街の地図: 上の操作と所持数', tiles, left=-585+MARGIN, right=585-MARGIN)
+x=-435
+btns=[]
+for name,w in [('街のショップ',164),('装備',140),('実績',140),('設定',140)]:
+    btns.append((name,x+w/2,w));x+=w+10
+btns.append(('タイトルへ',DETAIL_X,264))
+row('街の地図: 下のボタン列',btns,left=-585+MARGIN,right=585-MARGIN)
+stack('街の地図: 縦',[('操作バー',236,44),('章',201,20),('見出し',165,50),('ヒント',131,16),('地図',VIEW_Y,VIEW_H),('下の操作',ROW_Y,ROW_H)],top=270,bottom=-270)
+if ROW_Y-ROW_H/2 < -270+MARGIN-.5: FAIL.append('街の地図: 下端余白不足')
+# 地図下端 -182 / ボタン上端 -202。20px の間隔。
+if VIEW_Y-VIEW_H/2-(ROW_Y+ROW_H/2)<16-.5: FAIL.append('街の地図: 下の操作との間隔不足')
+stack('街の地図: 羊皮紙の中',[('絵',113,106),('名前',31,38),('事実',-21,60),('分岐条件',-93,44),('出発',-153,48)],top=180,bottom=-180)
+stack('街の地図: 所持数の札',[('項目',14,10),('値',-7,28)],top=22,bottom=-22)
+row('街の地図: 地点の名前札',[('左',0,140),('右',150,140)],left=-70,right=220)
 
 # ---------------------------------------------------------------- マップの丸
 print('\n■ ステージマップ（枝が最大 8 本のとき）')
@@ -289,18 +281,29 @@ for name, w, h in [('ゲーム中', 700.0, 340.0), ('街', 564.0, 258.0)]:
           f'縦{"OK" if ok_v else "NG"} 横{"OK" if ok_h else "NG"}  名前表示 {"あり" if g >= 44 else "なし"}')
 
 # ---------------------------------------------------------------- 結果
-row('Atelier shop header', [('title',-254,400), ('wallet',254,280), ('close',436,44)], left=-480, right=480)
-row('Atelier shop columns', [('categories',-397,166), ('products',-69,464), ('detail',329,302)], left=-480, right=480)
-stack('Atelier product text', [('name',22,48), ('price',-18,24), ('unit',-43,18)], top=57,bottom=-57)
-stack('Atelier shop detail', [('art',136,96), ('name',50,48), ('description',-20,86), ('owned',-80,24), ('total',-113,30), ('buy',-157,44)], top=191,bottom=-191)
-row('Atelier equip columns', [('portrait',-294,372), ('inventory',27,244), ('detail',310,292)], left=-480,right=480)
-stack('Atelier equip row', [('name',11,30), ('state',-18,18)], top=29,bottom=-29)
-stack('Atelier equip lower area', [('portrait',-30,300), ('stats',-208,44), ('footer',-247,24)], top=120,bottom=-270)
-row('Atelier map panels', [('map',-158,592), ('detail',313,282)], left=-480,right=480)
-row('Atelier map actions', [('shop',-376,156), ('equip',-226,120), ('trophy',-94,120), ('settings',38,120), ('back',197,174)], left=-480,right=480)
-row('Atelier settings columns', [('tabs',-378,148), ('controls',-36,450), ('preview',337,236)], left=-480,right=480)
+row('Azure equip columns', [('navigation',-542,68), ('portrait',-305,384), ('inventory',70,308), ('detail',408,310)], left=-585,right=585)
+stack('Azure equip row', [('name',10,30), ('state',-18,18)], top=27,bottom=-27)
+stack('Azure equip hero controls', [('pose',-168,44), ('stats',-222,48)], top=-140,bottom=-246)
+stack('Azure equip inventory', [('title',183,28),('filter',140,44),('bulk',90,44),('item1',32,54),('item2',-28,54),('item3',-88,54),('item4',-148,54),('pages',-214,44)],top=200,bottom=-240)
+stack('Azure equip detail', [('name',157,66),('meta',104,34),('comparison',58,26),('effects',-28,124),('scroll hint',-103,18),('equip',-136,44),('sell',-187,44)],top=216,bottom=-216)
+row('Azure equip bulk sale', [('sale',-28,228),('rarity',120,44)],left=-142,right=142)
+row('Atelier map panels', [('map',-186,726), ('detail',376,356)], left=-585,right=585)
+row('Atelier map actions',btns,left=-585,right=585)
+row('Azure settings columns', [('tabs',-442,216), ('controls',-50,480), ('preview',388,306)], left=-585,right=585)
+row('Azure settings switch row', [('label',-56,318),('switch',178,84)],left=-240,right=240)
+stack('Azure settings display', [('motion',126,58),('contrast',42,58),('subtitles',-42,58),('size label',-109,30),('slider',-148,44)],top=180,bottom=-180)
+stack('Azure settings heading', [('eyebrow',247,19),('title',212,50),('subtitle',173,26)],top=270,bottom=155)
+stack('Azure settings preview text', [('label',149,26),('quote',3,68),('copy',-85,70),('summary',-152,44)],top=187,bottom=-187)
+stack('Azure settings sound', [('BGM label',132,30),('BGM slider',94,44),('SE label',30,30),('SE slider',-8,44),('BGM toggle',-112,58)],top=180,bottom=-180)
+stack('Azure settings title data', [('title',132,36),('description',76,64),('confirmation',12,38),('delete',-45,48)],top=180,bottom=-220)
+stack('Azure settings adventure', [('title',148,36),('navigation',97,44),('AUTO title',53,26),('condition 1',14,44),('condition 2',-32,44),('condition 3',-78,44),('delete',-139,44),('confirmation',-193,48)],top=180,bottom=-220)
 stack('V2 button text', [('label',7,26), ('hint',-14,14)], top=28, bottom=-28)
 stack('V2 tool content', [('icon',7,20), ('caption',-12,14)], top=22, bottom=-22)
+row('ステータス強化: 上部', [('戻る',-475,172),('聖域',-238,276),('ソウル',241,180),('エンバー',437,180),('閉じる',550,44)],left=-585,right=585)
+row('ステータス強化: 三列', [('ライフ',-300,290),('テクニック',0,290),('ラック',300,290)],left=-500,right=500)
+stack('ステータス強化: 縦', [('題名',190,44),('レベルとポイント',153,24),('カード',-28,332),('振り直す',-222,44),('結果',-260,18)],top=270,bottom=-270)
+stack('ステータス強化: カード内文字', [('紋章',139,58),('能力名',90,34),('要約',51,36),('値',7,42),('効果',-51,62),('次の効果',-103,34),('加算',-143,44)],top=170,bottom=-170)
+row('ステータス強化: 効果の左右', [('項目',-29,142),('値',74,52)],left=-103,right=103)
 print()
 if FAIL:
     print('NG が %d 件:' % len(FAIL))

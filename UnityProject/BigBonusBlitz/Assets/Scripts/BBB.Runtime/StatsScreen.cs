@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using BBB.Core;
 using UnityEngine;
@@ -5,147 +6,119 @@ using UnityEngine.UI;
 
 namespace BBB.Runtime
 {
-    /// <summary>
-    /// ステータス（ライフ / テクニック / ラック）にポイントを振る画面。
-    /// 街のショップの「ステータス」タブと、冒険中の装備画面の「ステータス」ボタンから同じ板を出す。
-    /// 板は細い縁の紺（panel_navy_sm）。題は左上の紺のタブ。
-    /// </summary>
+    /// <summary>Celestial status sanctuary shared by town and adventure. Effects come from StatsDirector.</summary>
     public static class StatsScreen
     {
-        private static readonly Color Surface = UiSkin.Hex("#1b293b");
-        private static readonly Color Edge = UiSkin.Hex("#34465a");
-        private static readonly Color Muted = UiSkin.Hex("#b5c3d3");
-        private static readonly Color Gold = UiSkin.Hex("#e6c187");
-
-        /// <summary>冒険中に開く単独の窓。閉じるのは呼び手（onClose の中で Destroy する）。</summary>
-        public static GameObject Build(Transform stage, SlotMachine m, AudioManager audio, System.Action onChanged, System.Action onClose)
+        static readonly Color Muted = UiSkin.Hex("#c4cede"), Gold = UiSkin.Hex("#e9ce86");
+        public static GameObject Build(Transform stage, SlotMachine m, AudioManager audio, Action onChanged, Action onClose)
         {
-            const float W = 900f, H = 470f, edge = 22f;
-            var overlay = UiFactory.Panel(stage, "StatsOverlay", Vector2.zero, new Vector2(4000, 4000), new Color(0, 0, 0, 0.62f));
-            var eatBg = overlay.gameObject.AddComponent<Button>();
-            eatBg.transition = Selectable.Transition.None;
-            eatBg.onClick.AddListener(() => onClose?.Invoke());
-            var card = UiSkin.Card(overlay, "StatsCard", Vector2.zero, new Vector2(W, H), 16, frameOverride: "panel_navy_sm");
-            var eat = card.gameObject.AddComponent<Button>();      // 中を押しても閉じない
-            eat.transition = Selectable.Transition.None;
-            const float tabW = 150f, tabH = 40f;
-            var tab = UiSkin.Img(card, "Tab", new Vector2(-W * 0.5f + edge + tabW * 0.5f, H * 0.5f - 4), new Vector2(tabW, tabH), UiSkin.Frame("pill_navy_sm"), Color.white);
-            var title = UiFactory.Label(tab.transform, "Title", new Vector2(0, 1), new Vector2(tabW, tabH), "ステータス", 15, TextAnchor.MiddleCenter, UiSkin.Text);
-            title.fontStyle = FontStyle.Bold;
-            UiSkin.IconButton(card, "Close", new Vector2(W * 0.5f - edge, H * 0.5f - 4), 30, "×", () => onClose?.Invoke(), UiSkin.Btn, 16);
-
-            var note = Label(card, "Note", new Vector2(0, -H * 0.5f + 30), new Vector2(W - 80, 22), "ポイントを割り振って、自分だけの戦い方に", 12, TextAnchor.MiddleCenter, Muted);
-            // 板の中身は街と同じ。街の板より低いぶん、上に寄せる（見出し 152 / 札 136〜-122 / 振り直す -140 / 注 -205）
-            var root = UiSkin.Rect(card, "StatsRoot", new Vector2(0, 50), new Vector2(W, H));
-            System.Action refresh = null;
-            refresh = BuildPanel(root, m, audio, note, () => { onChanged?.Invoke(); refresh?.Invoke(); });
-            refresh();
-            return overlay.gameObject;
+            var body = AtelierUi.Screen(stage, "StatsCard", Color.clear, null, out var overlay);
+            body.sizeDelta = new Vector2(1170, 540);
+            var bg = UiSkin.Img(body, "Cosmos", Vector2.zero, body.sizeDelta, CelestialStatsSkin.Sprite("cosmos"), Color.white);
+            bg.raycastTarget = false;
+            bg.gameObject.AddComponent<AzureMapBleed>().Apply();
+            AzureMapSkin.Button(body, "Back", -475, 236, 172, "←  戻る", onClose);
+            AzureShopSkin.Label(body, "Sanctuary", -238, 236, 276, 42, "星詠みの聖域", 23, TextAnchor.MiddleLeft, Gold);
+            var souls = AzureShopSkin.Wallet(body, "SoulWallet", 241, 180, AtelierUi.Icon("soul"), "所持ソウル");
+            var embers = AzureShopSkin.Wallet(body, "EmberWallet", 437, 180, AtelierUi.Icon("ember"), "所持エンバー");
+            AzureMapSkin.Button(body, "Close", 550, 236, 44, "×", onClose);
+            AzureShopSkin.Surface(body, "IvorySanctuary", 0, -20, 1000, 468, true);
+            AzureShopSkin.Label(body, "Title", 0, 190, 550, 44, "ステータス強化", 28);
+            AtelierUi.Panel(body, "TitleRuleL", -338, 185, 118, 1, Gold);
+            AtelierUi.Panel(body, "TitleRuleR", 338, 185, 118, 1, Gold);
+            var noteBand = AtelierUi.Panel(body, "NoteBand", 0, -260, 1000, 20, UiSkin.Hex("#0b142b"));
+            var note = AtelierUi.Text(body, "Note", 0, -260, 980, 18,
+                "ポイントを割り振って、自分だけの戦い方に", 12, AzureMapSkin.Paper, false, TextAnchor.MiddleCenter);
+            void Wallets() { souls.text = m.Wallet.Souls.ToString("N0"); embers.text = m.Wallet.Embers.ToString("N0"); }
+            var refresh = BuildPanel(body, m, audio, note, onChanged, Wallets);
+            Wallets(); refresh();
+            return overlay;
         }
 
-        /// <summary>
-        /// 3 列の板を root に作る。返す Action で表示を更新する。
-        /// note は結果を書く欄（無ければ null）。onChanged は振ったあと・戻したあとに呼ぶ（セーブは中で済ませる）。
-        /// </summary>
-        public static System.Action BuildPanel(Transform root, SlotMachine m, AudioManager audio, Text note, System.Action onChanged)
+        /// <summary>Build once; update cached controls without rebuilding the hierarchy.</summary>
+        public static Action BuildPanel(Transform root, SlotMachine m, AudioManager audio, Text note, Action onChanged, Action onRefreshed = null)
         {
-            var statsCfg = m.Config.stats;
-            var head = Label(root, "StatHead", new Vector2(0, 102), new Vector2(840, 20), "", 14, TextAnchor.MiddleCenter, UiSkin.Text);
-            head.fontStyle = FontStyle.Bold;
-
-            const float colW = 272f;
-            var addButtons = new List<Button>();
-            var valueTexts = new List<Text>();
-            var effectTexts = new List<Text>();
-            var nextTexts = new List<Text>();
-            var colors = new[] { UiSkin.Hex("#3ddc84"), UiSkin.Hex("#ff7a45"), UiSkin.Hex("#ffcf3f") };
-            System.Action refresh = null;
-            void Say(string text, Color color) { if (note == null) return; note.text = text; note.color = color; }
-
+            var cfg = m.Config.stats;
+            var head = AtelierUi.Text(root, "StatHead", 0, 153, 680, 24, "", 17, AzureMapSkin.Ink, true, TextAnchor.MiddleCenter);
+            var addButtons = new List<Button>(); var addLabels = new List<Text>();
+            var values = new List<Text>(); var effectNames = new List<Text[]>(); var effectValues = new List<Text[]>(); var previews = new List<Text>();
+            var colors = new[] { UiSkin.Hex("#66edbb"), UiSkin.Hex("#ffad8a"), UiSkin.Hex("#ffe38b") };
+            var fills = new[] { UiSkin.Hex("#142b32"), UiSkin.Hex("#302030"), UiSkin.Hex("#2b2831") };
+            var summaries = new[] { "ライフを守り、\nエンバーの消費を抑える", "エンゲージと討伐率を強化\n戦いを有利に", "レア役とリプレイを引き寄せる\n宝との出会いを増やす" };
+            Action refresh = null;
+            void Say(string message, bool success) { if (note != null) { note.text = message; note.color = success ? UiSkin.Hex("#9cf2ce") : Gold; } }
             for (int i = 0; i < StatsDirector.Keys.Length; i++)
             {
                 string key = StatsDirector.Keys[i];
-                var col = colors[i];
-                float cx = (i - 1) * (colW + 12f);
-                var box = Card(root, "Stat_" + key, new Vector2(cx, -43), new Vector2(colW, 258));
-                UiSkin.Img(box, "Bar", new Vector2(0, 122), new Vector2(colW - 2, 5), UiSkin.Rounded(2), col);
-                var nm = Label(box, "Name", new Vector2(0, 99), new Vector2(colW - 20, 24), StatsDirector.DisplayName(key), 19, TextAnchor.MiddleCenter, UiSkin.Text);
-                nm.fontStyle = FontStyle.Bold;
-                Label(box, "Sum", new Vector2(0, 71), new Vector2(colW - 32, 30), StatsDirector.Summary(key), 13, TextAnchor.UpperCenter, Muted);
-                var val = UiSkin.Number(box, "Val", new Vector2(0, 34), new Vector2(colW - 20, 34), "0", 30, col);
-                val.alignment = TextAnchor.MiddleCenter;
-                valueTexts.Add(val);
-                var eff = Label(box, "Eff", new Vector2(0, -16), new Vector2(colW - 32, 56), "", 13, TextAnchor.UpperLeft, UiSkin.Text);
-                effectTexts.Add(eff);
-                var nxt = Label(box, "Next", new Vector2(0, -63), new Vector2(colW - 32, 28), "", 12, TextAnchor.UpperCenter, Muted);
-                nextTexts.Add(nxt);
-                string k = key;
-                var add = UiSkin.Button(box, "Add", new Vector2(0, -102), new Vector2(colW - 32, 44), "＋ 1 振る", () =>
+                var box = UiSkin.Rect(root, "Stat_" + key, new Vector2((i - 1) * 300, -28), new Vector2(290, 332));
+                CelestialStatsSkin.Card(box, fills[i]);
+                AtelierUi.Art(box, "Medallion", 0, 139, 58, 58, CelestialStatsSkin.Emblem(i));
+                AzureShopSkin.Label(box, "Name", 0, 90, 246, 34, StatsDirector.DisplayName(key), 21, TextAnchor.MiddleCenter, Color.white);
+                AtelierUi.Text(box, "Summary", 0, 51, 206, 36, summaries[i], 14, Muted, false, TextAnchor.MiddleCenter);
+                values.Add(AtelierUi.Text(box, "Val", 0, 7, 244, 42, "", 32, colors[i], true, TextAnchor.MiddleCenter));
+                AtelierUi.Panel(box, "Rule", 0, -17, 206, 1, Gold);
+                var names = new Text[3]; var amounts = new Text[3];
+                for (int row = 0; row < 3; row++)
                 {
-                    if (!StatsDirector.Spend(statsCfg, m.Stats, k)) { Say("振れるポイントがありません", UiSkin.Accent); refresh?.Invoke(); return; }
-                    audio?.UiPop();
-                    SaveData.Save(m, audio);
-                    Say($"{StatsDirector.DisplayName(k)} を上げました", UiSkin.Green);
-                    refresh?.Invoke();
-                    onChanged?.Invoke();
-                }, col, 14, false, 8, "btn_blue");
-                addButtons.Add(add);
+                    float y = -31 - row * 21;
+                    names[row] = AtelierUi.Text(box, "EffectName" + row, -29, y, 142, 20, "", 14, AzureMapSkin.Paper);
+                    amounts[row] = AtelierUi.Text(box, "EffectValue" + row, 74, y, 52, 20, "", 15, colors[i], true, TextAnchor.MiddleRight);
+                }
+                effectNames.Add(names); effectValues.Add(amounts);
+                previews.Add(AtelierUi.Text(box, "Next", 0, -103, 206, 34, "", 12, Muted, false, TextAnchor.MiddleCenter));
+                var add = AzureMapSkin.Button(box, "Add_" + key, 0, -143, 250, "＋ 1 振る", () =>
+                {
+                    if (!StatsDirector.Spend(cfg, m.Stats, key))
+                    { Say(m.Stats.Get(key) >= cfg.maxPerStat ? "この能力は最大まで強化されています" : "振れるポイントがありません", false); refresh?.Invoke(); return; }
+                    audio?.UiPop(); SaveData.Save(m, audio);
+                    Say(StatsDirector.DisplayName(key) + " を上げました", true);
+                    refresh?.Invoke(); onChanged?.Invoke();
+                }, false, 44, fontSize: 19);
+                addButtons.Add(add); addLabels.Add(add.GetComponentInChildren<Text>());
             }
-
-            var respec = UiSkin.Button(root, "Respec", new Vector2(0, -190), new Vector2(280, 36), "", () =>
+            int Cost() => m.Adv.chapter > 1 && cfg.freeRespecOnChapterClear ? 0 : Mathf.Max(0, cfg.respecCost);
+            var respec = AzureMapSkin.Button(root, "Respec", 0, -222, 392, "", () =>
             {
-                int cost = m.Adv.chapter > 1 && statsCfg.freeRespecOnChapterClear ? 0 : Mathf.Max(0, statsCfg.respecCost);
-                if (m.Wallet.Souls < cost) { Say("ソウルが足りません", UiSkin.Accent); refresh?.Invoke(); return; }
-                m.Wallet.Souls -= cost;
-                int back = StatsDirector.Respec(m.Stats);
-                audio?.UiPop();
-                SaveData.Save(m, audio);
-                Say($"{back} ポイントを戻しました", UiSkin.Green);
-                refresh?.Invoke();
-                onChanged?.Invoke();
-            }, Surface, 15, false, 8, "pill_navy_sm");
-
+                int quoted = Cost();
+                if (m.Stats.Total <= 0 || m.Wallet.Souls < quoted) { Say("振り直すポイント、またはソウルがありません", false); refresh?.Invoke(); return; }
+                AtelierUi.Confirm(root, $"振り分けた {m.Stats.Total} ポイントをすべて戻します。\n" +
+                    (quoted == 0 ? "今回は無料で振り直せます。" : $"{quoted:N0} ソウルを使用します。"), () =>
+                {
+                    // Recheck state and the quote; cancelling never spends currency.
+                    int cost = Cost();
+                    if (cost != quoted || m.Stats.Total <= 0 || m.Wallet.Souls < cost)
+                    { Say("状態が変わりました。所持数と費用をご確認ください", false); refresh?.Invoke(); return; }
+                    m.Wallet.Souls -= cost; int back = StatsDirector.Respec(m.Stats);
+                    audio?.UiPop(); SaveData.Save(m, audio);
+                    Say($"{back} ポイントを戻しました", true);
+                    refresh?.Invoke(); onChanged?.Invoke();
+                });
+            }, false, 44, "soul", 17);
+            var respecLabel = respec.GetComponentInChildren<Text>();
             refresh = () =>
             {
-                head.text = $"Lv {m.PlayerLevel}   振れるポイント {m.Stats.Unspent}";
-                head.color = m.Stats.Unspent > 0 ? Gold : Muted;
+                head.text = $"Lv {m.PlayerLevel}    振れるポイント {m.Stats.Unspent}";
                 for (int i = 0; i < StatsDirector.Keys.Length; i++)
                 {
-                    string key = StatsDirector.Keys[i];
-                    int cur = m.Stats.Get(key);
-                    valueTexts[i].text = $"{cur} / {statsCfg.maxPerStat}";
-                    effectTexts[i].text = StatsDirector.Effects(statsCfg, m.Stats, key);
-                    nextTexts[i].text = cur < statsCfg.maxPerStat ? StatsDirector.Describe(statsCfg, key, cur) : "これ以上は上げられない";
-                    addButtons[i].interactable = m.Stats.Unspent > 0 && cur < statsCfg.maxPerStat;
+                    string key = StatsDirector.Keys[i]; int cur = m.Stats.Get(key); bool maxed = cur >= cfg.maxPerStat;
+                    values[i].text = $"{cur} / {cfg.maxPerStat}";
+                    var lines = StatsDirector.Effects(cfg, m.Stats, key).Split('\n');
+                    for (int row = 0; row < 3; row++)
+                    {
+                        string line = row < lines.Length ? lines[row] : "";
+                        int split = line.LastIndexOf(' ');
+                        effectNames[i][row].text = split < 0 ? line : line.Substring(0, split).TrimEnd();
+                        effectValues[i][row].text = split < 0 ? "" : line.Substring(split + 1);
+                    }
+                    previews[i].text = maxed ? "最大まで強化済み" : StatsDirector.Describe(cfg, key, cur).Replace("   ", "\n");
+                    addButtons[i].interactable = !maxed && m.Stats.Unspent > 0;
+                    addLabels[i].text = maxed ? "強化完了" : m.Stats.Unspent > 0 ? "＋ 1 振る" : "ポイントなし";
                 }
-                int cost = m.Adv.chapter > 1 && statsCfg.freeRespecOnChapterClear ? 0 : Mathf.Max(0, statsCfg.respecCost);
-                UiSkin.SetButtonText(respec, cost == 0 ? "振り直す（無料）" : $"振り直す   {cost:N0} ソウル");
+                int cost = Cost(); respecLabel.text = cost == 0 ? "振り直す   無料" : $"振り直す   {cost:N0} ソウル";
                 respec.interactable = m.Stats.Total > 0 && m.Wallet.Souls >= cost;
+                onRefreshed?.Invoke();
             };
             return refresh;
-        }
-
-        private static Text Label(Transform parent, string name, Vector2 pos, Vector2 size, string text,
-            int fontSize, TextAnchor align, Color color)
-        {
-            var label = UiFactory.Label(parent, name, pos, size, text, fontSize, align, color);
-            label.horizontalOverflow = HorizontalWrapMode.Wrap;
-            label.verticalOverflow = VerticalWrapMode.Truncate;
-            return label;
-        }
-
-        /// <summary>札。紺のピル（pill_navy_sm）の絵。無ければ角丸の板。</summary>
-        private static RectTransform Card(Transform parent, string name, Vector2 pos, Vector2 size)
-        {
-            var root = UiSkin.Rect(parent, name, pos, size);
-            var frame = UiSkin.Frame("pill_navy_sm");
-            if (frame != null) UiSkin.Img(root, "Body", Vector2.zero, size, frame, Color.white, true);
-            else
-            {
-                UiSkin.Img(root, "Edge", Vector2.zero, size, UiSkin.Rounded(12), Edge);
-                UiSkin.Img(root, "Body", Vector2.zero, size - Vector2.one * 2, UiSkin.Rounded(11), UiSkin.Hex("#101b2a"), true);
-            }
-            return root;
         }
     }
 }

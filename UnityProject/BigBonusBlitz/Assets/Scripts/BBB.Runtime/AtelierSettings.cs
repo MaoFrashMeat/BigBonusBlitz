@@ -19,26 +19,66 @@ namespace BBB.Runtime
     {
         public static GameObject Build(Transform stage,AudioManager audio,Action close,Action<RectTransform> gameControls=null,string page4Name="ゲーム設定")
         {
-            var body=AtelierUi.Screen(stage,"Settings",AtelierUi.Night,close,out var overlay);
-            AtelierUi.Header(body,"MAKE IT YOURS / PREFERENCES","あなたのための冒険",AtelierUi.Light);
-            var preview=AtelierUi.Panel(body,"LivePreview",337,-18,236,352,UiSkin.Hex("#222940"));
-            AtelierUi.Text(preview,"Label",0,145,200,22,"LIVE PREVIEW",10,UiSkin.Hex("#c3b4e9"),true);
-            AtelierUi.Art(preview,"Scene",0,49,212,148,AtelierUi.Sprite("Art/UI/Title/sky_mountains_cloudsea"));
-            var subtitleBg=AtelierUi.Panel(preview,"SubtitleBg",0,3,204,74,AtelierUi.Ink);
-            var subtitle=AtelierUi.Text(subtitleBg,"Subtitle",0,0,188,68,"「さあ、霧の向こうへ。」",14,AtelierUi.Light,false,TextAnchor.MiddleCenter);
-            AtelierUi.Text(preview,"Copy",0,-80,200,74,"読みやすさも、\n冒険の大切な装備。",19,AtelierUi.Light,true);
-            var summary=AtelierUi.Text(preview,"Summary",0,-144,200,44,"",12,AtelierUi.Sub);
-            void Preview(){subtitle.gameObject.SetActive(AtelierPreferences.Subtitles);subtitle.fontSize=Mathf.RoundToInt(14*AtelierPreferences.Scale/100f);subtitleBg.GetComponent<Image>().color=AtelierPreferences.Contrast?Color.black:AtelierUi.Ink;summary.text=$"字幕 {AtelierPreferences.Scale}%\nタイトル演出 {(AtelierPreferences.Motion?"控えめ":"標準")}";}
+            var body=AtelierUi.Screen(stage,"Settings",Color.clear,null,out var overlay);body.sizeDelta=new Vector2(1170,540);body.gameObject.AddComponent<AzureScreenFit>().Apply();
+            var bg=UiSkin.Img(body,"Terrace",Vector2.zero,body.sizeDelta,AzureShopSkin.Sprite("terrace"),Color.white);bg.raycastTarget=false;bg.gameObject.AddComponent<AzureMapBleed>().Apply();
+            AzureShopSkin.Surface(body,"SettingsPaper",98,-57,908,410,true);
+            AzureShopSkin.Surface(body,"HeadingPaper",-34,209,600,118,false);
+            AzureMapSkin.Button(body,"Back",-442,233,180,"←  戻る",close,false,48,fontSize:20);
+            AzureUiControls.SquareButton(body,"Close",540,234,"×",close);
+            AzureUiControls.Label(body,"Eyebrow",-19,247,526,19,"SETTINGS",11,true);
+            AzureUiControls.Label(body,"Heading",-19,212,526,50,"あなたのための冒険",30,true);
+            AzureUiControls.Label(body,"Subheading",-19,173,526,26,"より快適に、あなただけの冒険を。",15,true);
+            var compass=AtelierUi.Art(body,"Compass",-309,224,44,44,AtelierUi.Sprite("Art/UI/Icons/compass"));compass.color=AzureUiControls.RuleGold;
+            var nav=UiSkin.Img(body,"Navigation",new Vector2(-442,-28),new Vector2(216,448),AtelierUi.Sprite("Art/UI/AzureSettings/navigation"),Color.white);nav.raycastTarget=false;
+            AzureShopSkin.Surface(body,"PreviewPaper",388,-33,306,374,true);
+            var preview=UiSkin.Rect(body,"LivePreview",new Vector2(388,-33),new Vector2(306,374));
+            var previewBar=UiSkin.Img(preview,"Header",new Vector2(0,149),new Vector2(288,44),AzureMapSkin.Sprite("button-navy"),Color.white);previewBar.type=Image.Type.Sliced;previewBar.pixelsPerUnitMultiplier=8;previewBar.raycastTarget=false;
+            var previewTitle=AtelierUi.Text(preview,"Label",0,149,244,26,"LIVE PREVIEW",13,AzureMapSkin.Gold,false,TextAnchor.MiddleCenter);AzureMapSkin.Typography(previewTitle);
+            var scene=UiSkin.Img(preview,"Scene",new Vector2(0,52),new Vector2(268,142),AzureShopSkin.Sprite("terrace"),Color.white);scene.raycastTarget=false;
+            var subtitleBg=AtelierUi.Panel(preview,"SubtitleBg",0,3,254,74,AzureMapSkin.Navy);AtelierUi.Edge(subtitleBg,AzureMapSkin.Gold);
+            var subtitle=AtelierUi.Text(subtitleBg,"Subtitle",0,0,236,68,"「さあ、霧の向こうへ。」",14,Color.white,false,TextAnchor.MiddleCenter);
+            AzureMapSkin.Typography(subtitle,true);
+            AzureUiControls.Label(preview,"Copy",0,-85,268,70,"読みやすさも、\n冒険の大切な装備。",21,true,TextAnchor.MiddleCenter);
+            AzureUiControls.Rule(preview,"SummaryRule",0,-125,244);
+            var summary=AzureUiControls.Label(preview,"Summary",0,-152,244,44,"",13,true);
+            void Preview()
+            {
+                subtitleBg.gameObject.SetActive(AtelierPreferences.Subtitles);
+                subtitle.fontSize=Mathf.RoundToInt(14*AtelierPreferences.Scale/100f);
+                subtitle.text=AtelierPreferences.Scale>=130?"「さあ、\n霧の向こうへ。」":"「さあ、霧の向こうへ。」";
+                subtitleBg.GetComponent<Image>().color=AtelierPreferences.Contrast?Color.black:AzureMapSkin.Navy;
+                summary.text=$"字幕 {(AtelierPreferences.Subtitles?AtelierPreferences.Scale+"%":"非表示")}\nタイトル演出 {(AtelierPreferences.Motion?"控えめ":"標準")}";
+            }
             var roots=new RectTransform[gameControls==null?3:4];var tabs=new Button[roots.Length];
             string[] names={"表示・演出","サウンド","操作ガイド",page4Name};
-            for(int i=0;i<roots.Length;i++){roots[i]=UiSkin.Rect(body,"Page"+i,new Vector2(-36,-15),new Vector2(450,360));int ix=i;tabs[i]=AtelierUi.Button(body,"Tab"+i,-378,131-i*56,148,names[i],()=>{for(int j=0;j<roots.Length;j++){roots[j].gameObject.SetActive(j==ix);tabs[j].GetComponent<Image>().color=j==ix?UiSkin.Hex("#4c4265"):AtelierUi.Night;}Preview();},AtelierUi.Night);}
+            string[] icons={"compass","music","book","gear"};
+            var reset=AzureMapSkin.Button(body,"ResetDisplay",-50,-232,304,"表示設定を初期値に戻す",()=>{AtelierPreferences.Defaults();BuildDisplay();Preview();},false,46,fontSize:16);
+            AzureUiControls.Label(body,"Saved",350,-246,360,26,"変更は端末に保存されます",13,true,TextAnchor.MiddleCenter);
+            void Tab(int index)
+            {
+                for(int j=0;j<roots.Length;j++)
+                {
+                    roots[j].gameObject.SetActive(j==index);
+                    var im=tabs[j].GetComponent<Image>();im.sprite=j==index?AzureMapSkin.Sprite("button-gold"):null;im.type=j==index?Image.Type.Sliced:Image.Type.Simple;im.color=j==index?Color.white:Color.clear;
+                    tabs[j].GetComponentInChildren<Text>().color=j==index?AzureMapSkin.Ink:AzureMapSkin.Paper;
+                }
+                reset.gameObject.SetActive(index==0);Preview();
+            }
+            for(int i=0;i<roots.Length;i++)
+            {
+                roots[i]=UiSkin.Rect(body,"Page"+i,new Vector2(-50,-25),new Vector2(480,360));int ix=i;
+                tabs[i]=AzureMapSkin.Button(body,"Tab"+i,-442,99-i*62,206,names[i],()=>Tab(ix),false,48,fontSize:17);
+                var label=tabs[i].GetComponentInChildren<Text>();label.rectTransform.anchoredPosition=new Vector2(16,0);label.rectTransform.sizeDelta=new Vector2(148,40);
+                var icon=AtelierUi.Sprite("Art/UI/Icons/"+icons[i])??AtelierUi.Icon(icons[i]);var image=AtelierUi.Art(tabs[i].transform,"Icon",-76,0,24,24,icon);image.color=AzureMapSkin.Gold;
+                if(i<roots.Length-1)AzureUiControls.Rule(body,"TabRule"+i,-442,69-i*62,164);
+            }
             void Row(Transform p,string id,float y,string label,string desc,Func<bool> get,Action<bool> set)
             {
-                AtelierUi.Text(p,id+"Label",-52,y+12,312,24,label,17,AtelierUi.Light,true);
-                AtelierUi.Text(p,id+"Desc",-52,y-14,312,25,desc,12,AtelierUi.Sub);
-                Button b=null; b=AtelierUi.Button(p,id,175,y,76,get()?"ON":"OFF",()=>{set(!get());AtelierUi.SetText(b,get()?"ON":"OFF");b.GetComponent<Image>().color=get()?UiSkin.Hex("#bba8e6"):UiSkin.Hex("#586175");Preview();},get()?UiSkin.Hex("#bba8e6"):UiSkin.Hex("#586175"),AtelierUi.Ink);
-                var switchImage=b.GetComponent<Image>();switchImage.sprite=UiSkin.Rounded(22);switchImage.type=Image.Type.Sliced;
-                AtelierUi.Panel(p,id+"Line",0,y-37,426,1,UiSkin.Hex("#2d3548"));
+                var accent=AtelierUi.Art(p,id+"Accent",-234,y+12,20,24,AtelierUi.Sprite("Art/UI/Icons/diamond_star"));accent.color=AzureUiControls.RuleGold;
+                AzureUiControls.Label(p,id+"Label",-56,y+12,318,30,label,18,true);
+                var description=AzureUiControls.Label(p,id+"Desc",-56,y-16,318,24,desc,13);description.fontStyle=FontStyle.Normal;description.color=AzureUiControls.Muted;
+                AzureUiControls.Switch(p,id,178,y,get,set,Preview);
+                AzureUiControls.Rule(p,id+"Line",0,y-40,438);
             }
             void BuildDisplay()
             {
@@ -46,36 +86,60 @@ namespace BBB.Runtime
                 Row(roots[0],"Motion",126,"タイトル演出を控えめに","髪・背景・花びらの動きを止めます",()=>AtelierPreferences.Motion,v=>AtelierPreferences.Motion=v);
                 Row(roots[0],"Contrast",42,"字幕を高コントラストに","会話の背景を黒、文字を白にします",()=>AtelierPreferences.Contrast,v=>AtelierPreferences.Contrast=v);
                 Row(roots[0],"Subtitles",-42,"会話字幕を表示","会話内容を文字で表示します",()=>AtelierPreferences.Subtitles,v=>AtelierPreferences.Subtitles=v);
-                AtelierUi.Text(roots[0],"ScaleLabel",-82,-105,260,26,"字幕サイズ",16,AtelierUi.Light,true);
-                var value=AtelierUi.Text(roots[0],"ScaleValue",165,-105,96,26,AtelierPreferences.Scale+"%",18,AtelierUi.Light,true,TextAnchor.MiddleRight);
-                var slider=UiFactory.Slider(roots[0],"SubtitleScale",new Vector2(0,-145),new Vector2(426,44),(AtelierPreferences.Scale-100)/50f,v=>{AtelierPreferences.Scale=100+Mathf.RoundToInt(v*5)*10;value.text=AtelierPreferences.Scale+"%";Preview();});StyleSlider(slider);
+                AzureUiControls.Label(roots[0],"ScaleLabel",-84,-109,260,30,"字幕サイズ",18,true);
+                var value=AzureUiControls.Label(roots[0],"ScaleValue",166,-109,94,30,AtelierPreferences.Scale+"%",18,true,TextAnchor.MiddleRight);
+                Slider slider=null;
+                slider=AzureUiControls.Slider(roots[0],"SubtitleScale",0,-148,366,(AtelierPreferences.Scale-100)/50f,v=>{
+                    AtelierPreferences.Scale=100+Mathf.RoundToInt(v*5)*10;slider.SetValueWithoutNotify((AtelierPreferences.Scale-100)/50f);value.text=AtelierPreferences.Scale+"%";Preview();
+                });
+                AzureUiControls.Label(roots[0],"SmallA",-207,-148,26,30,"A",14,true,TextAnchor.MiddleCenter);
+                AzureUiControls.Label(roots[0],"LargeA",207,-148,28,40,"A",25,true,TextAnchor.MiddleCenter);
             }
             BuildDisplay();
             if(audio!=null)
             {
                 void Volume(string id,string label,float y,Func<float> get,Action<float> set)
                 {
-                    AtelierUi.Text(roots[1],id+"Label",-100,y+38,224,26,label,18,AtelierUi.Light,true);
-                    var val=AtelierUi.Text(roots[1],id+"Value",170,y+38,86,26,Mathf.RoundToInt(get()*100)+"%",17,AtelierUi.Light,true,TextAnchor.MiddleRight);
-                    var slider=UiFactory.Slider(roots[1],id,new Vector2(0,y),new Vector2(426,44),get(),v=>{set(v);val.text=Mathf.RoundToInt(v*100)+"%";SaveData.SaveAudio(audio);});
-                    StyleSlider(slider);slider.gameObject.AddComponent<SliderReleaseSound>().OnRelease=()=>{audio.UiPop();SaveData.SaveAudio(audio);PlayerPrefs.Save();};
+                    AzureUiControls.Label(roots[1],id+"Label",-100,y+38,224,30,label,20,true);
+                    var val=AzureUiControls.Label(roots[1],id+"Value",170,y+38,86,30,Mathf.RoundToInt(get()*100)+"%",18,true,TextAnchor.MiddleRight);
+                    var slider=AzureUiControls.Slider(roots[1],id,0,y,426,get(),v=>{set(v);val.text=Mathf.RoundToInt(v*100)+"%";SaveData.SaveAudio(audio);PlayerPrefs.Save();});
+                    slider.gameObject.AddComponent<SliderReleaseSound>().OnRelease=()=>{audio.UiPop();SaveData.SaveAudio(audio);PlayerPrefs.Save();};
+                    AzureUiControls.Rule(roots[1],id+"Line",0,y-34,438);
                 }
                 Volume("BgmSlider","BGM音量",94,()=>audio.BgmVolume,v=>audio.BgmVolume=v);
                 Volume("SeSlider","効果音の音量",-8,()=>audio.SeVolume,v=>audio.SeVolume=v);
-                Row(roots[1],"BgmToggle",-100,"BGMを再生","音楽の再生を切り替えます",()=>audio.BgmEnabled,v=>{if(v!=audio.BgmEnabled)audio.ToggleBgm();SaveData.SaveAudio(audio);PlayerPrefs.Save();});
+                Row(roots[1],"BgmToggle",-112,"BGMを再生","音楽の再生を切り替えます",()=>audio.BgmEnabled,v=>{if(v!=audio.BgmEnabled)audio.ToggleBgm();SaveData.SaveAudio(audio);PlayerPrefs.Save();});
             }
-            AtelierUi.Text(roots[2],"Keys",0,30,426,260,"方向キー：メニュー選択\nEnter：決定\nEsc：閉じる\n\n冒険：Ctrl / SpaceでBET\nZ・X・Cでリール停止\nA：AUTO   S：速度\nE：装備   M：マップ",18,AtelierUi.Light);
-            if(gameControls!=null)gameControls(roots[3]);
-            AtelierUi.Button(body,"ResetDisplay",-150,-237,220,"表示設定を初期値に戻す",()=>{AtelierPreferences.Defaults();BuildDisplay();Preview();},UiSkin.Hex("#30394f"));
-            AtelierUi.Text(body,"Saved",236,-237,430,28,"変更は端末に保存されます",13,AtelierUi.Sub,false,TextAnchor.MiddleRight);
-            for(int i=0;i<roots.Length;i++)roots[i].gameObject.SetActive(i==0);tabs[0].GetComponent<Image>().color=UiSkin.Hex("#4c4265");
-            Preview();return overlay;
-        }
-        static void StyleSlider(Slider slider)
-        {
-            var handle=slider.handleRect;handle.anchorMin=handle.anchorMax=new Vector2(0,.5f);handle.sizeDelta=new Vector2(18,18);
-            var im=handle.GetComponent<Image>();im.sprite=UiSkin.Circle(32);im.color=UiSkin.Hex("#c4b2eb");
-            slider.fillRect.GetComponent<Image>().color=UiSkin.Hex("#b49ddf");
+            else AzureUiControls.Label(roots[1],"AudioUnavailable",0,30,420,90,"サウンドを利用できません。",20,true,TextAnchor.MiddleCenter);
+            AzureUiControls.Label(roots[2],"GuideTitle",0,144,426,34,"冒険の操作ガイド",22,true);
+            string[] keys={"方向キー / Enter","Esc","Ctrl / Space","Z ・ X ・ C","A / S","E / M"};
+            string[] actions={"選択 / 決定","閉じる","BET","リール停止","AUTO / 速度","装備 / マップ"};
+            for(int i=0;i<keys.Length;i++)
+            {
+                float y=95-i*45;
+                var key=AzureMapSkin.Button(roots[2],"Key"+i,-106,y,196,keys[i],null,false,36,fontSize:13);key.enabled=false;key.GetComponent<Image>().raycastTarget=false;
+                AzureUiControls.Label(roots[2],"Action"+i,121,y,182,32,actions[i],16,true);
+                AzureUiControls.Rule(roots[2],"GuideRule"+i,0,y-22,426);
+            }
+            if(gameControls!=null)
+            {
+                gameControls(roots[3]);
+                // Callback-owned actions keep their listeners, state colours and confirmation semantics.
+                foreach(var t in roots[3].GetComponentsInChildren<Text>(true))
+                    if(t.GetComponentInParent<Button>()==null)
+                    {
+                        if(t.color==AtelierUi.Light)t.color=AzureMapSkin.Ink;
+                        else if(t.color==AtelierUi.Sub)t.color=AzureUiControls.Muted;
+                        else if(t.name=="ResetState"||t.name=="ResetConfirm")t.color=UiSkin.Hex("#9b3b43");
+                    }
+                foreach(var b in roots[3].GetComponentsInChildren<Button>(true))
+                {
+                    if(b.name.StartsWith("AutoStop"))continue;
+                    var im=b.GetComponent<Image>();im.sprite=AzureMapSkin.Sprite("button-navy");im.type=Image.Type.Sliced;im.pixelsPerUnitMultiplier=8;im.color=b.name=="ResetSave"?UiSkin.Hex("#d5a7ad"):Color.white;
+                    var label=b.GetComponentInChildren<Text>();label.color=AzureMapSkin.Paper;label.rectTransform.sizeDelta=new Vector2(((RectTransform)b.transform).rect.width-34,((RectTransform)b.transform).rect.height-6);
+                }
+            }
+            Tab(0);return overlay;
         }
     }
 }

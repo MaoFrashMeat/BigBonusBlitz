@@ -1,6 +1,28 @@
 # BigBonusBlitz 現状まとめ
 
-最終更新: 2026-09-10。**別セッションはこの 1 枚を読めば続きから始められる。**
+最終更新: 2026-09-23。**別セッションはこの 1 枚を読めば続きから始められる。詳細な全履歴は [AI_HANDOFF_HISTORY.md](AI_HANDOFF_HISTORY.md)。**
+
+### 2026-09-23 設定と今後のUI品質
+
+- 本人指定: 以後のUI改修でも毎回言われる前に参考画像の質へ仕上げる。[AZURE_UI_QUALITY_STANDARD.md](AZURE_UI_QUALITY_STANDARD.md)を共通基準とし、AGENTS.md/CLAUDE.mdから案内。
+- `AtelierSettings` を白い城塞・象牙色の面・紺と金・紋章パネル・ライブ字幕プレビューへ変更。ON/OFFと宝石スライダーを `AzureUiControls` へ共通化。タイトル960幅にも `AzureScreenFit` で対応。
+- 正本: [AZURE_SETTINGS_DESIGN.md](AZURE_SETTINGS_DESIGN.md)。最終QA: `tools/azure-settings-qa/2026-09-23/v5-final/`（passed=true、24枚）。コンパイル・配置検算成功。お知らせdev 315。本番のセーブ/PlayerPrefsは検証に使用しない。実機タッチ・実キー送信・配布ビルド・聴感は未検証。
+
+### 2026-09-22 装備画面
+
+- `AtelierEquip` を月夜の城塞・紺と金・サリアの大きな立ち絵・中央一覧・右の比較へ改良。既存立ち絵から元気な5姿を採用し、左右で切り替え。装備とページは保持。
+- 正本: [AZURE_EQUIP_DESIGN.md](AZURE_EQUIP_DESIGN.md)。最終QA: `tools/azure-equip-qa/2026-09-22/v3-final/`（passed=true、28枚）。着脱・比較・売却・工房品保護・満杯・ステータス復帰を隔離検証。コンパイルと配置検算も成功。お知らせdev 314。実機タッチ・配布ビルド・聴感は未検証。
+
+### 2026-09-22 ステータス強化
+
+- `StatsScreen` を宇宙背景・白金の中央面・3能力の紋章付きカードへ変更。ショップと冒険中で共用。参考画像の数値は採用せず実データを表示。
+- 正本: [CELESTIAL_STATS_DESIGN.md](CELESTIAL_STATS_DESIGN.md)。最終QA: `tools/celestial-stats-qa/2026-09-22/v8-final/`（passed=true、18枚）。振り直しは費用を確認し、確定時に残高と割当を再確認。
+
+### 2026-09-22 引き継ぎ・note整理
+
+- 全履歴の正本: [AI_HANDOFF_HISTORY.md](AI_HANDOFF_HISTORY.md)。note用整理版: [note/AI_CHANGELOG_FOR_NOTE.md](note/AI_CHANGELOG_FOR_NOTE.md)。本人の原文: [note/MEMO.md](note/MEMO.md)。
+- 2026-09-21〜22のショップは、1列・32px行・約10行表示のコンパクト縦一覧。最新QAは `tools/azure-shop-qa/2026-09-21/v8-compact/validation.json`。
+- 会話の正確な日時がない過去の依頼は推測せず「会話上の順序（日時不明）」とする。実機、配布ビルド、プレイヤー評価は未検証。
 
 ### 背景制作の追記（2026-09-14）
 

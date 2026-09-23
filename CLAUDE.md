@@ -1,6 +1,7 @@
 # BigBonusBlitz（リポジトリ側の案内。話し方の約束は ~/.claude/CLAUDE.md が正）
 
 - 現状は `docs/PROJECT_STATE.md`。セッションの最初に読む
+- UIの新規作成・改修は `docs/AZURE_UI_QUALITY_STANDARD.md` の品質基準を既定にする（本人指定 2026-09-23）。画像を再提示されるまで旧来の仮UIで止めない。
 - **やること棚**（本人がチェックした仕事の一覧）は `/task-board` で回す。手順の正本は `docs/TASK_BOARD.md`（どの PC・どのセッションでも同じ）
 - commit の前に `py -3 tools/verify/run.py`（Core / Runtime / Tests のコンパイルと 100 万G のハーネス。`--tests` で EditMode テストも）
 - 変更のたびに `UnityProject/BigBonusBlitz/Assets/Resources/Data/notices.json` の先頭に 1 件（番号は `git pull` 後の最新 +1）。決めたことは `docs/devlog.md`

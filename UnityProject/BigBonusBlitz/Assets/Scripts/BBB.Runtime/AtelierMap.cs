@@ -14,16 +14,16 @@ namespace BBB.Runtime
     /// </summary>
     public static class AtelierMap
     {
-        // 舞台 960x540。縁からの余白 24、板どうし 20、下のボタン列は端から 24 上（docs/ui_rules.md 12）
+        // 1170x540 safe stage. Generated world fills the canvas; controls remain inside the safe area.
         const float Margin = 24f, Gap = 20f;
-        const float ViewW = 592f, ViewH = 340f, ViewX = -158f, ViewY = -12f;       // 左 -454 .. 138、上 158 .. 下 -182
-        const float DetailW = 282f, DetailX = 313f;                                // 172 .. 454
+        const float ViewW = 726f, ViewH = 304f, ViewX = -186f, ViewY = -30f;
+        const float DetailW = 356f, DetailX = 376f;
         const float RowY = -224f, RowH = 44f;                                       // 下端 -246（端 -270 から 24）
-        const float ColStep = 114f, RowStep = 72f, ContentPad = 64f, ContentTop = 40f;
+        const float ColStep = 150f, RowStep = 86f, ContentPad = 90f, ContentTop = 48f;
 
         static readonly Color ViewBg = UiSkin.Hex("#193a3d"), DetailBg = UiSkin.Hex("#10292e"), Secondary = UiSkin.Hex("#24484c");
         static readonly Color EdgeCol = new Color(.95f, .93f, .9f, .16f), GhostEdge = new Color(.95f, .93f, .9f, .32f);
-        static readonly Color NodeReach = UiSkin.Hex("#1f4a4b"), NodeUnknown = new Color(.1f, .2f, .22f, .9f), RouteDim = UiSkin.Hex("#55736b");
+        static readonly Color NodeReach = UiSkin.Hex("#213a59"), NodeUnknown = UiSkin.Hex("#435671"), RouteDim = UiSkin.Hex("#7c9cab");
         static readonly Dictionary<string, Sprite> Thumbs = new Dictionary<string, Sprite>();
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)] static void Reset() => Thumbs.Clear();
 
@@ -45,11 +45,12 @@ namespace BBB.Runtime
             var tex = prof != null && !prof.UsesModules && !string.IsNullOrEmpty(prof.atlas) ? Resources.Load<Texture2D>(prof.atlas) : null;
             if (tex == null) { AtelierUi.Art(box, "Landscape", 0, 0, box.sizeDelta.x, box.sizeDelta.x * .6f, AtelierUi.Sprite("Art/UI/Title/sky_mountains_cloudsea")); return; }
             AdventureEnvironmentCatalog.Palette(prof.hour, out var top, out var bottom, out _);
+            if(prof.indoor){top=UiSkin.Hex("#071b38");bottom=Color.Lerp(top,prof.accent,.4f);}
             Stretch(UiSkin.Img(box, "SkyBottom", Vector2.zero, Vector2.zero, null, bottom), 0, 1);
             Stretch(UiSkin.Img(box, "SkyTop", Vector2.zero, Vector2.zero, UiSkin.GradientV(true), top), 0, 1);
             float[] cuts = { 0, prof.farEnd, prof.middleEnd, 1 };
             // (bottom, height) は ParallaxBackground.heights と同じ
-            var heights = new[] { new Vector2(.13f, .9f), new Vector2(-.01f, .85f), new Vector2(-.035f, .34f) };
+            var heights = new[] { new Vector2(.13f, .9f), new Vector2(-.01f, 1.06f), new Vector2(-.035f, .34f) };
             for (int i = 0; i < 3; i++)
             {
                 string key = id + "/" + i;
@@ -69,55 +70,60 @@ namespace BBB.Runtime
 
         public static Action Build(Transform stage, SlotMachine m, Action adventure, Action shop, Action equip, Action trophy, Action settings, Action title, out Text message, bool inRun = false)
         {
-            var bg = AtelierUi.Panel(stage, "AtelierMap", 0, 0, 960, 540, UiSkin.Hex("#122e32")); bg.gameObject.AddComponent<AtelierModalInput>();
+            var bg = AtelierUi.Panel(stage, "AtelierMap", 0, 0, AzureMapSkin.Width, AzureMapSkin.Height, Color.white); bg.gameObject.AddComponent<AtelierModalInput>();
+            AzureMapSkin.Backdrop(bg);
             var cfg = m.Config.adventure;
             string lap = m.Adv.chapter > 1 ? $"  ·  {m.Adv.chapter} 周目" : "";
-            AtelierUi.Text(bg, "Eyebrow", -264, 235, 380, 18, "CHAPTER " + Mathf.Max(1, m.Adv.chapter) + " / ROUTE MAP" + lap, 10, AtelierUi.Light);
-            AtelierUi.Text(bg, "Heading", -264, 203, 380, 38, StoryDirector.ChapterTitle(m.Config.story, cfg, Mathf.Max(1, m.Adv.chapter)), 28, AtelierUi.Light, true);
+            AzureMapSkin.Button(bg,"BackAdventure",-470,236,178,inRun?"←  冒険へ戻る":"←  冒険へ進む",adventure,false,44,null,15);
+            var brand=AtelierUi.Text(bg,"Brand",-237,237,260,36,"セリアと蒼剣の騎士団",20,AzureMapSkin.Ink);
+            AzureMapSkin.Typography(brand);
+            var chapter=AtelierUi.Text(bg, "Eyebrow", -192, 201, 506, 20, "CHAPTER " + Mathf.Max(1, m.Adv.chapter) + lap, 13, UiSkin.Hex("#7e5c26"));AzureMapSkin.Typography(chapter);
+            var heading=AtelierUi.Text(bg, "Heading", -192, 165, 506, 50, StoryDirector.ChapterTitle(m.Config.story, cfg, Mathf.Max(1, m.Adv.chapter)), 32, AzureMapSkin.Ink);AzureMapSkin.Typography(heading);
 
             // 上の札 4 つ（右端から）: ソウル / エンバー / 補給 / ライフ。アイコン + 小見出し + 太い値
-            const float tileW = 118f, tileGap = 8f; float tx = 480 - Margin - tileW * .5f;
+            const float tileW = 126f, tileGap = 8f; float tx = 558 - tileW * .5f;
             var res = cfg?.resource;
-            var souls = AtelierUi.Tile(bg, "TileSoul", tx, 219, tileW, AtelierUi.Icon("soul"), "所持ソウル", AtelierUi.Gold); tx -= tileW + tileGap;
-            var ember = AtelierUi.Tile(bg, "TileEmber", tx, 219, tileW, AtelierUi.Icon("ember"), "冒険用エンバー"); tx -= tileW + tileGap;
-            var torch = AtelierUi.Tile(bg, "TileSupply", tx, 219, tileW, AtelierUi.Sprite("Art/UI/Icons/compass"), res?.name ?? "補給"); tx -= tileW + tileGap;
-            var life = AtelierUi.Tile(bg, "TileLife", tx, 219, tileW, AtelierUi.Icon("potion"), res?.hpName ?? "ライフ");
+            var souls = AzureMapSkin.Resource(bg, "TileSoul", tx, tileW, AtelierUi.Icon("soul"), "所持ソウル"); tx -= tileW + tileGap;
+            var ember = AzureMapSkin.Resource(bg, "TileEmber", tx, tileW, AtelierUi.Icon("ember"), "冒険用エンバー"); tx -= tileW + tileGap;
+            var torch = AzureMapSkin.Resource(bg, "TileSupply", tx, tileW, AtelierUi.Sprite("Art/UI/Icons/compass"), res?.name ?? "補給"); tx -= tileW + tileGap+15;
+            var life = AzureMapSkin.Resource(bg, "TileLife", tx, tileW+30, AtelierUi.Icon("potion"), res?.hpName ?? "ライフ");
 
-            AtelierUi.Text(bg, "MapHint", ViewX, 170, ViewW, 20, "ドラッグで移動  ·  ホイール / ピンチで拡大縮小  ·  「現在地」で戻る", 11, AtelierUi.Sub);
+            var hint=AtelierUi.Text(bg, "MapHint", -170, 131, 550, 16, "ドラッグで移動  ·  ホイール / ピンチで拡大縮小  ·  「現在地」で戻る", 11, AzureMapSkin.Ink);
+            foreach(var text in new[]{heading,hint}){var shadow=text.gameObject.AddComponent<Outline>();shadow.effectColor=new Color(1,1,1,.75f);shadow.effectDistance=new Vector2(.6f,-.6f);}
 
             // 地図の窓。板 → 縁 → 中身（拡大縮小する）→ 隅のボタン → 下の帯
-            var view = AtelierUi.Panel(bg, "MapViewport", ViewX, ViewY, ViewW, ViewH, ViewBg); view.GetComponent<Image>().raycastTarget = true; view.gameObject.AddComponent<RectMask2D>();
-            var terrain = AtelierUi.Art(view, "Terrain", 0, 0, 626, ViewH, AtelierUi.Sprite("Art/UI/Title/sky_mountains_cloudsea")); terrain.color = new Color(.21f, .32f, .28f, 1);
-            var contours = UiSkin.Rect(view, "Contours", Vector2.zero, new Vector2(ViewW, ViewH)).gameObject.AddComponent<AtelierContourGraphic>(); contours.color = new Color(.67f, .79f, .66f, .15f); contours.raycastTarget = false;
+            var view = AtelierUi.Panel(bg, "MapViewport", ViewX, ViewY, ViewW, ViewH, Color.clear); view.GetComponent<Image>().raycastTarget = true; view.gameObject.AddComponent<RectMask2D>();
             var content = UiSkin.Rect(view, "MapContent", Vector2.zero, new Vector2(960, 600)); content.anchorMin = content.anchorMax = new Vector2(0, 1); content.pivot = new Vector2(0, 1);
             var scroll = view.gameObject.AddComponent<ScrollRect>(); MotionSound.Attach(scroll);
             scroll.viewport = view; scroll.content = content; scroll.horizontal = true; scroll.vertical = true; scroll.movementType = ScrollRect.MovementType.Clamped;
             scroll.scrollSensitivity = 0;                                   // ホイールは移動ではなく拡大縮小に使う
             var zoom = view.gameObject.AddComponent<AtelierMapZoom>(); zoom.Init(view, content);
-            AtelierUi.Edge(view, EdgeCol);
             // 隅のボタン（＋ / － / ◎）。押せる面は 44
             float bx = ViewW * .5f - 8 - 22, by = ViewH * .5f - 8 - 22;
-            AtelierUi.Button(view, "ZoomIn", bx, by, 44, "+", () => zoom.Step(1.25f), AtelierUi.Ink, AtelierUi.Light, 44, GhostEdge, 22);
-            AtelierUi.Button(view, "ZoomOut", bx, by - 50, 44, "−", () => zoom.Step(1 / 1.25f), AtelierUi.Ink, AtelierUi.Light, 44, GhostEdge, 22);
-            var homeBtn = AtelierUi.Button(view, "Home", bx, by - 100, 44, "現在地", null, AtelierUi.Ink, AtelierUi.Gold, 44, GhostEdge, 10);
+            AzureMapSkin.Button(view, "ZoomIn", bx, by, 44, "+", () => zoom.Step(1.25f),false,44,null,22);
+            AzureMapSkin.Button(view, "ZoomOut", bx, by - 50, 44, "−", () => zoom.Step(1 / 1.25f),false,44,null,22);
+            var homeBtn = AzureMapSkin.Button(view, "Home", bx, by - 100, 44, "現在地", null,false,44,null,10);
             // 下の帯: 到着の知らせや出発できない理由。文が空なら消える
-            var band = AtelierUi.Panel(view, "MessageBand", 0, -ViewH * .5f + 14, ViewW, 28, new Color(.06f, .13f, .16f, .82f));
+            var band = AtelierUi.Panel(bg, "MessageBand", ViewX, ViewY-ViewH * .5f + 14, ViewW, 28, AzureMapSkin.Navy);
             message = AtelierUi.Text(band, "Message", 6, 0, ViewW - 24, 24, "", 12, AtelierUi.Gold);
             band.gameObject.AddComponent<AtelierMessageBand>().Init(band.GetComponent<Image>(), message);
 
-            var detail = AtelierUi.Panel(bg, "Destination", DetailX, ViewY, DetailW, ViewH, DetailBg); AtelierUi.Edge(detail, EdgeCol);
+            AzureMapSkin.Art(bg,"TerraceForeground",0,0,AzureMapSkin.Width,AzureMapSkin.Height,"foreground").gameObject.AddComponent<AzureMapBleed>().Apply();
+            band.SetAsLastSibling();
+            AzureMapSkin.Art(bg,"Parchment",DetailX,20,DetailW+12,410,"parchment");
+            var detail = UiSkin.Rect(bg, "Destination", new Vector2(DetailX,10),new Vector2(DetailW,400));
 
             // 下のボタン列。主（金）は右の板の「冒険へ進む」だけ。ここは副（濃い面 + 縁）と、戻るは縁だけ
-            float x = -480 + Margin;
-            Button(bg, "Town", ref x, 150, inRun ? "街へ戻る" : "街のショップ", shop, false);
-            Button(bg, "Equipment", ref x, 108, "装備", equip, false);
-            Button(bg, "Trophies", ref x, 108, "実績", trophy, false);
-            Button(bg, "Settings", ref x, 108, "設定", settings, false);
-            AtelierUi.Button(bg, "Title", 480 - Margin - 75, RowY, 150, inRun ? "マップを閉じる" : "タイトルへ", title, new Color(0, 0, 0, .001f), AtelierUi.Sub, RowH, GhostEdge);
+            float x = -435;
+            Button(bg, "Town", ref x, 164, inRun ? "街へ戻る" : "街のショップ", shop, false);
+            Button(bg, "Equipment", ref x, 140, "装備", equip, false);
+            Button(bg, "Trophies", ref x, 140, "実績", trophy, false);
+            Button(bg, "Settings", ref x, 140, "設定", settings, false);
+            AzureMapSkin.Button(bg, "Title", DetailX, RowY, 264, inRun ? "←  マップを閉じる" : "←  タイトルへ", title);
 
             string selected = m.Adv.nodeId; bool first = true;
             var positions = new Dictionary<string, Vector2>();
-            homeBtn.onClick.AddListener(() => { if (positions.TryGetValue(m.Adv.nodeId, out var c)) zoom.CenterOn(c, 1f); });
+            homeBtn.onClick.AddListener(() => { if (positions.TryGetValue(m.Adv.nodeId, out var c)) zoom.CenterOn(c-new Vector2(ViewW*.18f,0), 1f); });
 
             void Refresh()
             {
@@ -155,7 +161,7 @@ namespace BBB.Runtime
                         if (!positions.TryGetValue(id, out var b)) continue;
                         var a = positions[n.id]; var d = b - a;
                         bool walked = visited.Contains(n.id) && visited.Contains(id), next = visited.Contains(n.id) && reachable.Contains(id);
-                        var line = AtelierUi.Panel(content, "Route", (a.x + b.x) * .5f, (a.y + b.y) * .5f, d.magnitude, walked ? 3 : next ? 2 : 1.5f, walked ? AtelierUi.Gold : next ? AtelierUi.Mint : new Color(RouteDim.r, RouteDim.g, RouteDim.b, .55f));
+                        var line = AtelierUi.Panel(content, "Route", (a.x + b.x) * .5f, (a.y + b.y) * .5f, d.magnitude, walked ? 2 : next ? 1.5f : 1, walked ? AzureMapSkin.Gold : next ? UiSkin.Hex("#d3efea") : new Color(RouteDim.r, RouteDim.g, RouteDim.b, .6f));
                         line.anchorMin = line.anchorMax = new Vector2(0, 1); line.localRotation = Quaternion.Euler(0, 0, Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg);
                     }
                 }
@@ -166,42 +172,43 @@ namespace BBB.Runtime
                     var st = StateOf(n);
                     if (cfg.hideRoute && st == State.Unknown && !reachable.Contains(n.id)) continue;
                     bool known = !cfg.hideRoute || visited.Contains(n.id); var p = positions[n.id]; var node = n;
-                    float d = st == State.Current ? 52 : st == State.Unknown ? 36 : 46;
+                    float d = st == State.Current ? 54 : st == State.Unknown ? 44 : 48;
                     string glyph = st == State.Current ? "◆" : st == State.Visited ? "✓" : st == State.Reachable ? Branch(n.id) : "?";
                     Color fill = st == State.Current ? AtelierUi.Gold : st == State.Visited ? AtelierUi.Mint : st == State.Reachable ? NodeReach : NodeUnknown;
                     Color ink = st == State.Current || st == State.Visited ? AtelierUi.Ink : st == State.Reachable ? AtelierUi.Light : AtelierUi.Sub;
                     var root = UiSkin.Rect(content, "Node_" + n.id, p, new Vector2(d, d)); root.anchorMin = root.anchorMax = new Vector2(0, 1);
                     if (st == State.Current)
                     {
-                        var halo = UiSkin.Img(root, "Halo", Vector2.zero, new Vector2(d + 16, d + 16), UiSkin.Circle(64), new Color(AtelierUi.Gold.r, AtelierUi.Gold.g, AtelierUi.Gold.b, .45f));
+                        var halo = UiSkin.Img(root, "Halo", Vector2.zero, new Vector2(d + 70, d + 70), UiSkin.Glow(128), new Color(1f,.8f,.3f,1));
                         halo.raycastTarget = false; halo.gameObject.AddComponent<AtelierPulse>();
                     }
                     if (n.id == selected) UiSkin.Img(root, "Selected", Vector2.zero, new Vector2(d + 10, d + 10), UiSkin.Circle(64), AtelierUi.Light).raycastTarget = false;
                     if (st == State.Reachable) UiSkin.Img(root, "Ring", Vector2.zero, new Vector2(d + 4, d + 4), UiSkin.Circle(64), AtelierUi.Gold).raycastTarget = false;
                     if (st == State.Unknown) UiSkin.Img(root, "Ring", Vector2.zero, new Vector2(d + 2, d + 2), UiSkin.Circle(64), new Color(RouteDim.r, RouteDim.g, RouteDim.b, .7f)).raycastTarget = false;
                     var body = UiSkin.Img(root, "Body", Vector2.zero, new Vector2(d, d), UiSkin.Circle(64), fill, true);
-                    var t = AtelierUi.Text(root, "Glyph", 0, 1, d, d, glyph, st == State.Unknown ? 13 : 16, ink, true, TextAnchor.MiddleCenter);
+                    if(st==State.Current)AtelierUi.Art(root,"CurrentCompass",0,0,35,35,AtelierUi.Sprite("Art/UI/Icons/compass"));
+                    else AtelierUi.Text(root, "Glyph", 0, 1, d, d, glyph, st == State.Unknown ? 15 : 21, ink, true, TextAnchor.MiddleCenter);
                     var btn = root.gameObject.AddComponent<Button>(); btn.targetGraphic = body;
                     var cb = btn.colors; cb.highlightedColor = new Color(1.15f, 1.15f, 1.15f); cb.selectedColor = new Color(1.2f, 1.2f, 1.2f); cb.pressedColor = new Color(.7f, .8f, .85f); btn.colors = cb;
                     MotionSound.Attach(btn); btn.onClick.AddListener(() => MotionSound.Invoke("Node", () => { selected = node.id; Refresh(); }));
                     root.gameObject.AddComponent<AtelierFocus>();
-                    var label = AtelierUi.Text(content, "NodeLabel_" + n.id, p.x, p.y - d * .5f - 16, 110, 16, known ? n.id + "  " + StoryDirector.StageName(m.Config.story, m.Adv.chapter, n) : n.id + "  未発見", 11, st == State.Unknown ? AtelierUi.Sub : AtelierUi.Light, st == State.Current, TextAnchor.MiddleCenter);
-                    label.rectTransform.anchorMin = label.rectTransform.anchorMax = new Vector2(0, 1);
+                    AzureMapSkin.NodeLabel(content,"NodeLabel_"+n.id,new Vector2(p.x,p.y-d*.5f-14),known?n.id+"  "+StoryDirector.StageName(m.Config.story,m.Adv.chapter,n):n.id+"  未発見",st==State.Unknown);
                 }
-                if (first && positions.TryGetValue(m.Adv.nodeId, out var current)) { Canvas.ForceUpdateCanvases(); zoom.CenterOn(current, 1f); first = false; }
+                if (first && positions.TryGetValue(m.Adv.nodeId, out var current)) { Canvas.ForceUpdateCanvases(); zoom.CenterOn(current-new Vector2(ViewW*.18f,0), 1f); first = false; }
 
                 // 右の板: 絵 → 名前 → 事実 → 分岐条件 → 出発（主ボタンはこれだけ）
                 var chosen = cfg?.Find(selected); bool isKnown = chosen != null && (!cfg.hideRoute || visited.Contains(chosen.id));
-                var artBox = UiSkin.Rect(detail, "ArtBox", new Vector2(0, 110), new Vector2(DetailW - 32, 96)); artBox.gameObject.AddComponent<RectMask2D>();
+                var artBox = UiSkin.Rect(detail, "ArtBox", new Vector2(0, 113), new Vector2(DetailW - 52, 106)); artBox.gameObject.AddComponent<RectMask2D>();
                 Landscape(artBox, isKnown ? chosen.id : null);
                 var stTxt = chosen == null ? "" : chosen.id == m.Adv.nodeId ? "現在地" : visited.Contains(chosen.id) ? "通過済み" : reachable.Contains(chosen.id) ? "次に行ける" : "未発見";
                 var stCol = chosen == null ? AtelierUi.Sub : chosen.id == m.Adv.nodeId ? AtelierUi.Gold : visited.Contains(chosen.id) ? AtelierUi.Mint : reachable.Contains(chosen.id) ? AtelierUi.Light : AtelierUi.Sub;
-                AtelierUi.Text(detail, "State", 0, 53, DetailW - 32, 14, stTxt, 10, stCol, true);
-                AtelierUi.Text(detail, "Name", 0, 29, DetailW - 32, 30, isKnown ? chosen.name : chosen != null ? "未発見の地点" : "冒険へ", 22, AtelierUi.Light, true);
-                AtelierUi.Text(detail, "Facts", 0, -19, DetailW - 32, 60, isKnown ? $"{chosen.id}  /  深さ {chosen.depth}\n滞在 {chosen.spins} G  /  初到達 {chosen.firstVisitSouls} ソウル\n{(chosen.id == m.Adv.nodeId ? "残り " + m.Adv.spinsLeft + " G" : "通過ルートを確認中")}" : "先の地点は冒険を進めると判明します。\n進路は小役と達成条件で決まります。", 13, AtelierUi.Sub);
+                var badge=AtelierUi.Panel(artBox,"StateBadge",-110,-42,84,22,AzureMapSkin.Navy);
+                AtelierUi.Text(badge, "State", 0, 0, 78, 20, stTxt, 11, AzureMapSkin.Gold, true,TextAnchor.MiddleCenter);
+                var nameText=AtelierUi.Text(detail, "Name", 0, 31, DetailW - 52, 38, isKnown ? StoryDirector.StageName(m.Config.story,m.Adv.chapter,chosen) : chosen != null ? "未発見の地点" : "冒険へ", 26, AzureMapSkin.Ink);AzureMapSkin.Typography(nameText);
+                var facts=AtelierUi.Text(detail, "Facts", 0, -21, DetailW - 52, 60, isKnown ? $"{chosen.id}  /  深さ {chosen.depth}\n滞在 {chosen.spins} G  /  初到達 {chosen.firstVisitSouls} ソウル\n{(chosen.id == m.Adv.nodeId ? "残り " + m.Adv.spinsLeft + " G" : "通過ルートを確認中")}" : "先の地点は冒険を進めると判明します。\n進路は小役と達成条件で決まります。", 14, AzureMapSkin.Ink);AzureMapSkin.Typography(facts);
                 string routeInfo = "進路は冒険中に決定します。";
                 if (isKnown && chosen.id == m.Adv.nodeId) routeInfo = m.Adv.nextId != null ? "次の進路：" + m.Adv.nextId : "進路はまだ決まっていません";
-                AtelierUi.Button(detail, "Conditions", 0, -82, DetailW - 32, "分岐条件を見る", () =>
+                AzureMapSkin.Button(detail, "Conditions", 0, -93, DetailW - 52, "分岐条件を見る", () =>
                 {
                     var text = new System.Text.StringBuilder(routeInfo);
                     if (isKnown && chosen.routeConditions != null) foreach (var c in chosen.routeConditions)
@@ -217,8 +224,8 @@ namespace BBB.Runtime
                     var label = AtelierUi.Text(viewport, "Conditions", 0, 0, 828, 800, text.ToString(), 18, AtelierUi.Light); label.rectTransform.anchorMin = label.rectTransform.anchorMax = new Vector2(.5f, 1); label.rectTransform.pivot = new Vector2(.5f, 1); label.alignment = TextAnchor.UpperLeft; label.rectTransform.sizeDelta = new Vector2(828, Mathf.Max(352, label.preferredHeight + 20));
                     var sc = viewport.gameObject.AddComponent<ScrollRect>(); MotionSound.Attach(sc); sc.viewport = viewport; sc.content = label.rectTransform; sc.horizontal = false; sc.movementType = ScrollRect.MovementType.Clamped; sc.scrollSensitivity = 32;
                     AtelierUi.Button(panel, "Back", 0, -231, 260, "地図へ戻る", () => UnityEngine.Object.Destroy(dialog), AtelierUi.Gold, AtelierUi.Ink);
-                }, Secondary, AtelierUi.Light, 44, EdgeCol);
-                AtelierUi.Button(detail, "Depart", 0, -134, DetailW - 32, inRun ? "冒険に戻る  →" : "冒険へ進む  →", adventure, AtelierUi.Gold, AtelierUi.Ink, 44, null, 15);
+                },false,44,"search",17);
+                AzureMapSkin.Button(detail, "Depart", 0, -153, DetailW - 52, inRun ? "冒険に戻る  →" : "冒険へ進む  →", adventure,true,48,"compass",20);
             }
             Refresh(); return Refresh;
         }
@@ -226,7 +233,8 @@ namespace BBB.Runtime
         /// <summary>下の列の副ボタン。左から順に幅を取り、x を進める。</summary>
         static void Button(Transform p, string name, ref float x, float w, string text, Action action, bool primary)
         {
-            AtelierUi.Button(p, name, x + w * .5f, RowY, w, text, action, primary ? AtelierUi.Gold : Secondary, primary ? AtelierUi.Ink : AtelierUi.Light, RowH, primary ? null : (Color?)EdgeCol);
+            string icon=name=="Town"?"shop":name=="Equipment"?"sword":name=="Trophies"?"trophy":"settings";
+            AzureMapSkin.Button(p,name,x+w*.5f,RowY,w,text,action,primary,RowH,icon,15);
             x += w + 10;
         }
 
