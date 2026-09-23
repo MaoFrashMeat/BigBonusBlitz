@@ -3863,10 +3863,12 @@ namespace BBB.Runtime
             Destroy(host.gameObject);
         }
 
-        private IEnumerator SlamTitle(string text, Color color, float hold = 1.5f, int fontSize = 58, bool rainbow = false)
+        private IEnumerator SlamTitle(string text, Color color, float hold = 1.5f, int fontSize = 58, bool rainbow = false, RectTransform host = null)
         {
             AudioManager.Create().MotionIfQuiet(MotionCue.Reveal);
-            var band = UiSkin.Rect(_area, "SlamBand", Vector2.zero, new Vector2(AreaW * 1.2f, 96));
+            var area = host ?? _area;   // 既定は表示域。画面全体に出すときは舞台（_stage）を渡す
+            float AreaW = host != null ? host.rect.width / 1.2f : GameController.AreaW;
+            var band = UiSkin.Rect(area, "SlamBand", Vector2.zero, new Vector2(AreaW * 1.2f, 96));
             UiSkin.Img(band, "Bg", Vector2.zero, new Vector2(AreaW * 1.2f, 96), null, new Color(0, 0, 0, 0.78f));
             UiSkin.Img(band, "LineTop", new Vector2(0, 47), new Vector2(AreaW * 1.2f, 2), null, new Color(color.r, color.g, color.b, 0.9f));
             UiSkin.Img(band, "LineBottom", new Vector2(0, -47), new Vector2(AreaW * 1.2f, 2), null, new Color(color.r, color.g, color.b, 0.9f));
@@ -3875,13 +3877,13 @@ namespace BBB.Runtime
             bandCg.blocksRaycasts = false;
 
             // 文字は IconText で並べる（"{soul}+30" のような印はアイコンになる）。拡縮と透明度は置き場ごと動かす
-            var title = UiSkin.Rect(_area, "SlamTitle", new Vector2(0, 2), new Vector2(AreaW, 96));
+            var title = UiSkin.Rect(area, "SlamTitle", new Vector2(0, 2), new Vector2(AreaW, 96));
             var titleRow = IconText.Render(title, text, fontSize, Color.white, FontStyle.Bold, fontSize * 1.05f, 1f, 4f, true,
                             new Color(color.r * 0.35f, color.g * 0.35f, color.b * 0.35f, 1f), new Vector2(0, -3));
             if (rainbow) foreach (var tx in titleRow.texts) RainbowTint.Apply(tx, 1f, 0.75f);   // 継続確定の虹
             var titleCg = title.gameObject.AddComponent<CanvasGroup>();
             titleCg.alpha = 0f; titleCg.blocksRaycasts = false;
-            var glow = UiSkin.Img(_area, "SlamGlow", new Vector2(0, 2), new Vector2(520, 180), UiSkin.Glow(96), new Color(color.r, color.g, color.b, 0f));
+            var glow = UiSkin.Img(area, "SlamGlow", new Vector2(0, 2), new Vector2(520, 180), UiSkin.Glow(96), new Color(color.r, color.g, color.b, 0f));
             glow.transform.SetSiblingIndex(title.transform.GetSiblingIndex());
 
             float t = 0;
@@ -5151,8 +5153,6 @@ namespace BBB.Runtime
                     if (st.defeated)
                     {
                         PlayCharacter("attack-f3-4");
-                        var jf = _m.Config.engage?.judgeFx ?? new JudgeFxConfig();
-                        StartCoroutine(CutInImageRoutine(jf.winImage, jf, false));   // とどめの絵（左から）
                         if (!_audio.TryPlay("engage_judge_win")) _audio.Attack();
                         _audio.Voice("attack");
                         UiFx.Slash(_enemyRt, -30f, 320f, ColGold);
@@ -5251,7 +5251,8 @@ namespace BBB.Runtime
             int h = Mathf.Clamp(_m.JudgeHeat, 0, 3);
             string img = fx.cutInImages != null && fx.cutInImages.Length > 0 ? fx.cutInImages[Mathf.Min(h, fx.cutInImages.Length - 1)] : null;
             StartCoroutine(CutInImageRoutine(img, fx, true));
-            yield return SlamTitle(fx.cutInText ?? "JUDGE", Hex(string.IsNullOrEmpty(fx.cutInColor) ? "#ffd23f" : fx.cutInColor), Mathf.Max(0.1f, fx.cutInHold), Mathf.Max(20, fx.cutInSize));
+            // 文字も画面全体の上に（絵より前）。本人 2026-09-24「カットインは UI 含め画面全体でいい」
+            yield return SlamTitle(fx.cutInText ?? "JUDGE", Hex(string.IsNullOrEmpty(fx.cutInColor) ? "#ffd23f" : fx.cutInColor), Mathf.Max(0.1f, fx.cutInHold), Mathf.Max(20, fx.cutInSize), false, _stage);
         }
 
         private static readonly System.Collections.Generic.Dictionary<string, Sprite> _cutInCache = new System.Collections.Generic.Dictionary<string, Sprite>();
@@ -5266,18 +5267,19 @@ namespace BBB.Runtime
             return s;
         }
 
-        /// <summary>カットインの絵: 右から滑り込み（fromRight=false なら左から）、止まって少し流れ、反対へ抜ける。表示域の中だけ。</summary>
+        /// <summary>カットインの絵: 右から滑り込み（fromRight=false なら左から）、止まって少し流れ、反対へ抜ける。UI も含めた画面全体の上。</summary>
         private IEnumerator CutInImageRoutine(string name, JudgeFxConfig fx, bool fromRight)
         {
             var sp = CutInSprite(name);
             if (sp == null) yield break;
-            float hgt = AreaH * Mathf.Max(0.3f, fx.imageHeight), wid = hgt * sp.rect.width / sp.rect.height;
-            var clip = UiSkin.Rect(_area, "CutInClip", Vector2.zero, new Vector2(AreaW, AreaH));   // 表示域からはみ出さない
+            float hgt = StageH * Mathf.Max(0.3f, fx.imageHeight), wid = hgt * sp.rect.width / sp.rect.height;
+            var clip = UiSkin.Rect(_stage, "CutInClip", Vector2.zero, new Vector2(StageW, StageH));   // 舞台からはみ出さない
             clip.gameObject.AddComponent<RectMask2D>();
+            clip.SetAsLastSibling();
             var img = UiSkin.Img(clip, "CutIn", Vector2.zero, new Vector2(wid, hgt), sp, Color.white);
             img.preserveAspect = true; img.raycastTarget = false;
             var rt = img.rectTransform;
-            float dir = fromRight ? 1f : -1f, xIn = dir * (AreaW * 0.5f + wid * 0.5f), xOut = -xIn;
+            float dir = fromRight ? 1f : -1f, xIn = dir * (StageW * 0.5f + wid * 0.5f), xOut = -xIn;
             float tIn = Mathf.Max(0.01f, fx.imageIn), tHold = Mathf.Max(0f, fx.imageHold), tOut = Mathf.Max(0.01f, fx.imageOut), t = 0;
             while (t < tIn + tHold + tOut)
             {

@@ -82,11 +82,11 @@ namespace BBB.Core
         public int[] heatWeightsLose = { 60, 30, 10, 0 };
         /// <summary>段ごとの揺れの強さ（第二停止）。</summary>
         public float[] heatShake = { 2f, 4f, 7f, 10f };
-        /// <summary>BET のカットインの絵（熱さの段ごと。Resources/Art/UI/CutIn の名前。空なら文字だけ）と、とどめの絵。</summary>
+        /// <summary>BET のカットインの絵（熱さの段ごと。Resources/Art/UI/CutIn の名前。空なら文字だけ）。winImage は今は使っていない（カットインは BET だけ。本人 2026-09-24）。</summary>
         public string[] cutInImages = { "cut_salia_01", "cut_salia_04", "cut_salia_02", "cut_salia_03" };
         public string winImage = "cut_salia_05";
-        /// <summary>絵の高さ（表示域の高さ比）、滑り込む秒 / 止まる秒 / 抜ける秒、横へ流れる量。</summary>
-        public float imageHeight = 1.15f, imageIn = 0.16f, imageHold = 0.75f, imageOut = 0.22f, imageDrift = 40f;
+        /// <summary>絵の高さ（画面の高さ比）、滑り込む秒 / 止まる秒 / 抜ける秒、横へ流れる量。</summary>
+        public float imageHeight = 1.0f, imageIn = 0.16f, imageHold = 0.75f, imageOut = 0.22f, imageDrift = 40f;
     }
 
     public sealed class EngageTexts
