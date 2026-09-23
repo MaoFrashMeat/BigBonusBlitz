@@ -1514,16 +1514,18 @@ namespace BBB.Runtime
             if (!t.Active || !_m.IsGameActive) { if (_techBanner != null) _techBanner.gameObject.SetActive(false); return; }
             _techBanner.gameObject.SetActive(true);
             string reel = t.reel == 0 ? "左" : t.reel == 1 ? "中" : "右";
-            string how = t.kind == TechKind.Vita ? "中段にビタ" : "枠内に";
+            string how = t.kind == TechKind.Vita ? "中段にビタ" : t.kind == TechKind.Frame ? "枠内か枠のすぐ上下に" : "枠内に";
             bool done = _m.Stopped[t.reel] != null;
             if (!done)
             {
-                _techBanner.text = $"技術介入   {reel}リールから  {SymbolName(t.symbol)} を {how}";
+                _techBanner.text = t.kind == TechKind.Frame
+                    ? $"技術介入   {reel}リールに  {SymbolName(t.symbol)} を {how}"
+                    : $"技術介入   {reel}リールから  {SymbolName(t.symbol)} を {how}";
                 _techBanner.color = t.kind == TechKind.Vita ? ColAccent : ColGold;
             }
             else
             {
-                bool ok = TechDirector.Judge(t, _m.Stopped[t.reel]);
+                bool ok = TechDirector.Judge(t, _m.Stopped[t.reel], _m.StopIndex[t.reel]);
                 var rank = ok ? TechDirector.Rank(_m.Config.tech, t, _m.Strips[t.reel], _m.PressIndex[t.reel], _m.PressPhase[t.reel]) : null;
                 _techBanner.text = ok ? "技術介入 成功！" + (rank != null ? $"  {rank.name}" : "") : "技術介入 失敗（損はしない）";
                 _techBanner.color = ok ? ColGold : ColTextSub;
@@ -2713,7 +2715,7 @@ namespace BBB.Runtime
             {
                 RefreshTech(); HideTechAim();
                 // 押した精度のランク（Perfect!! など）は止まった瞬間に出す。上乗せの数字は全部止まってから
-                if (TechDirector.Judge(_m.Tech, _m.Stopped[i]))
+                if (TechDirector.Judge(_m.Tech, _m.Stopped[i], _m.StopIndex[i]))
                 {
                     var rank = TechDirector.Rank(_m.Config.tech, _m.Tech, _m.Strips[i], _m.PressIndex[i], _m.PressPhase[i]);
                     if (rank != null) StartCoroutine(TechRankPop(i, rank, res.slip / ReelView.SymbolsPerSecond));

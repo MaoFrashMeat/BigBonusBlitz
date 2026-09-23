@@ -6924,6 +6924,11 @@
       { "id": "koma2",     "name": "2コマ",       "color": "#a8a8a8", "koma": 2, "phase": -1,   "bonusPercent": 0,  "sePitch": 0.71, "seSeconds": 0.2 }
     ],
     "rankFx": { "y": 70, "fontSize": 44, "inSeconds": 0.16, "holdSeconds": 0.9, "outSeconds": 0.35, "rise": 40 },
+    "roleRules": [
+      { "role": "CHERRY", "reel": 0, "rate": 30, "symbols": ["BAR", "RED7", "BLUE7"], "level": "role_cherry" },
+      { "role": "WATERMELON", "reel": 1, "rate": 20, "symbols": ["BAR", "RED7", "BLUE7"], "level": "role_suica" },
+      { "role": "BELL", "reel": 2, "rate": 5, "symbols": ["BAR", "RED7", "BLUE7"], "level": "role_bell" }
+    ],
     "rates": {
       "normal": 4,
       "engage": 12,
@@ -6931,6 +6936,9 @@
       "at": 10
     },
     "levels": [
+      { "id": "role_cherry", "name": "チェリー: 左に BAR か 7", "kind": "Frame", "weight": 0, "symbols": [], "reels": [0], "souls": 16, "embers": 8, "exp": 10, "atGames": 0 },
+      { "id": "role_suica", "name": "スイカ: 中に BAR か 7", "kind": "Frame", "weight": 0, "symbols": [], "reels": [1], "souls": 20, "embers": 10, "exp": 12, "atGames": 0 },
+      { "id": "role_bell", "name": "ベル: 右に BAR か 7", "kind": "Frame", "weight": 0, "symbols": [], "reels": [2], "souls": 8, "embers": 4, "exp": 5, "atGames": 0 },
       {
         "id": "easy_star",
         "name": "★を枠内に",

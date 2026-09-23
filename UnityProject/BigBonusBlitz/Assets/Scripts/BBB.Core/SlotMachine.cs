@@ -506,9 +506,12 @@ namespace BBB.Core
             }
             // 技術介入の課題（オート中と、押し順ナビ・択ナビが出ているGは出さない。指示が重なると読めない）
             string scene = BonusMode != BonusMode.NORMAL ? "bonus" : InAt ? "at" : (IsTier2 && EnemyActive) ? "engage" : "normal";
+            var techRules = Config.tech?.roleRules;
             Tech = (Navi.Active || Navi2.Active)
                 ? default
-                : TechDirector.Roll(Config.tech, scene, AutoPlaying, Strips, _rng);
+                : techRules != null && techRules.Count > 0
+                    ? TechDirector.RollByRole(Config.tech, CurrentFlag, AutoPlaying, Strips, _rng)   // 役ごと（チェリー = 左 など。本人 2026-09-24）
+                    : TechDirector.Roll(Config.tech, scene, AutoPlaying, Strips, _rng);
             if (Tech.Active && !SetAimOrCancel(ref Tech)) Tech = default;
 
             // ミッションの受注（空きがあれば）
@@ -530,7 +533,7 @@ namespace BBB.Core
         private bool SetAimOrCancel(ref TechChallenge t)
         {
             var strip = Strips[t.reel];
-            var aims = TechDirector.AimIndices(strip, t.symbol, t.row >= 0 ? t.row : 1);
+            var aims = t.kind == TechKind.Frame && t.tops != null ? new List<int>(t.tops) : TechDirector.AimIndices(strip, t.symbol, t.row >= 0 ? t.row : 1);
             if (aims.Count == 0) return false;
             var held = CurrentFlag == HeldBonusFlag ? HeldBonusFlag : Flag.HAZE;
             bool pullIn = held != Flag.HAZE && CurrentFlag.IsBonus() && BonusAnnounceRemaining <= 0;
@@ -541,7 +544,7 @@ namespace BBB.Core
             foreach (var aim in aims)
             {
                 var res = SlipController.Stop(Strips, t.reel, aim, CurrentFlag, held, empty, slipMax);
-                if (TechDirector.Judge(t, res.symbols)) { t.aimIndex = aim; return true; }
+                if (TechDirector.Judge(t, res.symbols, res.stopIndex)) { t.aimIndex = aim; return true; }
             }
             return false;
         }
@@ -1099,7 +1102,7 @@ namespace BBB.Core
             _missionStarted = null;
             if (Tech.Active)
             {
-                result.techSuccess = TechDirector.Judge(Tech, Stopped[Tech.reel]);
+                result.techSuccess = TechDirector.Judge(Tech, Stopped[Tech.reel], StopIndex[Tech.reel]);
                 if (result.techSuccess)
                 {
                     var techCfg = Config.tech ?? TechConfig.Default();

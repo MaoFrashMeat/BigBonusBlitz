@@ -11,6 +11,11 @@ namespace BBB.Core
         Vita,
         /// <summary>2コマ目押し: 指定図柄を停止枠内（±2コマ相当）に入れる。</summary>
         TwoKoma,
+        /// <summary>
+        /// 役の目押し（本人 2026-09-24）: 引いた小役の図柄を枠に入れつつ、BAR か 7 を「枠内」か「枠のすぐ上・下（1 コマはみ出る）」に止める。
+        /// リールは役で決まっている（チェリー = 左 など）。成功する止め位置は tops に全部入っている。
+        /// </summary>
+        Frame,
     }
 
     /// <summary>1回分の課題。レバーオン時に決まり、第3停止で判定する。</summary>
@@ -23,6 +28,9 @@ namespace BBB.Core
         public int row;            // 狙う段 0=上 1=中 2=下（Vita のみ。TwoKoma は中段を目安に）
         /// <summary>狙い位置（この上段コマで押せば成功する）。デバッグ・自動検証用。</summary>
         public int aimIndex;
+        /// <summary>Frame: 引いた役の図柄（枠に入れる）と、成功になる止め位置（上段のコマ番号）の一覧。</summary>
+        public Symbol role;
+        public int[] tops;
         public bool Active => kind != TechKind.None;
     }
 
@@ -78,6 +86,21 @@ namespace BBB.Core
         public float rise = 40f;
     }
 
+    /// <summary>役ごとの技術介入の決まり。</summary>
+    public sealed class TechRoleRule
+    {
+        /// <summary>CHERRY / WATERMELON / BELL。</summary>
+        public string role = "CHERRY";
+        /// <summary>対象リール 0=左 1=中 2=右。</summary>
+        public int reel = 0;
+        /// <summary>その役を引いた G で出る率（%）。</summary>
+        public int rate = 30;
+        /// <summary>狙う図柄（BAR / RED7 / BLUE7。この中で止め位置が作れるものから 1 つ）。</summary>
+        public List<string> symbols = new List<string> { "BAR", "RED7", "BLUE7" };
+        /// <summary>報酬を引く levels の id。</summary>
+        public string level = "";
+    }
+
     /// <summary>場面ごとの発生率。オート中は出さない。</summary>
     public sealed class TechSceneRate
     {
@@ -105,6 +128,11 @@ namespace BBB.Core
         /// <summary>押した精度のランク（上から順に判定）と、その文字の出し方。</summary>
         public List<TechRankDef> ranks = new List<TechRankDef>();
         public TechRankFxConfig rankFx = new TechRankFxConfig();
+        /// <summary>
+        /// 役ごとの技術介入（本人 2026-09-24）。空でなければこちらを使い、場面ごとの率（rates）と levels のランダムは使わない。
+        /// 引いた小役に合う決まりが 1 つあれば、その率で出る。報酬は level の id で levels から引く。
+        /// </summary>
+        public List<TechRoleRule> roleRules = new List<TechRoleRule>();
 
         public static List<TechRankDef> DefaultRanks() => new List<TechRankDef>
         {
@@ -235,6 +263,57 @@ namespace BBB.Core
             };
         }
 
+        /// <summary>
+        /// 役ごとの技術介入を出すか決める（roleRules）。flag は引いた役。オート中・決まりが無い役・率に外れたら出さない。
+        /// </summary>
+        public static TechChallenge RollByRole(TechConfig cfg, Flag flag, bool auto, Symbol[][] strips, IRandom rng)
+        {
+            var none = default(TechChallenge);
+            if (cfg == null || !cfg.enabled || auto || strips == null || cfg.roleRules == null) return none;
+            string role = flag.IsCherry() ? "CHERRY" : flag.IsSuica() ? "WATERMELON" : flag.IsBell() ? "BELL" : null;
+            if (role == null) return none;
+            TechRoleRule rule = null;
+            foreach (var r in cfg.roleRules) if (r != null && r.role == role) { rule = r; break; }
+            if (rule == null || rule.rate <= 0 || rule.reel < 0 || rule.reel >= strips.Length) return none;
+            if (rng.NextDouble() * 100 >= rule.rate) return none;
+            var roleSym = role == "CHERRY" ? Symbol.CHERRY : role == "WATERMELON" ? Symbol.WATERMELON : Symbol.STAR;
+            var strip = strips[rule.reel];
+            var cands = new List<(Symbol sym, List<int> tops)>();
+            foreach (var name in rule.symbols ?? new List<string>())
+            {
+                if (!Enum.TryParse<Symbol>(name, out var sym)) continue;
+                var tops = FrameTops(strip, roleSym, sym);
+                if (tops.Count > 0) cands.Add((sym, tops));
+            }
+            if (cands.Count == 0) return none;
+            var c = cands[rng.Next(cands.Count)];
+            return new TechChallenge { kind = TechKind.Frame, id = rule.level, reel = rule.reel, symbol = c.sym, role = roleSym, tops = c.tops.ToArray(), row = 1, aimIndex = -1 };
+        }
+
+        /// <summary>
+        /// 役の目押しで成功になる止め位置（上段のコマ番号）: 役の図柄が枠（上中下）にあり、狙う図柄が枠内か、枠のすぐ上（上段の 1 つ上）・すぐ下（下段の 1 つ下）にある。
+        /// </summary>
+        public static List<int> FrameTops(Symbol[] strip, Symbol role, Symbol sym)
+        {
+            var r = new List<int>();
+            int n = strip.Length;
+            for (int top = 0; top < n; top++)
+            {
+                bool roleIn = false, symNear = false;
+                for (int k = 0; k < 3; k++) if (strip[(top + k) % n] == role) roleIn = true;
+                for (int k = -1; k <= 3; k++) if (strip[((top + k) % n + n) % n] == sym) symNear = true;
+                if (roleIn && symNear) r.Add(top);
+            }
+            return r;
+        }
+
+        /// <summary>止まった位置で判定する（Frame は止め位置、それ以外は枠の図柄で）。</summary>
+        public static bool Judge(TechChallenge ch, Symbol[] stopped, int stopTop)
+        {
+            if (ch.kind == TechKind.Frame) return ch.tops != null && Array.IndexOf(ch.tops, stopTop) >= 0;
+            return Judge(ch, stopped);
+        }
+
         /// <summary>その図柄が row 段に来る上段コマ番号を全部返す（狙い位置の候補）。</summary>
         public static List<int> AimIndices(Symbol[] strip, Symbol sym, int row)
         {
@@ -271,7 +350,8 @@ namespace BBB.Core
         {
             if (cfg?.ranks == null || cfg.ranks.Count == 0 || !ch.Active || strip == null || pressIdx < 0) return null;
             int len = strip.Length, koma = int.MaxValue;
-            foreach (var aim in AimIndices(strip, ch.symbol, ch.row >= 0 && ch.row < 3 ? ch.row : 1))
+            IEnumerable<int> aimList = ch.kind == TechKind.Frame && ch.tops != null ? (IEnumerable<int>)ch.tops : AimIndices(strip, ch.symbol, ch.row >= 0 && ch.row < 3 ? ch.row : 1);
+            foreach (var aim in aimList)
             {
                 int k = ((pressIdx - aim) % len + len) % len;   // 上段のコマ番号は回るほど減るので、aim+k で押せば k コマ滑って aim に止まる
                 if (k < koma) koma = k;
