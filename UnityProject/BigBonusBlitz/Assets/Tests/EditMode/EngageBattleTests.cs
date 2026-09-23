@@ -17,7 +17,7 @@ namespace BBB.Tests
             Assert.AreEqual(EngageRole.Rare, EngageBattle.RoleOf(WinType.CHERRY, false, false, Cfg));
             Assert.AreEqual(EngageRole.Rare, EngageBattle.RoleOf(WinType.WATERMELON, false, false, Cfg));
             Assert.AreEqual(EngageRole.Rare, EngageBattle.RoleOf(WinType.CHANCE, false, false, Cfg));
-            Assert.AreEqual(EngageRole.Rare, EngageBattle.RoleOf(WinType.BELL, true, false, Cfg), "択ナビ正解はレア役扱い");
+            Assert.AreEqual(EngageRole.Small, EngageBattle.RoleOf(WinType.BELL, true, false, Cfg), "択ナビ正解もただの小役（本人 2026-09-23）");
             Assert.AreEqual(EngageRole.Lose, EngageBattle.RoleOf(WinType.NONE, false, true, Cfg), "択ナビ失敗はハズレ");
         }
 

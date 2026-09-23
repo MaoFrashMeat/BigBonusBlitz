@@ -2151,7 +2151,7 @@
     "sets": 3, "lifeDamage": 3,
     "enemyHp": 100, "damageSmall": 15, "damageMedium": 35, "damageLarge": 70, "damageCounter": 50,
     "chargeLoseHit": 70, "chargeLoseGuard": 15, "chargeLoseDodge": 15,
-    "rareGivesPotion": true, "potionHeal": 3, "naviSuccessIsRare": true,
+    "rareGivesPotion": true, "potionHeal": 3, "naviSuccessIsRare": false,
     "judgeEnabled": true, "judgeRatioScale": 1, "judgeSmallBonus": 10, "judgeRareBonus": 40, "judgeMin": 0, "judgeMax": 95,
     "texts": {
       "turn1": "小役を引いて魔物を討伐しろ！",

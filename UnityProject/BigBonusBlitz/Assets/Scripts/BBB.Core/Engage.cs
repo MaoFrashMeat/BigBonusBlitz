@@ -48,7 +48,7 @@ namespace BBB.Core
         /// <summary>ルーレットの回復量（ハズレ）。</summary>
         public int potionHeal = 3;
         /// <summary>ベル択ナビの正解をレア役扱いにするか（false なら小役）。</summary>
-        public bool naviSuccessIsRare = true;
+        public bool naviSuccessIsRare = false;   // 本人 2026-09-23「EE 時ベルナビはただの小役」
         /// <summary>
         /// 全セットで HP を削り切れなかったときのジャッジ（追加の 1 G）。倒せる率 = 削った割合（%）× judgeRatioScale + 役の上乗せ。
         /// judgeMin 〜 judgeMax に収める。0 なら逃走確定。
@@ -128,7 +128,7 @@ namespace BBB.Core
                 case WinType.REG:
                     return EngageRole.Rare;
                 case WinType.BELL:
-                    return naviSuccess && (cfg?.naviSuccessIsRare ?? true) ? EngageRole.Rare : EngageRole.Small;
+                    return naviSuccess && (cfg?.naviSuccessIsRare ?? false) ? EngageRole.Rare : EngageRole.Small;
                 case WinType.REPLAY:
                     return EngageRole.Small;
                 default:
