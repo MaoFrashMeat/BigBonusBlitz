@@ -5147,6 +5147,8 @@ namespace BBB.Runtime
                     if (st.defeated)
                     {
                         PlayCharacter("attack-f3-4");
+                        var jf = _m.Config.engage?.judgeFx ?? new JudgeFxConfig();
+                        StartCoroutine(CutInImageRoutine(jf.winImage, jf, false));   // とどめの絵（左から）
                         if (!_audio.TryPlay("engage_judge_win")) _audio.Attack();
                         _audio.Voice("attack");
                         UiFx.Slash(_enemyRt, -30f, 320f, ColGold);
@@ -5241,7 +5243,49 @@ namespace BBB.Runtime
         {
             var fx = _m.Config.engage?.judgeFx ?? new JudgeFxConfig();
             if (!_audio.TryPlay("engage_judge")) _audio.NaviChoice(true);
+            // 主人公のカットイン（熱さの段で絵を変える）を後ろに、「JUDGE」を前に
+            int h = Mathf.Clamp(_m.JudgeHeat, 0, 3);
+            string img = fx.cutInImages != null && fx.cutInImages.Length > 0 ? fx.cutInImages[Mathf.Min(h, fx.cutInImages.Length - 1)] : null;
+            StartCoroutine(CutInImageRoutine(img, fx, true));
             yield return SlamTitle(fx.cutInText ?? "JUDGE", Hex(string.IsNullOrEmpty(fx.cutInColor) ? "#ffd23f" : fx.cutInColor), Mathf.Max(0.1f, fx.cutInHold), Mathf.Max(20, fx.cutInSize));
+        }
+
+        private static readonly System.Collections.Generic.Dictionary<string, Sprite> _cutInCache = new System.Collections.Generic.Dictionary<string, Sprite>();
+        private static Sprite CutInSprite(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return null;
+            if (_cutInCache.TryGetValue(name, out var s) && s != null) return s;
+            var t = Resources.Load<Texture2D>("Art/UI/CutIn/" + name);
+            if (t == null) return null;
+            s = Sprite.Create(t, new Rect(0, 0, t.width, t.height), new Vector2(0.5f, 0.5f), 100f);
+            _cutInCache[name] = s;
+            return s;
+        }
+
+        /// <summary>カットインの絵: 右から滑り込み（fromRight=false なら左から）、止まって少し流れ、反対へ抜ける。表示域の中だけ。</summary>
+        private IEnumerator CutInImageRoutine(string name, JudgeFxConfig fx, bool fromRight)
+        {
+            var sp = CutInSprite(name);
+            if (sp == null) yield break;
+            float hgt = AreaH * Mathf.Max(0.3f, fx.imageHeight), wid = hgt * sp.rect.width / sp.rect.height;
+            var clip = UiSkin.Rect(_area, "CutInClip", Vector2.zero, new Vector2(AreaW, AreaH));   // 表示域からはみ出さない
+            clip.gameObject.AddComponent<RectMask2D>();
+            var img = UiSkin.Img(clip, "CutIn", Vector2.zero, new Vector2(wid, hgt), sp, Color.white);
+            img.preserveAspect = true; img.raycastTarget = false;
+            var rt = img.rectTransform;
+            float dir = fromRight ? 1f : -1f, xIn = dir * (AreaW * 0.5f + wid * 0.5f), xOut = -xIn;
+            float tIn = Mathf.Max(0.01f, fx.imageIn), tHold = Mathf.Max(0f, fx.imageHold), tOut = Mathf.Max(0.01f, fx.imageOut), t = 0;
+            while (t < tIn + tHold + tOut)
+            {
+                t += Time.deltaTime;
+                float x;
+                if (t < tIn) x = Mathf.Lerp(xIn, 0f, 1f - Mathf.Pow(1f - t / tIn, 3f));
+                else if (t < tIn + tHold) x = -dir * fx.imageDrift * ((t - tIn) / Mathf.Max(0.01f, tHold));
+                else x = Mathf.Lerp(-dir * fx.imageDrift, xOut, Mathf.Pow((t - tIn - tHold) / tOut, 2f));
+                rt.anchoredPosition = new Vector2(x, 0);
+                yield return null;
+            }
+            Destroy(clip.gameObject);
         }
 
         /// <summary>ジャッジの G の停止ごとの演出。第一停止 = 前触れの一言、第二停止 = 熱さの帯、第三停止 = 決着（EngageStepRoutine）。</summary>

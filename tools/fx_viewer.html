@@ -132,6 +132,10 @@
     return null;
   }
 
+  // カットインの絵（assets/cut。ゲームは Resources/Art/UI/CutIn の縮小版）
+  const cutCache = {};
+  function cutImg(name) { if (!name) return null; if (!cutCache[name]) cutCache[name] = img("../assets/cut/" + name + ".png"); return cutCache[name]; }
+
   // 演出の一覧。params は game_config.json のキーと同じ名前にする。draw(t, p) は t 秒時点を描き、終わったら false
   const FX = [
     {
@@ -459,6 +463,11 @@
         { group: "カットイン", key: "cutInSize", label: "文字", min: 30, max: 120, step: 1, def: 72 },
         { group: "カットイン", key: "cutInHold", label: "止まる秒", min: 0.1, max: 2, step: 0.05, def: 0.7 },
         { group: "カットイン", key: "cutInColor", label: "色", type: "color", def: "#ffd23f" },
+        { group: "主人公の絵", key: "imageHeight", label: "高さ（表示域比）", min: 0.5, max: 2, step: 0.01, def: 1.15 },
+        { group: "主人公の絵", key: "imageIn", label: "滑り込む秒", min: 0.05, max: 1, step: 0.01, def: 0.16 },
+        { group: "主人公の絵", key: "imageHold", label: "止まる秒", min: 0, max: 2, step: 0.05, def: 0.75 },
+        { group: "主人公の絵", key: "imageOut", label: "抜ける秒", min: 0.05, max: 1, step: 0.01, def: 0.22 },
+        { group: "主人公の絵", key: "imageDrift", label: "止まる間に流れる量", min: 0, max: 200, step: 1, def: 40 },
       ],
       total: p => 6.2,
       draw(t, p) {
@@ -490,6 +499,20 @@
           g.save(); g.globalAlpha = Math.max(0, a); g.font = "bold " + size + "px sans-serif"; g.textAlign = "center"; g.textBaseline = "middle";
           g.lineWidth = 5; g.strokeStyle = "rgba(0,0,0,0.8)"; g.strokeText(text, 820, 170 - u * 20); g.fillStyle = col; g.fillText(text, 820, 170 - u * 20); g.restore();
         }
+        // 主人公のカットイン（熱さの段の絵を右から、とどめの絵を左から）。GameController.CutInImageRoutine と同じ動き
+        const imgs = D.cutInImages || ["cut_salia_01", "cut_salia_04", "cut_salia_02", "cut_salia_03"];
+        function cutIn(t0, name, fromRight) {
+          const im = cutImg(name); if (!im || !im.complete || !im.naturalWidth) return;
+          const tIn = p.imageIn, tHold = p.imageHold, tOut = p.imageOut, u = t - t0; if (u < 0 || u > tIn + tHold + tOut) return;
+          const hgt = 330 * p.imageHeight, wid = hgt * im.naturalWidth / im.naturalHeight, dir = fromRight ? 1 : -1;
+          const xIn = dir * (585 + wid * 0.5), xOut = -xIn; let x;
+          if (u < tIn) x = lerp(xIn, 0, 1 - Math.pow(1 - u / tIn, 3));
+          else if (u < tIn + tHold) x = -dir * p.imageDrift * ((u - tIn) / Math.max(0.01, tHold));
+          else x = lerp(-dir * p.imageDrift, xOut, Math.pow((u - tIn - tHold) / tOut, 2));
+          g.save(); g.beginPath(); g.rect(9, 9, 1152, 330); g.clip(); g.drawImage(im, 585 + x - wid / 2, 174 - hgt / 2, wid, hgt); g.restore();
+        }
+        cutIn(0, imgs[Math.min(h, imgs.length - 1)], true);
+        if (p.win) cutIn(4.4, D.winImage || "cut_salia_05", false);
         // 0.0 BET: JUDGE
         slam(0, "JUDGE", p.cutInColor || "#ffd23f", p.cutInSize, p.cutInHold, false);
         // 2.0 第一停止: 前触れ

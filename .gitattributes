@@ -9,3 +9,5 @@ assets/refarence/*.png filter=lfs diff=lfs merge=lfs -text
 assets/refarence/*.jpg filter=lfs diff=lfs merge=lfs -text
 # 描き出し（tools/<画面>-qa）は LFS。1 枚 1〜4MB で、残すたびに履歴が重くなるため（2026-09-23）
 tools/*-qa/**/*.png filter=lfs diff=lfs merge=lfs -text
+# カットインの元絵（assets/cut）も LFS。1 枚 3MB
+assets/cut/*.png filter=lfs diff=lfs merge=lfs -text
