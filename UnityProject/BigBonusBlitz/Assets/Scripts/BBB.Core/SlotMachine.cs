@@ -253,6 +253,8 @@ namespace BBB.Core
         public int EngageSet, EngageTurn; public EngageStance EngageStance; public bool EngagePotionSpin, EngageNextLarge;
         /// <summary>次の G が 3 セット後のジャッジ（追加の 1 G。倒すか逃げるかが決まる）。</summary>
         public bool EngageJudgeSpin;
+        /// <summary>ジャッジの G: レバーで決めた結果・率・熱さ（段 0〜3）。停止ごとの演出がこれを見る。</summary>
+        public bool JudgeWillWin; public int JudgePercentNow, JudgeHeat = -1;
         /// <summary>敵の HP（攻撃のダメージで削る。0 で討伐）。</summary>
         public int EngageHp, EngageHpMax;
         private bool _engageResolveNow;
@@ -475,6 +477,7 @@ namespace BBB.Core
                 hint = EnemyEngage.RollHint(ActiveEnemyTable, Config.defaultHintConfig, _rng);
 
             DrawLottery();
+            if (IsTier2 && EnemyActive && EngageJudgeSpin) RollJudgeAtLever();   // ジャッジの G は結果と熱さをここで
 
             // AT 道中の押し順ナビ。出なかったベルは「共通ベル」として少なめに払う
             AtBellHasNavi = false;
@@ -539,6 +542,22 @@ namespace BBB.Core
                 if (TechDirector.Judge(t, res.symbols)) { t.aimIndex = aim; return true; }
             }
             return false;
+        }
+
+        /// <summary>ジャッジの G のレバー: 役（フラグ）から率を出し、結果と演出の熱さを決める。</summary>
+        private void RollJudgeAtLever()
+        {
+            var cfg = Config.engage ?? new EngageConfig();
+            var f = CurrentFlag;
+            var role = f.IsCherry() || f.IsSuica() || f.IsReachMe() || f.IsBonus() ? EngageRole.Rare
+                     : f.IsBell() || f.IsReplay() ? EngageRole.Small : EngageRole.Lose;
+            JudgePercentNow = EngageBattle.JudgePercent(EngageHp, EngageHpMax, role, cfg, BonusOf(ShopEffects.JudgeBonus));
+            JudgeWillWin = _rng.NextDouble() * 100 < JudgePercentNow;
+            var fx = cfg.judgeFx ?? new JudgeFxConfig();
+            var w = JudgeWillWin ? fx.heatWeightsWin : fx.heatWeightsLose;
+            int total = 0; if (w != null) foreach (var x in w) total += Math.Max(0, x);
+            JudgeHeat = 0;
+            if (total > 0) { int r = _rng.Next(total); for (int i = 0; i < w.Length; i++) { r -= Math.Max(0, w[i]); if (r < 0) { JudgeHeat = i; break; } } }
         }
 
         /// <summary>通常時の 1 G を数え、冒険中なら灯（LIFE）を 1 減らす。</summary>
@@ -1418,13 +1437,14 @@ namespace BBB.Core
 
             if (EngageJudgeSpin)
             {
-                // 3 セット後のジャッジ: 削った HP の分だけ倒せる（役で上乗せ）。倒すか逃げるかがここで決まる
+                // 3 セット後のジャッジ: 結果はレバーで決めてある（停止ごとの演出が先に熱さを見せるため）
                 EngageJudgeSpin = false;
                 step.judgeSpin = true;
                 step.outcome = EngageOutcome.Judge;
-                step.judgePercent = EngageBattle.JudgePercent(EngageHp, EngageHpMax, role, cfg, BonusOf(ShopEffects.JudgeBonus));
+                step.judgePercent = JudgePercentNow;
                 LastDefeatPercent = step.judgePercent;
-                if (_rng.NextDouble() * 100 < step.judgePercent) { step.dealt = EngageHp; EngageHp = 0; step.hpLeft = 0; step.defeated = true; EnemyDefeatWon = true; }
+                if (JudgeWillWin) { step.dealt = EngageHp; EngageHp = 0; step.hpLeft = 0; step.defeated = true; EnemyDefeatWon = true; }
+                JudgeHeat = -1;
                 _engageResolveNow = true;
                 return;
             }

@@ -11,7 +11,7 @@ import io, json, os
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CFG = os.path.join(ROOT, "UnityProject", "BigBonusBlitz", "Assets", "Resources", "Data", "game_config.json")
 OUT = os.path.join(ROOT, "tools", "fx_defaults.js")
-KEYS = ["reelFx.emberGain", "tech.rankFx", "reelFx.naviCombo"]
+KEYS = ["reelFx.emberGain", "tech.rankFx", "reelFx.naviCombo", "engage.judgeFx"]
 
 
 def main():
@@ -23,6 +23,10 @@ def main():
             node = node.get(part) if isinstance(node, dict) else None
             if node is None: break
         if isinstance(node, dict): out[key] = node
+    presentation = os.path.join(os.path.dirname(CFG), "adventure_presentation.json")
+    if os.path.exists(presentation):
+        with io.open(presentation, encoding="utf-8-sig") as f:
+            out["adventurePresentation"] = {k:v for k,v in json.load(f).items() if isinstance(v, (int, float))}
     # 書体の選択（tools/text_choice.json）も写す。ビューアの「数字と獲得の書体」の初期値になる
     choice_path = os.path.join(ROOT, "tools", "text_choice.json")
     if os.path.exists(choice_path):

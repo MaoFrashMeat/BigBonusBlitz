@@ -102,6 +102,11 @@ namespace BBB.Runtime
         private readonly System.Random _naviRng = new System.Random(7);
         // 会話 UI（旅人 ⇄ 主人公）
         private GameObject _dialogBox;
+        private DialoguePresenter _dialogue;
+        private bool _dialogueAdvance;
+        private RectTransform _gainLayer;
+        private CanvasGroup _gainVisibility;
+        private CurseHudPresenter _curseHud;
         private Text _dialogName, _dialogText;
         private Image _dialogNameBg;
         private Coroutine _dialogRoutine;
@@ -717,19 +722,16 @@ namespace BBB.Runtime
             UiFactory.Label(band, "GLabel", new Vector2(bandW * 0.5f - 8 - 92 - 20, 0), new Vector2(40, 20), "GAME", 10, TextAnchor.MiddleRight, UiSkin.TextDim);
             _gCount = UiSkin.Number(band, "G", new Vector2(bandW * 0.5f - 8 - 44, 0), new Vector2(88, BandH), "0 G", 15, ColGold);
 
-            // 会話 UI（旅人 ⇄ 主人公）。表示域の下部に重ねる不透明の帯。名前タグ＋本文
-            var dlg = UiSkin.Rect(stageCard, "Dialogue", new Vector2(0, -Lsc.h * 0.5f + 38), new Vector2(620, 54));
-            UiSkin.Img(dlg, "Shadow", new Vector2(0, -5), new Vector2(644, 78), UiSkin.Shadow(14, 12), new Color(0, 0, 0, 0.55f));
-            UiSkin.Img(dlg, "Edge", Vector2.zero, new Vector2(620, 54), UiSkin.Rounded(15), ColPanelEdge);
-            UiSkin.Img(dlg, "Bg", Vector2.zero, new Vector2(618, 52), UiSkin.Rounded(14), new Color(0.03f, 0.04f, 0.08f, 0.94f));
-            _dialogNameBg = UiSkin.Img(dlg, "NameBg", new Vector2(-310 + 10 + 46, 27), new Vector2(92, 20), UiSkin.Rounded(10), ColGold);
-            _dialogName = UiFactory.Label(_dialogNameBg.rectTransform, "Name", new Vector2(0, 0), new Vector2(92, 20), "", 11, TextAnchor.MiddleCenter, ColBg);
-            _dialogName.fontStyle = FontStyle.Bold;
-            _dialogText = UiFactory.Label(dlg, "Text", new Vector2(8, -3), new Vector2(584, 44), "", 15, TextAnchor.MiddleLeft, ColText);
-            _dialogRow = UiSkin.Rect(dlg, "TextRow", new Vector2(8, -3), new Vector2(584, 44));
-            _dialogRow.gameObject.SetActive(false);
-            _dialogBox = dlg.gameObject;
-            _dialogBox.SetActive(false);
+            // Shared dialogue outside the character mask; reward overlay is created after the dialogue.
+            _dialogue=DialoguePresenter.Create(stageCard,"Dialogue",660,-Lsc.h*.5f+8);
+            _dialogue.Tapped+=()=>_dialogueAdvance=true;
+            _dialogBox=_dialogue.gameObject;_dialogText=_dialogue.Body;
+            _dialogName=_dialogue.Name;_dialogNameBg=_dialogue.NamePlate;
+            _dialogRow=UiSkin.Rect(_dialogue.Root,"LegacyTextRow",Vector2.zero,Vector2.zero);
+            _dialogRow.gameObject.SetActive(false);_dialogBox.SetActive(false);
+            _gainLayer=UiSkin.Rect(stageCard,"RewardOverlay",new Vector2(0,AreaY),new Vector2(AreaW,AreaH));
+            _gainVisibility=_gainLayer.gameObject.AddComponent<CanvasGroup>();_gainVisibility.blocksRaycasts=false;
+            _curseHud=CurseHudPresenter.Create(stageCard,_stage,_m,new Vector2(Lsc.w*.5f-155,Lsc.h*.5f-66));
 
             // BB カットイン（表示域の中央。マスク外に出てよい）
             _cutinRt = MakeImage(_stage, "Cutin", new Vector2(0, StageCardY + AreaY), new Vector2(380, 380), ArtLoader.Sprite("Art/UI/britz_bonus_logo"));
@@ -2409,6 +2411,9 @@ namespace BBB.Runtime
         private void Update()
         {
             AnimateNavi();
+            bool presentationBlocked=AtelierModalOpen()||_curseBox!=null||OpeningPlayer.IsShowing;
+            if(_gainVisibility!=null)_gainVisibility.alpha=presentationBlocked?0:1;
+            if(_curseHud!=null)_curseHud.Refresh(presentationBlocked);
             // Play 中にスクリプトが再コンパイルされると非シリアライズ参照が消える。その状態で回さない（NRE の連打防止）
             if (_m == null || _creditNum == null) return;
             var kb = Keyboard.current;
@@ -2534,7 +2539,9 @@ namespace BBB.Runtime
             _charRt.localRotation = Quaternion.identity;
             ExitFocus();
             _m.AutoPlaying = _autoMode;    // オート中は技術介入の課題を出さない
+            bool judgeG = _m.IsTier2 && _m.EnemyActive && _m.EngageJudgeSpin;
             var legacyHint = _m.Lever();   // 抽選はレバーオン時点で確定（旧示唆は使わない）
+            if (judgeG) StartCoroutine(JudgeCutInRoutine());   // ジャッジの G: BET で「JUDGE」のカットイン
             ResetNaviBadges();             // 前のGのナビ（○×や消えたバッジ）を持ち越さない
             RefreshNavi();
             var hint = HintKind.None;
@@ -2729,6 +2736,7 @@ namespace BBB.Runtime
             // JS onStop: ベル時の第1/第2停止演出
             int pressed = 0;
             for (int k = 0; k < 3; k++) if (_m.Stopped[k] != null) pressed++;
+            if (_m.IsTier2 && _m.EngageJudgeSpin && _m.JudgeHeat >= 0) JudgeStopFx(pressed);   // ジャッジの G: 停止ごとに段階的に
             if (_m.CurrentFlag.IsBell())
             {
                 if (pressed == 1) PlayCharacter("attack-f2");
@@ -3513,50 +3521,19 @@ namespace BBB.Runtime
 
         private IEnumerator ExplainRoutine(System.Collections.Generic.List<string> lines)
         {
-            foreach (var line in lines)
+            foreach(var line in lines)
             {
                 LogAdd(line);
-                float seconds = line.Length > 26 ? 3.0f : 2.4f;
-                float t = 0;
-                const float cps = 28f;
-                while (t < seconds)
-                {
-                    t += Time.deltaTime;
-                    PutExplainLine(line, Mathf.Clamp01(t * cps / Mathf.Max(1, line.Length)));
-                    yield return null;
-                }
-                PutExplainLine(line, 1f);
+                yield return ShowLine("説明",line,ColGold,ColText,line.Length>26?3f:2.4f,true);
             }
-            _explainActive = false;
-            HideDialogue();
-            _dialogRoutine = null;
+            _explainActive=false;HideDialogue();_dialogRoutine=null;
         }
 
-        /// <summary>
-        /// 吹き出しに説明を 1 行置く。progress は文字の出た割合（0〜1、タイプライタ）。
-        /// アイコン入りの行はタイプできないので、そのまま並べる。
-        /// </summary>
-        private void PutExplainLine(string line, float progress)
+        private void PutExplainLine(string line,float progress)
         {
-            if (_dialogBox == null) return;
-            _dialogBox.SetActive(true);
-            _dialogName.text = "説明";
-            _dialogNameBg.color = UiSkin.Blue;
-            _dialogName.color = ColBg;
-            bool icons = IconText.HasIcons(line);
-            if (_dialogRow != null) _dialogRow.gameObject.SetActive(icons);
-            _dialogText.gameObject.SetActive(!icons);
-            _dialogText.color = ColText;
-            if (icons)
-            {
-                if (_dialogRow.childCount == 0 || progress >= 1f && _dialogRow.childCount == 0)
-                    IconText.Render(_dialogRow, line, 15, ColText, FontStyle.Normal, 17f, 0f, 3f, false);
-            }
-            else
-            {
-                int n = Mathf.Clamp(Mathf.FloorToInt(line.Length * progress), 0, line.Length);
-                _dialogText.text = line.Substring(0, n);
-            }
+            if(_dialogue==null)return;
+            _dialogue.Begin("説明",line);
+            if(progress>=1)_dialogue.Reveal();else _dialogue.Tick(progress*DialoguePresenter.Plain(line).Length/Mathf.Max(1,AdventurePresentation.Config.charactersPerSecond),false);
         }
 
         private void RollHeroMonologue(GameResult r)
@@ -3645,33 +3622,31 @@ namespace BBB.Runtime
         }
 
         /// <summary>1 行分: タグを付けて本文をタイプライタ表示し、seconds 経つまで保持。</summary>
-        private IEnumerator ShowLine(string speaker, string text, Color tagBg, Color tagFg, float seconds)
+        private IEnumerator ShowLine(string speaker,string text,Color tagBg,Color tagFg,float seconds,bool essential=false)
         {
-            if(AtelierPreferences.Subtitles)AudioManager.Create().MotionIfQuiet(MotionCue.Dialogue);
-            _dialogBox.SetActive(AtelierPreferences.Subtitles);
-            _dialogText.fontSize = Mathf.RoundToInt(15 * AtelierPreferences.Scale / 100f);
-            var dialogRect = (RectTransform)_dialogBox.transform;
-            dialogRect.sizeDelta = new Vector2(dialogRect.sizeDelta.x, AtelierPreferences.Scale > 100 ? 126 : 84);
-            _dialogText.rectTransform.sizeDelta = new Vector2(584, AtelierPreferences.Scale > 100 ? 88 : 44);
-            _dialogNameBg.rectTransform.anchoredPosition = new Vector2(_dialogNameBg.rectTransform.anchoredPosition.x, AtelierPreferences.Scale > 100 ? 51 : 27);
-            var dialogImage = _dialogBox.GetComponent<Image>();
-            if(dialogImage != null) dialogImage.color = AtelierPreferences.Contrast ? Color.black : ColBg;
-            _dialogText.color = Color.white;
-            _dialogName.text = speaker;
-            _dialogNameBg.color = tagBg;
-            _dialogName.color = tagFg;
-            _dialogText.text = "";
-            float t = 0;
-            const float cps = 28f;
-            int shown = -1;
-            while (t < seconds)
+            if(!essential&&!AtelierPreferences.Subtitles)yield break;
+            _dialogueAdvance=false;
+            _dialogue.Begin(speaker,text,_m.Config.travelers?.heroName??"サリア");
+            float held=0;
+            while(true)
             {
-                t += Time.deltaTime;
-                int n = Mathf.Min(text.Length, Mathf.FloorToInt(t * cps));
-                if (n != shown) { shown = n; _dialogText.text = text.Substring(0, n); }
+                if(AtelierModalOpen()||_curseBox!=null||OpeningPlayer.IsShowing){yield return null;continue;}
+                bool wasRevealed=_dialogue.Revealed;
+                _dialogue.Tick(Time.unscaledDeltaTime);
+                if(_dialogueAdvance)
+                {
+                    _dialogueAdvance=false;
+                    if(_dialogue.Advance())break;
+                    held=0;
+                }
+                else if(wasRevealed)
+                {
+                    held+=Time.unscaledDeltaTime;
+                    if(held>=Mathf.Max(_dialogue.ReadSeconds,seconds*.5f))
+                    {if(_dialogue.Advance())break;held=0;}
+                }
                 yield return null;
             }
-            _dialogText.text = text;
         }
 
         private void HideDialogue()
@@ -4552,6 +4527,7 @@ namespace BBB.Runtime
             var fx = _m.Config.reelFx?.emberGain ?? new EmberGainFxConfig();
             while (_gainQueue.Count > 0)
             {
+                while(AtelierModalOpen()||_curseBox!=null||OpeningPlayer.IsShowing)yield return null;
                 var group = _gainQueue.Dequeue();
                 int n = group.Count;
                 // 上から順に並べる（2 本以上のときの中心は stackY、大きさは stackScale。1 本は y のまま等倍）。行ごとに少し遅らせて出す
@@ -4574,9 +4550,10 @@ namespace BBB.Runtime
                     if (floor > bottom) center += floor - bottom;
                 }
                 for (int i = 0; i < n; i++)
-                    StartCoroutine(GainSlide(group[i].icon, group[i].amount, group[i].unit, center - fx.y + ((n - 1) * 0.5f - i) * gap, i * fx.stackStagger, scale));
+                    StartCoroutine(GainSlide(group[i].icon, group[i].amount, group[i].unit, center - fx.y + ((n - 1) * 0.5f - i) * gap, i * fx.stackStagger, scale, center - (n - 1) * .5f * gap - fx.numH * scale * .5f, i, n));
                 float total = Mathf.Max(0.01f, fx.inSeconds) + Mathf.Max(0f, fx.holdSeconds) + Mathf.Max(0.01f, fx.outSeconds) + (n - 1) * fx.stackStagger;
-                yield return new WaitForSeconds(total + 0.08f);
+                // The previous group can wait for BET. Do not overlap it with the next group.
+                while(_gainLayer!=null&&_gainLayer.childCount>0)yield return null;
             }
             _gainPlaying = false;
         }
@@ -4585,13 +4562,13 @@ namespace BBB.Runtime
         /// 「n {icon} GET」の帯（ベルのエンバー、敵の EXP、技術介入の報酬など、得たもの全部に使う）。
         /// 動きと部品は reelFx.emberGain（tools/fx_viewer.html と同じ式）。icon は UiSkin.Icon の名前（ember / soul / book）。
         /// </summary>
-        private IEnumerator GainSlide(string icon, int amount, string unit = null, float yOffset = 0f, float delay = 0f, float scale = 1f)
+        private IEnumerator GainSlide(string icon, int amount, string unit = null, float yOffset = 0f, float delay = 0f, float scale = 1f, float groupBottom = float.NaN, int groupIndex = 0, int groupCount = 1)
         {
             if (delay > 0f) yield return new WaitForSeconds(delay);
             var fx = _m.Config.reelFx?.emberGain ?? new EmberGainFxConfig();
             string iconName = string.IsNullOrEmpty(icon) ? "ember" : icon;
             float bandW = fx.bandW, bandH = fx.bandH, y0 = fx.y + yOffset;
-            var band = UiSkin.Rect(_area, "EmberGain", new Vector2(AreaW * 0.5f + bandW * 0.6f, y0), new Vector2(bandW, bandH));
+            var band = UiSkin.Rect(_gainLayer, "EmberGain", new Vector2(AreaW * 0.5f + bandW * 0.6f, y0), new Vector2(bandW, bandH));
             // 部品は設定で ON/OFF（2026-09-14 本人: 枠は要らない。細かく切り替えたい）
             if (fx.showBand) UiSkin.Img(band, "Bg", Vector2.zero, new Vector2(bandW, bandH), UiSkin.Rounded(14), new Color(0.05f, 0.03f, 0.02f, 0.82f));
             if (fx.showEdges)
@@ -4716,6 +4693,7 @@ namespace BBB.Runtime
             int betSerial0 = _gainBetSerial; float tRelease = -1f, tInS = Mathf.Max(0.01f, fx.inSeconds);
             while (true)
             {
+                if(AtelierModalOpen()||_curseBox!=null||OpeningPlayer.IsShowing){yield return null;continue;}
                 t += Time.deltaTime;
                 // BET まで止まる: BET（Lever）が来たら betWaitSeconds 後に抜け始める。betHoldMax > 0 なら BET が無くてもその秒で打ち切る
                 float hold = -1f;
@@ -4725,8 +4703,7 @@ namespace BBB.Runtime
                     hold = tRelease < 0f ? 1e6f : Mathf.Max(0f, tRelease + fx.betWaitSeconds - tInS);
                 }
                 if (!EmberGainPose(fx.style ?? "slideRL", t, fx, xIn, out var pos, out var sc, out float rot, out float alpha, out float countU, hold)) break;
-                band.anchoredPosition = new Vector2(pos.x, y0 + pos.y);
-                band.localScale = new Vector3(sc.x * scale, sc.y * scale, 1f);
+                PlaceGain(band,pos,y0,scale,groupBottom,groupIndex,groupCount,sc,fx);
                 band.localRotation = Quaternion.Euler(0, 0, rot);
                 cg.alpha = alpha;
                 if (back != null && fx.backIconSpin != 0f) back.rectTransform.localRotation = Quaternion.Euler(0, 0, fx.backIconRot + fx.backIconSpin * t);
@@ -4806,6 +4783,35 @@ namespace BBB.Runtime
         /// 「n EMB 獲得！」の型ごとの姿勢。t 秒時点の 位置のずれ / 拡縮 / 回転 / 透明度 / 数字の進み（count 用。1 で確定）。
         /// 終わったら false。tools/fx_viewer.html の同名の関数と同じ式にしておく（見た目を合わせるため）。
         /// </summary>
+        private void PlaceGain(RectTransform band,Vector2 pose,float y0,float scale,float groupBottom,int index,int count,Vector2 poseScale,EmberGainFxConfig fx)
+        {
+            float floor=-AreaH*.5f;
+            bool dialogue=fx.aboveDialogue&&_dialogBox!=null&&_dialogBox.activeSelf;
+            float x=0,y=y0;
+            if(dialogue)
+            {
+                var d=(RectTransform)_dialogBox.transform;
+                if(count>1)
+                {
+                    // Keep the simultaneous stack in the right lane, beside rather than over the dialogue.
+                    float side=(AreaW-d.rect.width)*.5f-20;
+                    scale=Mathf.Min(scale,Mathf.Max(.25f,side/Mathf.Max(1,fx.bandW)));
+                    float top=AreaH*.5f-64,bottom=-AreaH*.5f+12;
+                    float height=Mathf.Max(fx.bandH,fx.numH)*scale;
+                    float gap=Mathf.Min(fx.stackGap*scale,(top-bottom-height)/Mathf.Max(1,count-1));
+                    x=AreaW*.5f-fx.bandW*scale*.5f-12;
+                    y=(top+bottom)*.5f+((count-1)*.5f-index)*gap;
+                }
+                else
+                {
+                    floor=_gainLayer.InverseTransformPoint(d.TransformPoint(new Vector3(0,d.rect.yMax,0))).y+fx.dialogueMargin;
+                    y=Mathf.Max(y0,floor+Mathf.Max(fx.numH,fx.bandH)*scale*.5f);
+                }
+            }
+            band.anchoredPosition=new Vector2(x+pose.x,y+pose.y);
+            band.localScale=new Vector3(poseScale.x*scale,poseScale.y*scale,1);
+        }
+
         private static bool EmberGainPose(string style, float t, EmberGainFxConfig fx, float xIn,
                                           out Vector2 pos, out Vector2 scale, out float rot, out float alpha, out float countU, float holdSeconds = -1f)
         {
@@ -5136,13 +5142,8 @@ namespace BBB.Runtime
                 }
                 case EngageOutcome.Judge:
                 {
-                    // ジャッジ: 率を見せて溜め → とどめ（討伐）か 逃走。決着の演出（DefeatRoutine / EscapeRoutine）は enemyResolved 側が出す
-                    UiFx.PopText(_enemyRt, $"JUDGE {st.judgePercent}%", ColGold, 26, new Vector2(0, 90));
-                    bool judgeSe = _audio.TryPlay("engage_judge");
-                    if (!judgeSe) _audio.NaviChoice(true);
-                    StartCoroutine(Effects.Shake(_stage, 0.9f, 3f));
-                    yield return new WaitForSeconds(0.9f);
-                    if (!judgeSe) _audio.NaviChoice(false);
+                    // ジャッジ: 溜めは停止ごとの演出（JudgeStopFx）で済んでいる。ここは第三停止の決着だけ
+                    _audio.NaviChoice(false);
                     if (st.defeated)
                     {
                         PlayCharacter("attack-f3-4");
@@ -5231,6 +5232,39 @@ namespace BBB.Runtime
                 _audio.EnemyEscape();
                 StartCoroutine(EscapeRoutine());
                 SetMessage(_m.Config.engage?.texts?.escaped ?? "ENEMY ESCAPED...", false, ColTextSub);
+            }
+        }
+
+        // ---------------------------------------------------------- ジャッジの G（engage.judgeFx）
+        /// <summary>BET で「JUDGE」のカットイン（叩きつけの帯）。溜めの心臓音はここから第三停止まで。</summary>
+        private IEnumerator JudgeCutInRoutine()
+        {
+            var fx = _m.Config.engage?.judgeFx ?? new JudgeFxConfig();
+            if (!_audio.TryPlay("engage_judge")) _audio.NaviChoice(true);
+            yield return SlamTitle(fx.cutInText ?? "JUDGE", Hex(string.IsNullOrEmpty(fx.cutInColor) ? "#ffd23f" : fx.cutInColor), Mathf.Max(0.1f, fx.cutInHold), Mathf.Max(20, fx.cutInSize));
+        }
+
+        /// <summary>ジャッジの G の停止ごとの演出。第一停止 = 前触れの一言、第二停止 = 熱さの帯、第三停止 = 決着（EngageStepRoutine）。</summary>
+        private void JudgeStopFx(int pressed)
+        {
+            var fx = _m.Config.engage?.judgeFx ?? new JudgeFxConfig();
+            int h = Mathf.Clamp(_m.JudgeHeat, 0, 3);
+            string Pick(string[] a) => a != null && a.Length > 0 ? a[Mathf.Min(h, a.Length - 1)] : "";
+            Color heatCol = Hex(fx.heatColors != null && fx.heatColors.Length > h ? fx.heatColors[h] : "#ffd23f");
+            if (pressed == 1)
+            {
+                StartCoroutine(Effects.Hit(_enemyRt, 0.25f));
+                UiFx.PopText(_enemyRt, Pick(fx.stop1Texts), heatCol, 22 + h * 2, new Vector2(0, 90));
+                _audio.PlayKeyPublic("stop", 1f);
+            }
+            else if (pressed == 2)
+            {
+                float shake = fx.heatShake != null && fx.heatShake.Length > h ? fx.heatShake[h] : 4f;
+                StartCoroutine(Effects.Shake(_stage, 0.4f, shake));
+                StartCoroutine(EdgeGlow(heatCol, 0.6f, h >= 3));
+                UiFx.Ring(_enemyRt, heatCol, 40, 260 + h * 60, 0.5f);
+                StartCoroutine(SlamTitle(Pick(fx.heatTexts), heatCol, 0.5f, 44 + h * 4, h >= 3));
+                if (h >= 2) PlayCharacter("attack-f1");
             }
         }
 

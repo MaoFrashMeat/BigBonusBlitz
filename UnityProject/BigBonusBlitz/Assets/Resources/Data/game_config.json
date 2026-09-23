@@ -2153,6 +2153,7 @@
     "chargeLoseHit": 70, "chargeLoseGuard": 15, "chargeLoseDodge": 15,
     "rareGivesPotion": true, "potionHeal": 3, "naviSuccessIsRare": false,
     "judgeEnabled": true, "judgeRatioScale": 1, "judgeSmallBonus": 10, "judgeRareBonus": 40, "judgeMin": 0, "judgeMax": 95,
+    "judgeFx": {"cutInText": "JUDGE", "cutInSize": 72, "cutInColor": "#ffd23f", "cutInHold": 0.7, "heatTexts": ["チャンス", "好機！", "激熱！！", "とどめの好機！！！"], "heatColors": ["#4da3ff", "#ffcf3f", "#ff5a5a", "#ff8ae2"], "stop1Texts": ["……", "敵が怯んだ", "敵の足が止まった！", "灯が燃え上がる！"], "heatWeightsWin": [10, 30, 40, 20], "heatWeightsLose": [60, 30, 10, 0], "heatShake": [2, 4, 7, 10]},
     "texts": {
       "turn1": "小役を引いて魔物を討伐しろ！",
       "enemyAttack": "敵の攻撃が来る！ 小役でかわせ！",

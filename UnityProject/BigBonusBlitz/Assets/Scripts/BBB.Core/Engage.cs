@@ -58,6 +58,30 @@ namespace BBB.Core
         public int judgeSmallBonus = 10, judgeRareBonus = 40, judgeMin = 0, judgeMax = 95;
         /// <summary>帯の文（{set} {sets} {turn} が入る）。</summary>
         public EngageTexts texts = new EngageTexts();
+        /// <summary>ジャッジの G の演出（BET でカットイン → 第一〜第三停止で段階的に。本人 2026-09-23）。</summary>
+        public JudgeFxConfig judgeFx = new JudgeFxConfig();
+    }
+
+    /// <summary>
+    /// ジャッジの G の演出。BET で「JUDGE」のカットイン、第一停止で前触れ、第二停止で熱さの帯（青 / 黄 / 赤 / 虹）、第三停止で決着。
+    /// 熱さは結果で重みを変える（勝つときほど赤・虹が出やすい）。tools/fx_viewer.html「ジャッジの演出」。
+    /// </summary>
+    public sealed class JudgeFxConfig
+    {
+        public string cutInText = "JUDGE";
+        public int cutInSize = 72;
+        public string cutInColor = "#ffd23f";
+        public float cutInHold = 0.7f;
+        /// <summary>熱さの名前と色（段 0〜3）。</summary>
+        public string[] heatTexts = { "チャンス", "好機！", "激熱！！", "とどめの好機！！！" };
+        public string[] heatColors = { "#4da3ff", "#ffcf3f", "#ff5a5a", "#ff8ae2" };
+        /// <summary>第一停止の一言（段ごと）。</summary>
+        public string[] stop1Texts = { "……", "敵が怯んだ", "敵の足が止まった！", "灯が燃え上がる！" };
+        /// <summary>熱さの重み（勝つとき / 負けるとき）。</summary>
+        public int[] heatWeightsWin = { 10, 30, 40, 20 };
+        public int[] heatWeightsLose = { 60, 30, 10, 0 };
+        /// <summary>段ごとの揺れの強さ（第二停止）。</summary>
+        public float[] heatShake = { 2f, 4f, 7f, 10f };
     }
 
     public sealed class EngageTexts

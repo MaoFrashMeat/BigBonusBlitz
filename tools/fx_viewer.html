@@ -55,17 +55,15 @@
   const AreaW = 940, AreaH = 300;           // ゲームの表示域（StageCard の中）。舞台 1170×540 の中で中央やや上
   const AreaCx = 585, AreaCy = 20 + 14 + 150;   // 舞台の左上原点での表示域の中心（帯 28 + 余白 の下）
   const ReelCy = 440, ReelCx = i => 585 + (i - 1) * 131;   // リール窓の中心（筐体は舞台の下段。ピッチ 123+8）
-  // セリフ（会話・説明の吹き出し）: StageCard の下部、中心は表示域の中心から 114 下、620×54。名前タグ（92×20）が上に 10 はみ出す
-  const DialogCy = AreaCy + 114, DialogTopY = -(114 - 27 - 10);   // DialogTopY は表示域の座標（上が +）での枠の上端 = -77
-  function drawDialogue(name, text) {
-    const w = 620, h = 54, x = AreaCx - w / 2, y = DialogCy - h / 2;
-    g.save();
-    g.fillStyle = "rgba(0,0,0,0.35)"; roundRect(x - 6, y - 2, w + 12, h + 12, 16); g.fill();
-    g.fillStyle = "#2b3a52"; roundRect(x, y, w, h, 15); g.fill();
-    g.fillStyle = "rgba(8,10,20,0.94)"; roundRect(x + 1, y + 1, w - 2, h - 2, 14); g.fill();
-    g.fillStyle = "#4d8dff"; roundRect(x + 10, y - 10, 92, 20, 10); g.fill();
-    g.fillStyle = "#101828"; g.font = "bold 11px sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(name, x + 56, y);
-    g.fillStyle = "#f4f6fa"; g.font = "15px sans-serif"; g.textAlign = "left"; g.fillText(text, x + 18, y + h / 2 + 3);
+  // Shared dialogue footprint; this canvas preview shows timing and reserved lanes, not the production art.
+  const DialogCy = AreaCy + 84, DialogTopY = -28;
+  function drawDialogue(name,text) {
+    const w=660,h=112,x=AreaCx-w/2,y=DialogCy-h/2;
+    g.save();g.fillStyle="#12263f";roundRect(x,y,w,h,12);g.fill();g.strokeStyle="#e9ce86";g.lineWidth=1;g.stroke();
+    g.fillStyle="#e9ce86";g.beginPath();g.arc(x+62,y+56,39,0,Math.PI*2);g.stroke();
+    g.font="16px serif";g.textAlign="left";g.fillText(name,x+116,y+27);
+    g.fillStyle="#fff";g.font="16px sans-serif";
+    const chars=Array.from(text);for(let i=0;i<chars.length;i+=30)g.fillText(chars.slice(i,i+30).join(""),x+116,y+53+Math.floor(i/30)*23);
     g.restore();
   }
   // 技術介入のランク（game_config.json の tech.ranks の写し。名前・色・上乗せ % はそちらで変える）
@@ -136,6 +134,24 @@
 
   // 演出の一覧。params は game_config.json のキーと同じ名前にする。draw(t, p) は t 秒時点を描き、終わったら false
   const FX = [
+    {
+      id: "adventureDialogue", name: "冒険の会話・文字送り", key: "adventurePresentation",
+      params: [
+        {group:"文字送り",key:"charactersPerSecond",label:"毎秒の文字数",min:5,max:70,step:1,def:30},
+        {group:"文字送り",key:"punctuationPause",label:"句読点の間（秒）",min:0,max:.5,step:.01,def:.13},
+        {group:"読む時間",key:"readSecondsPerCharacter",label:"全文後の1文字あたり秒",min:.01,max:.2,step:.005,def:.035},
+        {group:"読む時間",key:"minimumReadSeconds",label:"全文後の最低秒",min:.2,max:5,step:.1,def:1.2},
+        {group:"会話音",key:"typingSoundGap",label:"最小発音間隔（秒）",min:.04,max:.4,step:.005,def:.085},
+        {group:"会話音",key:"typingSoundGain",label:"SE音量への倍率",min:0,max:.5,step:.01,def:.12},
+        {group:"呪い",key:"tooltipDelay",label:"ホバーの待ち（秒）",min:0,max:1,step:.05,def:.2}
+      ],
+      draw(t,p) {
+        const message="さあ、霧の向こうへ。みんなの笑顔を守るために！";
+        let time=0,n=0;for(const ch of message){time+=1/Math.max(1,p.charactersPerSecond);if(time>t)break;n++;if("。、！？!?…".includes(ch))time+=p.punctuationPause;}
+        drawDialogue("サリア",message.slice(0,n));
+        return t<time+Math.max(p.minimumReadSeconds,message.length*p.readSecondsPerCharacter);
+      }
+    },
     {
       id: "emberGain", name: "n GET の帯（エンバー / ソウル / EXP / G）", key: "reelFx.emberGain",
       note: "得たものは全部この帯。同じ G で複数得たら縦に並べて一気に出る（技術介入のソウル・EXP・エンバー・G 数など）。「縦に全部」がその例（ソウル 45 / EXP 30 / エンバー 25 / 5G）。",
@@ -216,31 +232,31 @@
         { group: "複数のとき", key: "stackScale", label: "帯の大きさ", min: 0.3, max: 1.5, step: 0.01, def: 0.7 },
         { group: "複数のとき", key: "stackFit", label: "収まらなければ縮める", type: "bool", def: true },
         { group: "セリフのとき", key: "withDialogue", label: "セリフを出す（例）", type: "bool", def: false, local: true },
-        { group: "セリフのとき", key: "aboveDialogue", label: "枠より上に出す", type: "bool", def: true },
+        { group: "セリフのとき", key: "aboveDialogue", label: "会話を避ける（単独は上・複数は右）", type: "bool", def: true },
         { group: "セリフのとき", key: "dialogueMargin", label: "枠からの余白", min: 0, max: 60, step: 1, def: 8 },
       ],
       total: p => p.inSeconds + holdOf(p) + p.outSeconds + (p.kind === "stack" ? (p.stackStagger || 0) * (GAIN_SEQ.length - 1) : 0),
       draw(t, p) {
-        // セリフ（説明の吹き出し）の例。ゲームでは表示域の下部に 620×54 の枠（名前タグが上に 10 はみ出す）
-        if (p.withDialogue) drawDialogue("説明", "技術介入 成功！ Perfect!!  押した精度で +100% 上乗せ");
-        // ゲームでは帯は表示域（940×300）の中にしか見えない（外は切れる）ので、ここでも同じ範囲で切る
-        g.save(); g.beginPath(); g.rect(AreaCx - AreaW / 2, AreaCy - AreaH / 2, AreaW, AreaH); g.clip();
+        if(p.withDialogue)drawDialogue("説明","技術介入 成功！ ソウル +120 / EXP +30");
+        g.save();
         let alive;
-        const stack = p.kind === "stack", n = stack ? GAIN_SEQ.length : 1;
-        let scale = stack ? Math.max(0.1, p.stackScale || 1) : 1;
-        // GameController.GainQueueRoutine と同じ: セリフがあれば床をその枠の上端＋余白にし、収まらなければ縮め、一番下の行が床より上になるまで持ち上げる
-        const dialog = p.withDialogue && p.aboveDialogue !== false, floor = dialog ? DialogTopY + (p.dialogueMargin || 0) : -AreaH / 2;
-        if (stack && p.stackFit) { const need = n * (p.stackGap || 100) * scale, avail = AreaH / 2 - floor - 16; if (need > avail) scale *= avail / need; }
-        const gap = (p.stackGap || 100) * scale;
-        let center = stack ? (p.stackY || 0) : p.y;
-        if (dialog) { const bottom = center - (n - 1) / 2 * gap - (p.numH || 56) * scale / 2; if (floor > bottom) center += floor - bottom; }
+        const stack=p.kind==="stack",n=stack?GAIN_SEQ.length:1;
+        let scale=stack?Math.max(.1,p.stackScale||1):1;
+        const dialog=p.withDialogue&&p.aboveDialogue!==false;
+        let gap=(p.stackGap||100)*scale,center=stack?(p.stackY||0):p.y,xOffset=0;
+        if(dialog&&stack){
+          const side=(AreaW-660)/2-20;scale=Math.min(scale,Math.max(.25,side/Math.max(1,p.bandW)));
+          const top=AreaH/2-64,bottom=-AreaH/2+12,height=Math.max(p.bandH,p.numH)*scale;
+          gap=Math.min((p.stackGap||100)*scale,(top-bottom-height)/Math.max(1,n-1));
+          center=(top+bottom)/2;xOffset=AreaW/2-p.bandW*scale/2-12;
+        }else if(dialog)center=Math.max(center,DialogTopY+(p.dialogueMargin||0)+Math.max(p.bandH,p.numH)/2);
         if (stack) {
           // ゲームの 1 組と同じ: 上から順に並べ（中心は stackY）、行ごとに stackStagger 秒遅らせて一気に出す
           alive = false;
           for (let i = 0; i < n; i++) {
             const lt = t - i * (p.stackStagger || 0);
             if (lt < 0) { alive = true; continue; }
-            if (this.band(lt, p, GAIN_KINDS[GAIN_SEQ[i][0]], GAIN_SEQ[i][1], center - p.y + ((n - 1) / 2 - i) * gap, scale)) alive = true;
+            if (this.band(lt, p, GAIN_KINDS[GAIN_SEQ[i][0]], GAIN_SEQ[i][1], center - p.y + ((n - 1) / 2 - i) * gap, scale, xOffset)) alive = true;
           }
         }
         else alive = this.band(t, p, GAIN_KINDS[p.kind] || GAIN_KINDS.ember, p.amount, center - p.y, 1);
@@ -248,13 +264,13 @@
         return alive;
       },
       // 帯 1 本（GameController.GainSlide と同じ手順）。kind.im() が絵、kind.unit が絵の代わりの文字（"G"）、yOff は縦に並べるときのずれ
-      band(t, p, kind, amount, yOff, scale) {
+      band(t, p, kind, amount, yOff, scale, xOffset=0) {
         scale = scale || 1;
         const icon = kind.im(), unit = kind.unit || null;
         const xIn = AreaW / 2 + p.bandW * 0.6;
         const q = emberGainPose(p.style || "slideRL", t, p, xIn);
         if (!q) return false;
-        const cx = AreaCx + q.x, cy = AreaCy - (p.y + (yOff || 0)) - q.y;
+        const cx = AreaCx + q.x + xOffset, cy = AreaCy - (p.y + (yOff || 0)) - q.y;
         g.save(); g.globalAlpha = q.alpha;
         g.translate(cx, cy); g.rotate(-q.rot * Math.PI / 180); g.scale(q.sx * scale, q.sy * scale); g.translate(-cx, -cy);
         // 段階（0 入る / 1 止まる / 2 抜ける）と、止まってからの秒。足せる効果に使う（GameController.EmberGainPhase と同じ）
@@ -434,6 +450,62 @@
         return true;
       }
     }
+    ,{
+      id: "judgeFx", name: "ジャッジの演出（BET カットイン → 第一〜第三停止）", key: "engage.judgeFx",
+      note: "3 セットで倒しきれなかったときの 1 G。BET で「JUDGE」が叩きつけられ、第一停止で前触れ、第二停止で熱さの帯（青 / 黄 / 赤 / 虹）、第三停止で決着。熱さは結果で重みを変える（heatWeightsWin / Lose、文と色は heatTexts / heatColors / stop1Texts。game_config.json で直す）。",
+      params: [
+        { group: "例", key: "heat", label: "熱さ", type: "select", def: "2", options: [["0", "青 チャンス"], ["1", "黄 好機"], ["2", "赤 激熱"], ["3", "虹 とどめの好機"]], local: true },
+        { group: "例", key: "win", label: "倒す", type: "bool", def: true, local: true },
+        { group: "カットイン", key: "cutInSize", label: "文字", min: 30, max: 120, step: 1, def: 72 },
+        { group: "カットイン", key: "cutInHold", label: "止まる秒", min: 0.1, max: 2, step: 0.05, def: 0.7 },
+        { group: "カットイン", key: "cutInColor", label: "色", type: "color", def: "#ffd23f" },
+      ],
+      total: p => 6.2,
+      draw(t, p) {
+        // GameController.JudgeCutInRoutine / JudgeStopFx / EngageStepRoutine(Judge) と同じ流れ。停止の時刻は例（1 秒ごと）
+        if (t >= 6.2) return false;
+        const D = (window.BBB_FX_DEFAULTS || {})["engage.judgeFx"] || {};
+        const h = +p.heat || 0;
+        const heatCol = (D.heatColors || ["#4da3ff", "#ffcf3f", "#ff5a5a", "#ff8ae2"])[h];
+        const heatText = (D.heatTexts || ["チャンス", "好機！", "激熱！！", "とどめの好機！！！"])[h];
+        const stop1 = (D.stop1Texts || ["……", "敵が怯んだ", "敵の足が止まった！", "灯が燃え上がる！"])[h];
+        const cx = 585, cy = 150;
+        function slam(t0, text, col, size, hold, rainbow) {
+          const u = t - t0; if (u < 0 || u > 0.34 + hold + 0.3) return;
+          let bw = 1, sc = 1, a = 1;
+          if (u < 0.18) { bw = 1 - Math.pow(1 - u / 0.18, 3); a = 0; }
+          else if (u < 0.34) { sc = lerp(1.5, 1, 1 - Math.pow(1 - (u - 0.18) / 0.16, 2)); }
+          else if (u > 0.34 + hold) { a = 1 - (u - 0.34 - hold) / 0.3; bw = a; }
+          g.save(); g.globalAlpha = Math.max(0, Math.min(1, bw)); g.fillStyle = "rgba(0,0,0,0.78)";
+          g.fillRect(cx - 560 * bw, cy - 48, 1120 * bw, 96); g.fillStyle = col; g.fillRect(cx - 560 * bw, cy - 49, 1120 * bw, 2); g.fillRect(cx - 560 * bw, cy + 47, 1120 * bw, 2); g.restore();
+          if (a <= 0) return;
+          g.save(); g.globalAlpha = Math.max(0, a); g.translate(cx, cy + 2); g.scale(sc, sc);
+          g.font = "bold " + size + "px sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.lineJoin = "round";
+          g.lineWidth = 6; g.strokeStyle = "rgba(0,0,0,0.75)"; g.strokeText(text, 0, 0);
+          g.fillStyle = rainbow ? "hsl(" + ((t * 300) % 360) + ",80%,65%)" : col; g.fillText(text, 0, 0); g.restore();
+        }
+        function pop(t0, text, col, size) {
+          const u = t - t0; if (u < 0 || u > 1.1) return;
+          const a = u < 0.1 ? u / 0.1 : 1 - Math.max(0, u - 0.7) / 0.4;
+          g.save(); g.globalAlpha = Math.max(0, a); g.font = "bold " + size + "px sans-serif"; g.textAlign = "center"; g.textBaseline = "middle";
+          g.lineWidth = 5; g.strokeStyle = "rgba(0,0,0,0.8)"; g.strokeText(text, 820, 170 - u * 20); g.fillStyle = col; g.fillText(text, 820, 170 - u * 20); g.restore();
+        }
+        // 0.0 BET: JUDGE
+        slam(0, "JUDGE", p.cutInColor || "#ffd23f", p.cutInSize, p.cutInHold, false);
+        // 2.0 第一停止: 前触れ
+        pop(2.0, stop1, heatCol, 22 + h * 2);
+        // 3.0 第二停止: 熱さの帯
+        slam(3.0, heatText, heatCol, 44 + h * 4, 0.5, h >= 3);
+        if (t >= 3.0 && t < 3.6) { g.save(); g.globalAlpha = 0.35 * (1 - (t - 3.0) / 0.6); g.strokeStyle = heatCol; g.lineWidth = 18; g.strokeRect(9, 9, 1152, 522); g.restore(); }
+        // 4.4 第三停止: 決着
+        if (p.win) { pop(4.4, "とどめ！！", "#ffd23f", 32); } else { pop(4.4, "……逃げられた", "#98a3b8", 24); }
+        // 停止の目印
+        g.save(); g.fillStyle = "rgba(255,255,255,0.8)"; g.font = "12px sans-serif";
+        [[2.0, "第一停止"], [3.0, "第二停止"], [4.4, "第三停止"]].forEach(([s, n]) => { if (t >= s && t < s + 0.5) g.fillText(n, 20, 520); });
+        g.restore();
+        return true;
+      }
+    }
   ];
   // ---- 型ごとの姿勢（GameController.EmberGainPose と同じ式）
   const easeOutCubic = u => 1 - Math.pow(1 - Math.min(1, Math.max(0, u)), 3);
@@ -543,6 +615,7 @@
   function output() {
     const o = {}; cur.params.forEach(p => { if (!p.local) o[p.key] = params[p.key]; });
     let text = '"' + cur.key.split(".").pop() + '": ' + JSON.stringify(o) + "\n（game_config.json の " + cur.key + "）";
+    if(cur.id === "adventureDialogue") text = JSON.stringify(o,null,2) + "\n（adventure_presentation.json の数値項目へ反映。portraits は保持。会話音はUnityで確認）";
     if (cur.id === "emberGain") {
       const nums = {}; for (let d = 0; d <= 9; d++) nums[String(d)] = numChoice[String(d)] || 1;
       const choice = { numbers: { height: 128, src: "assets/symbols/number/num{d}_{v}.png", variant: nums },
