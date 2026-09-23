@@ -57,9 +57,11 @@
   const ReelCy = 440, ReelCx = i => 585 + (i - 1) * 131;   // リール窓の中心（筐体は舞台の下段。ピッチ 123+8）
   // Shared dialogue footprint; this canvas preview shows timing and reserved lanes, not the production art.
   const DialogCy = AreaCy + 84, DialogTopY = -28;
-  function drawDialogue(name,text) {
-    const w=660,h=112,x=AreaCx-w/2,y=DialogCy-h/2;
-    g.save();g.fillStyle="#12263f";roundRect(x,y,w,h,12);g.fill();g.strokeStyle="#e9ce86";g.lineWidth=1;g.stroke();
+  function drawDialogue(name,text,sc) {
+    // DialoguePresenter.Configure と同じ: 下端を揃えたまま sc 倍に縮める
+    sc=sc||1;const w=660,h=112,bottom=DialogCy+h/2;
+    g.save();g.translate(AreaCx,bottom);g.scale(sc,sc);g.translate(-AreaCx,-bottom);
+    const x=AreaCx-w/2,y=DialogCy-h/2;g.fillStyle="#12263f";roundRect(x,y,w,h,12);g.fill();g.strokeStyle="#e9ce86";g.lineWidth=1;g.stroke();
     g.fillStyle="#e9ce86";g.beginPath();g.arc(x+62,y+56,39,0,Math.PI*2);g.stroke();
     g.font="16px serif";g.textAlign="left";g.fillText(name,x+116,y+27);
     g.fillStyle="#fff";g.font="16px sans-serif";
@@ -147,12 +149,13 @@
         {group:"読む時間",key:"minimumReadSeconds",label:"全文後の最低秒",min:.2,max:5,step:.1,def:1.2},
         {group:"会話音",key:"typingSoundGap",label:"最小発音間隔（秒）",min:.04,max:.4,step:.005,def:.085},
         {group:"会話音",key:"typingSoundGain",label:"SE音量への倍率",min:0,max:.5,step:.01,def:.12},
-        {group:"呪い",key:"tooltipDelay",label:"ホバーの待ち（秒）",min:0,max:1,step:.05,def:.2}
+        {group:"呪い",key:"tooltipDelay",label:"ホバーの待ち（秒）",min:0,max:1,step:.05,def:.2},
+        {group:"セリフ枠",key:"dialogueScale",label:"大きさ（1 = 元）",min:.4,max:1.2,step:.01,def:.7}
       ],
       draw(t,p) {
         const message="さあ、霧の向こうへ。みんなの笑顔を守るために！";
         let time=0,n=0;for(const ch of message){time+=1/Math.max(1,p.charactersPerSecond);if(time>t)break;n++;if("。、！？!?…".includes(ch))time+=p.punctuationPause;}
-        drawDialogue("サリア",message.slice(0,n));
+        drawDialogue("サリア",message.slice(0,n),p.dialogueScale);
         return t<time+Math.max(p.minimumReadSeconds,message.length*p.readSecondsPerCharacter);
       }
     },

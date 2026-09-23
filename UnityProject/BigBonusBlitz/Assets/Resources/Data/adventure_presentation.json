@@ -1,0 +1,17 @@
+{
+  "charactersPerSecond": 30,
+  "punctuationPause": 0.13,
+  "readSecondsPerCharacter": 0.035,
+  "minimumReadSeconds": 1.2,
+  "typingSoundGap": 0.085,
+  "typingSoundGain": 0.12,
+  "tooltipDelay": 0.2,
+  "dialogueScale": 0.7,
+  "portraits": [
+    {"speaker":"サリア","atlas":"salia","cell":0},
+    {"speaker":"宿の主人","atlas":"town","cell":0},
+    {"speaker":"灯守","atlas":"town","cell":1},
+    {"speaker":"店主","atlas":"town","cell":2},
+    {"speaker":"門番","atlas":"town","cell":3}
+  ]
+}
