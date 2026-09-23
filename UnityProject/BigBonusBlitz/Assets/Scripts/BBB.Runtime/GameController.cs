@@ -483,12 +483,13 @@ namespace BBB.Runtime
         /// モーダル: 暗幕（タップで閉じる）＋中央カード＋×。返すのは暗幕。
         /// 板は細い縁の紺（panel_navy_sm）。題は左上の紺のタブに乗せる（隅の飾りが大きい panel_navy だと題が隠れた）。
         /// </summary>
-        private GameObject BuildModal(string name, Vector2 size, string title, System.Action onClose, out RectTransform body)
+        /// <summary>窓を作る。onOutside を渡すと、窓の外を押したときだけ別の動きにできる（× は onClose のまま）。</summary>
+        private GameObject BuildModal(string name, Vector2 size, string title, System.Action onClose, out RectTransform body, System.Action onOutside = null)
         {
             var overlay = UiFactory.Panel(_stage, name + "Overlay", Vector2.zero, new Vector2(4000, 4000), new Color(0, 0, 0, 0.62f));
             var closeBtn = overlay.gameObject.AddComponent<Button>();
             closeBtn.transition = Selectable.Transition.None;
-            closeBtn.onClick.AddListener(() => onClose());
+            closeBtn.onClick.AddListener(() => (onOutside ?? onClose)());
             var card = UiSkin.Card(overlay, "Card", Vector2.zero, size, 14, frameOverride: "panel_navy_sm");
             var eat = card.gameObject.AddComponent<Button>();        // カード内のタップは閉じない
             eat.transition = Selectable.Transition.None;
@@ -975,19 +976,22 @@ namespace BBB.Runtime
             _autoStopMask = SaveData.LoadAutoStop();
             _settingsBox = AtelierSettings.Build(_stage, _audio, ToggleSettings, sBody =>
             {
-                AtelierUi.Text(sBody,"GameOptions",0,156,426,30,"冒険とAUTOの設定",22,AtelierUi.Light,true);
+                AzureUiControls.Label(sBody,"GameOptions",0,148,426,36,"冒険とAUTOの設定",22,true);
                 AtelierUi.Button(sBody,"BackToTown",-109,97,208,"街へ戻る",OnBackToTown);
                 _graphAlwaysBtn=AtelierUi.Button(sBody,"GraphAlways",109,97,208,"",ToggleGraphAlways);
-                AtelierUi.Text(sBody,"AutoStopLabel",0,42,426,24,"AUTOを止める条件",16,AtelierUi.Sub);
+                AzureUiControls.Label(sBody,"AutoStopLabel",0,53,426,26,"AUTOを止める条件",16,true);
                 string[] labels={"実績解除","アビス以上の装備","中ボス出現"};
                 int[] bits={SaveData.AutoStopAchievement,SaveData.AutoStopRareEquip,SaveData.AutoStopBoss};
                 for(int i=0;i<3;i++)
                 {
                     int bit=bits[i];
-                    _autoStopBtns[i]=AtelierUi.Button(sBody,"AutoStop"+i,-144+i*144,-4,138,labels[i],()=>{_autoStopMask^=bit;SaveData.SaveAutoStop(_autoStopMask);_audio.UiPop();RefreshAutoStopButtons();});
+                    float y=14-i*46;
+                    AzureUiControls.Label(sBody,"AutoStopCaption"+i,-56,y,312,30,labels[i],16,true);
+                    _autoStopBtns[i]=AzureUiControls.Switch(sBody,"AutoStop"+i,178,y,()=> (_autoStopMask&bit)!=0,
+                        on=>{if(on)_autoStopMask|=bit;else _autoStopMask&=~bit;SaveData.SaveAutoStop(_autoStopMask);},RefreshAutoStopButtons);
                 }
-                AtelierUi.Button(sBody,"ResetSave",0,-77,426,"セーブデータを削除",OnResetSavePressed,UiSkin.Hex("#653642"));
-                _resetConfirm=AtelierUi.Text(sBody,"ResetConfirm",0,-130,426, 60,"",15,AtelierUi.Gold);
+                AtelierUi.Button(sBody,"ResetSave",0,-139,426,"セーブデータを削除",OnResetSavePressed,UiSkin.Hex("#653642"));
+                _resetConfirm=AtelierUi.Text(sBody,"ResetConfirm",0,-193,426,48,"",15,AtelierUi.Gold);
                 RefreshAutoStopButtons();RefreshGraphAlwaysLabel();
             });
             _settingsBox.SetActive(false);
@@ -1055,7 +1059,8 @@ namespace BBB.Runtime
             // ===== モーダル: スランプグラフ =====
             // 上にグラフ、下に前回までの潜行の一覧。選ぶとその回の波形を薄く重ねる
             const float grW = 720f, grH = 500f;
-            _graphBox = BuildModal("Graph", new Vector2(grW, grH), "スランプグラフ（エンバーの増減）", CloseGraph, out var gBody);
+            // 窓の外を押すのは「グラフのボタンを押した」のと同じ扱いにする（窓が画面を覆っていて、ボタンに届かないため。本人 2026-09-23）
+            _graphBox = BuildModal("Graph", new Vector2(grW, grH), "スランプグラフ（エンバーの増減）", CloseGraph, out var gBody, ToggleGraph);
             _graph = SlumpGraph.Create(gBody, new Vector2(0, grH * 0.5f - 38 - 8 - 132), new Vector2(660, 264), _m.Credit);
             _graph.Restore(_m.Credit);   // 前回までの波形の続きから
             _runBaseCredit = _m.Credit;
@@ -1255,7 +1260,7 @@ namespace BBB.Runtime
         private void OnResetSavePressed()
         {
             if (_m.IsGameActive) { _resetConfirm.text = "回転中は削除できません"; _resetConfirmUntil = Time.time + 2f; return; }
-            if (Time.time <= _resetConfirmUntil) { _resetConfirm.text = ""; _resetConfirmUntil = 0; ResetSave(); CloseModals(); return; }
+            if (_resetConfirmUntil > 0f && Time.time <= _resetConfirmUntil) { _resetConfirm.text = ""; _resetConfirmUntil = 0; ResetSave(); CloseModals(); return; }
             _resetConfirmUntil = Time.time + 3f;
             _resetConfirm.text = "エンバー・レベルが消えます。もう一度押すと確定";
         }
@@ -5365,7 +5370,7 @@ namespace BBB.Runtime
             {
                 if (_autoStopBtns[i] == null) continue;
                 bool on = (_autoStopMask & bits[i]) != 0;
-                UiSkin.SetButtonColor(_autoStopBtns[i], on ? ColGreen : ColBtn, on ? ColBg : UiSkin.TextDim);
+                AzureUiControls.RefreshSwitch(_autoStopBtns[i],on);
             }
         }
 
