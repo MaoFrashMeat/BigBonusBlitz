@@ -18,6 +18,7 @@ Shader "Lab/QuadAdd"
         Pass
         {
             CGPROGRAM
+            float _LabEmit;
             #pragma vertex vert
             #pragma fragment frag
             #include "UnityCG.cginc"
@@ -31,7 +32,7 @@ Shader "Lab/QuadAdd"
                 float3 base = _UseAlphaOnly > 0.5 ? t.aaa : t.rgb * t.a;
                 float n = tex2D(_NoiseTex, i.uv * _NoiseTiling.xy + float2(0, -_LabT * _Speed)).r;
                 float m = saturate(lerp(1, saturate(n * 1.8 - 0.2), _NoiseAmt));
-                return float4(base * _Tint.rgb * m, 0);
+                return float4(base * _Tint.rgb * m * _LabEmit, 0);
             }
             ENDCG
         }

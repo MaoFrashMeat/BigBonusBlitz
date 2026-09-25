@@ -22,6 +22,7 @@ Shader "Lab/Slash"
         Pass
         {
             CGPROGRAM
+            float _LabEmit;
             #pragma vertex vert
             #pragma fragment frag
             #include "UnityCG.cginc"
@@ -50,7 +51,7 @@ Shader "Lab/Slash"
                 float3 col = lerp(_ColOuter.rgb, _ColMid.rgb, mid);
                 col = lerp(col, _ColCore.rgb, core);
                 float a = outer * _Alpha * lerp(_ColOuter.a, 1, mid);
-                return float4(col * a, a * (1 - core * 0.6));
+                return float4(col * a * _LabEmit, a * (1 - core * 0.6));
             }
             ENDCG
         }

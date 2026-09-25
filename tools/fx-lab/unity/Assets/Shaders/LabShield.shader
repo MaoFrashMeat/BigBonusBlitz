@@ -18,6 +18,7 @@ Shader "Lab/Shield"
         Pass
         {
             CGPROGRAM
+            float _LabEmit;
             #pragma vertex vert
             #pragma fragment frag
             #include "UnityCG.cginc"
@@ -66,7 +67,7 @@ Shader "Lab/Shield"
                 float I = fres * 1.3 + edge * (0.1 + fres * 1.0 + band * 0.9 + twinkle + w * 1.6) + w * 0.9 + band * 0.12 + 0.03;
                 I = I * vis + lead * (0.6 + edge * 2.0);
                 I *= face > 0 ? 1 : 0.45;
-                return float4(_Color.rgb * I, 0);
+                return float4(_Color.rgb * I * _LabEmit, 0);
             }
             ENDCG
         }

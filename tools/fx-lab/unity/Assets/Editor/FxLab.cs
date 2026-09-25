@@ -632,6 +632,11 @@ public static class FxLab
 
         int frames = Mathf.RoundToInt(clip.dur * FPS);
         float lastTq = -1;
+        // 強さ（本人 2026-09-26「ブルームやエミッシブ、メリハリ」）。energy は画面の光の量（小さい縮小図の平均）から出し、上がるのは速く下がるのはゆっくり
+        const float Emit = 1.7f, BloomBase = 0.55f, BloomPeak = 1.15f, DimPeak = 0.85f, Contrast = 1.2f, Sat = 1.2f, EnergyGain = 18f;
+        Shader.SetGlobalFloat("_LabEmit", Emit);
+        float energy = 0f;
+        var probe = new Texture2D(mips[levels - 1].width, mips[levels - 1].height, TextureFormat.RGBAHalf, false, true);
         for (int i = 0; i < frames; i++)
         {
             float tq = Mathf.Floor(i / (float)clip.hold) * clip.hold / FPS;
@@ -651,7 +656,16 @@ public static class FxLab
             }
             cam.Render();
             var p = c.post;
-            bloom.SetFloat("_Threshold", 1.2f); bloom.SetFloat("_Knee", 0.5f); bloom.SetFloat("_BloomIntensity", 0.3f); bloom.SetFloat("_Exposure", 1f);
+            // 光の量を測る（しきい値を越えた分だけの縮小図 → 平均）
+            bloom.SetFloat("_Threshold", 1.0f); bloom.SetFloat("_Knee", 0.6f);
+            Graphics.Blit(hdr, mips[0], bloom, 0);
+            for (int k = 1; k < levels; k++) Graphics.Blit(mips[k - 1], mips[k], bloom, 1);
+            RenderTexture.active = mips[levels - 1]; probe.ReadPixels(new Rect(0, 0, probe.width, probe.height), 0, 0); probe.Apply(); RenderTexture.active = null;
+            float sum = 0; foreach (var px in probe.GetPixels()) sum += px.r * 0.2126f + px.g * 0.7152f + px.b * 0.0722f;
+            float raw = Mathf.Clamp01(sum / (probe.width * probe.height) * EnergyGain);
+            energy = raw > energy ? Mathf.Lerp(energy, raw, 0.8f) : Mathf.Max(raw, energy * 0.93f);
+            bloom.SetFloat("_BloomIntensity", Mathf.Lerp(BloomBase, BloomPeak, energy)); bloom.SetFloat("_Exposure", 1f + 0.25f * energy);
+            bloom.SetFloat("_Dim", Mathf.Max(DimPeak * energy, p.darken * 0.5f)); bloom.SetFloat("_Contrast", Contrast); bloom.SetFloat("_Sat", Sat);
             bloom.SetVector("_Shake", new Vector4(p.shake.x, p.shake.y, p.rot, 0));
             bloom.SetFloat("_Zoom", p.zoom); bloom.SetVector("_ZoomCenter", new Vector4(p.zoomCenter.x, p.zoomCenter.y, 1, 0));
             bloom.SetVector("_BlurDir", p.blurDir); bloom.SetFloat("_BlurAmt", p.blur);
@@ -660,9 +674,8 @@ public static class FxLab
             bloom.SetVector("_LinesCenter", p.linesCenter); bloom.SetColor("_LinesColor", Color.white);
             bloom.SetFloat("_Darken", p.darken); bloom.SetFloat("_Invert", p.invert); bloom.SetFloat("_Mono", p.mono); bloom.SetFloat("_Flash", p.flash);
             bloom.SetColor("_Tint", new Color(1, 1, 1, 0));
-            Graphics.Blit(hdr, mips[0], bloom, 0);
-            for (int k = 1; k < levels; k++) Graphics.Blit(mips[k - 1], mips[k], bloom, 1);
-            for (int k = levels - 1; k > 0; k--) Graphics.Blit(mips[k], mips[k - 1], bloom, 2);
+            // 光の広がりは 1 段だけ狭く（いちばん大きいぼかしは足さない）。芯の形を残してにじませる
+            for (int k = levels - 2; k > 0; k--) Graphics.Blit(mips[k], mips[k - 1], bloom, 2);
             bloom.SetTexture("_BloomTex", mips[0]);
             Graphics.Blit(hdr, ldr, bloom, 3);
             RenderTexture.active = ldr;

@@ -22,7 +22,7 @@ Shader "Lab/AuraFlame"
             #pragma vertex vert
             #pragma fragment frag
             #include "UnityCG.cginc"
-            sampler2D _CharTex, _NoiseTex; float _Scale, _Intensity, _Rise, _LabT;
+            sampler2D _CharTex, _NoiseTex; float _Scale, _Intensity, _Rise, _LabT, _LabEmit;
             float4 _ColCore, _ColMid, _ColEdge;
             struct appdata { float4 pos:POSITION; float2 uv:TEXCOORD0; };
             struct v2f { float4 pos:SV_POSITION; float2 uv:TEXCOORD0; };
@@ -46,7 +46,7 @@ Shader "Lab/AuraFlame"
                 float f = a * (0.55 + 0.9 * n2) * (0.7 + 0.6 * n1);
                 float3 col = lerp(_ColEdge.rgb, _ColMid.rgb, smoothstep(0.2, 0.55, f));
                 col = lerp(col, _ColCore.rgb, smoothstep(0.75, 1.05, f));
-                return float4(col * smoothstep(0.08, 0.3, f) * _Intensity, 0);
+                return float4(col * smoothstep(0.08, 0.3, f) * _Intensity * _LabEmit, 0);
             }
             ENDCG
         }

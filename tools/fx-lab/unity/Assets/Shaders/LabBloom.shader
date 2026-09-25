@@ -12,6 +12,7 @@ Shader "Hidden/LabBloom"
     float4 _BlurDir; float _BlurAmt;
     float _Lines, _LinesMode, _LinesSeed, _LinesAngle, _LinesDensity; float4 _LinesCenter; float4 _LinesColor;
     float _Darken, _Invert, _Mono, _Flash; float4 _Tint;
+    float _Dim, _Contrast, _Sat;   // 背景を沈める量（0〜1。光っていない所だけ）、表示のコントラストと彩度
     struct v2f { float4 pos:SV_POSITION; float2 uv:TEXCOORD0; };
     v2f vert(appdata_img v){ v2f o; o.pos=UnityObjectToClipPos(v.vertex); o.uv=v.texcoord; return o; }
     float3 box4(float2 uv, float d)
@@ -120,7 +121,11 @@ Shader "Hidden/LabBloom"
                 float cr = cos(_Shake.z), sr = sin(_Shake.z);
                 pc = float2(cr * pc.x - sr * pc.y, sr * pc.x + cr * pc.y);
                 uv = pc / float2(1, aspect) + 0.5 + _Shake.xy;
-                float3 c = scene(uv);
+                float3 c = tex2D(_MainTex, uv).rgb;
+                // メリハリ: 強い一撃のときは、光っていない所（背景・キャラ）だけ暗く沈める。光（HDR 1 以上）とブルームはそのまま
+                float lum0 = dot(c, float3(0.2126, 0.7152, 0.0722));
+                c *= lerp(1, 1 - _Dim, 1 - smoothstep(0.7, 1.6, lum0));
+                c += tex2D(_BloomTex, uv).rgb * _BloomIntensity;
                 if (_BlurAmt > 0)
                 {
                     float3 acc = 0;
@@ -129,7 +134,12 @@ Shader "Hidden/LabBloom"
                 }
                 float2 q = i.uv - 0.5;
                 c *= 1 - dot(q, q) * 0.7;
-                c = aces(c * (_Exposure > 0 ? _Exposure : 1));
+                // 色を残すトーンマップ: 明るさだけを ACES で縮め、色味は保つ（光が真っ白に飛ばない）。普通の ACES と 6:4 で混ぜる
+                float3 x = c * (_Exposure > 0 ? _Exposure : 1);
+                float Lx = dot(x, float3(0.2126, 0.7152, 0.0722));
+                float3 hp = x * (aces(Lx.xxx).x / max(Lx, 1e-4));
+                hp /= max(1, max(hp.r, max(hp.g, hp.b)));
+                c = lerp(aces(x), hp, 0.6);
                 // ここからは表示の明るさで扱う
                 float3 g = pow(max(c, 0), 1 / 2.2);
                 g *= lerp(1, 1 - saturate(length(q * float2(1.3, 1)) * 1.4), _Darken);
@@ -139,11 +149,15 @@ Shader "Hidden/LabBloom"
                     g = lerp(g, _LinesColor.rgb, saturate(L * _Lines));
                 }
                 if (_Tint.a > 0) g = lerp(g, g * _Tint.rgb, _Tint.a);
+                // コントラスト（中間 0.45 を軸に）と彩度
+                float lg = dot(g, float3(0.299, 0.587, 0.114));
+                g = lerp(lg.xxx, g, _Sat > 0 ? _Sat : 1);
+                g = saturate((g - 0.45) * (_Contrast > 0 ? _Contrast : 1) + 0.45);
                 float lum = dot(g, float3(0.299, 0.587, 0.114));
                 float mono = saturate((lum - 0.5) * 2.2 + 0.5);
                 g = lerp(g, mono.xxx, _Mono);
                 g = lerp(g, 1 - g, _Invert);
-                g = lerp(g, 1, _Flash);
+                g = lerp(g, 1, _Flash * 0.6);   // 白フラッシュは控えめ（強さは光と暗転で出す）
                 return float4(pow(saturate(g), 2.2), 1);
             }
             ENDCG }
