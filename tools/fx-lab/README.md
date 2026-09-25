@@ -25,6 +25,7 @@ batchmode で連番 PNG → mp4 にする。本体を Unity で開いたまま�
 | `unity/Assets/Shaders/LabStage.shader` | 背景とキャラ。一撃の間だけ暗く・色を抜く（主役ごとに効きを変える） |
 | `unity/Assets/Shaders/LabBloom.shader` | ブルームと仕上げ（揺れ・ズーム・方向ブラー・流線/集中線・ネガ・白フラッシュ・トーンマップ） |
 | `unity/Assets/Shaders/LabFx*.shader` / `LabMisc.shader` | 粒子の加算・アルファ、板ポリの加算 |
+| `textures/` | エフェクト素材。Kenney Particle Pack（CC0、`LICENSE-kenney.txt`）から選び、白＋アルファの 256px にしたもの。`LAB_TEX` で読む |
 | `compose_art.py` | 舞台（背景 1280×720・主人公・ゴブリン）をゲームの素材から作る |
 | `reel.py` | 各 mp4 と、題名入りで 2 回ずつつないだ `reel.mp4` |
 

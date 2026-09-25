@@ -242,6 +242,18 @@ public static class FxLab
         Func<float, float> env = t => Mathf.Clamp01((t - on) / 0.08f) * (1 - Mathf.Clamp01((t - off) / 0.5f));   // 立ち上がりは 5F（発動の山と重ねる）
 
         Surge(c, on, hero, feet, green);
+        if (c.tx.magic != null)
+        {
+            // 足元の魔法陣: 寝かせて回す。発動で強く光り、持続は控えめ
+            var mc = Quad(c.root, "MagicCircle", feet + new Vector3(0, 0.02f, 0.2f), new Vector2(3.4f, 3.4f), QMat(c, c.tx.magic, 0, Vector2.one, 0));
+            var mm = mc.GetComponent<MeshRenderer>().sharedMaterial;
+            c.OnUpdate(t =>
+            {
+                float e = env(t), burst = t < on ? 0 : Mathf.Exp(-(t - on) * 7f);
+                mc.rotation = Quaternion.Euler(72, 0, 0) * Quaternion.Euler(0, 0, t * 40f);
+                mm.SetColor("_Tint", green * (e * (0.8f + 1.6f * burst)));
+            });
+        }
         var colQuad = Quad(c.root, "Column", feet + new Vector3(0, 2.1f, 0.25f), new Vector2(2.6f, 4.6f), QMat(c, c.tx.column, 0.9f, new Vector2(3, 1.2f), 0.5f));
         var colMat = colQuad.GetComponent<MeshRenderer>().sharedMaterial;
         var sil = Quad(c.root, "Sil", hero + new Vector3(0, 0, -0.03f), SpriteSize(c.hero, 3.3f), QMat(c, c.hero, 0, Vector2.one, 0));
@@ -329,16 +341,23 @@ public static class FxLab
         var flames = PS(c, "Flames", hero + new Vector3(0, -0.3f, 0.45f), AddMat(c.tx.flame, 0.7f), 123);
         {
             var m = flames.main; m.duration = 3f; m.startLifetime = new MinMaxCurve(0.45f, 0.85f); m.startSpeed = 0;
-            m.startSize = new MinMaxCurve(0.35f, 0.7f); m.startRotation = new MinMaxCurve(0, 6.28f);
+            m.startSize = new MinMaxCurve(0.45f, 0.9f); m.startRotation = new MinMaxCurve(-0.25f, 0.25f);
             var em = flames.emission; em.rateOverTime = 75;
             var sh = flames.shape; sh.enabled = true; sh.shapeType = ParticleSystemShapeType.Box; sh.scale = new Vector3(1.5f, 2.6f, 0.4f);
             var v = flames.velocityOverLifetime; v.enabled = true; v.space = ParticleSystemSimulationSpace.World;
             v.x = new MinMaxCurve(-0.2f, 0.2f); v.y = new MinMaxCurve(1.3f, 2.6f); v.z = new MinMaxCurve(0f, 0f);
             SizeLife(flames, Curve((0, 0.6f), (0.3f, 1f), (1, 0.15f)));
-            var rot = flames.rotationOverLifetime; rot.enabled = true; rot.z = new MinMaxCurve(-1.5f, 1.5f);
+            var rot = flames.rotationOverLifetime; rot.enabled = true; rot.z = new MinMaxCurve(-0.4f, 0.4f);
             ColorLife(flames, Grad(new[] { (0f, new Color(1f, 0.75f, 0.35f)), (0.3f, new Color(1f, 0.3f, 0.05f)), (0.7f, new Color(0.7f, 0.06f, 0.01f)), (1f, new Color(0.3f, 0.02f, 0.01f)) },
                                    new[] { (0f, 0f), (0.15f, 0.8f), (0.6f, 0.5f), (1f, 0f) }));
             c.Play(flames, on);
+            if (c.tx.flame2 != null)
+            {
+                // 2 種の炎の舌を混ぜる（同じ形が並ばないように）
+                var f2 = UnityEngine.Object.Instantiate(flames.gameObject, flames.transform.parent).GetComponent<ParticleSystem>();
+                f2.randomSeed = 223; f2.GetComponent<ParticleSystemRenderer>().sharedMaterial = AddMat(c.tx.flame2, 0.7f);
+                c.Play(f2, on);
+            }
         }
         var embers = PS(c, "Embers", hero + new Vector3(0, -0.6f, 0), AddMat(c.tx.dot, 5f), 124);
         {
@@ -487,6 +506,8 @@ public static class FxLab
     static void Hit(Ctx c, Vector3 pos, float t, Color col, float scale, float dirDeg, float spread, int shards, uint seed)
     {
         Flare(c, pos, t, col, 2.6f * scale, seed * 10 + 1);
+        if (c.tx.burst != null) Burst(c, pos, t, col, 2.8f * scale, seed * 10 + 6);
+        if (c.tx.air != null) Air(c, pos, t, col, 2.0f * scale, seed * 10 + 7);
         Glow(c, pos, t, col, 1.8f * scale, seed * 10 + 3);
         Ring(c, pos, t, col, 3.2f * scale, seed * 10 + 2, delay: 0.05f);
         Shards(c, pos, t, col, scale, dirDeg, spread, shards, seed * 10 + 4);
@@ -514,6 +535,28 @@ public static class FxLab
         c.Play(ps, t, delay); return ps;
     }
 
+    // 放射の爆ぜ: 棘の形が 5F だけ開いて消える（向きはばらす）
+    static ParticleSystem Burst(Ctx c, Vector3 pos, float t, Color col, float size, uint seed)
+    {
+        var ps = PS(c, "Burst", pos + new Vector3(0, 0, -0.68f), AddMat(c.tx.burst, 2.4f), seed);
+        var m = ps.main; m.startLifetime = 0.09f; m.startSize = size; m.startRotation = new MinMaxCurve(0, 6.28f); m.startColor = Color.white;
+        ps.emission.SetBursts(new[] { new Burst(0, 1) });
+        ColorLife(ps, Grad(new[] { (0f, Color.white), (1f, col) }, new[] { (0f, 1f), (1f, 0f) }));
+        SizeLife(ps, Curve((0, 0.7f), (0.4f, 1f), (1, 1.1f)));
+        c.Play(ps, t); return ps;
+    }
+
+    // 空気: 薄い煙が広がって消える（1 未満。光らせない）。当たりの重さを足す層
+    static ParticleSystem Air(Ctx c, Vector3 pos, float t, Color col, float size, uint seed)
+    {
+        var ps = PS(c, "Air", pos + new Vector3(0, 0, -0.45f), AddMat(c.tx.air, 0.18f), seed);
+        var m = ps.main; m.startLifetime = 0.4f; m.startSize = size; m.startRotation = new MinMaxCurve(0, 6.28f); m.startColor = col;
+        ps.emission.SetBursts(new[] { new Burst(0, 1) });
+        ColorLife(ps, Grad(new[] { (0f, Color.white), (1f, Color.white) }, new[] { (0f, 0.9f), (1f, 0f) }));
+        SizeLife(ps, Curve((0, 0.5f), (0.3f, 0.9f), (1, 1.15f)));
+        c.Play(ps, t, 0.02f); return ps;
+    }
+
     // 主グロー: 1 未満（光らせない）ですぐ消す
     static ParticleSystem Glow(Ctx c, Vector3 pos, float t, Color col, float size, uint seed)
     {
@@ -527,9 +570,9 @@ public static class FxLab
     // 余韻: 細かい粒がゆっくり漂って一番長く残る
     static ParticleSystem Bokeh(Ctx c, Vector3 pos, float t, Color col, float scale, uint seed)
     {
-        var ps = PS(c, "Bokeh", pos + new Vector3(0, 0, -0.6f), AddMat(c.tx.dot, 1.6f), seed);
+        var ps = PS(c, "Bokeh", pos + new Vector3(0, 0, -0.6f), AddMat(c.tx.sparkle ?? c.tx.dot, 1.8f), seed);
         var m = ps.main; m.startLifetime = new MinMaxCurve(0.7f, 1.1f); m.startSpeed = new MinMaxCurve(0.5f * scale, 2f * scale);
-        m.startSize = new MinMaxCurve(0.04f, 0.09f); m.gravityModifier = -0.05f; m.startColor = Color.white;
+        m.startSize = c.tx.sparkle != null ? new MinMaxCurve(0.18f, 0.34f) : new MinMaxCurve(0.04f, 0.09f); m.gravityModifier = -0.05f; m.startColor = Color.white;
         ps.emission.SetBursts(new[] { new Burst(0, (short)Mathf.RoundToInt(10 * scale)) });
         var sh = ps.shape; sh.enabled = true; sh.shapeType = ParticleSystemShapeType.Circle; sh.radius = 0.3f * scale;
         Drag(ps, 1.5f);
@@ -679,7 +722,7 @@ public static class FxLab
         public float darken, invert, mono, flash;
         public float stageDim, stageDesat, trauma; public Vector2 kick; public Vector3 goblinOff;
     }
-    class Tx { public Texture2D dot, glow, ring, star4, diamond, plus, flame, streak, trail, noise, column, coinFace; }
+    class Tx { public Texture2D dot, glow, ring, star4, diamond, plus, flame, flame2, streak, trail, noise, column, coinFace, burst, air, sparkle, magic; }
     class Ctx
     {
         public Transform root, heroT, goblinT; public Texture2D hero, goblin; public Tx tx;
@@ -891,6 +934,13 @@ public static class FxLab
     static float EaseIn(float x) => x * x * x;
     static float EaseOutBack(float x) { const float c1 = 1.70158f, c3 = c1 + 1; return 1 + c3 * Mathf.Pow(x - 1, 3) + c1 * Mathf.Pow(x - 1, 2); }
 
+    // エフェクト素材: 白＋アルファ。小さく描かれるので mipmap と bilinear
+    static Texture2D LoadFx(string path)
+    {
+        var t = new Texture2D(2, 2, TextureFormat.RGBA32, true);
+        t.LoadImage(File.ReadAllBytes(path)); t.filterMode = FilterMode.Trilinear; t.wrapMode = TextureWrapMode.Clamp; t.Apply(true); return t;
+    }
+
     static Texture2D LoadTex(string path)
     {
         var t = new Texture2D(2, 2, TextureFormat.RGBA32, false);
@@ -928,6 +978,15 @@ public static class FxLab
             return Mathf.Clamp01(Smooth(1f, 0.2f, r) * (f * 2.0f - 0.35f));
         });
         tx.coinFace = CoinFace(256);
+        // 素材（tools/fx-lab/textures。Kenney Particle Pack・CC0）。手作りの図形より形に表情がある
+        string dir = Environment.GetEnvironmentVariable("LAB_TEX");
+        if (!string.IsNullOrEmpty(dir) && Directory.Exists(dir))
+        {
+            Texture2D K(string n) => LoadFx(Path.Combine(dir, n + ".png"));
+            tx.star4 = K("flare"); tx.ring = K("ring"); tx.glow = K("glow"); tx.diamond = K("shard"); tx.streak = K("cutline");
+            tx.flame = K("flame_a"); tx.flame2 = K("flame_b"); tx.column = K("beam");
+            tx.burst = K("burst"); tx.air = K("air"); tx.sparkle = K("sparkle"); tx.magic = K("magic_circle");
+        }
         return tx;
     }
 

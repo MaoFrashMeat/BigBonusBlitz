@@ -40,6 +40,10 @@
   - オーラは発動の瞬間に山（`Surge`: 暗転・閃光・衝撃波・本人を 2F 白く）、持続は控えめ。炎は 3 段のアニメ塗り
   - ブルームは閾値 1.0・強度 0.5・広がり 1/16 解像度まで
 - 動画: `docs/art/2026-09-26/fx-samples-reel-rules.mp4`、コマ: `fx-samples-rules-frames.png`
+- 同日、素材を差し替え（本人「素材がまず悪い」）: 手作りの図形 → Kenney Particle Pack（CC0）から 12 枚。`tools/fx-lab/textures/`
+  - 閃光 = 鋭い四芒星、ヒットに棘の爆ぜ（5F）と薄い煙の層、火花 = 細い光の筋、斬線 = 光の筋、衝撃波 = 硬い輪、余韻 = 十字のきらめき
+  - 攻撃の炎 = 炎の舌 2 種、回復 = 光の柱＋足元の魔法陣
+  - 動画: `docs/art/2026-09-26/fx-samples-reel-kenney.mp4`、コマ: `fx-samples-kenney-frames.png`
 
 ## 本人の確定事項
 

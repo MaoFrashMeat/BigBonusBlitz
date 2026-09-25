@@ -30,6 +30,7 @@ if ($Spark) {
     $method = 'SparkLab.Run'
 } else {
     $env:LAB_OUT = Join-Path $work 'fx'; $env:LAB_ART = Join-Path $work 'art'; $env:LAB_ONLY = ($Only -join ',')
+    $env:LAB_TEX = Join-Path $here 'textures'   # Kenney Particle Pack（CC0）から選んだ素材
     $method = 'FxLab.Run'
 }
 $log = Join-Path $work 'unity.log'
