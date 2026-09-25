@@ -26,6 +26,7 @@ CLIPS = [
     ('death_holy', '倒れる4  昇天'),
     ('death_shatter', '倒れる5  砕け散る'),
     ('death_slice', '倒れる6  真っ二つ'),
+    ('stepup', 'ステップアップ（画面の枠: 白 → 青 → 黄 → 緑 → 赤 → 虹）'),
 ]
 # 2 つ目の引数で絞る（run.ps1 -Only と同じ名前をカンマ区切り）
 if len(sys.argv) > 2 and sys.argv[2]:

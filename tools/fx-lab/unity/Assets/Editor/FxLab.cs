@@ -54,6 +54,8 @@ public static class FxLab
         yield return new Clip { name = "death_holy", dur = 2.6f, hold = 1, build = DeathHoly };
         yield return new Clip { name = "death_shatter", dur = 2.2f, hold = 1, build = DeathShatter };
         yield return new Clip { name = "death_slice", dur = 2.2f, hold = 1, build = DeathSlice };
+        // 画面の枠（ステップアップ）
+        yield return new Clip { name = "stepup", dur = 7.2f, hold = 1, build = StepUpClip };
     }
 
     // 3 段（docs/FX_RESEARCH.md 2・3）: 暗い縁（背景から切り離す）／飽和した本体（1 未満で光らせない）／細い白芯（ここだけ HDR で光る）
@@ -811,6 +813,99 @@ public static class FxLab
             col = Color.white; vel = new Vector3((float)rr.NextDouble() - 0.5f, 0.4f + (float)rr.NextDouble() * 1.2f, 0); life = 0.4f + (float)rr.NextDouble() * 0.6f; sz = 0.04f + (float)rr.NextDouble() * 0.04f;
             return rr.NextDouble() < 0.08;
         }, 354);
+    }
+
+    // ================= 画面の枠（ステップアップ）=================
+    class FrameStep
+    {
+        public string label; public float mode; public Color col, core, edge; public float reach, intensity; public bool rainbow, thunderOverlay;
+        public Color particle; public bool embers;
+    }
+
+    // ステップアップ: 白 → 青 → 黄 → 緑 → 赤 → 虹（期待度の色の慣習。ProbabilityEditorWindow と同じ並び）
+    // 段が上がる瞬間: 枠が太く弾む・白く光る・揺れ・四隅の閃光・粒が噴く。背景は段ごとに深く沈める
+    static void StepUpClip(Ctx c)
+    {
+        var steps = new[]
+        {
+            new FrameStep { label = "STEP 1", mode = 0, col = new Color(0.85f, 0.92f, 1f), core = Color.white * 2.0f, reach = 0.45f, intensity = 0.8f, particle = Color.white },
+            new FrameStep { label = "STEP 2", mode = 1, col = new Color(0.15f, 0.5f, 1f), core = new Color(1.6f, 2.3f, 3.4f), reach = 0.6f, intensity = 1f, particle = new Color(0.5f, 0.8f, 1f) },
+            new FrameStep { label = "STEP 3", mode = 1, col = new Color(1f, 0.78f, 0.12f), core = new Color(3.2f, 2.8f, 1.3f), reach = 0.8f, intensity = 1.1f, particle = new Color(1f, 0.9f, 0.4f) },
+            new FrameStep { label = "STEP 4", mode = 2, col = new Color(0.15f, 1f, 0.3f), core = new Color(1.6f, 3.2f, 1.3f), edge = new Color(0f, 0.2f, 0.05f), reach = 0.8f, intensity = 1f, particle = new Color(0.5f, 1f, 0.5f), embers = true },
+            new FrameStep { label = "STEP 5", mode = 2, col = new Color(1f, 0.28f, 0.04f), core = new Color(3.4f, 2.1f, 0.8f), edge = new Color(0.35f, 0.02f, 0f), reach = 0.95f, intensity = 1.05f, particle = new Color(1f, 0.6f, 0.2f), embers = true },
+            new FrameStep { label = "STEP 6", mode = 2, col = Color.white, core = Color.white * 2.4f, reach = 1.1f, intensity = 1.1f, rainbow = true, thunderOverlay = true, particle = Color.white, embers = true },
+        };
+        float first = 0.4f, gap = 1.0f;
+        const float FW = 13.0f, FH = 7.4f, T = 1.2f;
+        // 枠は画面の縁に沿う角丸の四角。一周の長さに素材の繰り返しをぴったり合わせて継ぎ目を消す
+        const float R = 1.0f; var half = new Vector2(6.4f, 3.6f);
+        float per = 4 * (half.x - R) + 4 * (half.y - R) + 2 * Mathf.PI * R;
+        float uScale = Mathf.Round(per / 4f) / per;
+        Material MakeFrameMat(float seed)
+        {
+            var m = new Material(Shader.Find("Lab/Frame"));
+            m.SetTexture("_NoiseTex", c.tx.noise); if (c.tx.fibers != null) m.SetTexture("_FiberTex", c.tx.fibers); m.SetFloat("_Seed", seed); m.SetFloat("_Intensity", 0);
+            m.SetVector("_Half", half); m.SetFloat("_Radius", R); m.SetFloat("_UScale", uScale); m.SetFloat("_Thick", T);
+            return m;
+        }
+        var mainMat = MakeFrameMat(0.3f); var thunderMat = MakeFrameMat(5.1f);
+        foreach (var (mat, name) in new[] { (mainMat, "Frame"), (thunderMat, "FrameThunder") })
+        {
+            Quad(c.root, name, new Vector3(0, 0, -3f), new Vector2(FW, FH), mat);
+        }
+        // 段の札（STEP n）
+        var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        var lab = new GameObject("StepLabel"); lab.transform.SetParent(c.root, false); lab.transform.position = new Vector3(0, 2.55f, -3.2f);
+        var tm = lab.AddComponent<TextMesh>(); tm.font = font; tm.fontSize = 120; tm.characterSize = 0.045f; tm.anchor = TextAnchor.MiddleCenter; tm.fontStyle = FontStyle.Bold; tm.text = "";
+        lab.GetComponent<MeshRenderer>().sharedMaterial = font.material;
+
+        c.OnUpdate(t =>
+        {
+            int k = Mathf.FloorToInt((t - first) / gap); if (t < first) k = -1;
+            k = Mathf.Min(k, steps.Length - 1);
+            if (k < 0) { mainMat.SetFloat("_Intensity", 0); thunderMat.SetFloat("_Intensity", 0); tm.text = ""; return; }
+            var st = steps[k]; float a = t - (first + k * gap);
+            float burst = Mathf.Exp(-a * 9f);
+            mainMat.SetFloat("_Mode", st.mode); mainMat.SetColor("_Col", st.col); mainMat.SetColor("_Core", st.core); mainMat.SetColor("_Edge", st.edge);
+            mainMat.SetFloat("_Rainbow", st.rainbow ? 1 : 0); mainMat.SetFloat("_Burst", burst);
+            mainMat.SetFloat("_Thick", T * st.reach * (1 + 0.45f * burst)); mainMat.SetFloat("_Shade", 0.35f + 0.07f * k); mainMat.SetFloat("_Intensity", st.intensity * Mathf.Clamp01(a / 0.03f + 0.3f));
+            thunderMat.SetFloat("_Mode", 1); thunderMat.SetFloat("_Rainbow", 1); thunderMat.SetFloat("_Burst", burst); thunderMat.SetFloat("_Thick", T * 0.75f); thunderMat.SetFloat("_Shade", 0f);
+            thunderMat.SetColor("_Core", Color.white * 2.6f); thunderMat.SetFloat("_Intensity", st.thunderOverlay ? 0.9f : 0);
+            // 段が上がる瞬間: 白く光る 2F・揺れ（段ごとに強く）・背景を段ごとに沈める
+            if (a < 2 / 60f) c.post.flash = Mathf.Max(c.post.flash, 0.35f + 0.05f * k);
+            c.post.trauma += (0.3f + 0.08f * k) * Mathf.Clamp01(1 - a / 0.3f);
+            c.post.stageDim = Mathf.Max(c.post.stageDim, 0.1f * (k + 1)); c.post.stageDesat = Mathf.Max(c.post.stageDesat, 0.06f * (k + 1));
+            // 札: 段の色でポンと出る
+            tm.text = st.label;
+            float pop = 1 + 0.5f * Mathf.Exp(-a * 14f);
+            lab.transform.localScale = Vector3.one * pop;
+            tm.color = st.rainbow ? Color.HSVToRGB(Mathf.Repeat(t * 0.5f, 1f), 0.6f, 1f) * 1.6f : st.core * 0.7f;
+        });
+        // 段ごとの閃光（四隅）と、枠から噴く粒
+        for (int k = 0; k < steps.Length; k++)
+        {
+            var st = steps[k]; float ts = first + k * gap;
+            foreach (var corner in new[] { new Vector3(-6.2f, -3.3f, -3.3f), new Vector3(6.2f, -3.3f, -3.3f), new Vector3(6.2f, 3.3f, -3.3f), new Vector3(-6.2f, 3.3f, -3.3f) })
+                Flare(c, corner, ts, st.rainbow ? Color.white : st.col, 2.4f + 0.3f * k, (uint)(400 + k * 4));
+            var ps = PS(c, "FrameFx" + k, new Vector3(0, 0, -3.1f), st.embers ? AddMat(c.tx.dot, 3f) : AddMat(c.tx.diamond, 2.6f), (uint)(420 + k));
+            var m = ps.main; m.duration = k == steps.Length - 1 ? 2f : gap; m.startColor = st.particle;
+            var sh = ps.shape; sh.enabled = true; sh.shapeType = ParticleSystemShapeType.BoxEdge; sh.scale = new Vector3(12.6f, 7.0f, 0f);
+            var em = ps.emission; em.rateOverTime = 40 + 25 * k; em.SetBursts(new[] { new Burst(0, (short)(30 + 10 * k)) });
+            if (st.embers)
+            {
+                m.startLifetime = new MinMaxCurve(0.5f, 1.1f); m.startSpeed = new MinMaxCurve(0.2f, 0.8f); m.startSize = new MinMaxCurve(0.04f, 0.09f); m.gravityModifier = -0.25f;
+                var n = ps.noise; n.enabled = true; n.strength = 0.6f; n.frequency = 1.2f;
+            }
+            else
+            {
+                m.startLifetime = new MinMaxCurve(0.12f, 0.3f); m.startSpeed = new MinMaxCurve(2f, 6f); m.startSize = new MinMaxCurve(0.05f, 0.1f);
+                var r = ps.GetComponent<ParticleSystemRenderer>(); r.renderMode = ParticleSystemRenderMode.Stretch; r.velocityScale = 0.05f; r.lengthScale = 2f;
+                Drag(ps, 3f);
+            }
+            if (st.rainbow) { var col = ps.colorOverLifetime; col.enabled = true; col.color = new MinMaxGradient(Grad(new[] { (0f, new Color(1f, 0.4f, 0.4f)), (0.33f, new Color(1f, 1f, 0.4f)), (0.66f, new Color(0.4f, 1f, 1f)), (1f, new Color(1f, 0.5f, 1f)) }, new[] { (0f, 1f), (1f, 0f) })); }
+            else ColorLife(ps, Grad(new[] { (0f, Color.white), (1f, Color.white) }, new[] { (0f, 1f), (0.7f, 1f), (1f, 0f) }));
+            c.Play(ps, ts);
+        }
     }
 
     // ================= 部品: 斬撃 =================

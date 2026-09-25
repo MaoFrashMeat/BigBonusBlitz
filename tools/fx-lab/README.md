@@ -23,6 +23,7 @@ batchmode で連番 PNG → mp4 にする。本体を Unity で開いたまま�
 | `unity/Assets/Shaders/LabAura.shader` | キャラのシルエットから立つ炎（攻撃のオーラ） |
 | `unity/Assets/Shaders/LabCoin.shader` | メッシュ粒子のコイン（ライトなしで金属の映り込み） |
 | `unity/Assets/Shaders/LabDissolve.shader` | 倒れる敵の絵。消える順の図（R）・破片の番号（G）・ひび（B）で削る。光る縁・焦げの帯・真っ二つの切り口 |
+| `unity/Assets/Shaders/LabFrame.shader` | 画面の枠（ステップアップ）。角丸の四角を式で描く。光の流れ / 雷 / 炎、虹。暗い下地（乗算）＋光（加算） |
 | `unity/Assets/Shaders/LabStage.shader` | 背景とキャラ。一撃の間だけ暗く・色を抜く（主役ごとに効きを変える） |
 | `unity/Assets/Shaders/LabBloom.shader` | ブルームと仕上げ（揺れ・ズーム・方向ブラー・流線/集中線・ネガ・白フラッシュ・トーンマップ） |
 | `unity/Assets/Shaders/LabFx*.shader` / `LabMisc.shader` | 粒子の加算・アルファ、板ポリの加算 |
