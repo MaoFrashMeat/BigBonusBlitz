@@ -22,6 +22,9 @@ namespace BBB.Runtime
         public AdventureWeather CurrentWeather => weather;
         public bool HasIllustration => banks != null && banks[activeBank][0].texture != null;
         RawImage[][] banks;
+        AdventureEnvironmentProfile[] bankProfiles;
+        Image[][] grounds;
+        Material[] groundMaterials;
         Material[][] layerMaterials;
         CanvasGroup[] groups;
         AdventureAtmosphereGraphic sky, atmosphere;
@@ -36,6 +39,7 @@ namespace BBB.Runtime
         // Tall middle-plane trees/columns touch the atlas crop. Keep that crop above the
         // viewport instead of exposing a horizontal line at 84% of the screen height.
         readonly Vector2[] heights={new Vector2(.9f,.13f),new Vector2(1.06f,-.01f),new Vector2(.34f,-.035f)};
+        public float CloudCover => Profile.indoor?0:Mathf.Clamp01(WeatherStrength(AdventureWeather.Cloudy)+WeatherStrength(AdventureWeather.Rain)+WeatherStrength(AdventureWeather.Storm));
         public static ParallaxBackground Create(RectTransform area)
         {
             var bg=area.gameObject.AddComponent<ParallaxBackground>();bg.Initialize(area);return bg;
@@ -46,11 +50,20 @@ namespace BBB.Runtime
             scenery=UiSkin.Rect(area,"EnvironmentWorld",Vector2.zero,Vector2.zero);UiSkin.Stretch(scenery);
             sky=Graphic("EnvironmentSky",false);
             banks=new RawImage[2][];layerMaterials=new Material[2][];groups=new CanvasGroup[2];
+            bankProfiles=new AdventureEnvironmentProfile[2];grounds=new Image[2][];
+            groundMaterials=new Material[2];
             var layerShader=Resources.Load<Shader>("Art/Adventure/AdventureSeamless");
             for(int b=0;b<2;b++)
             {
                 var root=UiSkin.Rect(scenery,"EnvironmentPlanes"+b,Vector2.zero,Vector2.zero);UiSkin.Stretch(root);
                 groups[b]=root.gameObject.AddComponent<CanvasGroup>();groups[b].blocksRaycasts=false;groups[b].interactable=false;banks[b]=new RawImage[3];layerMaterials[b]=new Material[3];
+                grounds[b]=new Image[2];
+                for(int g=0;g<2;g++)
+                {
+                    var gr=UiSkin.Rect(root,g==0?"ContinuousGround":"WalkingPath",Vector2.zero,Vector2.zero);
+                    grounds[b][g]=gr.gameObject.AddComponent<Image>();grounds[b][g].raycastTarget=false;grounds[b][g].enabled=false;
+                    if(g==1&&layerShader!=null){groundMaterials[b]=new Material(layerShader);groundMaterials[b].SetFloat("_Ground",1);grounds[b][g].material=groundMaterials[b];}
+                }
                 for(int i=0;i<3;i++)
                 {
                     var rt=UiSkin.Rect(root,"Depth"+i,Vector2.zero,Vector2.zero);
@@ -73,23 +86,40 @@ namespace BBB.Runtime
             var next=AdventureEnvironmentCatalog.Find(nodeId);
             if(!instant && Profile!=null && Profile.id==next.id && HasIllustration)return;
             Profile=next;
-            var tex=Resources.Load<Texture2D>(next.atlas);
-            var seam=Resources.Load<Texture2D>("Art/Adventure/Seams/"+next.id);
-            if(tex==null)Debug.LogWarning("Adventure illustration missing: "+next.atlas);
+            var tex=next.UsesModules?null:Resources.Load<Texture2D>(next.atlas);
+            var seam=next.UsesModules?null:Resources.Load<Texture2D>("Art/Adventure/Seams/"+next.id);
+            if(tex==null&&!next.UsesModules)Debug.LogWarning("Adventure illustration missing: "+next.atlas);
             if(tex!=null){tex.wrapModeU=TextureWrapMode.Clamp;tex.wrapModeV=TextureWrapMode.Clamp;}
             activeBank=1-activeBank;
+            bankProfiles[activeBank]=next;
+            for(int g=0;g<2;g++)
+            {
+                var ground=grounds[activeBank][g];ground.enabled=next.UsesModules;
+                ground.rectTransform.anchorMin=new Vector2(0,0);
+                ground.rectTransform.anchorMax=new Vector2(1,next.groundHeight);
+                ground.rectTransform.offsetMin=ground.rectTransform.offsetMax=Vector2.zero;
+            }
             float[] cuts={0,next.farEnd,next.middleEnd,1};
             for(int i=0;i<3;i++)
             {
-                var im=banks[activeBank][i];im.texture=tex;im.enabled=tex!=null;
+                var im=banks[activeBank][i];
+                var layer=next.UsesModules?next.layers[i]:null;
+                var layerTexture=layer!=null?Resources.Load<Texture2D>(layer.texture):tex;
+                if(layer!=null&&layerTexture==null)Debug.LogWarning("Adventure module missing: "+layer.texture);
+                im.texture=layerTexture;im.enabled=layerTexture!=null;
+                im.rectTransform.anchorMin=new Vector2(0,layer!=null?layer.bottom:heights[i].y);
+                im.rectTransform.anchorMax=new Vector2(1,layer!=null?layer.bottom+layer.height:heights[i].y+heights[i].x);
+                im.rectTransform.offsetMin=im.rectTransform.offsetMax=Vector2.zero;
                 float padding=tex!=null?4f/tex.height:0;
                 im.uvRect=new Rect(offset*speeds[i],1-cuts[i+1]+padding,1,Mathf.Max(.01f,cuts[i+1]-cuts[i]-2*padding));
+                if(layer!=null)im.uvRect=new Rect(layer.phase,0,1,1);
                 if(layerMaterials[activeBank][i]!=null)
                 {
                     // MaskableGraphic caches stencil material copies. Use a new base when atlas rows change.
                     var old=layerMaterials[activeBank][i];var material=new Material(old.shader);
                     material.SetVector("_Row",new Vector4(im.uvRect.y,im.uvRect.height,.07f,i==2?0:.035f));
-                    if(seam!=null)
+                    material.SetFloat("_Module",layer!=null?1:0);
+                    if(layer==null&&seam!=null)
                     {
                         material.SetTexture("_SeamTex",seam);material.SetFloat("_UseSeam",1);
                         material.SetFloat("_Overlap",.22f);material.SetFloat("_SeamFeather",.012f);
@@ -114,12 +144,14 @@ namespace BBB.Runtime
         {
             value=AdventureEnvironmentCatalog.WeatherFor(Profile,value);
             oldWeather=AdventureEnvironmentCatalog.WeatherFor(Profile,weather);oldIntensity=intensity;weather=value;intensity=Mathf.Clamp01(strength);
-            weatherSeconds=Mathf.Max(.01f,transitionSeconds);weatherBlend=transitionSeconds<=0?1:0;Dirty();
+            weatherSeconds=Mathf.Max(.01f,transitionSeconds);weatherBlend=transitionSeconds<=0?1:0;ApplyLighting();
         }
         public float WeatherStrength(AdventureWeather kind)
         { return (weather==kind?intensity*weatherBlend:0)+(oldWeather==kind?oldIntensity*(1-weatherBlend):0); }
         public void Preview(float elapsed)
         { Elapsed=Mathf.Max(0,elapsed);offset=Elapsed;ApplyLighting(); }
+        // Signed, independent position for editor seam checks; atmospheric motion stays unchanged.
+        public void PreviewScroll(float position){offset=position;ApplyLighting();}
         void Update()
         {
             if(banks==null)return;
@@ -138,16 +170,42 @@ namespace BBB.Runtime
         {
             if(banks==null)return;
             AdventureEnvironmentCatalog.Palette(hour,out var skyColor,out var horizon,out var light);
-            if(Profile.indoor)light=Color.Lerp(new Color(.63f,.7f,.8f),Color.white,.42f);
-            float darkWeather=WeatherStrength(AdventureWeather.Rain)+WeatherStrength(AdventureWeather.Storm);light=Color.Lerp(light,new Color(.67f,.73f,.79f),darkWeather*.3f);
-            for(int b=0;b<2;b++)for(int i=0;i<3;i++)
+            for(int b=0;b<2;b++)
             {
-                var im=banks[b][i];im.color=Color.Lerp(light,Color.Lerp(light,horizon,.24f),i==0?.7f:i==1?.22f:0);
-                var uv=im.uvRect;uv.x=Mathf.Repeat(offset*speeds[i],2);im.uvRect=uv;
+                var p=bankProfiles[b];if(p==null)continue;
+                Color bankLight=p.indoor?Color.Lerp(new Color(.63f,.7f,.8f),Color.white,.42f):light;
+                // Multiplication keeps overcast nights dark instead of lerping toward a daylight gray.
+                if(!p.indoor)bankLight*=Color.Lerp(Color.white,new Color(.68f,.75f,.83f),CloudCover*.65f);
+                for(int g=0;g<2;g++)grounds[b][g].color=(g==0?p.ground:p.path)*bankLight;
+                if(groundMaterials[b]!=null)
+                {
+                    // Update the stencil copy too; uGUI may cache the material used for masking.
+                    float travel=Mathf.Repeat(offset*.065f,1)*12;
+                    groundMaterials[b].SetFloat("_Scroll",travel);
+                    grounds[b][1].materialForRendering.SetFloat("_Scroll",travel);
+                }
+                for(int i=0;i<3;i++)
+                {
+                    var im=banks[b][i];im.color=Color.Lerp(bankLight,Color.Lerp(bankLight,horizon,.24f),i==0?.7f:i==1?.22f:0);
+                    var uv=im.uvRect;
+                    if(p.UsesModules)
+                    {
+                        var layer=p.layers[i];uv.x=Mathf.Repeat(offset*layer.speed+layer.phase,1);
+                        var rect=im.rectTransform.rect;
+                        uv.width=im.texture!=null&&rect.height>0?Mathf.Max(.25f,rect.width/rect.height/(im.texture.width/(float)im.texture.height)):1;
+                    }
+                    else uv.x=Mathf.Repeat(offset*speeds[i],2);
+                    im.uvRect=uv;
+                }
             }
             Dirty();
         }
         void Dirty(){if(sky!=null)sky.SetVerticesDirty();if(atmosphere!=null)atmosphere.SetVerticesDirty();}
-        void OnDestroy(){if(layerMaterials==null)return;foreach(var bank in layerMaterials)foreach(var m in bank)if(m!=null){if(Application.isPlaying)Destroy(m);else DestroyImmediate(m);}}
+        void OnDestroy()
+        {
+            if(layerMaterials!=null)foreach(var bank in layerMaterials)foreach(var m in bank)Release(m);
+            if(groundMaterials!=null)foreach(var m in groundMaterials)Release(m);
+        }
+        static void Release(Material m){if(m==null)return;if(Application.isPlaying)Destroy(m);else DestroyImmediate(m);}
     }
 }

@@ -1,0 +1,32 @@
+{
+  "far": {
+    "size": [
+      2172,
+      724
+    ],
+    "sourceMode": "RGB",
+    "decodedEmptyFraction": 0.444114190653521,
+    "decodedOpaqueFraction": 0.5377742081540042,
+    "decodedEdgeAlphaMax": 0.0
+  },
+  "middle": {
+    "size": [
+      2172,
+      724
+    ],
+    "sourceMode": "RGB",
+    "decodedEmptyFraction": 0.5187379811361069,
+    "decodedOpaqueFraction": 0.46036509365810974,
+    "decodedEdgeAlphaMax": 0.0
+  },
+  "near": {
+    "size": [
+      2172,
+      724
+    ],
+    "sourceMode": "RGB",
+    "decodedEmptyFraction": 0.806930623810832,
+    "decodedOpaqueFraction": 0.14713951039345563,
+    "decodedEdgeAlphaMax": 0.0
+  }
+}

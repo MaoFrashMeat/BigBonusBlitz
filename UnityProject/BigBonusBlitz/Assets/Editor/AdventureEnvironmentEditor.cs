@@ -23,11 +23,16 @@ public sealed class AdventureEnvironmentEditor : Editor
 
 public sealed class AdventureEnvironmentTextureImporter : AssetPostprocessor
 {
-    public override uint GetVersion() => 2;
+    public override uint GetVersion() => 3;
     public override int GetPostprocessOrder() => 100;
     void OnPreprocessTexture()
     {
         if(!assetPath.StartsWith("Assets/Resources/Art/Adventure/"))return;
         var t=(TextureImporter)assetImporter;t.textureType=TextureImporterType.Default;t.textureShape=TextureImporterShape.Texture2D;t.npotScale=TextureImporterNPOTScale.None;t.sRGBTexture=true;t.alphaIsTransparency=true;t.mipmapEnabled=false;t.isReadable=false;t.maxTextureSize=2048;t.wrapModeU=TextureWrapMode.Mirror;t.wrapModeV=TextureWrapMode.Clamp;t.filterMode=FilterMode.Bilinear;t.textureCompression=TextureImporterCompression.CompressedHQ;
+        if(assetPath.Contains("/Modules/"))
+        {
+            // Preserve the matte and painted edges; compression can introduce key-colored fringes.
+            t.maxTextureSize=4096;t.wrapModeU=TextureWrapMode.Clamp;t.textureCompression=TextureImporterCompression.Uncompressed;
+        }
     }
 }

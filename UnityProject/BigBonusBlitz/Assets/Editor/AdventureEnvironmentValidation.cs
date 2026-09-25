@@ -15,9 +15,10 @@ public static class AdventureEnvironmentValidation
     static void Check(bool ok,string why){if(!ok)throw new Exception(why);}
     public static void Run()
     {
-        Check(Application.isBatchMode&&Application.dataPath.Replace('\\','/').Contains("/work/shop-qa/"),"Isolated shop-qa copy required");
+        Check(Application.isBatchMode&&File.Exists(Path.Combine(Application.dataPath,"../.bbb-environment-qa")),"Marked isolated QA copy required");
         output=Environment.GetEnvironmentVariable("ENVIRONMENT_OUTPUT");Check(!string.IsNullOrEmpty(output),"ENVIRONMENT_OUTPUT missing");Directory.CreateDirectory(output);
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
+        UnityEngine.Rendering.GraphicsSettings.defaultRenderPipeline=null;QualitySettings.renderPipeline=null;
         var machine=GameDataLoader.CreateMachine(new SystemRandom());Check(AdventureEnvironmentCatalog.All.Count==machine.Config.adventure.nodes.Count,"Stage coverage mismatch");
         canvas=UiFactory.CreateCanvas("EnvironmentValidation");UnityEngine.Object.DestroyImmediate(canvas.GetComponent<CanvasScaler>());canvas.renderMode=RenderMode.WorldSpace;canvas.transform.position=Vector3.zero;canvas.transform.localScale=Vector3.one;
         camera=new GameObject("Camera").AddComponent<Camera>();camera.transform.position=new Vector3(0,0,-10);camera.orthographic=true;camera.orthographicSize=270;camera.clearFlags=CameraClearFlags.SolidColor;camera.backgroundColor=Color.black;canvas.worldCamera=camera;
@@ -33,6 +34,7 @@ public static class AdventureEnvironmentValidation
         foreach(AdventureTime time in Enum.GetValues(typeof(AdventureTime))){bg.SetTimeOfDay(time,0);bg.SetWeather(AdventureWeather.Clear,0,0);Render("time-"+time,1280,720);}
         bg.SetTimeOfDay(AdventureTime.Day,0);
         foreach(AdventureWeather weather in Enum.GetValues(typeof(AdventureWeather))){bg.SetWeather(weather,1,0);bg.Preview(7.1f);Render("weather-"+weather,1280,720);Check(bg.WeatherStrength(weather)>.99f,"Weather control not applied "+weather);}
+        ValidateForest(bg,stage);
         AdventureEnvironmentCatalog.Palette(12,out var daytime,out _,out _);AdventureEnvironmentCatalog.Palette(23,out var nighttime,out _,out _);Check(daytime.grayscale>nighttime.grayscale+.15f,"Day/night palettes indistinct");
         var shader=Resources.Load<Shader>("Art/Adventure/AdventureSeamless");Check(shader!=null&&shader.isSupported,"Seamless shader unavailable");
         bg.SetStage("A-1",true);bg.SetHour(12,0);bg.SetWeather(AdventureWeather.Clear,0,0);capturePixels=true;
@@ -57,7 +59,7 @@ public static class AdventureEnvironmentValidation
             Check(hero.parent.Find("EnvironmentWorld").GetSiblingIndex()<hero.GetSiblingIndex(),"Background obscures hero after stage change");
             Render("game-"+id,1280,720);Render("game-"+id+"-wide",2556,1179);
         }
-        File.WriteAllText(Path.Combine(output,"validation.json"),"{\"passed\":true,\"stages\":30,\"illustratedPlanesPerStage\":3,\"timeOfDayPresets\":4,\"weatherPresets\":8,\"gameResolutions\":[\"1280x720\",\"2556x1179\"],\"indoorWeatherGuard\":true,\"realGameIntegration\":true,\"saveDataTouched\":false}");
+        File.WriteAllText(Path.Combine(output,"validation.json"),"{\"passed\":true,\"stages\":30,\"illustratedPlanesPerStage\":3,\"timeOfDayPresets\":4,\"weatherPresets\":9,\"forestCombinations\":12,\"gameResolutions\":[\"1280x720\",\"2556x1179\"],\"indoorWeatherGuard\":true,\"realGameIntegration\":true,\"saveDataTouched\":false,\"qaPipeline\":\"Built-in camera rendering uGUI shader\"}");
         Debug.Log("ADVENTURE_ENVIRONMENT_VALIDATION passed");
     }
     static void ValidateContentSeams(ParallaxBackground bg)
@@ -94,9 +96,45 @@ public static class AdventureEnvironmentValidation
         for(int frame=0;frame<192;frame++)
         {bg.Preview(120+frame/12f*4);Render("seam-motion/frame-"+frame.ToString("D3"),960,540);}
     }
+    static void ValidateForest(ParallaxBackground bg,RectTransform stage)
+    {
+        bg.SetStage("C-1",true);Check(bg.Profile.UsesModules,"C-1 modules not connected");
+        stage.sizeDelta=new Vector2(960,320);camera.orthographicSize=160;
+        foreach(AdventureTime time in Enum.GetValues(typeof(AdventureTime)))foreach(var weather in new[]{AdventureWeather.Clear,AdventureWeather.Cloudy,AdventureWeather.Rain})
+        {
+            bg.SetTimeOfDay(time,0);bg.SetWeather(weather,1,0);bg.Preview(7.1f);
+            if(weather==AdventureWeather.Cloudy)Check(bg.CloudCover>.99f&&bg.WeatherStrength(AdventureWeather.Rain)==0,"Cloudy has rain or no clouds");
+            Render("forest-"+time+"-"+weather,1280,426);
+        }
+        bg.SetTimeOfDay(AdventureTime.Day,0);bg.SetWeather(AdventureWeather.Clear,0,0);bg.Preview(7.1f);
+        var images=stage.GetComponentsInChildren<RawImage>();var visible=new System.Collections.Generic.List<RawImage>();
+        foreach(var im in images)if(im.enabled&&im.GetComponentInParent<CanvasGroup>().alpha>.99f)visible.Add(im);
+        Check(visible.Count==3,"Expected 3 active C-1 layers");capturePixels=true;double worst=0;
+        for(int layer=0;layer<3;layer++)
+        {
+            for(int i=0;i<3;i++)visible[i].enabled=i==layer;
+            var spec=bg.Profile.layers[layer];
+            foreach(int direction in new[]{-1,1})for(int cycle=1;cycle<=3;cycle++)
+            {
+                float center=(direction*cycle-spec.phase)/spec.speed;
+                bg.PreviewScroll(center-.0001f);Render("layer-"+layer+"-"+direction+"-"+cycle+"-before",640,213);var before=pixels;
+                bg.PreviewScroll(center+.0001f);Render("layer-"+layer+"-"+direction+"-"+cycle+"-after",640,213);
+                double error=Difference(before,pixels);worst=Math.Max(worst,error);Check(error<.002,"Module wrap jumps "+layer+": "+error);
+            }
+        }
+        foreach(var im in visible)im.enabled=true;capturePixels=false;pixels=null;
+        Directory.CreateDirectory(Path.Combine(output,"forest-motion"));
+        for(int frame=0;frame<48;frame++){bg.PreviewScroll(frame*2);Render("forest-motion/frame-"+frame.ToString("D3"),960,320);}
+        bg.SetWeather(AdventureWeather.Cloudy,1,0);bg.SetStage("D-1");Check(bg.CloudCover==0,"Overcast leaked indoors");
+        File.WriteAllText(Path.Combine(output,"forest-validation.json"),"{\"passed\":true,\"combinations\":12,\"layers\":3,\"cyclesPerDirectionPerLayer\":3,\"signedDirections\":2,\"maxWrapDifference\":"+worst.ToString(System.Globalization.CultureInfo.InvariantCulture)+",\"rgbMatteSources\":true}");
+        stage.sizeDelta=new Vector2(960,540);camera.orthographicSize=270;
+    }
+    static double Difference(Color32[] a,Color32[] b)
+    {double sum=0;for(int i=0;i<a.Length;i++)sum+=Math.Abs(a[i].r-b[i].r)+Math.Abs(a[i].g-b[i].g)+Math.Abs(a[i].b-b[i].b);return sum/(a.Length*3d*255);}
     static void Render(string name,int width,int height)
     {
-        ((RectTransform)canvas.transform).sizeDelta=new Vector2(540f*width/height,540);
+        float worldHeight=camera.orthographicSize*2;
+        ((RectTransform)canvas.transform).sizeDelta=new Vector2(worldHeight*width/height,worldHeight);
         var safe=canvas.GetComponentInChildren<SafeStage>();if(safe!=null)safe.Stage.localScale=Vector3.one*Mathf.Min(1,(540f*width/height)/safe.Stage.sizeDelta.x);
         Canvas.ForceUpdateCanvases();
         foreach(var text in canvas.GetComponentsInChildren<Text>())if(text.font!=null)text.font.RequestCharactersInTexture(text.text,text.fontSize,text.fontStyle);

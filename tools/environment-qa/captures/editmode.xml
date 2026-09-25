@@ -1,0 +1,672 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="102" result="Passed" total="102" passed="102" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-14 07:08:26Z" end-time="2026-09-14 07:09:35Z" duration="68.9406793">
+  <test-suite type="TestSuite" id="1000" name="BigBonusBlitz" fullname="BigBonusBlitz" runstate="Runnable" testcasecount="102" result="Passed" start-time="2026-09-14 07:08:26Z" end-time="2026-09-14 07:09:35Z" duration="68.940679" total="102" passed="102" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1115" name="BBB.Tests.EditMode.dll" fullname="C:/Users/SATO_T~1/AppData/Local/Temp/bbb-environment-c1-qa/Library/ScriptAssemblies/BBB.Tests.EditMode.dll" runstate="Runnable" testcasecount="102" result="Passed" start-time="2026-09-14 07:08:26Z" end-time="2026-09-14 07:09:35Z" duration="68.929619" total="102" passed="102" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="44532" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1116" name="BBB" fullname="BBB" runstate="Runnable" testcasecount="102" result="Passed" start-time="2026-09-14 07:08:26Z" end-time="2026-09-14 07:09:35Z" duration="68.929192" total="102" passed="102" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1117" name="Tests" fullname="BBB.Tests" runstate="Runnable" testcasecount="102" result="Passed" start-time="2026-09-14 07:08:26Z" end-time="2026-09-14 07:09:35Z" duration="68.929001" total="102" passed="102" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1001" name="AdventureTests" fullname="BBB.Tests.AdventureTests" classname="BBB.Tests.AdventureTests" runstate="Runnable" testcasecount="20" result="Passed" start-time="2026-09-14 07:08:26Z" end-time="2026-09-14 07:08:34Z" duration="7.971173" total="20" passed="20" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1012" name="クレジットが尽きたら力尽きて章の最初へ戻る" fullname="BBB.Tests.AdventureTests.クレジットが尽きたら力尽きて章の最初へ戻る" methodname="クレジットが尽きたら力尽きて章の最初へ戻る" classname="BBB.Tests.AdventureTests" runstate="Runnable" seed="1008835997" result="Passed" start-time="2026-09-14 07:08:26Z" end-time="2026-09-14 07:08:26Z" duration="0.423653" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1005" name="ステージが変わると数えものがリセットされる" fullname="BBB.Tests.AdventureTests.ステージが変わると数えものがリセットされる" methodname="ステージが変わると数えものがリセットされる" classname="BBB.Tests.AdventureTests" runstate="Runnable" seed="1930811848" result="Passed" start-time="2026-09-14 07:08:26Z" end-time="2026-09-14 07:08:26Z" duration="0.000894" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1018" name="ステージ移動は敵戦闘や前兆を抱えたままでは起きない" fullname="BBB.Tests.AdventureTests.ステージ移動は敵戦闘や前兆を抱えたままでは起きない" methodname="ステージ移動は敵戦闘や前兆を抱えたままでは起きない" classname="BBB.Tests.AdventureTests" runstate="Runnable" seed="124561010" result="Passed" start-time="2026-09-14 07:08:26Z" end-time="2026-09-14 07:08:27Z" duration="1.164356" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1013" name="ボーナス持ち越し中はライフが減らない" fullname="BBB.Tests.AdventureTests.ボーナス持ち越し中はライフが減らない" methodname="ボーナス持ち越し中はライフが減らない" classname="BBB.Tests.AdventureTests" runstate="Runnable" seed="1337754247" result="Passed" start-time="2026-09-14 07:08:27Z" end-time="2026-09-14 07:08:28Z" duration="0.088485" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1010" name="ボーナス中のベルでライフが回復する" fullname="BBB.Tests.AdventureTests.ボーナス中のベルでライフが回復する" methodname="ボーナス中のベルでライフが回復する" classname="BBB.Tests.AdventureTests" runstate="Runnable" seed="682741170" result="Passed" start-time="2026-09-14 07:08:28Z" end-time="2026-09-14 07:08:28Z" duration="0.441448" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1007" name="ライフが尽きたら力尽きた扱いになる" fullname="BBB.Tests.AdventureTests.ライフが尽きたら力尽きた扱いになる" methodname="ライフが尽きたら力尽きた扱いになる" classname="BBB.Tests.AdventureTests" runstate="Runnable" seed="1138251354" result="Passed" start-time="2026-09-14 07:08:28Z" end-time="2026-09-14 07:08:28Z" duration="0.078618" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1009" name="ライフの回復は上限で止まる" fullname="BBB.Tests.AdventureTests.ライフの回復は上限で止まる" methodname="ライフの回復は上限で止まる" classname="BBB.Tests.AdventureTests" runstate="Runnable" seed="1225157313" result="Passed" start-time="2026-09-14 07:08:28Z" end-time="2026-09-14 07:08:28Z" duration="0.010207" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1008" name="ライフは回復薬の個数と残量から一意に決まる" fullname="BBB.Tests.AdventureTests.ライフは回復薬の個数と残量から一意に決まる" methodname="ライフは回復薬の個数と残量から一意に決まる" classname="BBB.Tests.AdventureTests" runstate="Runnable" seed="1543711478" result="Passed" start-time="2026-09-14 07:08:28Z" end-time="2026-09-14 07:08:28Z" duration="0.014034" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1016" name="ルート抽選は上位ランクにだけ書き換わる" fullname="BBB.Tests.AdventureTests.ルート抽選は上位ランクにだけ書き換わる" methodname="ルート抽選は上位ランクにだけ書き換わる" classname="BBB.Tests.AdventureTests" runstate="Runnable" seed="1951246400" result="Passed" start-time="2026-09-14 07:08:28Z" end-time="2026-09-14 07:08:28Z" duration="0.000864" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1014" name="回復薬の補給は上限で止まる" fullname="BBB.Tests.AdventureTests.回復薬の補給は上限で止まる" methodname="回復薬の補給は上限で止まる" classname="BBB.Tests.AdventureTests" runstate="Runnable" seed="2018126590" result="Passed" start-time="2026-09-14 07:08:28Z" end-time="2026-09-14 07:08:28Z" duration="0.001249" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1020" name="高確ステージは指定モードのテーブルで抽選する" fullname="BBB.Tests.AdventureTests.高確ステージは指定モードのテーブルで抽選する" methodname="高確ステージは指定モードのテーブルで抽選する" classname="BBB.Tests.AdventureTests" runstate="Runnable" seed="1500627571" result="Passed" start-time="2026-09-14 07:08:28Z" end-time="2026-09-14 07:08:31Z" duration="3.286401" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1017" name="残りGが尽きたら次のステージへ進み終点で章クリア" fullname="BBB.Tests.AdventureTests.残りGが尽きたら次のステージへ進み終点で章クリア" methodname="残りGが尽きたら次のステージへ進み終点で章クリア" classname="BBB.Tests.AdventureTests" runstate="Runnable" seed="1660163615" result="Passed" start-time="2026-09-14 07:08:31Z" end-time="2026-09-14 07:08:31Z" duration="0.036555" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1003" name="持ち物の条件も見る" fullname="BBB.Tests.AdventureTests.持ち物の条件も見る" methodname="持ち物の条件も見る" classname="BBB.Tests.AdventureTests" runstate="Runnable" seed="1690089621" result="Passed" start-time="2026-09-14 07:08:31Z" end-time="2026-09-14 07:08:31Z" duration="0.001187" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1006" name="実際に回してもリプレイ条件が成立する" fullname="BBB.Tests.AdventureTests.実際に回してもリプレイ条件が成立する" methodname="実際に回してもリプレイ条件が成立する" classname="BBB.Tests.AdventureTests" runstate="Runnable" seed="1807147749" result="Passed" start-time="2026-09-14 07:08:31Z" end-time="2026-09-14 07:08:32Z" duration="0.704284" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1015" name="設定ファイルの冒険は読み込めてステージが繋がっている" fullname="BBB.Tests.AdventureTests.設定ファイルの冒険は読み込めてステージが繋がっている" methodname="設定ファイルの冒険は読み込めてステージが繋がっている" classname="BBB.Tests.AdventureTests" runstate="Runnable" seed="568404135" result="Passed" start-time="2026-09-14 07:08:32Z" end-time="2026-09-14 07:08:32Z" duration="0.019715" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1002" name="達成条件でルートが決まり確率では覆らない" fullname="BBB.Tests.AdventureTests.達成条件でルートが決まり確率では覆らない" methodname="達成条件でルートが決まり確率では覆らない" classname="BBB.Tests.AdventureTests" runstate="Runnable" seed="1418200113" result="Passed" start-time="2026-09-14 07:08:32Z" end-time="2026-09-14 07:08:32Z" duration="0.000750" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1011" name="通常時のリプレイでライフが回復する" fullname="BBB.Tests.AdventureTests.通常時のリプレイでライフが回復する" methodname="通常時のリプレイでライフが回復する" classname="BBB.Tests.AdventureTests" runstate="Runnable" seed="1941569930" result="Passed" start-time="2026-09-14 07:08:32Z" end-time="2026-09-14 07:08:34Z" duration="1.625898" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1021" name="物語は第2章まであり_段ごとに上中下の台詞がある" fullname="BBB.Tests.AdventureTests.物語は第2章まであり_段ごとに上中下の台詞がある" methodname="物語は第2章まであり_段ごとに上中下の台詞がある" classname="BBB.Tests.AdventureTests" runstate="Runnable" seed="576686080" result="Passed" start-time="2026-09-14 07:08:34Z" end-time="2026-09-14 07:08:34Z" duration="0.011483" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1019" name="宝の洞窟の地図は次のATに上乗せされる" fullname="BBB.Tests.AdventureTests.宝の洞窟の地図は次のATに上乗せされる" methodname="宝の洞窟の地図は次のATに上乗せされる" classname="BBB.Tests.AdventureTests" runstate="Runnable" seed="535347613" result="Passed" start-time="2026-09-14 07:08:34Z" end-time="2026-09-14 07:08:34Z" duration="0.037933" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1004" name="優先度が高い条件が勝つ" fullname="BBB.Tests.AdventureTests.優先度が高い条件が勝つ" methodname="優先度が高い条件が勝つ" classname="BBB.Tests.AdventureTests" runstate="Runnable" seed="1008300032" result="Passed" start-time="2026-09-14 07:08:34Z" end-time="2026-09-14 07:08:34Z" duration="0.000882" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1022" name="LotteryTableTests" fullname="BBB.Tests.LotteryTableTests" classname="BBB.Tests.LotteryTableTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-09-14 07:08:34Z" end-time="2026-09-14 07:08:34Z" duration="0.135424" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1029" name="Tier2のSTAR合算はデータどおり" fullname="BBB.Tests.LotteryTableTests.Tier2のSTAR合算はデータどおり" methodname="Tier2のSTAR合算はデータどおり" classname="BBB.Tests.LotteryTableTests" runstate="Runnable" seed="1273433779" result="Passed" start-time="2026-09-14 07:08:34Z" end-time="2026-09-14 07:08:34Z" duration="0.009063" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1024" name="テーブル内の各フラグ数が設定値と一致" fullname="BBB.Tests.LotteryTableTests.テーブル内の各フラグ数が設定値と一致" methodname="テーブル内の各フラグ数が設定値と一致" classname="BBB.Tests.LotteryTableTests" runstate="Runnable" seed="1109345046" result="Passed" start-time="2026-09-14 07:08:34Z" end-time="2026-09-14 07:08:34Z" duration="0.046290" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1030" name="モンテカルロ_設定1のBB出現率が理論値に収束" fullname="BBB.Tests.LotteryTableTests.モンテカルロ_設定1のBB出現率が理論値に収束" methodname="モンテカルロ_設定1のBB出現率が理論値に収束" classname="BBB.Tests.LotteryTableTests" runstate="Runnable" seed="1039406820" result="Passed" start-time="2026-09-14 07:08:34Z" end-time="2026-09-14 07:08:34Z" duration="0.035787" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-suite type="ParameterizedMethod" id="1028" name="仕様書の通常時モードA_ボーナス合算" fullname="BBB.Tests.LotteryTableTests.仕様書の通常時モードA_ボーナス合算" classname="BBB.Tests.LotteryTableTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-14 07:08:34Z" end-time="2026-09-14 07:08:34Z" duration="0.015231" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1025" name="仕様書の通常時モードA_ボーナス合算(1,438,200)" fullname="BBB.Tests.LotteryTableTests.仕様書の通常時モードA_ボーナス合算(1,438,200)" methodname="仕様書の通常時モードA_ボーナス合算" classname="BBB.Tests.LotteryTableTests" runstate="Runnable" seed="399444068" result="Passed" start-time="2026-09-14 07:08:34Z" end-time="2026-09-14 07:08:34Z" duration="0.004726" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1026" name="仕様書の通常時モードA_ボーナス合算(2,468,200)" fullname="BBB.Tests.LotteryTableTests.仕様書の通常時モードA_ボーナス合算(2,468,200)" methodname="仕様書の通常時モードA_ボーナス合算" classname="BBB.Tests.LotteryTableTests" runstate="Runnable" seed="921632849" result="Passed" start-time="2026-09-14 07:08:34Z" end-time="2026-09-14 07:08:34Z" duration="0.006295" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1027" name="仕様書の通常時モードA_ボーナス合算(6,748,300)" fullname="BBB.Tests.LotteryTableTests.仕様書の通常時モードA_ボーナス合算(6,748,300)" methodname="仕様書の通常時モードA_ボーナス合算" classname="BBB.Tests.LotteryTableTests" runstate="Runnable" seed="1378708944" result="Passed" start-time="2026-09-14 07:08:34Z" end-time="2026-09-14 07:08:34Z" duration="0.003343" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-case id="1023" name="全テーブルの合計が65536" fullname="BBB.Tests.LotteryTableTests.全テーブルの合計が65536" methodname="全テーブルの合計が65536" classname="BBB.Tests.LotteryTableTests" runstate="Runnable" seed="1341634974" result="Passed" start-time="2026-09-14 07:08:34Z" end-time="2026-09-14 07:08:34Z" duration="0.024641" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1031" name="PlayerStatsTests" fullname="BBB.Tests.PlayerStatsTests" classname="BBB.Tests.PlayerStatsTests" runstate="Runnable" testcasecount="17" result="Passed" start-time="2026-09-14 07:08:34Z" end-time="2026-09-14 07:08:39Z" duration="4.805835" total="17" passed="17" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1037" name="テクニックはエンゲージのG数を伸ばす" fullname="BBB.Tests.PlayerStatsTests.テクニックはエンゲージのG数を伸ばす" methodname="テクニックはエンゲージのG数を伸ばす" classname="BBB.Tests.PlayerStatsTests" runstate="Runnable" seed="1625661845" result="Passed" start-time="2026-09-14 07:08:34Z" end-time="2026-09-14 07:08:34Z" duration="0.008370" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1035" name="ポイントが無ければ振れない" fullname="BBB.Tests.PlayerStatsTests.ポイントが無ければ振れない" methodname="ポイントが無ければ振れない" classname="BBB.Tests.PlayerStatsTests" runstate="Runnable" seed="343365852" result="Passed" start-time="2026-09-14 07:08:34Z" end-time="2026-09-14 07:08:34Z" duration="0.013823" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1048" name="まとめて売るはレア度以下だけで_着けている物は残る" fullname="BBB.Tests.PlayerStatsTests.まとめて売るはレア度以下だけで_着けている物は残る" methodname="まとめて売るはレア度以下だけで_着けている物は残る" classname="BBB.Tests.PlayerStatsTests" runstate="Runnable" seed="870367947" result="Passed" start-time="2026-09-14 07:08:34Z" end-time="2026-09-14 07:08:34Z" duration="0.009392" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1036" name="ライフは回復薬の効きを伸ばす" fullname="BBB.Tests.PlayerStatsTests.ライフは回復薬の効きを伸ばす" methodname="ライフは回復薬の効きを伸ばす" classname="BBB.Tests.PlayerStatsTests" runstate="Runnable" seed="1748122622" result="Passed" start-time="2026-09-14 07:08:34Z" end-time="2026-09-14 07:08:34Z" duration="0.017786" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1038" name="ライフを振るとBETが無料になることがある" fullname="BBB.Tests.PlayerStatsTests.ライフを振るとBETが無料になることがある" methodname="ライフを振るとBETが無料になることがある" classname="BBB.Tests.PlayerStatsTests" runstate="Runnable" seed="189926452" result="Passed" start-time="2026-09-14 07:08:34Z" end-time="2026-09-14 07:08:35Z" duration="1.038511" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1039" name="ラックを振るとハズレが減る" fullname="BBB.Tests.PlayerStatsTests.ラックを振るとハズレが減る" methodname="ラックを振るとハズレが減る" classname="BBB.Tests.PlayerStatsTests" runstate="Runnable" seed="894797724" result="Passed" start-time="2026-09-14 07:08:35Z" end-time="2026-09-14 07:08:38Z" duration="3.259875" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1040" name="レベルアップでポイントが配られる" fullname="BBB.Tests.PlayerStatsTests.レベルアップでポイントが配られる" methodname="レベルアップでポイントが配られる" classname="BBB.Tests.PlayerStatsTests" runstate="Runnable" seed="1500362324" result="Passed" start-time="2026-09-14 07:08:38Z" end-time="2026-09-14 07:08:39Z" duration="0.342212" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1042" name="実績の一覧が読めて_数えもののキーが全部知っているものである" fullname="BBB.Tests.PlayerStatsTests.実績の一覧が読めて_数えもののキーが全部知っているものである" methodname="実績の一覧が読めて_数えもののキーが全部知っているものである" classname="BBB.Tests.PlayerStatsTests" runstate="Runnable" seed="71134105" result="Passed" start-time="2026-09-14 07:08:39Z" end-time="2026-09-14 07:08:39Z" duration="0.001923" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1041" name="実績は数えものが規定に届くと解除され_報酬のソウルが入る" fullname="BBB.Tests.PlayerStatsTests.実績は数えものが規定に届くと解除され_報酬のソウルが入る" methodname="実績は数えものが規定に届くと解除され_報酬のソウルが入る" classname="BBB.Tests.PlayerStatsTests" runstate="Runnable" seed="2077076314" result="Passed" start-time="2026-09-14 07:08:39Z" end-time="2026-09-14 07:08:39Z" duration="0.016937" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1033" name="上限まで振れて上限を超えられない" fullname="BBB.Tests.PlayerStatsTests.上限まで振れて上限を超えられない" methodname="上限まで振れて上限を超えられない" classname="BBB.Tests.PlayerStatsTests" runstate="Runnable" seed="958279271" result="Passed" start-time="2026-09-14 07:08:39Z" end-time="2026-09-14 07:08:39Z" duration="0.015292" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1034" name="振り直すとポイントが全部戻る" fullname="BBB.Tests.PlayerStatsTests.振り直すとポイントが全部戻る" methodname="振り直すとポイントが全部戻る" classname="BBB.Tests.PlayerStatsTests" runstate="Runnable" seed="1951700228" result="Passed" start-time="2026-09-14 07:08:39Z" end-time="2026-09-14 07:08:39Z" duration="0.007167" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1032" name="設定ファイルのステータスが読み込める" fullname="BBB.Tests.PlayerStatsTests.設定ファイルのステータスが読み込める" methodname="設定ファイルのステータスが読み込める" classname="BBB.Tests.PlayerStatsTests" runstate="Runnable" seed="1380636021" result="Passed" start-time="2026-09-14 07:08:39Z" end-time="2026-09-14 07:08:39Z" duration="0.010666" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1046" name="装備の種類ごとに品があり_昔の部位名も読み替えられる" fullname="BBB.Tests.PlayerStatsTests.装備の種類ごとに品があり_昔の部位名も読み替えられる" methodname="装備の種類ごとに品があり_昔の部位名も読み替えられる" classname="BBB.Tests.PlayerStatsTests" runstate="Runnable" seed="931176951" result="Passed" start-time="2026-09-14 07:08:39Z" end-time="2026-09-14 07:08:39Z" duration="0.017231" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1045" name="装備の枠は8つ_アクセは3つ着けられて4つ目は一番弱いものと入れ替わる" fullname="BBB.Tests.PlayerStatsTests.装備の枠は8つ_アクセは3つ着けられて4つ目は一番弱いものと入れ替わる" methodname="装備の枠は8つ_アクセは3つ着けられて4つ目は一番弱いものと入れ替わる" classname="BBB.Tests.PlayerStatsTests" runstate="Runnable" seed="915296847" result="Passed" start-time="2026-09-14 07:08:39Z" end-time="2026-09-14 07:08:39Z" duration="0.009093" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1047" name="装備を売るとレア度と深さのソウルが入り_着けていれば外れる" fullname="BBB.Tests.PlayerStatsTests.装備を売るとレア度と深さのソウルが入り_着けていれば外れる" methodname="装備を売るとレア度と深さのソウルが入り_着けていれば外れる" classname="BBB.Tests.PlayerStatsTests" runstate="Runnable" seed="177969628" result="Passed" start-time="2026-09-14 07:08:39Z" end-time="2026-09-14 07:08:39Z" duration="0.017876" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1043" name="売った数と図鑑の種類数と呪い付きの踏破が数えられる" fullname="BBB.Tests.PlayerStatsTests.売った数と図鑑の種類数と呪い付きの踏破が数えられる" methodname="売った数と図鑑の種類数と呪い付きの踏破が数えられる" classname="BBB.Tests.PlayerStatsTests" runstate="Runnable" seed="1766082686" result="Passed" start-time="2026-09-14 07:08:39Z" end-time="2026-09-14 07:08:39Z" duration="0.007761" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1044" name="落とし物は表の率で落ち_ソウルと回復薬が増える" fullname="BBB.Tests.PlayerStatsTests.落とし物は表の率で落ち_ソウルと回復薬が増える" methodname="落とし物は表の率で落ち_ソウルと回復薬が増える" classname="BBB.Tests.PlayerStatsTests" runstate="Runnable" seed="1587695333" result="Passed" start-time="2026-09-14 07:08:39Z" end-time="2026-09-14 07:08:39Z" duration="0.008500" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1049" name="SlipControllerTests" fullname="BBB.Tests.SlipControllerTests" classname="BBB.Tests.SlipControllerTests" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-09-14 07:08:39Z" end-time="2026-09-14 07:08:43Z" duration="3.806520" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1064" name="スベリは最大4コマ" fullname="BBB.Tests.SlipControllerTests.スベリは最大4コマ" methodname="スベリは最大4コマ" classname="BBB.Tests.SlipControllerTests" runstate="Runnable" seed="530527950" result="Passed" start-time="2026-09-14 07:08:39Z" end-time="2026-09-14 07:08:40Z" duration="0.905497" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-suite type="ParameterizedMethod" id="1062" name="チェリー当選時は左リールにチェリーが止まる" fullname="BBB.Tests.SlipControllerTests.チェリー当選時は左リールにチェリーが止まる" classname="BBB.Tests.SlipControllerTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-14 07:08:40Z" end-time="2026-09-14 07:08:40Z" duration="0.079292" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1060" name="チェリー当選時は左リールにチェリーが止まる(CHERRY_A,True)" fullname="BBB.Tests.SlipControllerTests.チェリー当選時は左リールにチェリーが止まる(CHERRY_A,True)" methodname="チェリー当選時は左リールにチェリーが止まる" classname="BBB.Tests.SlipControllerTests" runstate="Runnable" seed="674105029" result="Passed" start-time="2026-09-14 07:08:40Z" end-time="2026-09-14 07:08:40Z" duration="0.039483" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1061" name="チェリー当選時は左リールにチェリーが止まる(CHERRY_C,False)" fullname="BBB.Tests.SlipControllerTests.チェリー当選時は左リールにチェリーが止まる(CHERRY_C,False)" methodname="チェリー当選時は左リールにチェリーが止まる" classname="BBB.Tests.SlipControllerTests" runstate="Runnable" seed="281523404" result="Passed" start-time="2026-09-14 07:08:40Z" end-time="2026-09-14 07:08:40Z" duration="0.038787" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-case id="1051" name="ハズレ時はどこで押しても役が揃わない" fullname="BBB.Tests.SlipControllerTests.ハズレ時はどこで押しても役が揃わない" methodname="ハズレ時はどこで押しても役が揃わない" classname="BBB.Tests.SlipControllerTests" runstate="Runnable" seed="1249325118" result="Passed" start-time="2026-09-14 07:08:40Z" end-time="2026-09-14 07:08:40Z" duration="0.097837" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-suite type="ParameterizedMethod" id="1055" name="ベル当選時は順押しなら必ずSTAR払い出し" fullname="BBB.Tests.SlipControllerTests.ベル当選時は順押しなら必ずSTAR払い出し" classname="BBB.Tests.SlipControllerTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-14 07:08:40Z" end-time="2026-09-14 07:08:41Z" duration="0.727868" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1052" name="ベル当選時は順押しなら必ずSTAR払い出し(BELL_A)" fullname="BBB.Tests.SlipControllerTests.ベル当選時は順押しなら必ずSTAR払い出し(BELL_A)" methodname="ベル当選時は順押しなら必ずSTAR払い出し" classname="BBB.Tests.SlipControllerTests" runstate="Runnable" seed="68116116" result="Passed" start-time="2026-09-14 07:08:40Z" end-time="2026-09-14 07:08:40Z" duration="0.252797" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1053" name="ベル当選時は順押しなら必ずSTAR払い出し(BELL_B)" fullname="BBB.Tests.SlipControllerTests.ベル当選時は順押しなら必ずSTAR払い出し(BELL_B)" methodname="ベル当選時は順押しなら必ずSTAR払い出し" classname="BBB.Tests.SlipControllerTests" runstate="Runnable" seed="1848121263" result="Passed" start-time="2026-09-14 07:08:40Z" end-time="2026-09-14 07:08:40Z" duration="0.237060" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1054" name="ベル当選時は順押しなら必ずSTAR払い出し(BELL_C)" fullname="BBB.Tests.SlipControllerTests.ベル当選時は順押しなら必ずSTAR払い出し(BELL_C)" methodname="ベル当選時は順押しなら必ずSTAR払い出し" classname="BBB.Tests.SlipControllerTests" runstate="Runnable" seed="966823170" result="Passed" start-time="2026-09-14 07:08:40Z" end-time="2026-09-14 07:08:41Z" duration="0.236911" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-case id="1050" name="リール配列は3本x20コマ" fullname="BBB.Tests.SlipControllerTests.リール配列は3本x20コマ" methodname="リール配列は3本x20コマ" classname="BBB.Tests.SlipControllerTests" runstate="Runnable" seed="1287286138" result="Passed" start-time="2026-09-14 07:08:41Z" end-time="2026-09-14 07:08:41Z" duration="0.003186" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-suite type="ParameterizedMethod" id="1059" name="リプレイ当選時は必ず再遊技" fullname="BBB.Tests.SlipControllerTests.リプレイ当選時は必ず再遊技" classname="BBB.Tests.SlipControllerTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-14 07:08:41Z" end-time="2026-09-14 07:08:41Z" duration="0.876670" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1056" name="リプレイ当選時は必ず再遊技(REPLAY_A)" fullname="BBB.Tests.SlipControllerTests.リプレイ当選時は必ず再遊技(REPLAY_A)" methodname="リプレイ当選時は必ず再遊技" classname="BBB.Tests.SlipControllerTests" runstate="Runnable" seed="2094963605" result="Passed" start-time="2026-09-14 07:08:41Z" end-time="2026-09-14 07:08:41Z" duration="0.296092" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1057" name="リプレイ当選時は必ず再遊技(REPLAY_B)" fullname="BBB.Tests.SlipControllerTests.リプレイ当選時は必ず再遊技(REPLAY_B)" methodname="リプレイ当選時は必ず再遊技" classname="BBB.Tests.SlipControllerTests" runstate="Runnable" seed="1974405260" result="Passed" start-time="2026-09-14 07:08:41Z" end-time="2026-09-14 07:08:41Z" duration="0.285252" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1058" name="リプレイ当選時は必ず再遊技(REPLAY_C)" fullname="BBB.Tests.SlipControllerTests.リプレイ当選時は必ず再遊技(REPLAY_C)" methodname="リプレイ当選時は必ず再遊技" classname="BBB.Tests.SlipControllerTests" runstate="Runnable" seed="1295397126" result="Passed" start-time="2026-09-14 07:08:41Z" end-time="2026-09-14 07:08:41Z" duration="0.294246" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-case id="1063" name="非当選役では役の払い出しが起きない_全フラグ総当たり" fullname="BBB.Tests.SlipControllerTests.非当選役では役の払い出しが起きない_全フラグ総当たり" methodname="非当選役では役の払い出しが起きない_全フラグ総当たり" classname="BBB.Tests.SlipControllerTests" runstate="Runnable" seed="838925024" result="Passed" start-time="2026-09-14 07:08:41Z" end-time="2026-09-14 07:08:43Z" duration="1.113763" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1065" name="SlotMachineTests" fullname="BBB.Tests.SlotMachineTests" classname="BBB.Tests.SlotMachineTests" runstate="Runnable" testcasecount="23" result="Passed" start-time="2026-09-14 07:08:43Z" end-time="2026-09-14 07:09:34Z" duration="51.819883" total="23" passed="23" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1078" name="AT開始で通常時のエンゲージは持ち込まれない" fullname="BBB.Tests.SlotMachineTests.AT開始で通常時のエンゲージは持ち込まれない" methodname="AT開始で通常時のエンゲージは持ち込まれない" classname="BBB.Tests.SlotMachineTests" runstate="Runnable" seed="1456507656" result="Passed" start-time="2026-09-14 07:08:43Z" end-time="2026-09-14 07:08:43Z" duration="0.040699" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1080" name="AT期待度_ボーナス中だけ溜まりランクが上がる" fullname="BBB.Tests.SlotMachineTests.AT期待度_ボーナス中だけ溜まりランクが上がる" methodname="AT期待度_ボーナス中だけ溜まりランクが上がる" classname="BBB.Tests.SlotMachineTests" runstate="Runnable" seed="1080729422" result="Passed" start-time="2026-09-14 07:08:43Z" end-time="2026-09-14 07:08:43Z" duration="0.429254" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1079" name="AT当選後は洞窟前兆を挟んでから50Gで始まる" fullname="BBB.Tests.SlotMachineTests.AT当選後は洞窟前兆を挟んでから50Gで始まる" methodname="AT当選後は洞窟前兆を挟んでから50Gで始まる" classname="BBB.Tests.SlotMachineTests" runstate="Runnable" seed="443761844" result="Passed" start-time="2026-09-14 07:08:43Z" end-time="2026-09-14 07:09:01Z" duration="18.291029" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1081" name="BAR揃いと青赤青はどのラインでもBIG_紛らわしい停止形は出ない" fullname="BBB.Tests.SlotMachineTests.BAR揃いと青赤青はどのラインでもBIG_紛らわしい停止形は出ない" methodname="BAR揃いと青赤青はどのラインでもBIG_紛らわしい停止形は出ない" classname="BBB.Tests.SlotMachineTests" runstate="Runnable" seed="492473040" result="Passed" start-time="2026-09-14 07:09:01Z" end-time="2026-09-14 07:09:04Z" duration="2.558241" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1071" name="BB中は目標枚数に達すると終了する" fullname="BBB.Tests.SlotMachineTests.BB中は目標枚数に達すると終了する" methodname="BB中は目標枚数に達すると終了する" classname="BBB.Tests.SlotMachineTests" runstate="Runnable" seed="1910643561" result="Passed" start-time="2026-09-14 07:09:04Z" end-time="2026-09-14 07:09:04Z" duration="0.408674" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1067" name="クレジット不足ならBETできない" fullname="BBB.Tests.SlotMachineTests.クレジット不足ならBETできない" methodname="クレジット不足ならBETできない" classname="BBB.Tests.SlotMachineTests" runstate="Runnable" seed="1463952312" result="Passed" start-time="2026-09-14 07:09:04Z" end-time="2026-09-14 07:09:04Z" duration="0.006505" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1088" name="ジャッジの示唆は終了のとき金と虹が出ず_継続率100なら必ず継続する" fullname="BBB.Tests.SlotMachineTests.ジャッジの示唆は終了のとき金と虹が出ず_継続率100なら必ず継続する" methodname="ジャッジの示唆は終了のとき金と虹が出ず_継続率100なら必ず継続する" classname="BBB.Tests.SlotMachineTests" runstate="Runnable" seed="48512329" result="Passed" start-time="2026-09-14 07:09:04Z" end-time="2026-09-14 07:09:05Z" duration="0.254858" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1087" name="セットを使い切ると継続ジャッジに入り_示唆のあと最終Gに結果が出る" fullname="BBB.Tests.SlotMachineTests.セットを使い切ると継続ジャッジに入り_示唆のあと最終Gに結果が出る" methodname="セットを使い切ると継続ジャッジに入り_示唆のあと最終Gに結果が出る" classname="BBB.Tests.SlotMachineTests" runstate="Runnable" seed="538660654" result="Passed" start-time="2026-09-14 07:09:05Z" end-time="2026-09-14 07:09:08Z" duration="3.454581" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1073" name="チェリーは4コマ以内に無ければこぼす" fullname="BBB.Tests.SlotMachineTests.チェリーは4コマ以内に無ければこぼす" methodname="チェリーは4コマ以内に無ければこぼす" classname="BBB.Tests.SlotMachineTests" runstate="Runnable" seed="370265697" result="Passed" start-time="2026-09-14 07:09:08Z" end-time="2026-09-14 07:09:08Z" duration="0.013220" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1084" name="ベル択ナビ_外すとベルを取りこぼす" fullname="BBB.Tests.SlotMachineTests.ベル択ナビ_外すとベルを取りこぼす" methodname="ベル択ナビ_外すとベルを取りこぼす" classname="BBB.Tests.SlotMachineTests" runstate="Runnable" seed="2048561781" result="Passed" start-time="2026-09-14 07:09:08Z" end-time="2026-09-14 07:09:13Z" duration="4.703542" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1083" name="ボーナスはG数を使い切れば規定枚数に届かなくても終わる" fullname="BBB.Tests.SlotMachineTests.ボーナスはG数を使い切れば規定枚数に届かなくても終わる" methodname="ボーナスはG数を使い切れば規定枚数に届かなくても終わる" classname="BBB.Tests.SlotMachineTests" runstate="Runnable" seed="1987343149" result="Passed" start-time="2026-09-14 07:09:13Z" end-time="2026-09-14 07:09:13Z" duration="0.175385" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1076" name="ボーナス成立後は前兆を挟み最後の擬似遊技で揃う" fullname="BBB.Tests.SlotMachineTests.ボーナス成立後は前兆を挟み最後の擬似遊技で揃う" methodname="ボーナス成立後は前兆を挟み最後の擬似遊技で揃う" classname="BBB.Tests.SlotMachineTests" runstate="Runnable" seed="826805774" result="Passed" start-time="2026-09-14 07:09:13Z" end-time="2026-09-14 07:09:21Z" duration="8.017843" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1075" name="ボーナス中でも敵エンゲージは進んで決着する" fullname="BBB.Tests.SlotMachineTests.ボーナス中でも敵エンゲージは進んで決着する" methodname="ボーナス中でも敵エンゲージは進んで決着する" classname="BBB.Tests.SlotMachineTests" runstate="Runnable" seed="1148084949" result="Passed" start-time="2026-09-14 07:09:21Z" end-time="2026-09-14 07:09:21Z" duration="0.052720" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1074" name="ボーナス中のベル_ナビ通りなら多め_外せばこぼし_ナビ無しは共通ベル" fullname="BBB.Tests.SlotMachineTests.ボーナス中のベル_ナビ通りなら多め_外せばこぼし_ナビ無しは共通ベル" methodname="ボーナス中のベル_ナビ通りなら多め_外せばこぼし_ナビ無しは共通ベル" classname="BBB.Tests.SlotMachineTests" runstate="Runnable" seed="1050033077" result="Passed" start-time="2026-09-14 07:09:21Z" end-time="2026-09-14 07:09:21Z" duration="0.072048" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1070" name="ボーナス当選フラグは揃うまで持ち越す" fullname="BBB.Tests.SlotMachineTests.ボーナス当選フラグは揃うまで持ち越す" methodname="ボーナス当選フラグは揃うまで持ち越す" classname="BBB.Tests.SlotMachineTests" runstate="Runnable" seed="642651234" result="Passed" start-time="2026-09-14 07:09:21Z" end-time="2026-09-14 07:09:21Z" duration="0.251473" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1068" name="リプレイ後はクレジットを減らさず回せる" fullname="BBB.Tests.SlotMachineTests.リプレイ後はクレジットを減らさず回せる" methodname="リプレイ後はクレジットを減らさず回せる" classname="BBB.Tests.SlotMachineTests" runstate="Runnable" seed="1819887098" result="Passed" start-time="2026-09-14 07:09:21Z" end-time="2026-09-14 07:09:21Z" duration="0.005482" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1069" name="一万G回してもクレジットが破綻しない" fullname="BBB.Tests.SlotMachineTests.一万G回してもクレジットが破綻しない" methodname="一万G回してもクレジットが破綻しない" classname="BBB.Tests.SlotMachineTests" runstate="Runnable" seed="1507932781" result="Passed" start-time="2026-09-14 07:09:21Z" end-time="2026-09-14 07:09:23Z" duration="1.274168" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1066" name="初期エンバー500_BETで497" fullname="BBB.Tests.SlotMachineTests.初期エンバー500_BETで497" methodname="初期エンバー500_BETで497" classname="BBB.Tests.SlotMachineTests" runstate="Runnable" seed="1702839344" result="Passed" start-time="2026-09-14 07:09:23Z" end-time="2026-09-14 07:09:23Z" duration="0.008351" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1085" name="前兆が終われば引き込みでどこで押しても揃う" fullname="BBB.Tests.SlotMachineTests.前兆が終われば引き込みでどこで押しても揃う" methodname="前兆が終われば引き込みでどこで押しても揃う" classname="BBB.Tests.SlotMachineTests" runstate="Runnable" seed="716578699" result="Passed" start-time="2026-09-14 07:09:23Z" end-time="2026-09-14 07:09:23Z" duration="0.410526" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1077" name="通しで回しても状態が壊れない" fullname="BBB.Tests.SlotMachineTests.通しで回しても状態が壊れない" methodname="通しで回しても状態が壊れない" classname="BBB.Tests.SlotMachineTests" runstate="Runnable" seed="1652048899" result="Passed" start-time="2026-09-14 07:09:23Z" end-time="2026-09-14 07:09:34Z" duration="10.664418" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1072" name="敵出現の翌Gから3GでTier2が決着する" fullname="BBB.Tests.SlotMachineTests.敵出現の翌Gから3GでTier2が決着する" methodname="敵出現の翌Gから3GでTier2が決着する" classname="BBB.Tests.SlotMachineTests" runstate="Runnable" seed="956442" result="Passed" start-time="2026-09-14 07:09:34Z" end-time="2026-09-14 07:09:34Z" duration="0.062732" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1086" name="天井到達で強制ボーナス" fullname="BBB.Tests.SlotMachineTests.天井到達で強制ボーナス" methodname="天井到達で強制ボーナス" classname="BBB.Tests.SlotMachineTests" runstate="Runnable" seed="667142532" result="Passed" start-time="2026-09-14 07:09:34Z" end-time="2026-09-14 07:09:34Z" duration="0.009416" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1082" name="配列は全役をどの押し順_どの位置でも成立または回避できる" fullname="BBB.Tests.SlotMachineTests.配列は全役をどの押し順_どの位置でも成立または回避できる" methodname="配列は全役をどの押し順_どの位置でも成立または回避できる" classname="BBB.Tests.SlotMachineTests" runstate="Runnable" seed="1362792020" result="Passed" start-time="2026-09-14 07:09:34Z" end-time="2026-09-14 07:09:34Z" duration="0.648585" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1089" name="SlumpGraphTests" fullname="BBB.Tests.SlumpGraphTests" classname="BBB.Tests.SlumpGraphTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-14 07:09:34Z" end-time="2026-09-14 07:09:34Z" duration="0.070739" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1092" name="取り直すと_潜行の始まりも先頭に戻る" fullname="BBB.Tests.SlumpGraphTests.取り直すと_潜行の始まりも先頭に戻る" methodname="取り直すと_潜行の始まりも先頭に戻る" classname="BBB.Tests.SlumpGraphTests" runstate="Runnable" seed="1313510187" result="Passed" start-time="2026-09-14 07:09:34Z" end-time="2026-09-14 07:09:34Z" duration="0.058929" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1090" name="潜行の始まりを置くと_そこからの回転数と増減だけを数える" fullname="BBB.Tests.SlumpGraphTests.潜行の始まりを置くと_そこからの回転数と増減だけを数える" methodname="潜行の始まりを置くと_そこからの回転数と増減だけを数える" classname="BBB.Tests.SlumpGraphTests" runstate="Runnable" seed="1577091268" result="Passed" start-time="2026-09-14 07:09:34Z" end-time="2026-09-14 07:09:34Z" duration="0.002578" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1091" name="点が間引かれても_潜行の始まりがずれない" fullname="BBB.Tests.SlumpGraphTests.点が間引かれても_潜行の始まりがずれない" methodname="点が間引かれても_潜行の始まりがずれない" classname="BBB.Tests.SlumpGraphTests" runstate="Runnable" seed="2008535943" result="Passed" start-time="2026-09-14 07:09:34Z" end-time="2026-09-14 07:09:34Z" duration="0.001546" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1093" name="TechRankTests" fullname="BBB.Tests.TechRankTests" classname="BBB.Tests.TechRankTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-09-14 07:09:34Z" end-time="2026-09-14 07:09:34Z" duration="0.008201" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1094" name="ビタは押した位相でPerfectからCoolまで5段" fullname="BBB.Tests.TechRankTests.ビタは押した位相でPerfectからCoolまで5段" methodname="ビタは押した位相でPerfectからCoolまで5段" classname="BBB.Tests.TechRankTests" runstate="Runnable" seed="1323296429" result="Passed" start-time="2026-09-14 07:09:34Z" end-time="2026-09-14 07:09:34Z" duration="0.002151" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1098" name="既定の表は上から狭い順で_上乗せは最高100パーセント" fullname="BBB.Tests.TechRankTests.既定の表は上から狭い順で_上乗せは最高100パーセント" methodname="既定の表は上から狭い順で_上乗せは最高100パーセント" classname="BBB.Tests.TechRankTests" runstate="Runnable" seed="262942579" result="Passed" start-time="2026-09-14 07:09:34Z" end-time="2026-09-14 07:09:34Z" duration="0.001062" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1095" name="手前で押した分だけ1コマ2コマになり_3コマ以上はランク無し" fullname="BBB.Tests.TechRankTests.手前で押した分だけ1コマ2コマになり_3コマ以上はランク無し" methodname="手前で押した分だけ1コマ2コマになり_3コマ以上はランク無し" classname="BBB.Tests.TechRankTests" runstate="Runnable" seed="753164503" result="Passed" start-time="2026-09-14 07:09:34Z" end-time="2026-09-14 07:09:34Z" duration="0.000357" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1096" name="同じ図柄が複数あれば一番近い狙いで数える" fullname="BBB.Tests.TechRankTests.同じ図柄が複数あれば一番近い狙いで数える" methodname="同じ図柄が複数あれば一番近い狙いで数える" classname="BBB.Tests.TechRankTests" runstate="Runnable" seed="364906245" result="Passed" start-time="2026-09-14 07:09:34Z" end-time="2026-09-14 07:09:34Z" duration="0.000200" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1097" name="表が空ならランク無し" fullname="BBB.Tests.TechRankTests.表が空ならランク無し" methodname="表が空ならランク無し" classname="BBB.Tests.TechRankTests" runstate="Runnable" seed="763584006" result="Passed" start-time="2026-09-14 07:09:34Z" end-time="2026-09-14 07:09:34Z" duration="0.000249" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1099" name="WorkflowAndEnemyTests" fullname="BBB.Tests.WorkflowAndEnemyTests" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" testcasecount="15" result="Passed" start-time="2026-09-14 07:09:34Z" end-time="2026-09-14 07:09:35Z" duration="0.307389" total="15" passed="15" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1110" name="AT_ナビに従うと得_外すと損_バトルは討伐で上乗せ" fullname="BBB.Tests.WorkflowAndEnemyTests.AT_ナビに従うと得_外すと損_バトルは討伐で上乗せ" methodname="AT_ナビに従うと得_外すと損_バトルは討伐で上乗せ" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="1495735860" result="Passed" start-time="2026-09-14 07:09:34Z" end-time="2026-09-14 07:09:34Z" duration="0.006553" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1109" name="JSONのリストが既定値に追記されず置き換えになる" fullname="BBB.Tests.WorkflowAndEnemyTests.JSONのリストが既定値に追記されず置き換えになる" methodname="JSONのリストが既定値に追記されず置き換えになる" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="759775037" result="Passed" start-time="2026-09-14 07:09:34Z" end-time="2026-09-14 07:09:34Z" duration="0.010590" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1101" name="rateが0でないカテゴリのバリアント合計は100か0" fullname="BBB.Tests.WorkflowAndEnemyTests.rateが0でないカテゴリのバリアント合計は100か0" methodname="rateが0でないカテゴリのバリアント合計は100か0" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="404988239" result="Passed" start-time="2026-09-14 07:09:34Z" end-time="2026-09-14 07:09:34Z" duration="0.001452" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1102" name="REPLAYはENEMY当選率50pct" fullname="BBB.Tests.WorkflowAndEnemyTests.REPLAYはENEMY当選率50pct" methodname="REPLAYはENEMY当選率50pct" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="328849550" result="Passed" start-time="2026-09-14 07:09:34Z" end-time="2026-09-14 07:09:35Z" duration="0.057553" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1105" name="VariantAならスライム_未指定ならANYかランダム" fullname="BBB.Tests.WorkflowAndEnemyTests.VariantAならスライム_未指定ならANYかランダム" methodname="VariantAならスライム_未指定ならANYかランダム" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="961525885" result="Passed" start-time="2026-09-14 07:09:35Z" end-time="2026-09-14 07:09:35Z" duration="0.001832" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1111" name="ショップ_買うとレベルが上がり効果が乗る_ソウル不足は弾かれる" fullname="BBB.Tests.WorkflowAndEnemyTests.ショップ_買うとレベルが上がり効果が乗る_ソウル不足は弾かれる" methodname="ショップ_買うとレベルが上がり効果が乗る_ソウル不足は弾かれる" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="1109802442" result="Passed" start-time="2026-09-14 07:09:35Z" end-time="2026-09-14 07:09:35Z" duration="0.007232" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1112" name="ソウル_討伐で貯まり取得量アップが効く" fullname="BBB.Tests.WorkflowAndEnemyTests.ソウル_討伐で貯まり取得量アップが効く" methodname="ソウル_討伐で貯まり取得量アップが効く" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="1076820337" result="Passed" start-time="2026-09-14 07:09:35Z" end-time="2026-09-14 07:09:35Z" duration="0.074575" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1100" name="各役のNONEとカテゴリrateの合計が100" fullname="BBB.Tests.WorkflowAndEnemyTests.各役のNONEとカテゴリrateの合計が100" methodname="各役のNONEとカテゴリrateの合計が100" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="1987128780" result="Passed" start-time="2026-09-14 07:09:35Z" end-time="2026-09-14 07:09:35Z" duration="0.001759" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1113" name="主人公のひとりごと_確率どおりに出て文脈に沿う" fullname="BBB.Tests.WorkflowAndEnemyTests.主人公のひとりごと_確率どおりに出て文脈に沿う" methodname="主人公のひとりごと_確率どおりに出て文脈に沿う" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="1636728054" result="Passed" start-time="2026-09-14 07:09:35Z" end-time="2026-09-14 07:09:35Z" duration="0.007999" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1108" name="揃ったラインが記録される_上段_下段_斜め_チェリー段" fullname="BBB.Tests.WorkflowAndEnemyTests.揃ったラインが記録される_上段_下段_斜め_チェリー段" methodname="揃ったラインが記録される_上段_下段_斜め_チェリー段" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="1541419240" result="Passed" start-time="2026-09-14 07:09:35Z" end-time="2026-09-14 07:09:35Z" duration="0.001850" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1104" name="敵Tier2テーブルの合計は65536" fullname="BBB.Tests.WorkflowAndEnemyTests.敵Tier2テーブルの合計は65536" methodname="敵Tier2テーブルの合計は65536" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="877298513" result="Passed" start-time="2026-09-14 07:09:35Z" end-time="2026-09-14 07:09:35Z" duration="0.003253" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1103" name="敵テーブルは通常3種とボス3種_スライムはVariantA" fullname="BBB.Tests.WorkflowAndEnemyTests.敵テーブルは通常3種とボス3種_スライムはVariantA" methodname="敵テーブルは通常3種とボス3種_スライムはVariantA" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="875261394" result="Passed" start-time="2026-09-14 07:09:35Z" end-time="2026-09-14 07:09:35Z" duration="0.002581" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1106" name="討伐率_CHANCEは100pct_REPLAYは10pct" fullname="BBB.Tests.WorkflowAndEnemyTests.討伐率_CHANCEは100pct_REPLAYは10pct" methodname="討伐率_CHANCEは100pct_REPLAYは10pct" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="1970123630" result="Passed" start-time="2026-09-14 07:09:35Z" end-time="2026-09-14 07:09:35Z" duration="0.041575" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1114" name="討伐率_連続小役でストリークボーナス加算" fullname="BBB.Tests.WorkflowAndEnemyTests.討伐率_連続小役でストリークボーナス加算" methodname="討伐率_連続小役でストリークボーナス加算" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="676972853" result="Passed" start-time="2026-09-14 07:09:35Z" end-time="2026-09-14 07:09:35Z" duration="0.039920" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1107" name="予告_ハズレのガセは低確率_チャンス目は高確率" fullname="BBB.Tests.WorkflowAndEnemyTests.予告_ハズレのガセは低確率_チャンス目は高確率" methodname="予告_ハズレのガセは低確率_チャンス目は高確率" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="1304888880" result="Passed" start-time="2026-09-14 07:09:35Z" end-time="2026-09-14 07:09:35Z" duration="0.044120" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Saving results to: D:\GitHub\BigBonusBlitz\tools\environment-qa\captures\editmode.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

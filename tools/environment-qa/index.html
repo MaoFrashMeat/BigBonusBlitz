@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>霧の森 — 背景確認</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0d1720;color:#e4ebea;font:16px/1.7 system-ui,sans-serif}main{max-width:1380px;margin:32px auto;padding:0 24px}h1{margin:0;font-size:28px}p{color:#aabbbf;margin:8px 0 20px}.tag{font-size:12px;letter-spacing:.15em;color:#a9c89c}.controls{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin:24px 0}button,select{font:inherit;background:#203337;color:#fff;border:1px solid #4a6463;border-radius:6px;padding:8px 16px}button{cursor:pointer}figure{margin:0}img{display:block;width:100%;height:auto;background:#172c31}#scene{aspect-ratio:3/1}figcaption{color:#aabbbf;font-size:13px;margin-top:8px}input[type=range]{flex:1;min-width:160px}h2{font-size:20px;margin-top:40px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.grid figure{border:1px solid #294448;padding:6px}.grid figcaption{margin:4px}a{color:#bddab3}@media(max-width:720px){.grid{grid-template-columns:1fr}main{padding:0 12px}label{font-size:14px}}
+</style>
+<main><div class="tag">BIG BONUS BLITZ / C-1</div><h1>霧の森</h1>
+<p>選んだ画風で、巨木と遺跡を3層に分けました。時間帯・天気を切り替えて確認できます。</p>
+<div class="controls"><label>時間帯 <select id="time"><option value="Morning">朝</option><option value="Day" selected>昼</option><option value="Evening">夕方</option><option value="Night">夜</option></select></label><label>天気 <select id="weather"><option value="Clear">晴れ</option><option value="Cloudy">曇り</option><option value="Rain">雨</option></select></label><button id="play">スクロールを再生</button><input id="position" type="range" min="0" max="47" value="0" aria-label="スクロールの確認位置"></div>
+<figure><img id="scene" src="captures/forest-Day-Clear.png" alt="昼の晴れの霧の森"><figcaption id="caption">昼・晴れ</figcaption></figure>
+<h2>時間帯と天気の一覧</h2><div class="grid" id="grid"></div>
+<h2>ゲーム画面</h2><figure><img src="captures/game-C-1.png" alt="キャラクターとUIを重ねた夜の霧の森"><figcaption>1280×720。キャラクターとUIを含むUnityでの描画。</figcaption></figure>
+<p>このページは隔離Unityで撮影した画像を表示しています。スクロールは昼・晴れの48コマを往復する位置確認用の早送りです。実機のフレームレートを示す動画ではありません。</p>
+<p><a href="captures/forest-validation.json">ループ検証結果</a> / <a href="captures/validation.json">実描画の検証結果</a></p></main>
+<script>
+const times={Morning:'朝',Day:'昼',Evening:'夕方',Night:'夜'},weatherNames={Clear:'晴れ',Cloudy:'曇り',Rain:'雨'};
+const scene=document.querySelector('#scene'),caption=document.querySelector('#caption'),time=document.querySelector('#time'),weather=document.querySelector('#weather'),position=document.querySelector('#position'),play=document.querySelector('#play');let timer=null,direction=1;
+function stop(){clearInterval(timer);timer=null;play.textContent='スクロールを再生'}
+function still(){stop();scene.src=`captures/forest-${time.value}-${weather.value}.png`;caption.textContent=`${times[time.value]}・${weatherNames[weather.value]}`;scene.alt=caption.textContent+'の霧の森'}
+function frame(){scene.src=`captures/forest-motion/frame-${String(position.value).padStart(3,'0')}.png`;caption.textContent=`スクロール位置 ${Number(position.value)+1} / 48（昼・晴れ）`;scene.alt=caption.textContent}
+time.onchange=weather.onchange=still;position.oninput=()=>{stop();frame()};play.onclick=()=>{if(timer){stop();return}play.textContent='停止';timer=setInterval(()=>{let next=Number(position.value)+direction;if(next>47||next<0){direction*=-1;next=Number(position.value)+direction}position.value=next;frame()},120)};
+for(const [t,tn] of Object.entries(times))for(const [w,wn] of Object.entries(weatherNames)){const f=document.createElement('figure'),img=document.createElement('img'),c=document.createElement('figcaption');img.src=`captures/forest-${t}-${w}.png`;img.alt=tn+'・'+wn;img.loading='lazy';c.textContent=img.alt;f.append(img,c);document.querySelector('#grid').append(f)}
+scene.onerror=()=>{stop();caption.textContent='画像を読み込めません。Unity検証を実行してcapturesを生成してください。'};
+</script></html>

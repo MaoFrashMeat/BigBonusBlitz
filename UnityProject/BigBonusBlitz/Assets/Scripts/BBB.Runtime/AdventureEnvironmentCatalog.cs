@@ -5,7 +5,13 @@ using UnityEngine;
 namespace BBB.Runtime
 {
     public enum AdventureTime { Morning, Day, Evening, Night }
-    public enum AdventureWeather { Clear, Rain, Storm, Snow, Fog, Embers, Drips, Spores }
+    public enum AdventureWeather { Clear, Rain, Storm, Snow, Fog, Embers, Drips, Spores, Cloudy }
+
+    [Serializable] public sealed class AdventureEnvironmentLayer
+    {
+        public string texture;
+        public float speed=.02f, phase, height=1, bottom;
+    }
 
     [Serializable] public sealed class AdventureEnvironmentProfile
     {
@@ -16,11 +22,11 @@ namespace BBB.Runtime
         public Color accent=new Color(.85f,.67f,.3f,1);
         // Normalized top-down row boundaries of the original, unmodified illustration atlas.
         public float farEnd=1f/3, middleEnd=2f/3;
-        // 地点の絵を 1 枚のアトラスでなく層ごとの絵（modules）で持つ形。別 PC で作っている最中で、こちらにはまだ描く側が無い。
-        // 名が入っていれば UsesModules = true になり、地図の窓（AtelierMap）はアトラスを使わず空の絵に落とす。
-        // 別 PC の分が来たら、この 2 行はそちらの定義に置き換える（2026-09-15）
-        public string[] modules;
-        public bool UsesModules=>modules!=null&&modules.Length>0;
+        // Optional full-canvas modules; legacy stages continue using their row atlas.
+        public AdventureEnvironmentLayer[] layers;
+        public Color ground=new Color(.18f,.23f,.16f,1), path=new Color(.46f,.43f,.28f,1);
+        public float groundHeight=.24f;
+        public bool UsesModules => layers!=null && layers.Length==3;
     }
     public static class AdventureEnvironmentCatalog
     {
@@ -48,6 +54,7 @@ namespace BBB.Runtime
         }
         public static AdventureWeather WeatherFor(AdventureEnvironmentProfile p,AdventureWeather requested)
         {
+            if(p.indoor && requested==AdventureWeather.Cloudy)return AdventureWeather.Clear;
             if(p.indoor && (requested==AdventureWeather.Rain||requested==AdventureWeather.Storm||requested==AdventureWeather.Snow))return AdventureWeather.Drips;
             return requested;
         }

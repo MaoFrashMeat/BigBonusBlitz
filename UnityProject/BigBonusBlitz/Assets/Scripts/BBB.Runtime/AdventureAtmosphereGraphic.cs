@@ -29,8 +29,8 @@ namespace BBB.Runtime
             if(!foreground)
             {
                 if(p.indoor){sky=Color.Lerp(new Color(.035f,.055f,.085f),p.accent,.08f);horizon=Color.Lerp(sky,p.accent,.22f);}
-                float overcast=owner.WeatherStrength(AdventureWeather.Rain)+owner.WeatherStrength(AdventureWeather.Storm);
-                sky=Color.Lerp(sky,new Color(.19f,.25f,.32f),overcast*.65f);horizon=Color.Lerp(horizon,new Color(.43f,.49f,.51f),overcast*.6f);
+                float overcast=owner.CloudCover;
+                sky=Color.Lerp(sky,new Color(.19f,.25f,.32f)*light,overcast*.65f);horizon=Color.Lerp(horizon,new Color(.43f,.49f,.51f)*light,overcast*.6f);
                 Rect(vh,0,0,w,h,horizon,sky);
                 if(!p.indoor)
                 {
