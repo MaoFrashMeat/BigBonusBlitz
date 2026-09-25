@@ -47,6 +47,13 @@ public static class FxLab
         yield return new Clip { name = "heal", dur = 3.2f, hold = 1, build = HealClip };
         yield return new Clip { name = "attack", dur = 3.2f, hold = 1, build = AttackClip };
         yield return new Clip { name = "shield", dur = 3.2f, hold = 1, build = ShieldClip };
+        // 倒れる（ディゾルブ）
+        yield return new Clip { name = "death_dissolve", dur = 2.0f, hold = 1, build = DeathDissolve };
+        yield return new Clip { name = "death_ash", dur = 2.8f, hold = 1, build = DeathAsh };
+        yield return new Clip { name = "death_burn", dur = 2.4f, hold = 1, build = DeathBurn };
+        yield return new Clip { name = "death_holy", dur = 2.6f, hold = 1, build = DeathHoly };
+        yield return new Clip { name = "death_shatter", dur = 2.2f, hold = 1, build = DeathShatter };
+        yield return new Clip { name = "death_slice", dur = 2.2f, hold = 1, build = DeathSlice };
     }
 
     // 3 段（docs/FX_RESEARCH.md 2・3）: 暗い縁（背景から切り離す）／飽和した本体（1 未満で光らせない）／細い白芯（ここだけ HDR で光る）
@@ -447,6 +454,365 @@ public static class FxLab
         }
     }
 
+    // ================= 倒れる（ディゾルブ）=================
+    // 敵の絵に「消える順」の図（R）を焼き、しきい値を上げて削る。前線は光る縁、手前に焦げの帯。
+    // 消える瞬間の画素は、その色のまま粒にして飛ばす（C# が同じ図を持つので、前線と粒がぴったり揃う）
+    class DeathMap
+    {
+        public Texture2D tex; public int w, h;
+        public List<(float val, Vector2 uv, Color col)> samples = new List<(float, Vector2, Color)>();
+        public Vector2[] cellCenter;   // 破片の重心（uv）
+    }
+
+    static DeathMap BakeDeath(Ctx c, Func<float, float, float> order, int cells = 0, uint seed = 1)
+    {
+        var spr = c.goblin; int sw = spr.width, sh = spr.height;
+        int w = sw / 2, h = sh / 2;
+        var src = spr.GetPixels32();
+        Func<int, int, Color32> P = (x, y) => src[Mathf.Min(y * 2, sh - 1) * sw + Mathf.Min(x * 2, sw - 1)];
+        var rnd = new System.Random((int)seed);
+        // 破片の種: 不透明な画素から選ぶ
+        var seeds = new List<Vector2>();
+        if (cells > 0)
+            while (seeds.Count < cells)
+            {
+                int x = rnd.Next(w), y = rnd.Next(h);
+                if (P(x, y).a > 128) seeds.Add(new Vector2(x, y));
+            }
+        var val = new float[w * h]; var id = new byte[w * h];
+        float lo = 1e9f, hi = -1e9f;
+        for (int y = 0; y < h; y++)
+            for (int x = 0; x < w; x++)
+            {
+                int i = y * w + x;
+                if (P(x, y).a <= 128) continue;
+                float v = order(x / (float)w, y / (float)h);
+                val[i] = v; lo = Mathf.Min(lo, v); hi = Mathf.Max(hi, v);
+                if (cells > 0)
+                {
+                    int best = 0; float bd = 1e9f;
+                    for (int k = 0; k < seeds.Count; k++) { float d = (seeds[k] - new Vector2(x, y)).sqrMagnitude; if (d < bd) { bd = d; best = k; } }
+                    id[i] = (byte)best;
+                }
+            }
+        var dm = new DeathMap { w = w, h = h };
+        var px = new Color32[w * h];
+        var sum = new Vector2[Mathf.Max(cells, 1)]; var cnt = new int[Mathf.Max(cells, 1)];
+        for (int y = 0; y < h; y++)
+            for (int x = 0; x < w; x++)
+            {
+                int i = y * w + x; var sc = P(x, y);
+                if (sc.a <= 128) { px[i] = new Color32(255, 0, 0, 255); continue; }
+                float v = (val[i] - lo) / Mathf.Max(hi - lo, 1e-4f) * 0.98f + 0.01f;   // 0.01〜0.99。_Cut 1 で消え切る
+                byte crack = 0;
+                if (cells > 0)
+                {
+                    for (int oy = -1; oy <= 1 && crack == 0; oy++)
+                        for (int ox = -1; ox <= 1; ox++)
+                        {
+                            int nx = Mathf.Clamp(x + ox, 0, w - 1), ny = Mathf.Clamp(y + oy, 0, h - 1);
+                            if (id[ny * w + nx] != id[i] && P(nx, ny).a > 128) { crack = 255; break; }
+                        }
+                    sum[id[i]] += new Vector2(x / (float)w, y / (float)h); cnt[id[i]]++;
+                }
+                px[i] = new Color32((byte)(v * 255), id[i], crack, 255);
+                if ((x & 1) == 0 && (y & 1) == 0) dm.samples.Add((v, new Vector2((x + 0.5f) / w, (y + 0.5f) / h), (Color)sc));
+            }
+        dm.samples.Sort((a, b) => a.val.CompareTo(b.val));
+        if (cells > 0) { dm.cellCenter = new Vector2[cells]; for (int k = 0; k < cells; k++) dm.cellCenter[k] = cnt[k] > 0 ? sum[k] / cnt[k] : new Vector2(0.5f, 0.5f); }
+        dm.tex = new Texture2D(w, h, TextureFormat.RGBA32, false, true) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
+        dm.tex.SetPixels32(px); dm.tex.Apply();
+        return dm;
+    }
+
+    static Material DeathMat(Ctx c, DeathMap dm, Color edge, float edgeW, Color charCol, float charW)
+    {
+        var m = new Material(Shader.Find("Lab/Dissolve")) { mainTexture = c.goblin };
+        m.SetTexture("_MapTex", dm.tex); m.SetColor("_EdgeCol", edge); m.SetFloat("_Edge", edgeW);
+        m.SetColor("_CharCol", charCol); m.SetFloat("_CharW", charW); m.SetFloat("_Cut", 0);
+        return m;
+    }
+
+    // 消える前線から粒を出す。pick で「この画素から出すか・色・速さ・寿命・大きさ」を決める
+    delegate bool Spawn(Vector2 uv, Color src, System.Random r, out Color col, out Vector3 vel, out float life, out float size);
+    static void FrontEmitter(Ctx c, DeathMap dm, Func<Vector2, Vector3> worldOf, Func<float, float> cutAt, ParticleSystem ps, Spawn spawn, uint seed)
+    {
+        float last = 0; var rnd = new System.Random((int)seed); int idx = 0;
+        c.OnUpdate(t =>
+        {
+            float cut = cutAt(t);
+            if (cut <= last) return;
+            while (idx < dm.samples.Count && dm.samples[idx].val < cut)
+            {
+                var s = dm.samples[idx++];
+                if (!spawn(s.uv, s.col, rnd, out var col, out var vel, out var life, out var sz)) continue;
+                var ep = new EmitParams
+                {
+                    position = worldOf(s.uv) + new Vector3(0, 0, -0.2f),
+                    velocity = vel, startColor = col, startLifetime = life, startSize = sz, applyShapeToPosition = false
+                };
+                ps.Emit(ep, 1);
+            }
+            last = cut;
+        });
+    }
+
+    static ParticleSystem DeathParticles(Ctx c, string name, Material mat, uint seed, float drag, float noise, float gravity, Gradient life)
+    {
+        var ps = PS(c, name, Vector3.zero, mat, seed);
+        var m = ps.main; m.maxParticles = 20000; m.gravityModifier = gravity;
+        if (drag > 0) Drag(ps, drag);
+        if (noise > 0) { var n = ps.noise; n.enabled = true; n.strength = noise; n.frequency = 1.2f; n.scrollSpeed = 0.8f; n.quality = ParticleSystemNoiseQuality.Medium; }
+        if (life != null) ColorLife(ps, life);
+        c.Play(ps, 0f);
+        return ps;
+    }
+
+    // 絵の uv → ワールド座標（板は 1x1 を size 倍した Quad なので、回転・移動もそのまま効く）
+    static Func<Vector2, Vector3> OnSprite(Transform q) => uv => q.TransformPoint(new Vector3(uv.x - 0.5f, uv.y - 0.5f, 0));
+
+    static float Ease01(float t, float t0, float dur) => Mathf.Clamp01((t - t0) / dur);
+
+    // 倒れる間は背景を沈めて、崩れる粒を読ませる（sim の t0 から dur、戻りは 0.3 秒）
+    static void DeathDim(Ctx c, float t0, float dur, float dim = 0.5f)
+    {
+        c.OnUpdate(t =>
+        {
+            float k = t < t0 ? 0 : t < t0 + dur ? 1 : Mathf.Clamp01(1 - (t - t0 - dur) / 0.3f);
+            c.post.stageDim = Mathf.Max(c.post.stageDim, dim * k); c.post.stageDesat = Mathf.Max(c.post.stageDesat, 0.3f * k);
+        });
+    }
+
+    // D1. 溶けて消える: 光る縁で削れていき、縁から光の粒と絵の欠片が昇る
+    static void DeathDissolve(Ctx c)
+    {
+        SlashThrough(c, G, -45, 25, 2.3f, 1.0f, 160, Cyan, 0.3f);
+        Hit(c, G, 0.36f, Cyan.mid, 1.1f, -45, 60, 28, 301);
+        Impact(c, 0.36f, 1, -45);
+        var size = SpriteSize(c.goblin, 2.7f);
+        var dm = BakeDeath(c, (u, v) => Fbm(u * 5f + 3.1f, v * 5f + 1.3f) * 0.85f + (1 - v) * 0.15f, 0, 302);
+        var mat = DeathMat(c, dm, new Color(0.5f, 2.2f, 4.2f), 0.035f, new Color(0.05f, 0.15f, 0.35f, 0.9f), 0.04f);
+        c.goblinT.GetComponent<MeshRenderer>().sharedMaterial = mat;
+        float t0 = 0.5f, dur = 0.85f;
+        DeathDim(c, 0.4f, dur + 0.2f);
+        Func<float, float> cut = t => { float k = Ease01(t, t0, dur); return k * k * (3 - 2 * k) * 1.02f; };
+        c.OnUpdate(t => mat.SetFloat("_Cut", cut(t)));
+        var bits = DeathParticles(c, "DeathBits", new Material(Shader.Find("Lab/FxAlpha")) { mainTexture = c.tx.square }, 303, 1.2f, 0.6f, -0.08f,
+            Grad(new[] { (0f, Color.white), (1f, new Color(0.4f, 0.7f, 1f)) }, new[] { (0f, 1f), (0.6f, 0.9f), (1f, 0f) }));
+        var glow = DeathParticles(c, "DeathGlow", AddMat(c.tx.dot, 2.6f), 304, 1.5f, 0.8f, -0.15f,
+            Grad(new[] { (0f, Color.white), (1f, new Color(0.3f, 0.8f, 1f)) }, new[] { (0f, 1f), (1f, 0f) }));
+        FrontEmitter(c, dm, OnSprite(c.goblinT), cut, bits, (Vector2 uv, Color src, System.Random r, out Color col, out Vector3 vel, out float life, out float sz) =>
+        {
+            col = src; vel = new Vector3((float)r.NextDouble() * 0.6f - 0.3f, 0.3f + (float)r.NextDouble() * 0.9f, 0); life = 0.5f + (float)r.NextDouble() * 0.6f; sz = 0.025f;
+            return r.NextDouble() < 0.35;
+        }, 305);
+        FrontEmitter(c, dm, OnSprite(c.goblinT), cut, glow, (Vector2 uv, Color src, System.Random r, out Color col, out Vector3 vel, out float life, out float sz) =>
+        {
+            col = new Color(0.6f, 0.9f, 1f); vel = new Vector3((float)r.NextDouble() * 0.8f - 0.4f, 0.5f + (float)r.NextDouble() * 1.5f, 0); life = 0.4f + (float)r.NextDouble() * 0.7f; sz = 0.05f + (float)r.NextDouble() * 0.05f;
+            return r.NextDouble() < 0.06;
+        }, 306);
+    }
+
+    // D2. 灰になって崩れる: 攻撃の来た側から、絵の画素がそのまま粒になって風に流れる（色は灰へ）
+    static void DeathAsh(Ctx c)
+    {
+        SlashThrough(c, G, 0, 70, 2.5f, 1.1f, 150, Steel, 0.3f);
+        Hit(c, G, 0.36f, Steel.mid, 1f, 0, 50, 26, 311);
+        Impact(c, 0.36f, 1, 0);
+        var size = SpriteSize(c.goblin, 2.7f);
+        var dm = BakeDeath(c, (u, v) => u * 0.72f + Fbm(u * 6f + 7.7f, v * 6f + 2.2f) * 0.28f + (1 - v) * 0.05f, 0, 312);
+        var mat = DeathMat(c, dm, new Color(1.4f, 0.8f, 0.4f), 0.012f, new Color(0.18f, 0.16f, 0.15f, 1f), 0.05f);
+        c.goblinT.GetComponent<MeshRenderer>().sharedMaterial = mat;
+        float t0 = 0.55f, dur = 1.3f;
+        DeathDim(c, 0.4f, dur + 0.4f, 0.45f);
+        Func<float, float> cut = t => { float k = Ease01(t, t0, dur); return Mathf.Pow(k, 1.3f) * 1.02f; };
+        c.OnUpdate(t => mat.SetFloat("_Cut", cut(t)));
+        var ash = DeathParticles(c, "Ash", new Material(Shader.Find("Lab/FxAlpha")) { mainTexture = c.tx.square }, 313, 0.6f, 0.9f, -0.03f,
+            Grad(new[] { (0f, Color.white), (0.3f, Color.white), (0.7f, new Color(0.85f, 0.8f, 0.75f)), (1f, new Color(0.7f, 0.68f, 0.66f)) }, new[] { (0f, 1f), (0.75f, 0.9f), (1f, 0f) }));
+        FrontEmitter(c, dm, OnSprite(c.goblinT), cut, ash, (Vector2 uv, Color src, System.Random r, out Color col, out Vector3 vel, out float life, out float sz) =>
+        {
+            col = Color.Lerp(src, Color.white, 0.25f); vel = new Vector3(1.2f + (float)r.NextDouble() * 2.2f, 0.3f + (float)r.NextDouble() * 1.2f, 0); life = 1.0f + (float)r.NextDouble() * 1.0f;
+            sz = 0.02f + (float)r.NextDouble() * 0.025f;
+            return r.NextDouble() < 0.8;
+        }, 314);
+    }
+
+    // D3. 燃え尽きる: 足元から焦げて燃え上がる。前線に炎の連番、火の粉が昇る
+    static void DeathBurn(Ctx c)
+    {
+        SlashThrough(c, G, -135, 20, 2.2f, 0.95f, 150, Flame, 0.3f);
+        Hit(c, G, 0.36f, Flame.mid, 1.2f, 0, 360, 30, 321);
+        Impact(c, 0.36f, 1, -135);
+        var size = SpriteSize(c.goblin, 2.7f);
+        var dm = BakeDeath(c, (u, v) => v * 0.7f + Fbm(u * 5f + 1.9f, v * 5f + 8.3f) * 0.3f, 0, 322);
+        var mat = DeathMat(c, dm, new Color(4f, 1.5f, 0.3f), 0.03f, new Color(0.08f, 0.03f, 0.02f, 1f), 0.08f);
+        c.goblinT.GetComponent<MeshRenderer>().sharedMaterial = mat;
+        float t0 = 0.5f, dur = 1.25f;
+        DeathDim(c, 0.4f, dur + 0.2f);
+        Func<float, float> cut = t => { float k = Ease01(t, t0, dur); return k * 1.02f; };
+        c.OnUpdate(t => mat.SetFloat("_Cut", cut(t)));
+        var embers = DeathParticles(c, "Embers", AddMat(c.tx.dot, 3.5f), 323, 0.8f, 0.9f, -0.2f,
+            Grad(new[] { (0f, new Color(1f, 0.9f, 0.6f)), (0.5f, new Color(1f, 0.45f, 0.1f)), (1f, new Color(0.6f, 0.08f, 0.02f)) }, new[] { (0f, 1f), (0.7f, 1f), (1f, 0f) }));
+        FrontEmitter(c, dm, OnSprite(c.goblinT), cut, embers, (Vector2 uv, Color src, System.Random r, out Color col, out Vector3 vel, out float life, out float sz) =>
+        {
+            col = Color.white; vel = new Vector3((float)r.NextDouble() * 0.8f - 0.4f, 1.0f + (float)r.NextDouble() * 2.2f, 0); life = 0.5f + (float)r.NextDouble() * 0.9f;
+            sz = 0.03f + (float)r.NextDouble() * 0.04f;
+            return r.NextDouble() < 0.12;
+        }, 324);
+        if (c.tx.fbFlame != null)
+        {
+            var fire = DeathParticles(c, "BurnFire", AddMat(c.tx.fbFlame, 0.8f), 325, 0f, 0f, 0f,
+                Grad(new[] { (0f, Color.white), (1f, Color.white) }, new[] { (0f, 0f), (0.2f, 1f), (0.7f, 0.8f), (1f, 0f) }));
+            var ft = fire.textureSheetAnimation; ft.enabled = true; ft.mode = ParticleSystemAnimationMode.Grid; ft.numTilesX = 16; ft.numTilesY = 4;
+            ft.frameOverTime = new MinMaxCurve(1f, AnimationCurve.Linear(0, 0, 1, 0.999f)); ft.startFrame = new MinMaxCurve(0, 63);
+            FrontEmitter(c, dm, OnSprite(c.goblinT), cut, fire, (Vector2 uv, Color src, System.Random r, out Color col, out Vector3 vel, out float life, out float sz) =>
+            {
+                col = new Color(1f, 1f, 1f, 0.8f); vel = new Vector3(0, 0.6f + (float)r.NextDouble() * 0.6f, 0); life = 0.35f + (float)r.NextDouble() * 0.25f; sz = 0.35f + (float)r.NextDouble() * 0.3f;
+                return r.NextDouble() < 0.0025;
+            }, 326);
+        }
+    }
+
+    // D4. 昇天: 白く光るシルエットになり、足元から光の粒になって昇る。上から光の柱
+    static void DeathHoly(Ctx c)
+    {
+        SlashThrough(c, G, 0, 70, 2.5f, 1.1f, 150, Gold, 0.3f);
+        Hit(c, G, 0.36f, Gold.mid, 1.1f, 0, 60, 26, 331);
+        Impact(c, 0.36f, 1, 0);
+        var size = SpriteSize(c.goblin, 2.7f);
+        var dm = BakeDeath(c, (u, v) => v * 0.65f + Fbm(u * 6f + 4.4f, v * 6f + 0.7f) * 0.35f, 0, 332);
+        var mat = DeathMat(c, dm, new Color(3.5f, 3f, 1.6f), 0.03f, new Color(0, 0, 0, 0), 0f);
+        c.goblinT.GetComponent<MeshRenderer>().sharedMaterial = mat;
+        float tw = 0.5f, t0 = 0.75f, dur = 1.2f;
+        DeathDim(c, 0.4f, dur + 0.4f, 0.55f);
+        Func<float, float> cut = t => { float k = Ease01(t, t0, dur); return k * 1.02f; };
+        c.OnUpdate(t => { mat.SetFloat("_Cut", cut(t)); mat.SetFloat("_Flash", Mathf.Clamp01((t - tw) / 0.2f) * 0.92f); });
+        var beam = Quad(c.root, "HolyBeam", new Vector3(G.x, 1.0f, 0.3f), new Vector2(2.4f, 7.4f), QMat(c, c.tx.column, 0.6f, new Vector2(2, 1), 0.8f));
+        var bm = beam.GetComponent<MeshRenderer>().sharedMaterial;
+        c.OnUpdate(t =>
+        {
+            float up = Ease01(t, tw, 0.25f), down = 1 - Ease01(t, t0 + dur - 0.2f, 0.5f);
+            bm.SetColor("_Tint", new Color(1f, 0.97f, 0.88f) * (1.4f * up * down));
+        });
+        var motes = DeathParticles(c, "HolyMotes", AddMat(c.tx.sparkle ?? c.tx.dot, 2.2f), 333, 0.4f, 0.3f, -0.25f,
+            Grad(new[] { (0f, Color.white), (1f, new Color(1f, 0.85f, 0.5f)) }, new[] { (0f, 1f), (0.7f, 0.9f), (1f, 0f) }));
+        FrontEmitter(c, dm, OnSprite(c.goblinT), cut, motes, (Vector2 uv, Color src, System.Random r, out Color col, out Vector3 vel, out float life, out float sz) =>
+        {
+            col = Color.white; vel = new Vector3((float)r.NextDouble() * 0.4f - 0.2f, 1.2f + (float)r.NextDouble() * 1.6f, 0); life = 0.8f + (float)r.NextDouble() * 0.8f;
+            sz = r.NextDouble() < 0.15 ? 0.22f : 0.05f + (float)r.NextDouble() * 0.04f;
+            return r.NextDouble() < 0.1;
+        }, 334);
+        Flare(c, G, tw, new Color(1f, 0.9f, 0.55f), 3.2f, 335);
+        Ring(c, new Vector3(G.x, GroundY + 0.12f, -0.6f), tw, new Color(1f, 0.9f, 0.55f), 4.5f, 336, squash: 0.25f, delay: 0.03f);
+    }
+
+    // D5. 砕け散る: とどめの止めの間にひびが光り、明けた瞬間に破片が弾け飛ぶ。破片は回って落ちながら縁から溶ける
+    static void DeathShatter(Ctx c)
+    {
+        const int N = 26;
+        SlashThrough(c, G, 10, 55, 2.8f, 1.15f, 160, Crimson, 0.3f, dur: 0.1f, fade: 0.35f);
+        Hit(c, G, 0.36f, Crimson.mid, 1.6f, 10, 360, 40, 341);
+        Impact(c, 0.36f, 2, 10);
+        var size = SpriteSize(c.goblin, 2.7f);
+        var dm = BakeDeath(c, (u, v) => Fbm(u * 7f + 5.5f, v * 7f + 3.3f), N, 342);
+        var crackMat = DeathMat(c, dm, new Color(4f, 0.8f, 2.2f), 0.03f, new Color(0, 0, 0, 0), 0f);
+        c.goblinT.GetComponent<MeshRenderer>().sharedMaterial = crackMat;
+        float tb = 0.37f;   // 止めが明けた直後（sim）に割れる
+        DeathDim(c, 0.36f, 0.9f);
+        c.OnUpdate(t => { crackMat.SetFloat("_Crack", Mathf.Clamp01((t - 0.36f) / 0.005f)); c.goblinT.gameObject.SetActive(t < tb); });
+        c.OnUpdateReal(rt => { float a = rt - c.Real(0.36f); if (a >= 0 && a < 0.4f) crackMat.SetFloat("_Crack", Mathf.Clamp01(a / 0.15f) * 1.2f); });
+        var rnd = new System.Random(343);
+        var hitUv = new Vector2(0.45f, 0.55f);
+        for (int k = 0; k < N; k++)
+        {
+            var cc = dm.cellCenter[k];
+            var pivot = new GameObject("Shard" + k).transform; pivot.SetParent(c.root, false);
+            var home = GoblinHome + new Vector3((cc.x - 0.5f) * size.x, (cc.y - 0.5f) * size.y, -0.001f * k);
+            pivot.position = home;
+            var m = DeathMat(c, dm, new Color(4f, 0.8f, 2.2f), 0.05f, new Color(0.2f, 0f, 0.1f, 0.8f), 0.05f);
+            m.SetFloat("_CellId", k); m.SetFloat("_Crack", 1f);
+            var q = Quad(pivot, "Piece", Vector3.zero, size, m);
+            q.localPosition = new Vector3((0.5f - cc.x) * size.x, (0.5f - cc.y) * size.y, 0);
+            var dir = (cc - hitUv); dir.x += 0.35f; dir = dir.normalized;
+            float sp = 3f + (float)rnd.NextDouble() * 4.5f, spin = ((float)rnd.NextDouble() * 2 - 1) * 540f;
+            var v0 = new Vector3(dir.x * sp, dir.y * sp + 2.5f, 0);
+            float dStart = tb + 0.18f + (float)rnd.NextDouble() * 0.22f;
+            c.OnUpdate(t =>
+            {
+                bool on = t >= tb; pivot.gameObject.SetActive(on);
+                if (!on) return;
+                float a = t - tb;
+                pivot.position = home + v0 * a + new Vector3(0, -4.9f * a * a, 0);
+                pivot.rotation = Quaternion.Euler(0, 0, spin * a);
+                m.SetFloat("_Crack", Mathf.Clamp01(1 - a / 0.5f) * 1.2f);
+                m.SetFloat("_Cut", Mathf.Clamp01((t - dStart) / 0.45f) * 1.02f);
+            });
+        }
+        if (c.tx.fbSmoke != null)
+            for (int k = 0; k < 3; k++)
+                Flip(c, "ShatterDust" + k, G + new Vector3((k - 1) * 0.6f, -0.2f, -0.4f), c.tx.fbSmoke, 8, 8, k * 9, 40 + k * 9, 1.0f, 2.6f,
+                     new Color(0.5f, 0.4f, 0.45f, 0.45f), 1f, 344 + (uint)k, delay: 0.02f, alpha: true, t: tb);
+    }
+
+    // D6. 真っ二つ: 斜めの一閃で切り口が光り、上半分が滑り落ちる。両方とも切り口から溶けて消える
+    static void DeathSlice(Ctx c)
+    {
+        const float ang = -28f;
+        SlashThrough(c, G + new Vector3(0, 0.1f, 0), ang, 15, 3.0f, 1.0f, 170, Crimson, 0.3f, dur: 0.08f);
+        Hit(c, G, 0.36f, Crimson.mid, 1.3f, ang, 40, 30, 351);
+        CutLine(c, G + new Vector3(0, 0.1f, 0), ang, 7f, 0.36f, Crimson.mid);
+        Impact(c, 0.36f, 2, ang);
+        var size = SpriteSize(c.goblin, 2.7f);
+        float r = ang * Mathf.Deg2Rad; var tan = new Vector2(Mathf.Cos(r), Mathf.Sin(r)); var n = new Vector2(-tan.y, tan.x);
+        float d = 0.1f;   // 中心から少し上を通る（world）
+        // 消える順: 切り口から遠いほど後
+        var dm = BakeDeath(c, (u, v) =>
+        {
+            var p = new Vector2((u - 0.5f) * size.x, (v - 0.5f) * size.y);
+            return Mathf.Abs(Vector2.Dot(p, n) - d) * 0.6f + Fbm(u * 6f + 2.6f, v * 6f + 9.1f) * 0.4f;
+        }, 0, 352);
+        float tb = 0.37f, t0 = 0.75f, dur = 0.8f;
+        DeathDim(c, 0.36f, dur + 0.5f);
+        Func<float, float> cut = t => { float k = Ease01(t, t0, dur); return k * 1.02f; };
+        var halves = new List<(Transform tr, Material m, float side)>();
+        foreach (float side in new[] { 1f, -1f })
+        {
+            var m = DeathMat(c, dm, new Color(4f, 0.6f, 1.6f), 0.035f, new Color(0.15f, 0f, 0.05f, 0.9f), 0.04f);
+            m.SetVector("_PlaneN", new Vector4(n.x * size.x, n.y * size.y, 0, 0)); m.SetFloat("_PlaneD", d); m.SetFloat("_PlaneSide", side);
+            var q = Quad(c.root, side > 0 ? "UpperHalf" : "LowerHalf", GoblinHome, size, m);
+            q.gameObject.SetActive(false);
+            halves.Add((q, m, side));
+        }
+        c.OnUpdate(t => c.goblinT.gameObject.SetActive(t < tb));
+        foreach (var hv in halves)
+        {
+            var h = hv;
+            c.OnUpdate(t =>
+            {
+                bool on = t >= tb; h.tr.gameObject.SetActive(on);
+                if (!on) return;
+                float a = t - tb;
+                if (h.side > 0)
+                {
+                    // 上半分: 切り口に沿って滑り、少し傾いて落ちる
+                    float s = EaseOut(Mathf.Clamp01(a / 0.6f));
+                    h.tr.position = GoblinHome + (Vector3)(tan * (0.55f * s)) + new Vector3(0, -0.35f * s * s, -0.01f);
+                    h.tr.rotation = Quaternion.Euler(0, 0, -9f * s);
+                }
+                else h.tr.position = GoblinHome + new Vector3(0, -0.05f * Mathf.Clamp01(a / 0.3f), 0);
+                h.m.SetFloat("_CutGlow", 2.2f * Mathf.Clamp01(1 - a / 0.5f) + 0.3f);
+                h.m.SetFloat("_Cut", cut(t));
+            });
+        }
+        var bits = DeathParticles(c, "SliceBits", AddMat(c.tx.dot, 2.4f), 353, 1.2f, 0.5f, -0.1f,
+            Grad(new[] { (0f, Color.white), (1f, new Color(1f, 0.3f, 0.6f)) }, new[] { (0f, 1f), (1f, 0f) }));
+        FrontEmitter(c, dm, uv => { var p = new Vector2((uv.x - 0.5f) * size.x, (uv.y - 0.5f) * size.y); return OnSprite(halves[Vector2.Dot(p, n) - d >= 0 ? 0 : 1].tr)(uv); }, cut, bits, (Vector2 uv, Color src, System.Random rr, out Color col, out Vector3 vel, out float life, out float sz) =>
+        {
+            col = Color.white; vel = new Vector3((float)rr.NextDouble() - 0.5f, 0.4f + (float)rr.NextDouble() * 1.2f, 0); life = 0.4f + (float)rr.NextDouble() * 0.6f; sz = 0.04f + (float)rr.NextDouble() * 0.04f;
+            return rr.NextDouble() < 0.08;
+        }, 354);
+    }
+
     // ================= 部品: 斬撃 =================
     struct Style
     {
@@ -751,7 +1117,7 @@ public static class FxLab
         public float darken, invert, mono, flash;
         public float stageDim, stageDesat, trauma; public Vector2 kick; public Vector3 goblinOff;
     }
-    class Tx { public Texture2D dot, glow, ring, star4, diamond, plus, flame, flame2, streak, trail, noise, column, coinFace, burst, air, sparkle, magic, fbHitLines, fbBigHit, fbCharge, fbElecRing, fbFireRing, fbFlame, fbSmoke, fibers; }
+    class Tx { public Texture2D dot, glow, ring, star4, diamond, plus, flame, flame2, streak, trail, noise, column, coinFace, burst, air, sparkle, magic, fbHitLines, fbBigHit, fbCharge, fbElecRing, fbFireRing, fbFlame, fbSmoke, fibers, square; }
     class Ctx
     {
         public Transform root, heroT, goblinT; public Texture2D hero, goblin; public Tx tx;
@@ -1032,6 +1398,7 @@ public static class FxLab
             return Mathf.Clamp01(Smooth(1f, 0.2f, r) * (f * 2.0f - 0.35f));
         });
         tx.coinFace = CoinFace(256);
+        tx.square = Tex(8, 8, (u, v) => 1f);   // 絵の欠片（画素の粒）
         // 素材（tools/fx-lab/textures。Kenney Particle Pack・CC0）。手作りの図形より形に表情がある
         string dir = Environment.GetEnvironmentVariable("LAB_TEX");
         if (!string.IsNullOrEmpty(dir) && Directory.Exists(dir))

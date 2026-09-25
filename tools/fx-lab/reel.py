@@ -20,7 +20,17 @@ CLIPS = [
     ('heal', '回復のオーラ'),
     ('attack', '攻撃のオーラ'),
     ('shield', 'シールドのオーラ'),
+    ('death_dissolve', '倒れる1  溶けて消える'),
+    ('death_ash', '倒れる2  灰になって崩れる'),
+    ('death_burn', '倒れる3  燃え尽きる'),
+    ('death_holy', '倒れる4  昇天'),
+    ('death_shatter', '倒れる5  砕け散る'),
+    ('death_slice', '倒れる6  真っ二つ'),
 ]
+# 2 つ目の引数で絞る（run.ps1 -Only と同じ名前をカンマ区切り）
+if len(sys.argv) > 2 and sys.argv[2]:
+    only = sys.argv[2].split(',')
+    CLIPS = [c for c in CLIPS if c[0] in only]
 work = sys.argv[1]
 FF = 'ffmpeg'
 font = ImageFont.truetype('C:/Windows/Fonts/meiryob.ttc', 30)

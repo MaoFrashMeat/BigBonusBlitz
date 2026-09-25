@@ -61,12 +61,14 @@ Shader "Lab/Slash"
                 float e = tex2D(_FiberTex, float2(i.uv.x * 1.5 + _Seed * 0.3, fz)).b;
                 float thr = _Fade * 1.2 - 0.1 + _Fade * ((1 - s) * 0.35 + (1 - fz) * 0.3);
                 mask *= smoothstep(thr, thr + 0.05, e);
+                float burn = step(0.001, _Fade) * (1 - smoothstep(thr + 0.05, thr + 0.12, e));   // 削れる前線を光らせる
                 // 階調（3 段）: 刃先の縁と明るい筋 = 芯（HDR）／本体／暗い縁
                 float tone = fz * 0.6 + fib * 0.5;
                 float core = max(smoothstep(0.93, 0.93 + aa, fz), smoothstep(0.93, 0.98, tone) * step(0.62, fz));
                 float body = smoothstep(0.42, 0.47, tone);
                 float3 col = lerp(_ColOuter.rgb, _ColMid.rgb, body);
                 col = lerp(col, _ColCore.rgb, core);
+                col = lerp(col, _ColCore.rgb, burn); core = max(core, burn);
                 float a = mask * _Alpha * lerp(_ColOuter.a, _ColMid.a, body);
                 return float4(col * a * _LabEmit, a * (1 - core * 0.5));
             }

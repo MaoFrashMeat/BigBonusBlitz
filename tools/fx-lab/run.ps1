@@ -42,7 +42,7 @@ if (-not $NoVideo) {
     if ($Spark) {
         ffmpeg -y -loglevel error -framerate 60 -i (Join-Path $work 'spark/f_%04d.png') -c:v libx264 -pix_fmt yuv420p -crf 16 -movflags +faststart (Join-Path $work 'spark.mp4')
     } else {
-        py -3 (Join-Path $here 'reel.py') $work
+        py -3 (Join-Path $here 'reel.py') $work ($Only -join ',')
     }
 }
 "出力: $work"
