@@ -44,9 +44,11 @@ Shader "Lab/AuraFlame"
                 a = max(a, A(cuv + float2(0.03, 0) + d) * 0.85);
                 a = max(a, A(cuv - float2(0.03, 0) + d) * 0.85);
                 float f = a * (0.55 + 0.9 * n2) * (0.7 + 0.6 * n1);
-                float3 col = lerp(_ColEdge.rgb, _ColMid.rgb, smoothstep(0.2, 0.55, f));
-                col = lerp(col, _ColCore.rgb, smoothstep(0.75, 1.05, f));
-                return float4(col * smoothstep(0.08, 0.3, f) * _Intensity * _LabEmit, 0);
+                // 3 段のアニメ塗り（境目を硬く。docs/FX_RESEARCH.md 2）: 暗い赤の縁 / 橙の本体 / 芯
+                float aa = max(fwidth(f), 1e-3);
+                float3 col = lerp(_ColEdge.rgb, _ColMid.rgb, smoothstep(0.34, 0.34 + aa, f));
+                col = lerp(col, _ColCore.rgb, smoothstep(0.78, 0.78 + aa, f));
+                return float4(col * smoothstep(0.14, 0.14 + aa * 1.5, f) * _Intensity * _LabEmit, 0);
             }
             ENDCG
         }

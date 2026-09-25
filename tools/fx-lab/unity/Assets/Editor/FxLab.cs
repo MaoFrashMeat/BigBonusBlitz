@@ -49,30 +49,33 @@ public static class FxLab
         yield return new Clip { name = "shield", dur = 3.2f, hold = 1, build = ShieldClip };
     }
 
-    static readonly Style Steel = new Style(new Color(0.15f, 0.35f, 0.95f, 0.9f), new Color(0.55f, 0.8f, 1f) * 1.1f, Color.white * 1.8f);
-    static readonly Style Cyan = new Style(new Color(0.0f, 0.4f, 0.95f, 0.9f), new Color(0.3f, 0.9f, 1f) * 1.1f, Color.white * 1.8f);
-    static readonly Style Gold = new Style(new Color(0.95f, 0.35f, 0.02f, 0.9f), new Color(1f, 0.8f, 0.25f) * 1.1f, new Color(1f, 0.97f, 0.85f) * 1.8f);
-    static readonly Style Flame = new Style(new Color(0.85f, 0.08f, 0.02f, 0.9f), new Color(1f, 0.5f, 0.08f) * 1.15f, new Color(1f, 0.95f, 0.7f) * 1.8f);
-    static readonly Style Crimson = new Style(new Color(0.35f, 0.02f, 0.75f, 0.9f), new Color(1f, 0.2f, 0.5f) * 1.1f, Color.white * 1.8f);
+    // 3 段（docs/FX_RESEARCH.md 2・3）: 暗い縁（背景から切り離す）／飽和した本体（1 未満で光らせない）／細い白芯（ここだけ HDR で光る）
+    static readonly Style Steel = new Style(new Color(0.03f, 0.07f, 0.28f, 0.9f), new Color(0.3f, 0.62f, 1f, 0.85f), Color.white * 2.2f);
+    static readonly Style Cyan = new Style(new Color(0.0f, 0.1f, 0.28f, 0.9f), new Color(0.12f, 0.82f, 1f, 0.85f), Color.white * 2.2f);
+    static readonly Style Gold = new Style(new Color(0.32f, 0.08f, 0.0f, 0.9f), new Color(1f, 0.68f, 0.1f, 0.85f), new Color(1f, 0.96f, 0.82f) * 2.2f);
+    static readonly Style Flame = new Style(new Color(0.28f, 0.02f, 0.0f, 0.9f), new Color(1f, 0.38f, 0.04f, 0.85f), new Color(1f, 0.92f, 0.68f) * 2.2f);
+    static readonly Style Crimson = new Style(new Color(0.16f, 0.0f, 0.28f, 0.9f), new Color(1f, 0.18f, 0.52f, 0.85f), Color.white * 2.2f);
 
     // 1. 一文字: 横一線。平たい弧＋残像＋横の斬線
     static void Slash1(Ctx c)
     {
+        Glint(c, HeroHome + new Vector3(0.7f, 0.25f, -1f), 0.24f, Steel.mid);
         SlashThrough(c, G, 0, 70, 2.5f, 1.1f, 150, Steel, 0.3f);
         SlashThrough(c, G + new Vector3(0, -0.14f, 0), 0, 70, 2.5f, 0.6f, 150, Steel.Ghost(), 0.33f, thick: 0.8f);
-        Hit(c, G, 0.36f, Steel.mid, 1f, 0, 50, 18, 11);
-        CutLine(c, G, 0, 5f, 0.38f, Steel.mid);
-        HitFlash(c, c.goblinT, c.goblin, 0.36f);
+        Hit(c, G, 0.36f, Steel.mid, 1f, 0, 50, 26, 11);
+        CutLine(c, G, 0, 5f, 0.36f, Steel.mid);
+        Impact(c, 0.36f, 1, 0);
     }
 
     // 2. 袈裟斬り: 左上から右下。実写寄りの火花を混ぜる
     static void Slash2(Ctx c)
     {
+        Glint(c, HeroHome + new Vector3(0.5f, 0.9f, -1f), 0.24f, Cyan.mid);
         SlashThrough(c, G, -45, 25, 2.3f, 1.0f, 160, Cyan, 0.3f);
-        Hit(c, G, 0.36f, Cyan.mid, 1.1f, -45, 60, 20, 12);
+        Hit(c, G, 0.36f, Cyan.mid, 1.1f, -45, 60, 28, 12);
         RealSparks(c, G, -35, 0.36f, 60, 11f, 13);
-        CutLine(c, G, 45, 4.2f, 0.38f, Cyan.mid);
-        HitFlash(c, c.goblinT, c.goblin, 0.36f);
+        CutLine(c, G, 45, 4.2f, 0.36f, Cyan.mid);
+        Impact(c, 0.36f, 1, -45);
     }
 
     // 3. 十字斬り: ↘ のあと ↙。交点で大きく光る
@@ -80,13 +83,12 @@ public static class FxLab
     {
         SlashThrough(c, G, -45, 20, 2.2f, 0.95f, 150, Gold, 0.25f);
         SlashThrough(c, G, -135, 20, 2.2f, 0.95f, 150, Gold, 0.4f);
-        Hit(c, G, 0.3f, Gold.mid, 0.7f, -45, 50, 10, 21);
-        Hit(c, G, 0.46f, Gold.mid, 1.5f, 0, 360, 30, 22);
-        CutLine(c, G, 45, 4.5f, 0.48f, Gold.mid);
-        CutLine(c, G, -45, 4.5f, 0.48f, Gold.mid);
-        HitFlash(c, c.goblinT, c.goblin, 0.3f);
-        HitFlash(c, c.goblinT, c.goblin, 0.46f);
-        c.OnUpdate(t => { if (t >= 0.46f && t < 0.5f) c.post.flash = 0.35f; });
+        Hit(c, G, 0.3f, Gold.mid, 0.7f, -45, 50, 14, 21);
+        Hit(c, G, 0.46f, Gold.mid, 1.5f, 0, 360, 36, 22);
+        CutLine(c, G, 45, 4.5f, 0.46f, Gold.mid);
+        CutLine(c, G, -45, 4.5f, 0.46f, Gold.mid);
+        Impact(c, 0.3f, 0, -45);
+        Impact(c, 0.46f, 2, 0);
     }
 
     // 4. 回転斬り: 主人公の周りを一周。後ろ半分はキャラに隠れる
@@ -104,7 +106,8 @@ public static class FxLab
             c.Play(ring, 0.5f);
         }
         Shards(c, center, 0.5f, Flame.mid, 1.2f, 0, 360, 34, 42);
-        var glow = Glow(c, center, 0.5f, Flame.mid, 4.5f, 43);
+        Glow(c, center, 0.5f, Flame.mid, 3f, 43);
+        Impact(c, 0.5f, 0, 0, enemy: false);
     }
 
     // 5. 乱舞: 細い斬撃を6本、最後に大きな一撃
@@ -117,31 +120,28 @@ public static class FxLab
             float rot = (float)rnd.NextDouble() * 360f;
             var off = new Vector3((float)rnd.NextDouble() - 0.5f, (float)rnd.NextDouble() - 0.5f, 0) * 0.8f;
             SlashThrough(c, G + off, rot, (float)rnd.NextDouble() * 50 - 25, 1.7f, 0.55f, 110, Crimson, t, dur: 0.05f, fade: 0.14f, len: 0.9f, thick: 0.85f);
-            Shards(c, G + off, t + 0.03f, Crimson.mid, 0.6f, rot, 40, 6, (uint)(60 + k));
-            HitFlash(c, c.goblinT, c.goblin, t + 0.03f, 0.9f);
+            Shards(c, G + off, t + 0.03f, Crimson.mid, 0.6f, rot, 40, 8, (uint)(60 + k));
+            Impact(c, t + 0.03f, -1, rot);
             t += 0.085f;
         }
         float fin = t + 0.12f;
         SlashThrough(c, G, 10, 55, 2.8f, 1.15f, 160, Crimson, fin, dur: 0.1f, fade: 0.35f);
-        Hit(c, G, fin + 0.06f, Crimson.mid, 1.6f, 10, 360, 34, 71);
-        CutLine(c, G, -10, 6f, fin + 0.08f, Crimson.mid);
-        HitFlash(c, c.goblinT, c.goblin, fin + 0.06f);
-        c.OnUpdate(tt => { if (tt >= fin + 0.06f && tt < fin + 0.1f) c.post.flash = 0.4f; });
+        Hit(c, G, fin + 0.06f, Crimson.mid, 1.6f, 10, 360, 40, 71);
+        CutLine(c, G, -10, 6f, fin + 0.06f, Crimson.mid);
+        Impact(c, fin + 0.06f, 2, 10);
     }
 
     // 6. 画面の揺れ: 弱い一撃と強い一撃
     static void ShakeClip(Ctx c)
     {
         SlashThrough(c, G, 0, 70, 2.2f, 0.9f, 140, Steel, 0.3f);
-        Hit(c, G, 0.35f, Steel.mid, 0.7f, 0, 50, 10, 81);
-        HitFlash(c, c.goblinT, c.goblin, 0.35f);
-        Shake(c, 0.35f, 0.25f, 0.008f, 0f, 0f);
+        Hit(c, G, 0.35f, Steel.mid, 0.7f, 0, 50, 12, 81);
+        Impact(c, 0.35f, 0, 0);
 
         SlashThrough(c, G, -45, 25, 2.5f, 1.05f, 160, Cyan, 1.15f);
-        Hit(c, G, 1.21f, Cyan.mid, 1.4f, -45, 70, 26, 82);
+        Hit(c, G, 1.21f, Cyan.mid, 1.4f, -45, 70, 34, 82);
         RealSparks(c, G, -35, 1.21f, 70, 12f, 83);
-        HitFlash(c, c.goblinT, c.goblin, 1.21f);
-        Shake(c, 1.21f, 0.6f, 0.028f, 0.02f, 0.045f);
+        Impact(c, 1.21f, 2, -45);
     }
 
     // 7. 流線: 前半は平行の流線（背景は横ブラー）、後半は敵への集中線
@@ -197,12 +197,13 @@ public static class FxLab
     static void CoinsClip(Ctx c)
     {
         float t0 = 0.3f;
-        HitFlash(c, c.goblinT, c.goblin, t0 - 0.12f, 1.2f);
+        Impact(c, t0 - 0.05f, 1, 0);
         c.OnUpdate(t => c.goblinT.gameObject.SetActive(t < t0));
         var gold = new Color(1f, 0.75f, 0.3f);
-        Glow(c, G, t0, gold, 5f, 101);
-        Flare(c, G, t0, gold, 2.6f, 102);
-        Ring(c, G, t0, gold, 3.5f, 103);
+        Glow(c, G, t0, gold, 2.2f, 101);
+        Flare(c, G, t0, gold, 3f, 102);
+        Ring(c, G, t0, gold, 3.5f, 103, delay: 0.03f);
+        Bokeh(c, G, t0, gold, 1.5f, 106);
 
         var coins = PS(c, "Coins", G, new Material(Shader.Find("Lab/Coin")) { mainTexture = c.tx.coinFace }, 104);
         coins.transform.rotation = Quaternion.LookRotation(new Vector3(-0.3f, 1f, 0f));
@@ -238,8 +239,9 @@ public static class FxLab
         var feet = new Vector3(hero.x, GroundY + 0.1f, 0);
         var green = new Color(0.35f, 1f, 0.45f); var lime = new Color(0.75f, 1f, 0.45f);
         float on = 0.2f, off = 2.7f;
-        Func<float, float> env = t => Mathf.Clamp01((t - on) / 0.35f) * (1 - Mathf.Clamp01((t - off) / 0.5f));
+        Func<float, float> env = t => Mathf.Clamp01((t - on) / 0.08f) * (1 - Mathf.Clamp01((t - off) / 0.5f));   // 立ち上がりは 5F（発動の山と重ねる）
 
+        Surge(c, on, hero, feet, green);
         var colQuad = Quad(c.root, "Column", feet + new Vector3(0, 2.1f, 0.25f), new Vector2(2.6f, 4.6f), QMat(c, c.tx.column, 0.9f, new Vector2(3, 1.2f), 0.5f));
         var colMat = colQuad.GetComponent<MeshRenderer>().sharedMaterial;
         var sil = Quad(c.root, "Sil", hero + new Vector3(0, 0, -0.03f), SpriteSize(c.hero, 3.3f), QMat(c, c.hero, 0, Vector2.one, 0));
@@ -247,7 +249,8 @@ public static class FxLab
         c.OnUpdate(t =>
         {
             float e = env(t);
-            colMat.SetColor("_Tint", new Color(0.55f, 1f, 0.6f) * (2.2f * e));
+            float burst = t < on ? 0 : Mathf.Exp(-(t - on) * 7f);   // 発動の山 → 持続は控えめ
+            colMat.SetColor("_Tint", new Color(0.55f, 1f, 0.6f) * (e * (0.9f + 2.4f * burst)));
             silMat.SetColor("_Tint", new Color(0.6f, 1f, 0.6f) * (e * (0.35f + 0.15f * Mathf.Sin(t * 7f))));
         });
 
@@ -314,15 +317,15 @@ public static class FxLab
         var silMat = sil.GetComponent<MeshRenderer>().sharedMaterial;
         c.OnUpdate(t =>
         {
-            float e = Mathf.Clamp01((t - on) / 0.3f);
+            float e = Mathf.Clamp01((t - on) / 0.08f);
             float flick = 0.8f + 0.4f * Mathf.PerlinNoise(t * 9f, 0.3f);
-            auraMat.SetFloat("_Intensity", e * (0.75f + 0.2f * flick));
+            float burst = t < on ? 0 : Mathf.Exp(-(t - on) * 6f);
+            auraMat.SetFloat("_Intensity", e * (0.75f + 0.2f * flick + 0.8f * burst));
             glowMat.SetColor("_Tint", new Color(1f, 0.25f, 0.05f) * (0.9f * e * flick));
             silMat.SetColor("_Tint", new Color(1f, 0.15f, 0.03f) * (0.12f * e * flick));
         });
         // 発動の瞬間
-        Ring(c, feet + new Vector3(0, 0.1f, -0.6f), on, new Color(1f, 0.3f, 0.05f), 5f, 121, squash: 0.25f);
-        Glow(c, hero, on, new Color(1f, 0.3f, 0.05f), 5f, 122);
+        Surge(c, on, hero, feet, new Color(1f, 0.35f, 0.06f), 1.2f);
         var flames = PS(c, "Flames", hero + new Vector3(0, -0.3f, 0.45f), AddMat(c.tx.flame, 0.7f), 123);
         {
             var m = flames.main; m.duration = 3f; m.startLifetime = new MinMaxCurve(0.45f, 0.85f); m.startSpeed = 0;
@@ -370,7 +373,7 @@ public static class FxLab
             float s = t < on ? 0.001f : Mathf.Lerp(0.85f, 1f, EaseOutBack(Mathf.Clamp01((t - on) / 0.3f)));
             sphere.transform.localScale = baseScale * s;
         });
-        Ring(c, new Vector3(center.x, GroundY + 0.12f, -0.6f), on, blue, 4.5f, 131, squash: 0.25f);
+        Surge(c, on, center, new Vector3(center.x, GroundY + 0.02f, 0), blue, 0.9f);
         var glowQ = Quad(c.root, "FloorGlow", new Vector3(center.x, GroundY + 0.1f, 0.35f), new Vector2(4.5f, 1.1f), QMat(c, c.tx.glow, 0, Vector2.one, 0));
         var gm = glowQ.GetComponent<MeshRenderer>().sharedMaterial;
         c.OnUpdate(t => gm.SetColor("_Tint", blue * (0.6f * Mathf.Clamp01((t - on) / 0.3f))));
@@ -397,10 +400,11 @@ public static class FxLab
             Glow(c, sh.from, sh.launch, new Color(1f, 0.3f, 0.8f), 1.6f, (uint)(150 + i));
             float hitT = sh.launch + time;
             sm.SetVector(i == 0 ? "_HitDir0" : "_HitDir1", hitDirLocal);
-            sm.SetFloat(i == 0 ? "_HitT0" : "_HitT1", hitT);
+            string hitKey = i == 0 ? "_HitT0" : "_HitT1";
+            c.OnUpdateReal(rt => sm.SetFloat(hitKey, c.Real(hitT)));   // 波紋はシェーダーが描き出しの時刻（_LabT）で動くので、止めの分をずらす
             Flare(c, hitPoint, hitT, blue, 1.6f, (uint)(160 + i));
             Shards(c, hitPoint, hitT, blue, 0.9f, Mathf.Atan2(toCenter.y, toCenter.x) * Mathf.Rad2Deg, 100, 16, (uint)(170 + i));
-            Shake(c, hitT, 0.2f, 0.006f, 0f, 0f);
+            Impact(c, hitT, -1, Mathf.Atan2(-toCenter.y, -toCenter.x) * Mathf.Rad2Deg, enemy: false);
         }
     }
 
@@ -409,7 +413,7 @@ public static class FxLab
     {
         public Color outer, mid, core;
         public Style(Color o, Color m, Color c) { outer = o; mid = m; core = c; }
-        public Style Ghost() => new Style(new Color(outer.r, outer.g, outer.b, 0.5f), new Color(outer.r, outer.g, outer.b) * 1.3f, mid);
+        public Style Ghost() => new Style(new Color(outer.r, outer.g, outer.b, 0.4f), new Color(mid.r, mid.g, mid.b, 0.35f), new Color(mid.r, mid.g, mid.b));
     }
 
     class Arc { public Material mat; }
@@ -466,10 +470,11 @@ public static class FxLab
         var m = new Mesh { vertices = v, uv = uv, triangles = tri }; m.RecalculateBounds(); return m;
     }
 
+    // 斬線: 20F で細くなりながら伸びて消える（Effekseer の斬撃ヒット）
     static void CutLine(Ctx c, Vector3 pos, float angleDeg, float length, float t, Color col)
     {
-        var ps = PS(c, "CutLine", pos + new Vector3(0, 0, -0.6f), AddMat(c.tx.streak, 4f), 900);
-        var m = ps.main; m.startLifetime = 0.4f; m.startSize3D = true; m.startSizeX = length; m.startSizeY = 0.22f; m.startSizeZ = 1;
+        var ps = PS(c, "CutLine", pos + new Vector3(0, 0, -0.6f), AddMat(c.tx.streak, 2.6f), 900);
+        var m = ps.main; m.startLifetime = 0.33f; m.startSize3D = true; m.startSizeX = length; m.startSizeY = 0.14f; m.startSizeZ = 1;
         m.startRotation = angleDeg * Mathf.Deg2Rad; m.startColor = Color.white;
         ps.emission.SetBursts(new[] { new Burst(0, 1) });
         var s = ps.sizeOverLifetime; s.enabled = true; s.separateAxes = true;
@@ -478,48 +483,76 @@ public static class FxLab
         c.Play(ps, t);
     }
 
+    // ヒット 5 層（docs/FX_RESEARCH.md 1）: 閃光 6F（大きく出て縮む）→ 主グローはすぐ消す → 衝撃波は 3F 遅れ → 火花 20〜40F → 細かい粒が一番長く残る
     static void Hit(Ctx c, Vector3 pos, float t, Color col, float scale, float dirDeg, float spread, int shards, uint seed)
     {
-        Flare(c, pos, t, col, 1.9f * scale, seed * 10 + 1);
-        Ring(c, pos, t, col, 3.0f * scale, seed * 10 + 2);
-        Glow(c, pos, t, col, 3.5f * scale, seed * 10 + 3);
+        Flare(c, pos, t, col, 2.6f * scale, seed * 10 + 1);
+        Glow(c, pos, t, col, 1.8f * scale, seed * 10 + 3);
+        Ring(c, pos, t, col, 3.2f * scale, seed * 10 + 2, delay: 0.05f);
         Shards(c, pos, t, col, scale, dirDeg, spread, shards, seed * 10 + 4);
+        Bokeh(c, pos, t, col, scale, seed * 10 + 5);
     }
 
     static ParticleSystem Flare(Ctx c, Vector3 pos, float t, Color col, float size, uint seed)
     {
         var ps = PS(c, "Flare", pos + new Vector3(0, 0, -0.7f), AddMat(c.tx.star4, 3.2f), seed);
-        var m = ps.main; m.startLifetime = 0.16f; m.startSize = size; m.startColor = Color.white;
+        var m = ps.main; m.startLifetime = 0.1f; m.startSize = size; m.startColor = Color.white;
         ps.emission.SetBursts(new[] { new Burst(0, 1) });
         ColorLife(ps, Grad(new[] { (0f, Color.white), (1f, col) }, new[] { (0f, 1f), (1f, 0f) }));
-        SizeLife(ps, Curve((0, 1), (0.4f, 0.55f), (1, 0.2f)));
+        SizeLife(ps, Curve((0, 1), (0.3f, 0.5f), (1, 0.15f)));
         c.Play(ps, t); return ps;
     }
 
-    static ParticleSystem Ring(Ctx c, Vector3 pos, float t, Color col, float size, uint seed, float squash = 1f)
+    // 衝撃波: 半径は一気に広げて後はゆっくり。太さ（＝明るさ）は細→太→細
+    static ParticleSystem Ring(Ctx c, Vector3 pos, float t, Color col, float size, uint seed, float squash = 1f, float delay = 0f)
     {
-        var ps = PS(c, "Ring", pos + new Vector3(0, 0, -0.65f), AddMat(c.tx.ring, 1.8f), seed);
-        var m = ps.main; m.startLifetime = 0.22f; m.startSize3D = true; m.startSizeX = size; m.startSizeY = size * squash; m.startSizeZ = 1; m.startColor = col;
+        var ps = PS(c, "Ring", pos + new Vector3(0, 0, -0.65f), AddMat(c.tx.ring, 1.4f), seed);
+        var m = ps.main; m.startLifetime = 0.25f; m.startSize3D = true; m.startSizeX = size; m.startSizeY = size * squash; m.startSizeZ = 1; m.startColor = col;
         ps.emission.SetBursts(new[] { new Burst(0, 1) });
-        SizeLife(ps, Curve((0, 0.12f), (0.35f, 0.75f), (1, 1f)));
+        SizeLife(ps, Curve((0, 0.25f), (0.25f, 0.8f), (1, 1f)));
+        ColorLife(ps, Grad(new[] { (0f, Color.white), (1f, Color.white) }, new[] { (0f, 0.2f), (0.15f, 1f), (1f, 0f) }));
+        c.Play(ps, t, delay); return ps;
+    }
+
+    // 主グロー: 1 未満（光らせない）ですぐ消す
+    static ParticleSystem Glow(Ctx c, Vector3 pos, float t, Color col, float size, uint seed)
+    {
+        var ps = PS(c, "Glow", pos + new Vector3(0, 0, -0.5f), AddMat(c.tx.glow, 0.3f), seed);
+        var m = ps.main; m.startLifetime = 0.2f; m.startSize = size; m.startColor = col;
+        ps.emission.SetBursts(new[] { new Burst(0, 1) });
         ColorLife(ps, Grad(new[] { (0f, Color.white), (1f, Color.white) }, new[] { (0f, 1f), (1f, 0f) }));
         c.Play(ps, t); return ps;
     }
 
-    static ParticleSystem Glow(Ctx c, Vector3 pos, float t, Color col, float size, uint seed)
+    // 余韻: 細かい粒がゆっくり漂って一番長く残る
+    static ParticleSystem Bokeh(Ctx c, Vector3 pos, float t, Color col, float scale, uint seed)
     {
-        var ps = PS(c, "Glow", pos + new Vector3(0, 0, -0.5f), AddMat(c.tx.glow, 0.3f), seed);
-        var m = ps.main; m.startLifetime = 0.35f; m.startSize = size; m.startColor = col;
+        var ps = PS(c, "Bokeh", pos + new Vector3(0, 0, -0.6f), AddMat(c.tx.dot, 1.6f), seed);
+        var m = ps.main; m.startLifetime = new MinMaxCurve(0.7f, 1.1f); m.startSpeed = new MinMaxCurve(0.5f * scale, 2f * scale);
+        m.startSize = new MinMaxCurve(0.04f, 0.09f); m.gravityModifier = -0.05f; m.startColor = Color.white;
+        ps.emission.SetBursts(new[] { new Burst(0, (short)Mathf.RoundToInt(10 * scale)) });
+        var sh = ps.shape; sh.enabled = true; sh.shapeType = ParticleSystemShapeType.Circle; sh.radius = 0.3f * scale;
+        Drag(ps, 1.5f);
+        ColorLife(ps, Grad(new[] { (0f, Color.white), (0.3f, col), (1f, col) }, new[] { (0f, 1f), (0.6f, 0.8f), (1f, 0f) }));
+        c.Play(ps, t, 0.03f); return ps;
+    }
+
+    // 予備: 刃の出だしに小さなきらめき（2〜4F）
+    static void Glint(Ctx c, Vector3 pos, float t, Color col)
+    {
+        var ps = PS(c, "Glint", pos, AddMat(c.tx.star4, 2.5f), 950);
+        var m = ps.main; m.startLifetime = 0.07f; m.startSize = 0.9f; m.startColor = Color.white;
         ps.emission.SetBursts(new[] { new Burst(0, 1) });
-        ColorLife(ps, Grad(new[] { (0f, Color.white), (1f, Color.white) }, new[] { (0f, 1f), (0.2f, 0.6f), (1f, 0f) }));
-        c.Play(ps, t); return ps;
+        ColorLife(ps, Grad(new[] { (0f, Color.white), (1f, col) }, new[] { (0f, 1f), (1f, 0f) }));
+        SizeLife(ps, Curve((0, 0.3f), (0.4f, 1f), (1, 0.2f)));
+        c.Play(ps, t);
     }
 
     // アニメ寄りの破片: 菱形を速度方向に伸ばす。尾は付けない
     static ParticleSystem Shards(Ctx c, Vector3 pos, float t, Color col, float scale, float dirDeg, float spread, int count, uint seed)
     {
         var ps = PS(c, "Shards", pos + new Vector3(0, 0, -0.6f), AddMat(c.tx.diamond, 2.4f), seed);
-        var m = ps.main; m.startLifetime = new MinMaxCurve(0.12f, 0.32f); m.startSpeed = new MinMaxCurve(5f * scale, 14f * scale);
+        var m = ps.main; m.startLifetime = new MinMaxCurve(0.33f, 0.66f); m.startSpeed = new MinMaxCurve(5f * scale, 15f * scale);
         m.startSize = new MinMaxCurve(0.06f * scale, 0.14f * scale); m.gravityModifier = 0.4f; m.startColor = Color.white;
         ps.emission.SetBursts(new[] { new Burst(0, (short)count) });
         var sh = ps.shape; sh.enabled = true;
@@ -529,8 +562,8 @@ public static class FxLab
             sh.shapeType = ParticleSystemShapeType.Cone; sh.angle = spread * 0.5f; sh.radius = 0.05f;
             float a = dirDeg * Mathf.Deg2Rad; ps.transform.rotation = Quaternion.LookRotation(new Vector3(Mathf.Cos(a), Mathf.Sin(a), 0));
         }
-        Drag(ps, 4f);
-        ColorLife(ps, Grad(new[] { (0f, Color.white), (0.35f, col), (1f, col) }, new[] { (0f, 1f), (0.7f, 1f), (1f, 0f) }));
+        Drag(ps, 5f);
+        ColorLife(ps, Grad(new[] { (0f, Color.white), (0.25f, col), (1f, col) }, new[] { (0f, 1f), (0.5f, 1f), (1f, 0f) }));
         var r = ps.GetComponent<ParticleSystemRenderer>(); r.renderMode = ParticleSystemRenderMode.Stretch; r.velocityScale = 0.035f; r.lengthScale = 1.6f;
         c.Play(ps, t); return ps;
     }
@@ -554,16 +587,70 @@ public static class FxLab
         c.Play(sp, t);
     }
 
-    static void HitFlash(Ctx c, Transform sprite, Texture2D tex, float t, float strength = 1.1f)
+    // 敵の反応（Nuclear Throne の作り）: 2F だけ真っ白 → 2F 被弾色 → 消える。1 未満で光らせない
+    static void HitFlash(Ctx c, Transform sprite, Texture2D tex, float t, float strength = 1f, Color? after = null)
     {
+        var col2 = after ?? new Color(1f, 0.25f, 0.2f);
         var q = Quad(c.root, "HitFlash", sprite.position + new Vector3(0, 0, -0.03f), SpriteSize(tex, sprite.localScale.y), QMat(c, tex, 0, Vector2.one, 0));
         var m = q.GetComponent<MeshRenderer>().sharedMaterial;
-        c.OnUpdate(tt =>
+        c.OnUpdateReal(rt =>
         {
             q.position = sprite.position + new Vector3(0, 0, -0.03f);
-            float a = tt - t;
-            float k = a < 0 ? 0 : a < 0.07f ? 1f : Mathf.Clamp01(1 - (a - 0.07f) / 0.15f) * 0.5f;
-            m.SetColor("_Tint", Color.white * (strength * k));
+            float a = rt - c.Real(t);
+            Color k = a < 0 ? Color.black : a < 2 / 60f ? Color.white * 0.95f : a < 4 / 60f ? col2 * 0.55f
+                    : col2 * (0.55f * Mathf.Clamp01(1 - (a - 4 / 60f) / 0.1f));
+            m.SetColor("_Tint", k * Mathf.Min(strength, 1f));
+        });
+    }
+
+    // 発動（バフ・オーラ）: 止めはしない。背景を沈めて色を抜く・閃光（大きく出て縮む）・足元の衝撃波・主人公を 2F 白く・軽い揺れ
+    static void Surge(Ctx c, float t, Vector3 center, Vector3 feet, Color col, float power = 1f)
+    {
+        c.heroT.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_DimMul", 0.1f);   // 主役は沈めない
+        Flare(c, center, t, col, 3.4f * power, 961);
+        Ring(c, feet + new Vector3(0, 0.1f, -0.6f), t, col, 5.5f * power, 962, squash: 0.25f, delay: 0.03f);
+        Ring(c, center + new Vector3(0, 0, -0.6f), t, col, 4f * power, 963, delay: 0.06f);
+        Bokeh(c, center, t, col, 1.4f * power, 964);
+        HitFlash(c, c.heroT, c.hero, t, 1f, col);
+        c.OnUpdateReal(rt =>
+        {
+            float a = rt - c.Real(t);
+            if (a < 0) return;
+            float k = a < 0.25f ? 1f : Mathf.Clamp01(1 - (a - 0.25f) / 0.4f);
+            c.post.stageDim = Mathf.Max(c.post.stageDim, 0.5f * power * k); c.post.stageDesat = Mathf.Max(c.post.stageDesat, 0.3f * k);
+            c.post.trauma += 0.35f * power * Mathf.Clamp01(1 - a / 0.3f);
+        });
+    }
+
+    // 一撃の強さ（docs/FX_RESEARCH.md 1・4・5）。-1 = 連撃の 1 発 / 0 = 弱 / 1 = 強 / 2 = とどめ
+    // ヒットストップ（刃とキャラだけ止める）・敵の白と揺れとのけぞり・背景の暗転と色抜き・trauma の揺れ・攻撃の向きへの押し・とどめだけ白黒の衝撃コマ
+    static void Impact(Ctx c, float t, int level, float dirDeg, bool enemy = true)
+    {
+        int L = level + 1;
+        float stop = new[] { 3f, 8f, 14f, 20f }[L] / 60f;
+        float dim = new[] { 0.2f, 0.55f, 0.68f, 0.78f }[L], desat = new[] { 0.1f, 0.3f, 0.4f, 0.5f }[L];
+        float trauma = new[] { 0.3f, 0.45f, 0.7f, 1f }[L], kickPx = new[] { 2f, 4f, 8f, 14f }[L];
+        c.Freeze(t, stop);
+        float r = dirDeg * Mathf.Deg2Rad; var dv = new Vector2(Mathf.Cos(r), Mathf.Sin(r));
+        if (enemy) HitFlash(c, c.goblinT, c.goblin, t, level < 0 ? 0.8f : 1f);
+        c.OnUpdateReal(rt =>
+        {
+            float a = rt - c.Real(t);
+            if (a < 0) return;
+            // 背景: 止めの間は沈めたまま、その後 12F で戻す
+            float k = a < stop ? 1f : Mathf.Clamp01(1 - (a - stop) / 0.2f);
+            c.post.stageDim = Mathf.Max(c.post.stageDim, dim * k); c.post.stageDesat = Mathf.Max(c.post.stageDesat, desat * k);
+            // 揺れ: trauma を 0.35 秒で直線に減らす（量は 2 乗で効く）
+            c.post.trauma += trauma * Mathf.Clamp01(1 - a / 0.35f);
+            // 押し: 攻撃の向きへ一瞬押して 6F で戻す
+            if (a < 0.1f) c.post.kick += dv * kickPx * (1 - a / 0.1f);
+            // 敵: 止めの間は細かく震え、止めが明けたら攻撃の向きへのけぞって 0.25 秒で戻る
+            if (enemy)
+            {
+                if (a < stop) c.post.goblinOff += new Vector3(Mathf.Sin(a * 190f) * 0.05f * (1 - a / stop), 0, 0);
+                else c.post.goblinOff += (Vector3)(dv * (0.08f + 0.06f * L)) * Mathf.Clamp01(1 - (a - stop) / 0.25f);
+            }
+            if (level == 2 && a < 4 / 60f) { c.post.mono = 1; if (a < 2 / 60f) c.post.invert = 1; }
         });
     }
 
@@ -583,13 +670,14 @@ public static class FxLab
     static Vector2 WorldToUv(Vector3 p) => new Vector2((p.x + 6.4f) / 12.8f, (p.y + 3.6f) / 7.2f);
 
     // ================= 描画 =================
-    class Sys { public ParticleSystem ps; public float t0, last; public bool started; }
+    class Sys { public ParticleSystem ps; public float t0, delay, last; public bool started; }
     class Post
     {
         public Vector2 shake; public float rot, zoom = 1f; public Vector2 zoomCenter = new Vector2(0.5f, 0.5f);
         public Vector2 blurDir; public float blur;
         public float lines, linesMode, linesSeed, linesDensity = 0.45f; public Vector2 linesCenter = new Vector2(0.5f, 0.5f);
         public float darken, invert, mono, flash;
+        public float stageDim, stageDesat, trauma; public Vector2 kick; public Vector3 goblinOff;
     }
     class Tx { public Texture2D dot, glow, ring, star4, diamond, plus, flame, streak, trail, noise, column, coinFace; }
     class Ctx
@@ -599,8 +687,22 @@ public static class FxLab
         public List<Sys> systems = new List<Sys>();
         public List<Action<float>> updates = new List<Action<float>>();
         public Dictionary<float, Transform> planes = new Dictionary<float, Transform>();
-        public void Play(ParticleSystem ps, float t0) => systems.Add(new Sys { ps = ps, t0 = t0 });
+        public Material goblinMat;
+        // ヒットストップ: 作る側の時刻（止めを含まない）＝ sim。描き出しの時刻＝ real。刃とキャラの動き（OnUpdate）は sim、
+        // 粒子・揺れ・暗転（OnUpdateReal）は real で動くので、止めの間も火花と揺れは止まらない
+        public List<(float t, float d)> freezes = new List<(float t, float d)>();
+        public List<Action<float>> realUpdates = new List<Action<float>>();
+        public void Freeze(float t, float d) => freezes.Add((t, d));
+        public float Real(float sim) { float acc = 0; foreach (var f in freezes) if (sim > f.t) acc += f.d; return sim + acc; }
+        public float Sim(float real)
+        {
+            float acc = 0;
+            foreach (var f in freezes.OrderBy(x => x.t)) { float s = f.t + acc; if (real < s) break; if (real < s + f.d) return f.t; acc += f.d; }
+            return real - acc;
+        }
+        public void Play(ParticleSystem ps, float t0, float delay = 0f) => systems.Add(new Sys { ps = ps, t0 = t0, delay = delay });
         public void OnUpdate(Action<float> a) => updates.Add(a);
+        public void OnUpdateReal(Action<float> a) => realUpdates.Add(a);
     }
 
     static void RenderClip(Clip clip)
@@ -630,42 +732,47 @@ public static class FxLab
             mips[k] = new RenderTexture(W >> (k + 1), H >> (k + 1), 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
         var shot = new Texture2D(W, H, TextureFormat.RGB24, false);
 
-        int frames = Mathf.RoundToInt(clip.dur * FPS);
+        int frames = Mathf.RoundToInt((clip.dur + c.freezes.Sum(f => f.d)) * FPS);
         float lastTq = -1;
-        // 強さ（本人 2026-09-26「ブルームやエミッシブ、メリハリ」）。energy は画面の光の量（小さい縮小図の平均）から出し、上がるのは速く下がるのはゆっくり
-        const float Emit = 1.7f, BloomBase = 0.55f, BloomPeak = 1.15f, DimPeak = 0.85f, Contrast = 1.2f, Sat = 1.2f, EnergyGain = 18f;
-        Shader.SetGlobalFloat("_LabEmit", Emit);
-        float energy = 0f;
-        var probe = new Texture2D(mips[levels - 1].width, mips[levels - 1].height, TextureFormat.RGBAHalf, false, true);
+        // 光らせるのは HDR 1 を超える芯だけ。ブルームは狭く控えめ、背景のコントラスト・彩度はいじらない（docs/FX_RESEARCH.md 3。前回の「全体を強く」は失敗）
+        const float Threshold = 1.0f, Knee = 0.15f, BloomIntensity = 0.5f, ShakePx = 16f, ShakeRot = 0.03f;
+        const int BloomTop = 3;   // 広がりは 1/16 解像度まで（それより大きいぼかしは足さない）
+        Shader.SetGlobalFloat("_LabEmit", 1f);
+        c.goblinMat = c.goblinT.GetComponent<MeshRenderer>().sharedMaterial;
         for (int i = 0; i < frames; i++)
         {
             float tq = Mathf.Floor(i / (float)clip.hold) * clip.hold / FPS;
             if (tq != lastTq)
             {
+                float st = c.Sim(tq);
                 Shader.SetGlobalFloat("_LabT", tq);
                 c.post = new Post();
-                foreach (var u in c.updates) u(tq);
+                foreach (var u in c.updates) u(st);
+                foreach (var u in c.realUpdates) u(tq);
                 foreach (var s in c.systems)
                 {
-                    if (tq < s.t0) continue;
-                    if (!s.started) { s.ps.Simulate(Mathf.Max(tq - s.t0, 0.0005f), true, true, false); s.started = true; }
-                    else s.ps.Simulate(tq - s.last, true, false, false);
+                    float r0 = c.Real(s.t0) + s.delay;
+                    if (tq < r0) continue;
+                    if (!s.started) { s.ps.Simulate(Mathf.Max(tq - r0, 0.0005f), true, true, false); s.started = true; }
+                    else if (tq > s.last) s.ps.Simulate(tq - s.last, true, false, false);
                     s.last = tq;
                 }
+                // 揺れ: trauma の 2 乗 × 滑らかなノイズ（平行移動＋回転）＋攻撃の向きへの押し
+                float tr = Mathf.Clamp01(c.post.trauma), k2 = tr * tr;
+                c.post.shake += new Vector2((Mathf.PerlinNoise(tq * 30f, 1.7f) - 0.5f) * 2f * ShakePx / W, (Mathf.PerlinNoise(3.1f, tq * 30f) - 0.5f) * 2f * ShakePx / H) * k2
+                              + new Vector2(c.post.kick.x / W, c.post.kick.y / H);
+                c.post.rot += (Mathf.PerlinNoise(tq * 24f, 7.3f) - 0.5f) * 2f * ShakeRot * k2;
+                Shader.SetGlobalFloat("_StageDim", c.post.stageDim); Shader.SetGlobalFloat("_StageDesat", c.post.stageDesat);
+                if (c.goblinT.gameObject.activeSelf) c.goblinT.position = GoblinHome + c.post.goblinOff;
                 lastTq = tq;
             }
             cam.Render();
             var p = c.post;
-            // 光の量を測る（しきい値を越えた分だけの縮小図 → 平均）
-            bloom.SetFloat("_Threshold", 1.0f); bloom.SetFloat("_Knee", 0.6f);
+            bloom.SetFloat("_Threshold", Threshold); bloom.SetFloat("_Knee", Knee);
             Graphics.Blit(hdr, mips[0], bloom, 0);
             for (int k = 1; k < levels; k++) Graphics.Blit(mips[k - 1], mips[k], bloom, 1);
-            RenderTexture.active = mips[levels - 1]; probe.ReadPixels(new Rect(0, 0, probe.width, probe.height), 0, 0); probe.Apply(); RenderTexture.active = null;
-            float sum = 0; foreach (var px in probe.GetPixels()) sum += px.r * 0.2126f + px.g * 0.7152f + px.b * 0.0722f;
-            float raw = Mathf.Clamp01(sum / (probe.width * probe.height) * EnergyGain);
-            energy = raw > energy ? Mathf.Lerp(energy, raw, 0.8f) : Mathf.Max(raw, energy * 0.93f);
-            bloom.SetFloat("_BloomIntensity", Mathf.Lerp(BloomBase, BloomPeak, energy)); bloom.SetFloat("_Exposure", 1f + 0.25f * energy);
-            bloom.SetFloat("_Dim", Mathf.Max(DimPeak * energy, p.darken * 0.5f)); bloom.SetFloat("_Contrast", Contrast); bloom.SetFloat("_Sat", Sat);
+            bloom.SetFloat("_BloomIntensity", BloomIntensity); bloom.SetFloat("_Exposure", 1f);
+            bloom.SetFloat("_Dim", 0f); bloom.SetFloat("_Contrast", 1f); bloom.SetFloat("_Sat", 1f);
             bloom.SetVector("_Shake", new Vector4(p.shake.x, p.shake.y, p.rot, 0));
             bloom.SetFloat("_Zoom", p.zoom); bloom.SetVector("_ZoomCenter", new Vector4(p.zoomCenter.x, p.zoomCenter.y, 1, 0));
             bloom.SetVector("_BlurDir", p.blurDir); bloom.SetFloat("_BlurAmt", p.blur);
@@ -674,8 +781,8 @@ public static class FxLab
             bloom.SetVector("_LinesCenter", p.linesCenter); bloom.SetColor("_LinesColor", Color.white);
             bloom.SetFloat("_Darken", p.darken); bloom.SetFloat("_Invert", p.invert); bloom.SetFloat("_Mono", p.mono); bloom.SetFloat("_Flash", p.flash);
             bloom.SetColor("_Tint", new Color(1, 1, 1, 0));
-            // 光の広がりは 1 段だけ狭く（いちばん大きいぼかしは足さない）。芯の形を残してにじませる
-            for (int k = levels - 2; k > 0; k--) Graphics.Blit(mips[k], mips[k - 1], bloom, 2);
+            // 光の広がりは狭く（BloomTop まで）。芯の形を残してにじませる
+            for (int k = BloomTop; k > 0; k--) Graphics.Blit(mips[k], mips[k - 1], bloom, 2);
             bloom.SetTexture("_BloomTex", mips[0]);
             Graphics.Blit(hdr, ldr, bloom, 3);
             RenderTexture.active = ldr;
@@ -690,10 +797,11 @@ public static class FxLab
     {
         string art = Environment.GetEnvironmentVariable("LAB_ART");
         var bg = LoadTex(Path.Combine(art, "bg.png"));
-        Quad(c.root, "BG", new Vector3(0, 0, 10), new Vector2(12.8f, 7.2f), new Material(Shader.Find("Unlit/Texture")) { mainTexture = bg });
+        Quad(c.root, "BG", new Vector3(0, 0, 10), new Vector2(12.8f, 7.2f), StageMat(bg, -1f, 1f));
         c.hero = LoadTex(Path.Combine(art, "hero.png")); c.goblin = LoadTex(Path.Combine(art, "goblin.png"));
-        c.heroT = SpriteQuad(c.root, "Hero", c.hero, HeroHome, 3.3f);
-        c.goblinT = SpriteQuad(c.root, "Goblin", c.goblin, GoblinHome, 2.7f);
+        // 暗転の効き: 背景は全部、主人公は半分、攻撃を受ける敵はほとんど沈めない（視線を敵に集める）
+        c.heroT = Quad(c.root, "Hero", HeroHome, SpriteSize(c.hero, 3.3f), StageMat(c.hero, 0.5f, 0.55f));
+        c.goblinT = Quad(c.root, "Goblin", GoblinHome, SpriteSize(c.goblin, 2.7f), StageMat(c.goblin, 0.5f, 0.15f));
     }
 
     // ================= 部品: 汎用 =================
@@ -704,6 +812,11 @@ public static class FxLab
     }
 
     static Vector2 SpriteSize(Texture2D tex, float height) => new Vector2(height * tex.width / tex.height, height);
+
+    static Material StageMat(Texture2D tex, float cutoff, float dimMul)
+    {
+        var m = new Material(Shader.Find("Lab/Stage")) { mainTexture = tex }; m.SetFloat("_Cutoff", cutoff); m.SetFloat("_DimMul", dimMul); return m;
+    }
 
     static Transform SpriteQuad(Transform parent, string name, Texture2D tex, Vector3 center, float height)
     {

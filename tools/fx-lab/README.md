@@ -16,12 +16,13 @@ batchmode で連番 PNG → mp4 にする。本体を Unity で開いたまま�
 
 | ファイル | 中身 |
 |---|---|
-| `unity/Assets/Editor/FxLab.cs` | 12 本の組み立てと描き出し。クリップは `Clips()`、1 本 = 1 関数（`Slash1` … `ShieldClip`） |
+| `unity/Assets/Editor/FxLab.cs` | 12 本の組み立てと描き出し。クリップは `Clips()`、1 本 = 1 関数（`Slash1` … `ShieldClip`）。一撃は `Impact`、発動は `Surge`（決まりは `docs/FX_RESEARCH.md`） |
 | `unity/Assets/Editor/SparkLab.cs` | 火花の見本（最初に作ったもの） |
 | `unity/Assets/Shaders/LabSlash.shader` | 三日月の斬撃。外・中・芯を同じ場から内側へ削って作る |
 | `unity/Assets/Shaders/LabShield.shader` | 六角格子のシールド（縁の光・走る帯・被弾の波紋・下から張られる） |
 | `unity/Assets/Shaders/LabAura.shader` | キャラのシルエットから立つ炎（攻撃のオーラ） |
 | `unity/Assets/Shaders/LabCoin.shader` | メッシュ粒子のコイン（ライトなしで金属の映り込み） |
+| `unity/Assets/Shaders/LabStage.shader` | 背景とキャラ。一撃の間だけ暗く・色を抜く（主役ごとに効きを変える） |
 | `unity/Assets/Shaders/LabBloom.shader` | ブルームと仕上げ（揺れ・ズーム・方向ブラー・流線/集中線・ネガ・白フラッシュ・トーンマップ） |
 | `unity/Assets/Shaders/LabFx*.shader` / `LabMisc.shader` | 粒子の加算・アルファ、板ポリの加算 |
 | `compose_art.py` | 舞台（背景 1280×720・主人公・ゴブリン）をゲームの素材から作る |

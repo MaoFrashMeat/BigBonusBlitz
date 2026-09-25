@@ -1,5 +1,5 @@
 // 三日月の斬撃。u=弧に沿う(0→1で刃が進む) v=0内側 1外側（刃先の軌跡）
-// 外・中・芯は同じ場 f を内側へ削って作る（effects.md 3.2）
+// 芯・本体・暗い縁は同じ場 f を内側へ削って作る。消えるときはノイズで削る（アルファエロージョン）
 Shader "Lab/Slash"
 {
     Properties
@@ -44,14 +44,15 @@ Shader "Lab/Slash"
                 float f = 1 - d / th;
                 float n = tex2D(_NoiseTex, float2(i.uv.x * 5 + _Seed, i.uv.y * 1.5 + _Seed * 0.37)).r;
                 f -= _Fade * (0.35 + n * 1.1);
+                // 3 段（docs/FX_RESEARCH.md 2）: 刃先側の細い白芯（HDR。ここだけ光る）／飽和した本体（1 未満。光らない）／内側の暗い縁（背景から切り離す）
                 float aa = max(fwidth(f) * 1.2, 1e-3);
-                float outer = smoothstep(0, aa, f);
-                float mid = smoothstep(0.45, 0.45 + aa, f);
-                float core = smoothstep(0.8, 0.8 + aa, f);
-                float3 col = lerp(_ColOuter.rgb, _ColMid.rgb, mid);
+                float rim = smoothstep(0, aa, f);
+                float body = smoothstep(0.2, 0.2 + aa, f);
+                float core = smoothstep(0.9, 0.9 + aa, f);
+                float3 col = lerp(_ColOuter.rgb, _ColMid.rgb, body);
                 col = lerp(col, _ColCore.rgb, core);
-                float a = outer * _Alpha * lerp(_ColOuter.a, 1, mid);
-                return float4(col * a * _LabEmit, a * (1 - core * 0.6));
+                float a = rim * _Alpha * lerp(_ColOuter.a, _ColMid.a, body);
+                return float4(col * a * _LabEmit, a * (1 - core * 0.5));
             }
             ENDCG
         }
