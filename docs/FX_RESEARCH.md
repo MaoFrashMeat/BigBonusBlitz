@@ -45,6 +45,16 @@
 - 攻撃の向きに押す。横揺れのほうが疲れにくい [30]
 - 1280×720 の振幅: 弱 3〜4px・中 6〜8px・強 12〜16px。6〜12F で減衰（推測。320×240 の 4〜6px を 4 倍）
 
+## 4.5 斬撃の作り方（2 回目の調べ、2026-09-26）
+- 形・中の筋・消え方を別の情報にする。筋はグレーで作り、色は後から段で付ける [Paulina][Venom][VFX Apprentice]
+- 筋の作り方: 細い線を何十本も重ねる（開始・終了をばらし、端はぼかす）＋点を横方向にだけぶらす（Photoshop の「ぼかし（移動）」）。数値の出典はなく、本数・太さは描き出して決めた
+- 筋は 2 枚を違う速さで流す（単調さが消える）。逆向きに流すと筋がその場に残って見える [Cyanilux][VFXDoc]
+- 内側（尾側）は太い筋だけ残して「かすれ」にする。刃先の縁は硬く [jasontomlee][realtimevfx 4325]
+- 消え方は削る。しきい値を [-幅, 1+幅] まで動かさないと消え切らない。尾と内側から先に欠けさせる [VFXDoc][torchinsky]
+- 層: 本体＋2F 遅れて 1.5 倍長く残るかすれの層。全体の尺は 20〜30F [Effekseer][realtimevfx 27134]
+- 失敗例: 太さが均一で尾が細くならない、HDR を上げすぎて色が消える、細い線がちらつく（画面で 2px 未満）
+- 出典: cyanilux.com/tutorials/sword-slash-shader-breakdown/ ・realtimevfx.com/t/venom-slash-breakdown-of-the-effect-included/18903 ・paulinavfx.com/attack-vfx-02/ ・heyyocg.link/en/design-process-of-flame-slash/ ・vfxdoc.readthedocs.io（texcoord / alpha-erosion） ・jasontomlee.itch.io/slashfx（devlog 629732） ・realtimevfx.com/t/4325・27134・9407 ・godotshaders.com/shader/procedural-cyclic-slash/ ・unity-effect.com/368/
+
 ## 5. 見本への当てはめ
 - 一撃の強さを 3 段（弱・強・とどめ）に決め、上の表の値を束ねて `Impact` 1 つで呼ぶ（ヒットストップ・敵の白・背景の暗転・揺れ）
 - 背景の暗転は背景の絵そのものに掛ける（画面全体に掛けるとエフェクトまで暗くなる）

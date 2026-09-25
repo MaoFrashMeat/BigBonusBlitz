@@ -72,6 +72,7 @@ public static class FxLab
     {
         Glint(c, HeroHome + new Vector3(0.5f, 0.9f, -1f), 0.24f, Cyan.mid);
         SlashThrough(c, G, -45, 25, 2.3f, 1.0f, 160, Cyan, 0.3f);
+        SlashThrough(c, G + new Vector3(0.1f, 0.1f, 0), -45, 25, 2.3f, 0.7f, 160, Cyan.Ghost(), 0.333f, fade: 0.45f, thick: 0.85f);   // かすれの層: 2F 遅れ、1.5 倍長く残る
         Hit(c, G, 0.36f, Cyan.mid, 1.1f, -45, 60, 28, 12);
         RealSparks(c, G, -35, 0.36f, 60, 11f, 13);
         CutLine(c, G, 45, 4.2f, 0.36f, Cyan.mid);
@@ -83,6 +84,7 @@ public static class FxLab
     {
         SlashThrough(c, G, -45, 20, 2.2f, 0.95f, 150, Gold, 0.25f);
         SlashThrough(c, G, -135, 20, 2.2f, 0.95f, 150, Gold, 0.4f);
+        SlashThrough(c, G + new Vector3(-0.1f, 0.1f, 0), -135, 20, 2.2f, 0.7f, 150, Gold.Ghost(), 0.433f, fade: 0.45f, thick: 0.85f);
         Hit(c, G, 0.3f, Gold.mid, 0.7f, -45, 50, 14, 21);
         Hit(c, G, 0.46f, Gold.mid, 1.5f, 0, 360, 36, 22);
         CutLine(c, G, 45, 4.5f, 0.46f, Gold.mid);
@@ -336,8 +338,25 @@ public static class FxLab
             glowMat.SetColor("_Tint", new Color(1f, 0.25f, 0.05f) * (0.9f * e * flick));
             silMat.SetColor("_Tint", new Color(1f, 0.15f, 0.03f) * (0.12f * e * flick));
         });
-        // 発動の瞬間
+        // 溜め（予備）→ 発動の瞬間
+        if (c.tx.fbCharge != null) Flip(c, "Charge", hero + new Vector3(0, 0.1f, -0.7f), c.tx.fbCharge, 7, 6, 0, 11, 0.35f, 3.6f, new Color(1f, 0.55f, 0.2f), 2.2f, 125, t: on - 0.35f, randomRot: false);
         Surge(c, on, hero, feet, new Color(1f, 0.35f, 0.06f), 1.2f);
+        if (c.tx.fbFireRing != null) Flip(c, "FireRing", feet + new Vector3(0, 0.3f, -0.6f), c.tx.fbFireRing, 6, 5, 0, 30, 0.5f, 4.2f, Color.white, 1.4f, 126, t: on, randomRot: false);
+        if (c.tx.fbFlame != null)
+        {
+            // 炎の連番（64 コマ）を体の周りに並べて、それぞれ違うコマから流す
+            var fl = PS(c, "FlameSheet", hero + new Vector3(0, -0.2f, 0.4f), AddMat(c.tx.fbFlame, 1.1f), 127);
+            var fm = fl.main; fm.duration = 3f; fm.startLifetime = new MinMaxCurve(0.5f, 0.8f); fm.startSize3D = true;
+            fm.startSizeX = new MinMaxCurve(0.7f, 1.1f); fm.startSizeY = new MinMaxCurve(1.6f, 2.4f); fm.startSizeZ = 1; fm.startColor = Color.white;
+            var fe = fl.emission; fe.rateOverTime = 22;
+            var fs = fl.shape; fs.enabled = true; fs.shapeType = ParticleSystemShapeType.Box; fs.scale = new Vector3(1.3f, 1.6f, 0.3f);
+            var fv = fl.velocityOverLifetime; fv.enabled = true; fv.space = ParticleSystemSimulationSpace.World;
+            fv.x = new MinMaxCurve(-0.1f, 0.1f); fv.y = new MinMaxCurve(0.6f, 1.2f); fv.z = new MinMaxCurve(0f, 0f);
+            ColorLife(fl, Grad(new[] { (0f, Color.white), (1f, Color.white) }, new[] { (0f, 0f), (0.15f, 1f), (0.7f, 0.8f), (1f, 0f) }));
+            var ft = fl.textureSheetAnimation; ft.enabled = true; ft.mode = ParticleSystemAnimationMode.Grid; ft.numTilesX = 16; ft.numTilesY = 4;
+            ft.frameOverTime = new MinMaxCurve(1f, AnimationCurve.Linear(0, 0, 1, 0.999f)); ft.startFrame = new MinMaxCurve(0, 63); ft.cycleCount = 1;
+            c.Play(fl, on);
+        }
         var flames = PS(c, "Flames", hero + new Vector3(0, -0.3f, 0.45f), AddMat(c.tx.flame, 0.7f), 123);
         {
             var m = flames.main; m.duration = 3f; m.startLifetime = new MinMaxCurve(0.45f, 0.85f); m.startSpeed = 0;
@@ -424,6 +443,7 @@ public static class FxLab
             Flare(c, hitPoint, hitT, blue, 1.6f, (uint)(160 + i));
             Shards(c, hitPoint, hitT, blue, 0.9f, Mathf.Atan2(toCenter.y, toCenter.x) * Mathf.Rad2Deg, 100, 16, (uint)(170 + i));
             Impact(c, hitT, -1, Mathf.Atan2(-toCenter.y, -toCenter.x) * Mathf.Rad2Deg, enemy: false);
+            if (c.tx.fbElecRing != null) Flip(c, "ElecRing" + i, hitPoint + new Vector3(0, 0, -0.6f), c.tx.fbElecRing, 6, 5, 0, 12, 0.3f, 2.2f, Color.white, 1.3f, (uint)(180 + i), t: hitT);
         }
     }
 
@@ -443,7 +463,7 @@ public static class FxLab
         var go = new GameObject("Slash"); go.transform.SetParent(p, false); go.transform.localPosition = localOffset;
         go.AddComponent<MeshFilter>().sharedMesh = ArcMesh(R, band, a0, a1);
         var mat = new Material(Shader.Find("Lab/Slash"));
-        mat.SetTexture("_NoiseTex", c.tx.noise);
+        mat.SetTexture("_NoiseTex", c.tx.noise); if (c.tx.fibers != null) mat.SetTexture("_FiberTex", c.tx.fibers);
         mat.SetColor("_ColOuter", st.outer); mat.SetColor("_ColMid", st.mid); mat.SetColor("_ColCore", st.core);
         mat.SetFloat("_Thick", thick); mat.SetFloat("_Alpha", 0); mat.SetFloat("_Seed", UnityEngine.Random.value * 10f);
         go.AddComponent<MeshRenderer>().sharedMaterial = mat;
@@ -506,7 +526,16 @@ public static class FxLab
     static void Hit(Ctx c, Vector3 pos, float t, Color col, float scale, float dirDeg, float spread, int shards, uint seed)
     {
         Flare(c, pos, t, col, 2.6f * scale, seed * 10 + 1);
-        if (c.tx.burst != null) Burst(c, pos, t, col, 2.8f * scale, seed * 10 + 6);
+        if (c.tx.fbHitLines != null) Flip(c, "HitLines", pos + new Vector3(0, 0, -0.69f), c.tx.fbHitLines, 6, 4, 1, 12, 0.3f, 3.6f * scale, Color.Lerp(col, Color.white, 0.6f), 2.2f, seed * 10 + 6, t: t);
+        else if (c.tx.burst != null) Burst(c, pos, t, col, 2.8f * scale, seed * 10 + 6);
+        if (scale >= 1.3f && c.tx.fbBigHit != null)
+        {
+            Flip(c, "BigHit", pos + new Vector3(0, 0, -0.71f), c.tx.fbBigHit, 6, 5, 1, 12, 0.32f, 3.4f * scale, Color.white, 1.6f, seed * 10 + 8, t: t);
+            if (c.tx.fbSmoke != null)
+                for (int k = 0; k < 3; k++)
+                    Flip(c, "Dust" + k, pos + new Vector3((k - 1) * 0.5f, -0.3f + k * 0.15f, -0.4f), c.tx.fbSmoke, 8, 8, k * 7, 40 + k * 7, 0.9f, 2.2f * scale,
+                         new Color(0.55f, 0.5f, 0.45f, 0.4f), 1f, seed * 10 + 20 + (uint)k, delay: 0.04f, alpha: true, t: t);
+        }
         if (c.tx.air != null) Air(c, pos, t, col, 2.0f * scale, seed * 10 + 7);
         Glow(c, pos, t, col, 1.8f * scale, seed * 10 + 3);
         Ring(c, pos, t, col, 3.2f * scale, seed * 10 + 2, delay: 0.05f);
@@ -722,7 +751,7 @@ public static class FxLab
         public float darken, invert, mono, flash;
         public float stageDim, stageDesat, trauma; public Vector2 kick; public Vector3 goblinOff;
     }
-    class Tx { public Texture2D dot, glow, ring, star4, diamond, plus, flame, flame2, streak, trail, noise, column, coinFace, burst, air, sparkle, magic; }
+    class Tx { public Texture2D dot, glow, ring, star4, diamond, plus, flame, flame2, streak, trail, noise, column, coinFace, burst, air, sparkle, magic, fbHitLines, fbBigHit, fbCharge, fbElecRing, fbFireRing, fbFlame, fbSmoke, fibers; }
     class Ctx
     {
         public Transform root, heroT, goblinT; public Texture2D hero, goblin; public Tx tx;
@@ -935,10 +964,35 @@ public static class FxLab
     static float EaseOutBack(float x) { const float c1 = 1.70158f, c3 = c1 + 1; return 1 + c3 * Mathf.Pow(x - 1, 3) + c1 * Mathf.Pow(x - 1, 2); }
 
     // エフェクト素材: 白＋アルファ。小さく描かれるので mipmap と bilinear
-    static Texture2D LoadFx(string path)
+    static Texture2D LoadFx(string path, bool gray = false)
     {
         var t = new Texture2D(2, 2, TextureFormat.RGBA32, true);
-        t.LoadImage(File.ReadAllBytes(path)); t.filterMode = FilterMode.Trilinear; t.wrapMode = TextureWrapMode.Clamp; t.Apply(true); return t;
+        t.LoadImage(File.ReadAllBytes(path)); t.filterMode = FilterMode.Trilinear; t.wrapMode = TextureWrapMode.Clamp;
+        if (gray)
+        {
+            // 色付きの連番を白黒にして、粒子の色で塗り直せるようにする
+            var px = t.GetPixels32();
+            for (int i = 0; i < px.Length; i++) { byte l = (byte)Mathf.Min(255, (px[i].r * 54 + px[i].g * 183 + px[i].b * 19) / 256 * 1.6f); px[i].r = px[i].g = px[i].b = l; }
+            t.SetPixels32(px);
+        }
+        t.Apply(true); return t;
+    }
+
+    // 連番を 1 粒で再生する。from..to はコマ番号（0 始まり、to は含まない）。寿命の間に from → to を流す
+    static ParticleSystem Flip(Ctx c, string name, Vector3 pos, Texture2D tex, int tilesX, int tilesY, int from, int to, float life, float size,
+        Color col, float intensity, uint seed, float delay = 0f, bool randomRot = true, bool alpha = false, float t = 0f)
+    {
+        var mat = alpha ? new Material(Shader.Find("Lab/FxAlpha")) { mainTexture = tex } : AddMat(tex, intensity);
+        if (alpha) mat.SetFloat("_Intensity", intensity);
+        var ps = PS(c, name, pos, mat, seed);
+        var m = ps.main; m.startLifetime = life; m.startSize = size; m.startColor = col;
+        if (randomRot) m.startRotation = new MinMaxCurve(0, 6.28f);
+        ps.emission.SetBursts(new[] { new Burst(0, 1) });
+        var ts = ps.textureSheetAnimation; ts.enabled = true; ts.mode = ParticleSystemAnimationMode.Grid;
+        ts.numTilesX = tilesX; ts.numTilesY = tilesY; ts.animation = ParticleSystemAnimationType.WholeSheet;
+        float n = tilesX * tilesY;
+        ts.frameOverTime = new MinMaxCurve(1f, AnimationCurve.Linear(0, from / n, 1, (to - 0.001f) / n));
+        c.Play(ps, t, delay); return ps;
     }
 
     static Texture2D LoadTex(string path)
@@ -986,6 +1040,12 @@ public static class FxLab
             tx.star4 = K("flare"); tx.ring = K("ring"); tx.glow = K("glow"); tx.diamond = K("shard"); tx.streak = K("cutline");
             tx.flame = K("flame_a"); tx.flame2 = K("flame_b"); tx.column = K("beam");
             tx.burst = K("burst"); tx.air = K("air"); tx.sparkle = K("sparkle"); tx.magic = K("magic_circle");
+            // 連番（Brackeys VFX Bundle・CC0。名前の NxM がコマの並び）
+            tx.fbHitLines = K("fb_hitlines_6x4"); tx.fbBigHit = K("fb_bighit_6x5"); tx.fbCharge = LoadFx(Path.Combine(dir, "fb_charge_7x6.png"), gray: true);
+            // 斬撃の繊維（tools/fx-lab/make_slash_tex.py で作る。U は繰り返し、値はリニア）
+            var fib = new Texture2D(2, 2, TextureFormat.RGBA32, true, true); fib.LoadImage(File.ReadAllBytes(Path.Combine(dir, "slash_fibers.png")));
+            fib.wrapModeU = TextureWrapMode.Repeat; fib.wrapModeV = TextureWrapMode.Clamp; fib.filterMode = FilterMode.Trilinear; fib.Apply(true); tx.fibers = fib;
+            tx.fbElecRing = K("fb_elecring_6x5"); tx.fbFireRing = K("fb_firering_6x5"); tx.fbFlame = K("fb_flame_16x4"); tx.fbSmoke = K("fb_smoke_8x8");
         }
         return tx;
     }

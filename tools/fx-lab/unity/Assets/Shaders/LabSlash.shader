@@ -5,6 +5,7 @@ Shader "Lab/Slash"
     Properties
     {
         _NoiseTex ("Noise", 2D) = "gray" {}
+        _FiberTex ("Fibers (R,G 繊維 / B 消え)", 2D) = "white" {}
         _ColOuter ("Outer", Color) = (0.3,0.5,1,1)
         _ColMid ("Mid", Color) = (0.7,0.85,1,1)
         _ColCore ("Core", Color) = (1,1,1,1)
@@ -28,7 +29,8 @@ Shader "Lab/Slash"
             #include "UnityCG.cginc"
             sampler2D _NoiseTex;
             float4 _ColOuter, _ColMid, _ColCore;
-            float _Head, _Tail, _Fade, _Thick, _Alpha, _Seed;
+            float _Head, _Tail, _Fade, _Thick, _Alpha, _Seed, _LabT;
+            sampler2D _FiberTex;
             struct appdata { float4 pos:POSITION; float2 uv:TEXCOORD0; };
             struct v2f { float4 pos:SV_POSITION; float2 uv:TEXCOORD0; };
             v2f vert(appdata i){ v2f o; o.pos=UnityObjectToClipPos(i.pos); o.uv=i.uv; return o; }
@@ -42,16 +44,30 @@ Shader "Lab/Slash"
                 float th = max(_Thick * prof * (1 - _Fade * 0.55), 1e-4);
                 float d = 1 - i.uv.y;
                 float f = 1 - d / th;
-                float n = tex2D(_NoiseTex, float2(i.uv.x * 5 + _Seed, i.uv.y * 1.5 + _Seed * 0.37)).r;
-                f -= _Fade * (0.35 + n * 1.1);
-                // 3 段（docs/FX_RESEARCH.md 2）: 刃先側の細い白芯（HDR。ここだけ光る）／飽和した本体（1 未満。光らない）／内側の暗い縁（背景から切り離す）
+                // 繊維の斬撃（docs/FX_RESEARCH.md「斬撃」）: 形は同じ場 f、中身は繊維テクスチャ 2 枚を違う速さで流す
                 float aa = max(fwidth(f) * 1.2, 1e-3);
-                float rim = smoothstep(0, aa, f);
-                float body = smoothstep(0.2, 0.2 + aa, f);
-                float core = smoothstep(0.9, 0.9 + aa, f);
+                float fz = saturate(f);                                   // 0 = 内側 … 1 = 刃先の縁
+                float dn = tex2D(_FiberTex, float2(i.uv.x * 1.3 + _Seed, fz * 0.7)).b - 0.5;
+                float fv = saturate(fz + dn * 0.08);                      // 消えノイズで筋を少し揺らす
+                float pan = _LabT * 0.35;                                 // 弧に貼り付いたまま、刃と逆へ少し流れる
+                float f1 = tex2D(_FiberTex, float2(i.uv.x * 1.6 - pan + _Seed, fv)).r;
+                float f2 = tex2D(_FiberTex, float2(i.uv.x * 1.0 - pan * 0.6 + _Seed * 1.7, fv)).g;
+                float fib = saturate(max(f1, f2 * 0.85));
+                // 外側は詰まった本体、内側は太い筋だけが残る（尾のかすれ）
+                float solid = smoothstep(0.66, 0.66 + aa, fz);
+                float thrW = lerp(0.7, 0.2, saturate(fz / 0.66));
+                float mask = max(solid, smoothstep(thrW, thrW + 0.12, fib)) * smoothstep(0, aa, f);
+                // 消え: 薄くせずに削る。尾と内側から先に欠ける
+                float e = tex2D(_FiberTex, float2(i.uv.x * 1.5 + _Seed * 0.3, fz)).b;
+                float thr = _Fade * 1.2 - 0.1 + _Fade * ((1 - s) * 0.35 + (1 - fz) * 0.3);
+                mask *= smoothstep(thr, thr + 0.05, e);
+                // 階調（3 段）: 刃先の縁と明るい筋 = 芯（HDR）／本体／暗い縁
+                float tone = fz * 0.6 + fib * 0.5;
+                float core = max(smoothstep(0.93, 0.93 + aa, fz), smoothstep(0.93, 0.98, tone) * step(0.62, fz));
+                float body = smoothstep(0.42, 0.47, tone);
                 float3 col = lerp(_ColOuter.rgb, _ColMid.rgb, body);
                 col = lerp(col, _ColCore.rgb, core);
-                float a = rim * _Alpha * lerp(_ColOuter.a, _ColMid.a, body);
+                float a = mask * _Alpha * lerp(_ColOuter.a, _ColMid.a, body);
                 return float4(col * a * _LabEmit, a * (1 - core * 0.5));
             }
             ENDCG

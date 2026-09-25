@@ -44,6 +44,12 @@
   - 閃光 = 鋭い四芒星、ヒットに棘の爆ぜ（5F）と薄い煙の層、火花 = 細い光の筋、斬線 = 光の筋、衝撃波 = 硬い輪、余韻 = 十字のきらめき
   - 攻撃の炎 = 炎の舌 2 種、回復 = 光の柱＋足元の魔法陣
   - 動画: `docs/art/2026-09-26/fx-samples-reel-kenney.mp4`、コマ: `fx-samples-kenney-frames.png`
+- 同日、連番アニメと斬撃の繊維（本人「別の CC0 素材集を探して」「斬撃の繊維は調べて至高のクオリティで」）
+  - Brackeys VFX Bundle（CC0。中身は Kenney・Picster・Thomas Iché の連番・CodeManu の描き起こし）から連番 7 本: 衝撃線・爆ぜ・溜め・電気の輪・炎の輪・炎・煙
+  - Unity 公式の連番（CC0）も落としたが、同じ Thomas Iché の連番が Brackeys に入っていたのでそちらを使った
+  - ヒット = アニメの衝撃線（11 コマ）、強い一撃 = 爆ぜ＋砂煙、攻撃オーラ = 溜め → 炎の輪 → 炎の連番、シールドの被弾 = 電気の輪
+  - 斬撃の繊維は調べた手順でコードで作る（`tools/fx-lab/make_slash_tex.py` → `textures/slash_fibers.png`）。シェーダーは筋 2 枚を違う速さで流し、内側はかすれ、尾と内側から削って消す
+  - 動画: `docs/art/2026-09-26/fx-samples-reel-fibers.mp4`、コマ: `fx-samples-fibers-frames.png`
 
 ## 本人の確定事項
 
