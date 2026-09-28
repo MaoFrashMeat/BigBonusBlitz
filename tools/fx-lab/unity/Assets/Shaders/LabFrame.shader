@@ -21,12 +21,16 @@ Shader "Lab/Frame"
         _Burst ("Burst", Float) = 0
         _Rainbow ("Rainbow", Float) = 0
         _Seed ("Seed", Float) = 0
+        _R0 ("R0", Color) = (0.12,0.01,0,1)
+        _R1 ("R1", Color) = (0.9,0.16,0.01,1)
+        _R2 ("R2", Color) = (1,0.55,0.08,1)
+        _R3 ("R3", Color) = (2.3,1.55,0.6,1)
     }
     CGINCLUDE
     #include "UnityCG.cginc"
     sampler2D _NoiseTex, _FiberTex;
     float _Mode, _Intensity, _Shade, _Thick, _Radius, _UScale, _Burst, _Rainbow, _Seed, _LabT;
-    float4 _Col, _Core, _Edge, _Half;
+    float4 _Col, _Core, _Edge, _Half, _R0, _R1, _R2, _R3;
     struct appdata { float4 pos:POSITION; };
     struct v2f { float4 pos:SV_POSITION; float2 wp:TEXCOORD0; };
     v2f vert(appdata i){ v2f o; o.pos = UnityObjectToClipPos(i.pos); o.wp = mul(unity_ObjectToWorld, i.pos).xy; return o; }
@@ -116,6 +120,27 @@ Shader "Lab/Frame"
                         glow += on * exp(-d * 28) * 0.45;
                     }
                     c = core * saturate(acc) + base * (glow + pow(saturate(1 - v), 7) * 0.6);
+                }
+                else if (_Mode > 3.5)
+                {
+                    // 枠で 1 つにつながった炎（本人 2026-09-28「並べるんじゃなくて枠で一つの炎」）
+                    // ノイズを 4 段重ね、横にねじって（domain warp）舌の形にし、中心へ速く流す。温度 → 黒体の色（Lab/Fire と同じ段）
+                    float wave = 0.5 + 0.5 * sin(u * 6.2831853 - t * 4.5);          // 枠を一周して走る大きなうねり
+                    float reach = 1 + 0.3 * wave + 0.35 * _Burst;
+                    float vv = v / reach;
+                    float2 q = float2(u * 1.0 + _Seed, vv * 0.7 - t * 2.4);
+                    float n = tex2D(_NoiseTex, q).r * 0.5 + tex2D(_NoiseTex, q * 2 + float2(0.13, -t * 1.1)).r * 0.25
+                            + tex2D(_NoiseTex, q * 4 + float2(0.71, -t * 2.3)).r * 0.15;
+                    float2 q2 = float2(u * 2 + (n - 0.45) * 0.55 + _Seed * 1.7, vv * 1.1 - t * 3.2);
+                    float n2 = tex2D(_NoiseTex, q2).r * 0.55 + tex2D(_NoiseTex, q2 * 2 + float2(0.37, -t * 1.9)).r * 0.3
+                             + tex2D(_NoiseTex, q2 * 4 + float2(0.19, -t * 3.7)).r * 0.15;
+                    float flame = saturate((1 - vv) * 1.25 - n2 * 1.35 + 0.12);   // 縁でもノイズで濃淡が残るように
+                    float T = pow(flame, 1.6);   // 本体は赤〜橙、芯だけ白熱
+                    float3 r = lerp(_R0.rgb, _R1.rgb, smoothstep(0.0, 0.3, T));
+                    r = lerp(r, _R2.rgb, smoothstep(0.3, 0.65, T));
+                    r = lerp(r, _R3.rgb, smoothstep(0.65, 1.0, T));
+                    if (_Rainbow > 0) { float lr = dot(r, float3(0.3, 0.55, 0.15)); r = lerp(lr * base * 1.6, r, smoothstep(0.75, 1.0, T)); }
+                    c = r * smoothstep(0.02, 0.22, T);
                 }
                 else if (_Mode > 2.5)
                 {

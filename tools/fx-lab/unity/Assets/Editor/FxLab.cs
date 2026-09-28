@@ -873,7 +873,8 @@ public static class FxLab
             float burst = Mathf.Exp(-a * 9f);
             mainMat.SetFloat("_Mode", st.mode); mainMat.SetColor("_Col", st.mode > 2.5f ? st.col * 0.55f : st.col);   // 炎の段は床の明かりだけ（炎は連番が描く） mainMat.SetColor("_Core", st.core); mainMat.SetColor("_Edge", st.edge);
             mainMat.SetFloat("_Rainbow", st.rainbow ? 1 : 0); mainMat.SetFloat("_Burst", burst);
-            mainMat.SetFloat("_Thick", (st.mode > 2.5f ? 2.0f : T * st.reach) * (1 + 0.45f * burst)); mainMat.SetFloat("_Shade", st.mode > 2.5f ? 0.82f : 0.35f + 0.07f * k); mainMat.SetFloat("_Intensity", st.intensity * Mathf.Clamp01(a / 0.03f + 0.3f));
+            bool fireStep = st.mode > 2.5f;   // 炎の段は FireFrame の帯が描く
+            mainMat.SetFloat("_Thick", (st.mode > 2.5f ? 2.0f : T * st.reach) * (1 + 0.45f * burst)); mainMat.SetFloat("_Shade", st.mode > 2.5f ? 0.82f : 0.35f + 0.07f * k); mainMat.SetFloat("_Intensity", fireStep ? 0 : st.intensity * Mathf.Clamp01(a / 0.03f + 0.3f));
             thunderMat.SetFloat("_Mode", 1); thunderMat.SetFloat("_Rainbow", 1); thunderMat.SetFloat("_Burst", burst); thunderMat.SetFloat("_Thick", T * 0.75f); thunderMat.SetFloat("_Shade", 0f);
             thunderMat.SetColor("_Core", Color.white * 2.6f); thunderMat.SetFloat("_Intensity", st.thunderOverlay ? 0.9f : 0);
             // 段が上がる瞬間: 白く光る 2F・揺れ（段ごとに強く）・背景を段ごとに沈める
@@ -917,7 +918,7 @@ public static class FxLab
     // シミュレーションの炎の連番（Thomas Iché・CC0）を四辺に重ね、温度の色で塗る（Lab/Fire）。
     // 足すもの: 火の粉（上へ舞う・乱流・尾）/ 薄い煙（上の縁）/ 床の明かり（Lab/Frame の 3）/ 照り返し（背景を炎の色で照らす・ちらつく）/ 陽炎
     class FirePal { public Color c0, c1, c2, c3, light; public bool rainbow; }
-    static readonly FirePal FireRed = new FirePal { c0 = new Color(0.12f, 0.01f, 0f), c1 = new Color(0.9f, 0.16f, 0.01f), c2 = new Color(1f, 0.55f, 0.08f), c3 = new Color(2.3f, 1.55f, 0.6f), light = new Color(1f, 0.45f, 0.12f) };
+    static readonly FirePal FireRed = new FirePal { c0 = new Color(0.12f, 0.01f, 0f), c1 = new Color(0.9f, 0.16f, 0.01f), c2 = new Color(1f, 0.55f, 0.08f), c3 = new Color(2.1f, 1.35f, 0.45f), light = new Color(1f, 0.45f, 0.12f) };
     static readonly FirePal FireGreen = new FirePal { c0 = new Color(0f, 0.08f, 0.02f), c1 = new Color(0.04f, 0.55f, 0.1f), c2 = new Color(0.35f, 1f, 0.3f), c3 = new Color(1.6f, 2.8f, 1.5f), light = new Color(0.3f, 1f, 0.35f) };
     static readonly FirePal FireRainbow = new FirePal { c0 = new Color(0.12f, 0.01f, 0f), c1 = new Color(0.9f, 0.16f, 0.01f), c2 = new Color(1f, 0.55f, 0.08f), c3 = new Color(2.4f, 2.4f, 2.4f), light = new Color(0.9f, 0.6f, 0.9f), rainbow = true };
 
@@ -932,21 +933,15 @@ public static class FxLab
     static Gradient RainbowGrad() => Grad(new[] { (0f, new Color(1f, 0.25f, 0.25f)), (0.2f, new Color(1f, 0.8f, 0.2f)), (0.4f, new Color(0.3f, 1f, 0.35f)),
                                                   (0.6f, new Color(0.25f, 0.8f, 1f)), (0.8f, new Color(0.55f, 0.35f, 1f)), (1f, new Color(1f, 0.35f, 0.85f)) }, new[] { (0f, 1f), (1f, 1f) });
 
-    // 1 辺ぶんの炎。box の範囲から、画面の中心へ向かって伸びる（本人 2026-09-28「中心に向かって」）
-    // dir = 内向きの向き。連番の上（炎の先）を dir に回す。surge = 大きな炎が一気に伸びる波（一定間隔の束）
-    static ParticleSystem EdgeFire(Ctx c, string name, Vector3 pos, Vector3 box, Vector2 dir, float rate, float w0, float w1, Material mat, uint seed, float t0, float t1, bool rainbow, bool surge = false)
+    // 1 辺ぶんの炎。a → b の線から、画面の中心へ向かって伸びる（本人 2026-09-28「中心に向かって」）
+    // 出る場所はランダムにせず、黄金比の並びで辺に沿って均等に散らす（ランダムだと偏って炎の間に隙間が空く。本人「隙間が不恰好」）
+    // dir = 内向き。連番の上（炎の先）を dir に回す。surge = 大きな炎が一気に伸びる波（0.55 秒ごとの束）
+    static ParticleSystem EdgeFire(Ctx c, string name, Vector3 a, Vector3 b, Vector2 dir, float rate, float w0, float w1, Material mat, uint seed, float t0, float t1,
+        bool rainbow, bool surge = false, float life0 = 0.5f, float life1 = 0.8f)
     {
-        var ps = PS(c, name, pos, mat, seed);
-        var m = ps.main; m.duration = Mathf.Max(t1 - t0, 0.1f);
-        m.startLifetime = surge ? new MinMaxCurve(0.4f, 0.55f) : new MinMaxCurve(0.5f, 0.8f);
-        m.startSize3D = true; m.startSizeX = new MinMaxCurve(w0, w1); m.startSizeY = new MinMaxCurve(w0 * 1.9f, w1 * 2.1f); m.startSizeZ = 1;
-        float rot = Mathf.Atan2(dir.x, dir.y);   // 上（0,1）から dir までの時計回りの角
-        m.startRotation = new MinMaxCurve(rot - 0.1f, rot + 0.1f);
-        m.startColor = rainbow ? new MinMaxGradient(RainbowGrad()) { mode = ParticleSystemGradientMode.RandomColor } : new MinMaxGradient(Color.white);
-        var em = ps.emission;
-        if (surge) { em.rateOverTime = 0; em.SetBursts(new[] { new Burst(0.15f, (short)rate, 40, 0.55f), new Burst(0.42f, (short)(rate * 0.6f), 40, 0.55f) }); }
-        else { em.rateOverTime = rate; em.SetBursts(new[] { new Burst(0, (short)(rate * 0.5f)) }); }
-        var sh = ps.shape; sh.enabled = true; sh.shapeType = ParticleSystemShapeType.Box; sh.scale = box;
+        var ps = PS(c, name, Vector3.zero, mat, seed);
+        var m = ps.main; m.duration = 10f; m.maxParticles = 3000; m.startSize3D = true;
+        var em = ps.emission; em.rateOverTime = 0;
         var v = ps.velocityOverLifetime; v.enabled = true; v.space = ParticleSystemSimulationSpace.World;
         float sp0 = surge ? 1.8f : 0.8f, sp1 = surge ? 2.8f : 1.6f;   // 内へ伸びる速さ
         v.x = new MinMaxCurve(dir.x * sp0 - 0.1f, dir.x * sp1 + 0.1f); v.y = new MinMaxCurve(dir.y * sp0 - 0.1f, dir.y * sp1 + 0.1f); v.z = new MinMaxCurve(0f, 0f);
@@ -955,29 +950,82 @@ public static class FxLab
         // 連番は寿命の間に 64 コマを流す（約 3 倍速。メラメラを速く）
         var ts = ps.textureSheetAnimation; ts.enabled = true; ts.mode = ParticleSystemAnimationMode.Grid; ts.numTilesX = 16; ts.numTilesY = 4;
         ts.frameOverTime = new MinMaxCurve(1f, AnimationCurve.Linear(0, 0, 1, 0.999f)); ts.startFrame = new MinMaxCurve(0, 63);
-        c.Play(ps, t0);
-        c.OnUpdate(t => { if (t >= t1 + 0.12f) ps.Clear(); });   // 次の段の閃光の瞬間に消す（色が混ざって濁らないように）
+        c.Play(ps, 0f);
+        var rnd = new System.Random((int)seed); float R() => (float)rnd.NextDouble();
+        float rot = Mathf.Atan2(dir.x, dir.y) * Mathf.Rad2Deg, phase = R();
+        var perp = new Vector3(dir.x, dir.y, 0);
+        var grad = RainbowGrad();
+        int k = 0; float acc = 0, last = -1, nextWave = t0 + 0.15f; bool filled = false;
+        void EmitOne()
+        {
+            float u = Mathf.Repeat(phase + k++ * 0.6180339f, 1f);
+            float w = Mathf.Lerp(w0, w1, R());
+            var ep = new EmitParams
+            {
+                position = Vector3.Lerp(a, b, u) + perp * ((R() - 0.5f) * 0.15f),
+                startSize3D = new Vector3(w, w * (1.9f + R() * 0.2f), 1), rotation = rot + (R() - 0.5f) * 12f,
+                startLifetime = surge ? Mathf.Lerp(0.4f, 0.55f, R()) : Mathf.Lerp(life0, life1, R()),
+                startColor = rainbow ? grad.Evaluate(R()) : (Color32)Color.white, applyShapeToPosition = false
+            };
+            ps.Emit(ep, 1);
+        }
+        c.OnUpdate(t =>
+        {
+            if (t >= t1 + 0.12f) { if (last < t1 + 0.12f) ps.Clear(); last = t; return; }   // 次の段の閃光の瞬間に消す（色が混ざって濁らないように）
+            if (t < t0) { last = t; return; }
+            float dt = last < t0 ? 0 : t - last; last = t;
+            if (surge)
+            {
+                while (t >= nextWave) { for (int i = 0; i < (int)rate; i++) EmitOne(); nextWave += 0.55f; }
+                return;
+            }
+            if (!filled) { for (int i = 0; i < (int)(rate * 0.6f); i++) EmitOne(); filled = true; }   // 点いた瞬間に一列そろえる
+            acc += rate * dt;
+            while (acc >= 1) { acc -= 1; EmitOne(); }
+        });
         return ps;
     }
 
-    static void FireFrame(Ctx c, float t0, float t1, FirePal pal, float power, uint seed)
+    // flipbook = true で炎の連番を辺に並べる作り（2026-09-28 本人「並べるんじゃなくて枠で一つの炎」で既定は false。枠でつながった 1 つの炎）
+    static void FireFrame(Ctx c, float t0, float t1, FirePal pal, float power, uint seed, bool flipbook = false)
     {
+        // 枠でつながった炎（Lab/Frame の 4）。下地の暗さ・うねり・段が上がった瞬間の弾みもここ
+        {
+            const float R = 1.0f; var half = new Vector2(6.4f, 3.6f);
+            float per = 4 * (half.x - R) + 4 * (half.y - R) + 2 * Mathf.PI * R;
+            var fm = new Material(Shader.Find("Lab/Frame"));
+            fm.SetTexture("_NoiseTex", c.tx.noise); fm.SetFloat("_Mode", 4); fm.SetFloat("_Seed", seed * 0.37f);
+            fm.SetVector("_Half", half); fm.SetFloat("_Radius", R); fm.SetFloat("_UScale", Mathf.Round(per / 2.2f) / per);
+            fm.SetFloat("_Thick", 1.8f * power); fm.SetFloat("_Shade", 0.8f);
+            fm.SetColor("_R0", pal.c0); fm.SetColor("_R1", pal.c1); fm.SetColor("_R2", pal.c2); fm.SetColor("_R3", pal.c3); fm.SetFloat("_Rainbow", pal.rainbow ? 1 : 0);
+            Quad(c.root, "FireBand", new Vector3(0, 0, -3.02f), new Vector2(13f, 7.4f), fm);
+            c.OnUpdate(t =>
+            {
+                bool on = t >= t0 && t < t1 + 0.12f;
+                fm.SetFloat("_Intensity", on ? Mathf.Clamp01((t - t0) / 0.06f) : 0);
+                fm.SetFloat("_Burst", on ? Mathf.Exp(-(t - t0) * 9f) : 0);
+                if (pal.rainbow) fm.SetColor("_Col", Color.white);
+            });
+        }
         var sheets = new[] { c.tx.fbFlame, c.tx.fireFlame03 ?? c.tx.fbFlame };
         const float z = -3.05f;
         int n = 0;
+        if (flipbook)
         // 四辺から中心へ。根元は画面の外（中心から見て縁の外側）に置く
-        foreach (var (pos, box, dir, rate, w0, w1) in new[]
+        foreach (var (a, b, bedA, bedB, dir, rate, w0, w1) in new[]
         {
-            (new Vector3(0, -3.2f, z), new Vector3(13.2f, 0.3f, 0.1f), Vector2.up, 20f, 1.1f, 1.8f),     // 下
-            (new Vector3(0, 3.2f, z), new Vector3(13.2f, 0.3f, 0.1f), Vector2.down, 18f, 1.0f, 1.6f),    // 上
-            (new Vector3(-5.9f, 0, z), new Vector3(0.3f, 7.2f, 0.1f), Vector2.right, 12f, 0.9f, 1.4f),   // 左
-            (new Vector3(5.9f, 0, z), new Vector3(0.3f, 7.2f, 0.1f), Vector2.left, 12f, 0.9f, 1.4f),     // 右
+            (new Vector3(-6.9f, -3.2f, z), new Vector3(6.9f, -3.2f, z), new Vector3(-6.9f, -3.75f, z), new Vector3(6.9f, -3.75f, z), Vector2.up, 20f, 1.1f, 1.8f),     // 下
+            (new Vector3(-6.9f, 3.2f, z), new Vector3(6.9f, 3.2f, z), new Vector3(-6.9f, 3.75f, z), new Vector3(6.9f, 3.75f, z), Vector2.down, 18f, 1.0f, 1.6f),     // 上
+            (new Vector3(-5.9f, -4f, z), new Vector3(-5.9f, 4f, z), new Vector3(-6.5f, -4f, z), new Vector3(-6.5f, 4f, z), Vector2.right, 12f, 0.9f, 1.4f),         // 左
+            (new Vector3(5.9f, -4f, z), new Vector3(5.9f, 4f, z), new Vector3(6.5f, -4f, z), new Vector3(6.5f, 4f, z), Vector2.left, 12f, 0.9f, 1.4f),             // 右
         })
         {
+            // 炎の床: 根元に小さな炎を密に並べて途切れさせない
+            EdgeFire(c, "EdgeBed" + n++, bedA, bedB, dir, rate * 2.6f * power, 0.55f, 0.8f, FireMat(c, sheets[1], pal, 1.3f), seed + 60 + (uint)n, t0, t1, pal.rainbow, life0: 0.35f, life1: 0.5f);
             for (int k = 0; k < 2; k++, n++)
-                EdgeFire(c, "EdgeFire" + n, pos, box, dir, rate * power, w0, w1, FireMat(c, sheets[k], pal, 1.4f), seed + (uint)n, t0, t1, pal.rainbow);
+                EdgeFire(c, "EdgeFire" + n, a, b, dir, rate * power, w0, w1, FireMat(c, sheets[k], pal, 1.4f), seed + (uint)n, t0, t1, pal.rainbow);
             // 波: 大きな炎が束になって一気に中心へ伸びる
-            EdgeFire(c, "EdgeSurge" + n++, pos, box, dir, rate * 0.45f * power, w0 * 1.4f, w1 * 1.6f, FireMat(c, sheets[0], pal, 1.5f), seed + 90 + (uint)n, t0, t1, pal.rainbow, surge: true);
+            EdgeFire(c, "EdgeSurge" + n++, a, b, dir, rate * 0.45f * power, w0 * 1.4f, w1 * 1.6f, FireMat(c, sheets[0], pal, 1.5f), seed + 90 + (uint)n, t0, t1, pal.rainbow, surge: true);
         }
 
         // 火の粉: 縁から上へ舞う。乱流と短い尾
@@ -1029,11 +1077,6 @@ public static class FxLab
     static void FireFrameClip(Ctx c)
     {
         float on = 0.3f;
-        var glow = new Material(Shader.Find("Lab/Frame"));
-        glow.SetTexture("_NoiseTex", c.tx.noise); glow.SetFloat("_Mode", 3); glow.SetColor("_Col", new Color(1f, 0.3f, 0.05f) * 0.55f);
-        glow.SetVector("_Half", new Vector4(6.4f, 3.6f, 0, 0)); glow.SetFloat("_Radius", 1.0f); glow.SetFloat("_UScale", 0.25f); glow.SetFloat("_Thick", 2.0f); glow.SetFloat("_Shade", 0.85f);   // 炎の後ろは暗く（加算の炎が色を保つ）
-        Quad(c.root, "FireGlow", new Vector3(0, 0, -3f), new Vector2(13f, 7.4f), glow);
-        c.OnUpdate(t => glow.SetFloat("_Intensity", Mathf.Clamp01((t - on) / 0.1f)));
         FireFrame(c, on, 4.2f, FireRed, 1f, 500);
         c.OnUpdate(t => { if (t >= on) { c.post.stageDim = Mathf.Max(c.post.stageDim, 0.25f); } if (t >= on && t < on + 2 / 60f) c.post.flash = 0.3f; });
     }
