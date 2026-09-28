@@ -24,10 +24,11 @@ batchmode で連番 PNG → mp4 にする。本体を Unity で開いたまま�
 | `unity/Assets/Shaders/LabCoin.shader` | メッシュ粒子のコイン（ライトなしで金属の映り込み） |
 | `unity/Assets/Shaders/LabDissolve.shader` | 倒れる敵の絵。消える順の図（R）・破片の番号（G）・ひび（B）で削る。光る縁・焦げの帯・真っ二つの切り口 |
 | `unity/Assets/Shaders/LabFrame.shader` | 画面の枠（ステップアップ）。角丸の四角を式で描く。光の流れ / 雷 / 炎、虹。暗い下地（乗算）＋光（加算） |
+| `unity/Assets/Shaders/LabFire.shader` | 本物寄りの炎（粒子）。炎の連番の明るさを温度にして黒体の色で塗る |
 | `unity/Assets/Shaders/LabStage.shader` | 背景とキャラ。一撃の間だけ暗く・色を抜く（主役ごとに効きを変える） |
 | `unity/Assets/Shaders/LabBloom.shader` | ブルームと仕上げ（揺れ・ズーム・方向ブラー・流線/集中線・ネガ・白フラッシュ・トーンマップ） |
 | `unity/Assets/Shaders/LabFx*.shader` / `LabMisc.shader` | 粒子の加算・アルファ、板ポリの加算 |
-| `textures/` | エフェクト素材（`LAB_TEX` で読む）。Kenney Particle Pack（CC0、`LICENSE-kenney.txt`）の単体 12 枚、Brackeys VFX Bundle（CC0、`LICENSE-brackeys.txt`）の連番 7 本（`fb_<名前>_<横>x<縦>.png`）、斬撃の繊維 `slash_fibers.png` |
+| `textures/` | エフェクト素材（`LAB_TEX` で読む）。Kenney Particle Pack（CC0、`LICENSE-kenney.txt`）の単体 12 枚、Brackeys VFX Bundle（CC0、`LICENSE-brackeys.txt`）の連番 7 本（`fb_<名前>_<横>x<縦>.png`）、Unity 公式の炎の連番（CC0、`LICENSE-unity-vfx.txt`）、斬撃の繊維 `slash_fibers.png` |
 | `make_slash_tex.py` | 斬撃の繊維テクスチャを作る（R・G = 繊維、B = 消えノイズ） |
 | `compose_art.py` | 舞台（背景 1280×720・主人公・ゴブリン）をゲームの素材から作る |
 | `reel.py` | 各 mp4 と、題名入りで 2 回ずつつないだ `reel.mp4` |

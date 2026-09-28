@@ -13,6 +13,7 @@ Shader "Hidden/LabBloom"
     float _Lines, _LinesMode, _LinesSeed, _LinesAngle, _LinesDensity; float4 _LinesCenter; float4 _LinesColor;
     float _Darken, _Invert, _Mono, _Flash; float4 _Tint;
     float _Dim, _Contrast, _Sat;   // 背景を沈める量（0〜1。光っていない所だけ）、表示のコントラストと彩度
+    float _Heat, _LabT; float4 _FireLight;   // 炎の枠: 陽炎の強さ、照り返しの色（a = 届く距離 world）
     struct v2f { float4 pos:SV_POSITION; float2 uv:TEXCOORD0; };
     v2f vert(appdata_img v){ v2f o; o.pos=UnityObjectToClipPos(v.vertex); o.uv=v.texcoord; return o; }
     float3 box4(float2 uv, float d)
@@ -121,7 +122,19 @@ Shader "Hidden/LabBloom"
                 float cr = cos(_Shake.z), sr = sin(_Shake.z);
                 pc = float2(cr * pc.x - sr * pc.y, sr * pc.x + cr * pc.y);
                 uv = pc / float2(1, aspect) + 0.5 + _Shake.xy;
+                // 炎の枠: 画面の縁からの距離（world 単位。画面は 12.8 × 7.2）
+                float2 eq = min(uv, 1 - uv) * float2(12.8, 7.2);
+                float edgeD = min(eq.x, eq.y * 0.8);
+                if (_Heat > 0)
+                {
+                    // 陽炎: 縁ほど強く、上へ流れる揺らぎで uv をずらす
+                    float hm = 1 - smoothstep(0.0, 1.4, edgeD);
+                    float2 w = float2(sin(uv.y * 95 - _LabT * 9 + sin(uv.x * 41) * 2.2), cos(uv.x * 73 + uv.y * 51 - _LabT * 7.3));
+                    uv += w * (_Heat * 0.0022 * hm);
+                }
                 float3 c = tex2D(_MainTex, uv).rgb;
+                // 炎の照り返し: 縁に近い所ほど、炎の色で照らす（掛け算。霧ではなく明かりに見せる）
+                if (_FireLight.a > 0) c *= 1 + _FireLight.rgb * (1 - smoothstep(0.0, _FireLight.a, edgeD));
                 // メリハリ: 強い一撃のときは、光っていない所（背景・キャラ）だけ暗く沈める。光（HDR 1 以上）とブルームはそのまま
                 float lum0 = dot(c, float3(0.2126, 0.7152, 0.0722));
                 c *= lerp(1, 1 - _Dim, 1 - smoothstep(0.7, 1.6, lum0));

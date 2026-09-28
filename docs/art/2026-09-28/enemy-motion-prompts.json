@@ -1,0 +1,34 @@
+{
+  "date": "2026-09-28",
+  "timezone": "Asia/Tokyo",
+  "generations": [
+    {
+      "id": "slime",
+      "tool": "image_gen",
+      "reference": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemies-v1.png",
+      "prompt": "Create a production anime RPG enemy animation sprite atlas from the selected creature in reference. Exactly EIGHT poses in strict 4 columns by 2 rows, equally sized cells. True TRANSPARENT RGBA, NO painted background, no ground shadow, no captions, grids, borders or effects. Every complete silhouette including extremities must remain INSIDE its own cell with wide empty padding, minimum 12% cell width on all sides. Character occupies only central 70% of each cell. Same physical size, colors, anatomy and facing LEFT 3/4 throughout. Do not scale low poses bigger. Render crisp painted anime style matching reference, readable at 140px in game. Read frames left to right top to bottom. No gore. ONLY the small glossy blue leaf slime from left of reference, with golden eyes and a single green leaf. 1 neutral rounded idle; 2 subtly fuller breathing idle; 3 squashed low gathering energy; 4 compressed leaning left ready to leap, narrowed eyes; 5 airborne stretched leftward hop body attack, fully within cell; 6 landing returning to neutral shape; 7 flinches from hit squashed diagonally, surprised eyes; 8 exhausted flattened puddle with closed eyes and drooping leaf, recognizable silhouette. Keep translucent jelly highlights consistent; no puddles outside cell.",
+      "source": "exec-0fd3bd63-921e-44e4-969f-fd1d321bc27a.png"
+    },
+    {
+      "id": "goblin",
+      "tool": "image_gen",
+      "reference": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemies-v1.png",
+      "prompt": "Create a production anime RPG enemy animation sprite atlas from the selected creature in reference. Exactly EIGHT poses in strict 4 columns by 2 rows, equally sized cells. True TRANSPARENT RGBA, NO painted background, no ground shadow, no captions, grids, borders or effects. Every complete silhouette including extremities must remain INSIDE its own cell with wide empty padding, minimum 12% cell width on all sides. Character occupies only central 70% of each cell. Same physical size, colors, anatomy and facing LEFT 3/4 throughout. Do not scale low poses bigger. Render crisp painted anime style matching reference, readable at 140px in game. Read frames left to right top to bottom. No gore. ONLY the green goblin in middle of reference: blue headscarf, brown leather vest/tunic, brown belt, long ears, wooden club. 1 alert neutral guard club held low; 2 subtle breathing guard; 3 knees bend, draws club behind right shoulder; 4 club raised over head, clearly readable anticipation; 5 swings club down toward LEFT with firm planted feet and torso leaning left; 6 pulls club back toward low guard recovery; 7 reels backward from a hit, eyes squeezed, club still in hand; 8 sits/slumps defeated with dropped club beside body WITHIN cell, no blood. Maintain same goblin and wooden club in all poses, two arms/two legs.",
+      "source": "exec-454cf11e-da02-46da-8574-c4750b4ef884.png"
+    },
+    {
+      "id": "wolf",
+      "tool": "image_gen",
+      "reference": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemies-v1.png",
+      "prompt": "Create a production anime RPG enemy animation sprite atlas from the selected creature in reference. Exactly EIGHT poses in strict 4 columns by 2 rows, equally sized cells. True TRANSPARENT RGBA, NO painted background, no ground shadow, no captions, grids, borders or effects. Every complete silhouette including extremities must remain INSIDE its own cell with wide empty padding, minimum 12% cell width on all sides. Character occupies only central 70% of each cell. Same physical size, colors, anatomy and facing LEFT 3/4 throughout. Do not scale low poses bigger. Render crisp painted anime style matching reference, readable at 140px in game. Read frames left to right top to bottom. No gore. ONLY the gray forest wolf on right of reference: cream muzzle/chest and tail tip, dark gray coat, cyan eyes, no clothing or weapons. 1 standing alert on four paws; 2 subtle breathing standing; 3 crouches low with hind legs coiled and ears back; 4 stretches neck slightly forward ready to pounce, all four paws still grounded; 5 airborne leap facing LEFT, front paws reaching left and back legs extended, whole wolf including tail fits cell; 6 lands front paws and returns toward standing; 7 flinches backward low with ears flattened; 8 lying peacefully defeated/exhausted on side with eyes closed, recognizable wolf, no gore. Keep four anatomically correct legs, same size head/body, not puppy chibi.",
+      "source": "exec-5c1a4075-f72d-4a91-8196-1cbb6ad9032a.png"
+    },
+    {
+      "id": "goblin-padding-fix",
+      "tool": "image_gen",
+      "reference": "exec-454cf11e-da02-46da-8574-c4750b4ef884.png",
+      "prompt": "Edit atlas layout only, keep these SAME eight goblin poses, same style/anatomy/clubs, 4 columns by 2 rows. Scale each COMPLETE goblin with its club down to 70% of current size and center inside its own equal rectangular cell. All eight sprites must have very wide actual transparent gutters: AT LEAST 40px between any character pixel/club/ear/foot and every edge of its cell. Top row feet around y=445, bottom row feet around y=957 in 1536x1024 image. Preserve same physical head size in all poses. Especially row1col3 club, row2col1 right foot, and row2col3 ear must NOT cross their cell's boundary. No overlap, no clipping. True transparent background, no matte, no grid lines, no text or shadows. Do not enlarge images to fill the canvas. This is a small-sprite atlas requiring EMPTY margins.",
+      "source": "exec-46e1f118-e3b1-4c0c-8ce8-da6a59dc9007.png"
+    }
+  ]
+}

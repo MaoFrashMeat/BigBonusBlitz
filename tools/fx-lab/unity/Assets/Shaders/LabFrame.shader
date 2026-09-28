@@ -117,6 +117,12 @@ Shader "Lab/Frame"
                     }
                     c = core * saturate(acc) + base * (glow + pow(saturate(1 - v), 7) * 0.6);
                 }
+                else if (_Mode > 2.5)
+                {
+                    // 炎の床の明かり: 縁ほど明るく、炎に合わせてちらつく（炎の本体は粒子の連番が描く）
+                    float fl = 0.75 + 0.25 * tex2D(_NoiseTex, float2(u * 0.7, t * 0.9)).r;
+                    c = base * pow(saturate(1 - v), 3.0) * fl;
+                }
                 else
                 {
                     // 炎: ノイズを内へ流し、外縁ほど高い値から削る。舌の形は強いノイズで出す。3 段（暗い縁 / 本体 / 芯）

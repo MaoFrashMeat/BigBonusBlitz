@@ -1,0 +1,4 @@
+fire_flame03_16x4.png（fb_flame_16x4.png は Brackeys 経由の同じ作者の Flame02）
+Unity Technologies "Free VFX Image Sequences & Flipbooks" (Thomas Iché)
+https://unity.com/blog/engine-platform/free-vfx-image-sequences-flipbooks
+License: CC0 (public domain)

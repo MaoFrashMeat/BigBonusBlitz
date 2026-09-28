@@ -1,0 +1,35 @@
+{
+  "date": "2026-09-28",
+  "files": [
+    {
+      "file": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-goblin-v2.png",
+      "sha256": "806910222358a5585647d077edabbe96b0bbe592afd239a4b8138104b120b83d",
+      "size": [
+        1536,
+        1024
+      ],
+      "alphaZeroFraction": 0.7872136433919271,
+      "status": "prototype, original PNG unmodified"
+    },
+    {
+      "file": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-slime-v1.png",
+      "sha256": "e8ea07de117ccaa28ba4ce89754b5e0befc55552bd3286bc349c881a985e74e6",
+      "size": [
+        1536,
+        1024
+      ],
+      "alphaZeroFraction": 0.7560386657714844,
+      "status": "prototype, original PNG unmodified"
+    },
+    {
+      "file": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-wolf-v1.png",
+      "sha256": "825a3e96175baa7460044907836553232ed6c95b8a503a76f2decaf0b7611106",
+      "size": [
+        1536,
+        1024
+      ],
+      "alphaZeroFraction": 0.7024269104003906,
+      "status": "prototype, original PNG unmodified"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "date": "2026-09-28",
+  "tool": "image_gen",
+  "reference": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/sword-v2.png",
+  "source": "C:\\Users\\ts081\\.codex\\generated_images\\01a0918e-f596-7aa0-b6a0-25dbb4e2f317\\exec-10207619-393f-4669-8b5b-02b9ec6d4845.png",
+  "asset": "UnityProject\\BigBonusBlitz\\Assets\\Resources\\Art\\HeroPrototype\\support-v1.png",
+  "sha256": "a35142c94a7580508d9a07dca342a791155ab73e22ae960cd18c88ea57e5c6b2",
+  "size": [
+    1536,
+    1024
+  ],
+  "alpha": "original RGBA, unchanged; bounds threshold 200",
+  "purpose": "focus, guard, cast review poses; not final production art"
+}
