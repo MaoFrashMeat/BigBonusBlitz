@@ -99,6 +99,12 @@
   出方は 2 倍から跳ね返る 0.12 秒・2F 白・2F ごとに震える・膨らんで消える（`Sfx`）。フォントは見本用に BIZ UD ゴシック Bold（本番は OFL のフォントに替える）
 - 決まりと数値は [FX_KNOWHOW.md](FX_KNOWHOW.md) の 2.5。コマ: `docs/art/2026-09-28/fx-dynamics-sfx.png`
 
+## 2026-09-28 Blender で炎の素材を作った（順番の 3。2 の素材の差し替えは本人のログイン待ち）
+
+- `tools/fx-lab/blender/fire_sim.py`: Blender 5.2 の流体シミュレーションで炎を計算し、正面から白黒で描き出す（焚き火 / 横長の炎）。`make_flipbook.py` で 8×8 の連番
+- 部品 P18（炎）を Blender の焚き火に。炎の枠（20）とステップアップの 4〜6 段は、枠の帯に横長の炎の連番を流す（`Lab/Frame` の 5）
+- 作り方と数値は [FX_KNOWHOW.md](FX_KNOWHOW.md) の 4.5。コマ: `docs/art/2026-09-28/fx-blender-fire.png`
+
 ## 本人の確定事項
 
 - 火花（実写寄り）は「いいじゃん」（2026-09-25）

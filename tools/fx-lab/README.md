@@ -29,6 +29,7 @@ batchmode で連番 PNG → mp4 にする。本体を Unity で開いたまま�
 | `unity/Assets/Shaders/LabBloom.shader` | ブルームと仕上げ（揺れ・ズーム・方向ブラー・流線/集中線・ネガ・白フラッシュ・トーンマップ） |
 | `unity/Assets/Shaders/LabFx*.shader` / `LabMisc.shader` | 粒子の加算・アルファ、板ポリの加算 |
 | `textures/` | エフェクト素材（`LAB_TEX` で読む）。Kenney Particle Pack（CC0、`LICENSE-kenney.txt`）の単体 12 枚、Brackeys VFX Bundle（CC0、`LICENSE-brackeys.txt`）の連番 7 本（`fb_<名前>_<横>x<縦>.png`）、Unity 公式の炎の連番（CC0、`LICENSE-unity-vfx.txt`）、斬撃の繊維 `slash_fibers.png` |
+| `blender/fire_sim.py` / `blender/make_flipbook.py` | Blender（5.2）で炎を流体シミュレーション → 8×8 の連番（`textures/bl_*_8x8.png`）。`blender -b -P blender/fire_sim.py -- <出力> 128 64 campfire` |
 | `make_sfx_tex.py` | 漫画の擬音のテクスチャを作る（`textures/sfx_*.png`） |
 | `unity/Assets/Shaders/LabRing.shader` | 強弱のある輪と放射の筋（角度ごとのムラ・切れ目・削れて消える） |
 | `unity/Assets/Shaders/LabSprite.shader` | 板の絵（擬音）。半透明・白く飛ばす |

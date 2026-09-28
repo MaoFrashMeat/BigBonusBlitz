@@ -8,6 +8,9 @@ Shader "Lab/Frame"
     {
         _NoiseTex ("Noise", 2D) = "gray" {}
         _FiberTex ("Fibers", 2D) = "black" {}
+        _FireTex ("Fire flipbook 8x8", 2D) = "black" {}
+        _FireRate ("FireRate", Float) = 30
+        _FireTile ("FireTile", Float) = 3
         _Mode ("Mode", Float) = 0
         _Col ("Col", Color) = (0.3,0.6,1,1)
         _Core ("Core", Color) = (2,2,2,1)
@@ -28,7 +31,7 @@ Shader "Lab/Frame"
     }
     CGINCLUDE
     #include "UnityCG.cginc"
-    sampler2D _NoiseTex, _FiberTex;
+    sampler2D _NoiseTex, _FiberTex, _FireTex; float _FireRate, _FireTile;
     float _Mode, _Intensity, _Shade, _Thick, _Radius, _UScale, _Burst, _Rainbow, _Seed, _LabT;
     float4 _Col, _Core, _Edge, _Half, _R0, _R1, _R2, _R3;
     struct appdata { float4 pos:POSITION; };
@@ -120,6 +123,29 @@ Shader "Lab/Frame"
                         glow += on * exp(-d * 28) * 0.45;
                     }
                     c = core * saturate(acc) + base * (glow + pow(saturate(1 - v), 7) * 0.6);
+                }
+                else if (_Mode > 4.5)
+                {
+                    // 枠の炎（Blender の流体シミュレーションの連番を帯に並べる）。2 枚をずらして重ね、継ぎ目とくり返しを隠す
+                    float wave = 0.5 + 0.5 * sin(u * 6.2831853 - t * 4.5);
+                    float vv = v / (0.85 + 0.35 * wave + 0.4 * _Burst);
+                    float T = 0;
+                    [unroll] for (int L = 0; L < 2; L++)
+                    {
+                        float uu = u * _FireTile + L * 0.5 + _Seed;
+                        float fr = floor(t * _FireRate + L * 29 + floor(uu) * 17);
+                        fr = fr - 64 * floor(fr / 64);
+                        float col = fr - 8 * floor(fr / 8), row = floor(fr / 8);
+                        float2 tuv = float2((col + frac(uu)) / 8, 1 - (row + 1 - saturate(vv)) / 8);
+                        float val = vv < 1 ? tex2D(_FireTex, tuv).r : 0;
+                        T = max(T, val * (L == 0 ? 1 : 0.85));
+                    }
+                    T = pow(saturate(T * 1.15), 1.35);
+                    float3 r = lerp(_R0.rgb, _R1.rgb, smoothstep(0.0, 0.3, T));
+                    r = lerp(r, _R2.rgb, smoothstep(0.3, 0.65, T));
+                    r = lerp(r, _R3.rgb, smoothstep(0.65, 1.0, T));
+                    if (_Rainbow > 0) { float lr = dot(r, float3(0.3, 0.55, 0.15)); r = lerp(lr * base * 1.6, r, smoothstep(0.75, 1.0, T)); }
+                    c = r * smoothstep(0.015, 0.2, T);
                 }
                 else if (_Mode > 3.5)
                 {

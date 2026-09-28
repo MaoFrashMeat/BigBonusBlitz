@@ -924,6 +924,9 @@ public static class FxLab
     static readonly FirePal FireGreen = new FirePal { c0 = new Color(0f, 0.08f, 0.02f), c1 = new Color(0.04f, 0.55f, 0.1f), c2 = new Color(0.35f, 1f, 0.3f), c3 = new Color(1.6f, 2.8f, 1.5f), light = new Color(0.3f, 1f, 0.35f) };
     static readonly FirePal FireRainbow = new FirePal { c0 = new Color(0.12f, 0.01f, 0f), c1 = new Color(0.9f, 0.16f, 0.01f), c2 = new Color(1f, 0.55f, 0.08f), c3 = new Color(2.4f, 2.4f, 2.4f), light = new Color(0.9f, 0.6f, 0.9f), rainbow = true };
 
+    // 連番のコマの並び。Blender で作った炎（bl_*）は 8×8、それ以外の炎の連番は 16×4
+    static Vector2Int GridOf(Texture t) => t != null && t.name.StartsWith("bl_") ? new Vector2Int(8, 8) : new Vector2Int(16, 4);
+
     static Material FireMat(Ctx c, Texture2D sheet, FirePal pal, float intensity)
     {
         var m = new Material(Shader.Find("Lab/Fire")) { mainTexture = sheet };
@@ -950,8 +953,9 @@ public static class FxLab
         SizeLife(ps, surge ? Curve((0, 0.5f), (0.25f, 1.15f), (1, 1.2f)) : Curve((0, 0.7f), (0.3f, 1f), (1, 1.1f)));
         ColorLife(ps, Grad(new[] { (0f, Color.white), (1f, Color.white) }, new[] { (0f, 0f), (0.1f, 1f), (0.6f, 0.85f), (1f, 0f) }));
         // 連番は寿命の間に 64 コマを流す（約 3 倍速。メラメラを速く）
-        var ts = ps.textureSheetAnimation; ts.enabled = true; ts.mode = ParticleSystemAnimationMode.Grid; ts.numTilesX = 16; ts.numTilesY = 4;
-        ts.frameOverTime = new MinMaxCurve(1f, AnimationCurve.Linear(0, 0, 1, 0.999f)); ts.startFrame = new MinMaxCurve(0, 63);
+        var grid = GridOf(mat.mainTexture);
+        var ts = ps.textureSheetAnimation; ts.enabled = true; ts.mode = ParticleSystemAnimationMode.Grid; ts.numTilesX = grid.x; ts.numTilesY = grid.y;
+        ts.frameOverTime = new MinMaxCurve(1f, AnimationCurve.Linear(0, 0, 1, 0.999f)); ts.startFrame = new MinMaxCurve(0, grid.x * grid.y - 1);
         c.Play(ps, 0f);
         var rnd = new System.Random((int)seed); float R() => (float)rnd.NextDouble();
         float rot = Mathf.Atan2(dir.x, dir.y) * Mathf.Rad2Deg, phase = R();
@@ -996,7 +1000,8 @@ public static class FxLab
             const float R = 1.0f; var half = new Vector2(6.4f, 3.6f);
             float per = 4 * (half.x - R) + 4 * (half.y - R) + 2 * Mathf.PI * R;
             var fm = new Material(Shader.Find("Lab/Frame"));
-            fm.SetTexture("_NoiseTex", c.tx.noise); fm.SetFloat("_Mode", 4); fm.SetFloat("_Seed", seed * 0.37f);
+            fm.SetTexture("_NoiseTex", c.tx.noise); fm.SetFloat("_Mode", c.tx.blWall != null ? 5 : 4); fm.SetFloat("_Seed", seed * 0.37f);
+            if (c.tx.blWall != null) { fm.SetTexture("_FireTex", c.tx.blWall); fm.SetFloat("_FireRate", 45); fm.SetFloat("_FireTile", 1); }   // Blender の炎（一周で約 7 枚並ぶ）
             fm.SetVector("_Half", half); fm.SetFloat("_Radius", R); fm.SetFloat("_UScale", Mathf.Round(per / 2.2f) / per);
             fm.SetFloat("_Thick", 1.8f * power); fm.SetFloat("_Shade", 0.8f);
             fm.SetColor("_R0", pal.c0); fm.SetColor("_R1", pal.c1); fm.SetColor("_R2", pal.c2); fm.SetColor("_R3", pal.c3); fm.SetFloat("_Rainbow", pal.rainbow ? 1 : 0);
@@ -1202,8 +1207,9 @@ public static class FxLab
     static void P18Flame(Ctx c)
     {
         var a = new Vector3(-1.1f, GroundY + 0.9f, -0.5f); var b = new Vector3(1.1f, GroundY + 0.9f, -0.5f);
+        var fire = c.tx.blCampfire ?? c.tx.fbFlame;
         EdgeFire(c, "FlameBed", a + new Vector3(0, -0.35f, 0), b + new Vector3(0, -0.35f, 0), Vector2.up, 26f, 0.55f, 0.8f, FireMat(c, c.tx.fireFlame03 ?? c.tx.fbFlame, FireRed, 1.3f), 1171, 0.1f, 9f, false, life0: 0.35f, life1: 0.5f);
-        EdgeFire(c, "Flame", a, b, Vector2.up, 9f, 1.2f, 1.9f, FireMat(c, c.tx.fbFlame, FireRed, 1.4f), 1172, 0.1f, 9f, false);
+        EdgeFire(c, "Flame", a, b, Vector2.up, 9f, 1.2f, 1.9f, FireMat(c, fire, FireRed, 1.4f), 1172, 0.1f, 9f, false);
         var em = SimplePS(c, "FlameEmbers", new Vector3(0, GroundY + 0.6f, -0.6f), AddMat(c.tx.dot, 4f), 1173, 0.1f, 9f, 30, 0.8f, 1.8f, 0.02f, 0.045f, Color.white);
         var sh = em.shape; sh.enabled = true; sh.shapeType = ParticleSystemShapeType.Box; sh.scale = new Vector3(2f, 0.2f, 0.2f);
         var v = em.velocityOverLifetime; v.enabled = true; v.space = ParticleSystemSimulationSpace.World; v.x = new MinMaxCurve(-0.4f, 0.4f); v.y = new MinMaxCurve(1.5f, 3.5f); v.z = new MinMaxCurve(0f, 0f);
@@ -1856,7 +1862,7 @@ public static class FxLab
         public float heat; public Color fireLight;   // 炎の枠: 陽炎の強さ、照り返し（a = 届く距離）
         public Vector4 shock;   // 空間の歪み: xy 中心（uv）、z 半径（画面の高さ比）、w 強さ
     }
-    class Tx { public Texture2D dot, glow, ring, star4, diamond, plus, flame, flame2, streak, trail, noise, column, coinFace, burst, air, sparkle, magic, fbHitLines, fbBigHit, fbCharge, fbElecRing, fbFireRing, fbFlame, fbSmoke, fibers, square, fireFlame03, fbStarExp, fbVortex, fbWavy, lightRing, bolt, ringDouble, twirl, starCross, smokePuff, sfxDon, sfxZuba, sfxBari, sfxGo, sfxKira; }
+    class Tx { public Texture2D dot, glow, ring, star4, diamond, plus, flame, flame2, streak, trail, noise, column, coinFace, burst, air, sparkle, magic, fbHitLines, fbBigHit, fbCharge, fbElecRing, fbFireRing, fbFlame, fbSmoke, fibers, square, fireFlame03, fbStarExp, fbVortex, fbWavy, blCampfire, blWall, lightRing, bolt, ringDouble, twirl, starCross, smokePuff, sfxDon, sfxZuba, sfxBari, sfxGo, sfxKira; }
     class Ctx
     {
         public Transform root, heroT, goblinT; public Texture2D hero, goblin; public Tx tx;
@@ -2154,7 +2160,10 @@ public static class FxLab
             var fib = new Texture2D(2, 2, TextureFormat.RGBA32, true, true); fib.LoadImage(File.ReadAllBytes(Path.Combine(dir, "slash_fibers.png")));
             fib.wrapModeU = TextureWrapMode.Repeat; fib.wrapModeV = TextureWrapMode.Clamp; fib.filterMode = FilterMode.Trilinear; fib.Apply(true); tx.fibers = fib;
             tx.fbElecRing = K("fb_elecring_6x5"); tx.fireFlame03 = K("fire_flame03_16x4");
-            tx.fbStarExp = K("fb_starexp_7x6");   // 名前は 6x5 で配られていたが実際は 7×6 tx.fbVortex = K("fb_vortex_6x5"); tx.fbWavy = K("fb_wavy_6x5");
+            tx.fbStarExp = K("fb_starexp_7x6");
+            // Blender の流体シミュレーションで作った炎（tools/fx-lab/blender）。無ければ既製の連番のまま
+            if (File.Exists(Path.Combine(dir, "bl_campfire_8x8.png"))) { tx.blCampfire = K("bl_campfire_8x8"); tx.blCampfire.name = "bl_campfire"; }
+            if (File.Exists(Path.Combine(dir, "bl_wall_8x8.png"))) { tx.blWall = K("bl_wall_8x8"); tx.blWall.name = "bl_wall"; }   // 名前は 6x5 で配られていたが実際は 7×6 tx.fbVortex = K("fb_vortex_6x5"); tx.fbWavy = K("fb_wavy_6x5");
             tx.lightRing = K("light_ring"); tx.bolt = K("bolt"); tx.ringDouble = K("ring_double"); tx.twirl = K("twirl"); tx.starCross = K("star_cross"); tx.smokePuff = K("smoke_puff");
             tx.sfxDon = K("sfx_don"); tx.sfxZuba = K("sfx_zuba"); tx.sfxBari = K("sfx_bari"); tx.sfxGo = K("sfx_go"); tx.sfxKira = K("sfx_kira");   // 擬音（make_sfx_tex.py） tx.fbFireRing = K("fb_firering_6x5"); tx.fbFlame = K("fb_flame_16x4"); tx.fbSmoke = K("fb_smoke_8x8");
         }
