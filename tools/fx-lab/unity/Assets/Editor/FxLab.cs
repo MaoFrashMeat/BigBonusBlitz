@@ -576,6 +576,7 @@ public static class FxLab
     static Func<Vector2, Vector3> OnSprite(Transform q) => uv => q.TransformPoint(new Vector3(uv.x - 0.5f, uv.y - 0.5f, 0));
 
     static float Ease01(float t, float t0, float dur) => Mathf.Clamp01((t - t0) / dur);
+    static Color WithAlpha(Color c, float a) { c.a = a; return c; }
 
     // 倒れる間は背景を沈めて、崩れる粒を読ませる（sim の t0 から dur、戻りは 0.3 秒）
     static void DeathDim(Ctx c, float t0, float dur, float dim = 0.5f)
@@ -966,7 +967,7 @@ public static class FxLab
                 position = Vector3.Lerp(a, b, u) + perp * ((R() - 0.5f) * 0.15f),
                 startSize3D = new Vector3(w, w * (1.9f + R() * 0.2f), 1), rotation = rot + (R() - 0.5f) * 12f,
                 startLifetime = surge ? Mathf.Lerp(0.4f, 0.55f, R()) : Mathf.Lerp(life0, life1, R()),
-                startColor = rainbow ? grad.Evaluate(R()) : (Color32)Color.white, applyShapeToPosition = false
+                startColor = WithAlpha(rainbow ? grad.Evaluate(R()) : Color.white, Mathf.Lerp(0.65f, 1f, R())), applyShapeToPosition = false   // 明るさを 1 本ずつばらす（強弱）
             };
             ps.Emit(ep, 1);
         }
@@ -1248,22 +1249,19 @@ public static class FxLab
     }
     static void P22Bolt(Ctx c)
     {
-        var top = new Vector3(0.4f, 4f, -1f); var hit = new Vector3(0, GroundY + 0.1f, -1f);
-        Bolt(c, top, hit, 0.25f, 0.75f, new Color(0.5f, 0.7f, 1f), 0.07f, 1211);
-        Bolt(c, top + new Vector3(-0.6f, 0, 0), hit + new Vector3(0.5f, 0.6f, 0), 0.3f, 0.6f, new Color(0.5f, 0.7f, 1f), 0.04f, 1212, jag: 0.5f);
-        Flare(c, hit, 0.25f, PCyan, 3f, 1213); Flip(c, "BoltRing", hit + new Vector3(0, 0.2f, 0), c.tx.fbElecRing, 6, 5, 0, 12, 0.35f, 3f, Color.white, 1.4f, 1214, t: 0.27f);
-        c.OnUpdate(t => { if (t >= 0.25f && t < 0.29f) c.post.flash = 0.35f; });
+        Lightning(c, new Vector3(0.5f, 4.2f, -1f), new Vector3(-0.2f, GroundY + 0.1f, -1f), 0.25f, new Color(0.45f, 0.6f, 1f), 1211);
     }
     static void P23Arcs(Ctx c)
     {
-        for (int k = 0; k < 6; k++)
+        // 一点から放射する放電: 短い稲妻を時間をずらして 5 本（強弱のある枝つき）
+        for (int k = 0; k < 5; k++)
         {
-            float ang = k * 60f * Mathf.Deg2Rad;
-            var a = PO + new Vector3(Mathf.Cos(ang) * 0.3f, Mathf.Sin(ang) * 0.3f, -1f); var b = PO + new Vector3(Mathf.Cos(ang + 0.4f) * 1.5f, Mathf.Sin(ang + 0.4f) * 1.5f, -1f);
-            Bolt(c, a, b, 0.2f + k * 0.03f, 2.6f, new Color(0.6f, 0.5f, 1f), 0.035f, 1221 + (uint)k, segs: 12, jag: 0.25f, blink: 0.45f);
+            float ang = (k * 72f + 15f) * Mathf.Deg2Rad;
+            var b = PO + new Vector3(Mathf.Cos(ang) * 2.0f, Mathf.Sin(ang) * 1.6f, -1f);
+            Lightning(c, PO + new Vector3(0, 0, -1f), b, 0.2f + k * 0.18f, new Color(0.65f, 0.45f, 1f), 1221 + (uint)k * 10, width: 0.045f, branches: 3, scale: 0.8f, impact: false);
         }
         Glow(c, PO, 0.2f, PPurple, 2.5f, 1228);
-        var ps = SimplePS(c, "ArcGlow", PO + new Vector3(0, 0, -0.5f), AddMat(c.tx.glow, 0.6f), 1229, 0.2f, 3f, 12, 0.2f, 0.3f, 1.5f, 2.2f, PPurple);
+        Flare(c, PO, 0.2f, PPurple, 2.2f, 1229);
     }
     static void P24Charge(Ctx c)
     {
@@ -1310,6 +1308,68 @@ public static class FxLab
         Surge(c, 0.2f, new Vector3(0, -0.5f, 0), new Vector3(0, GroundY + 0.02f, 0), PCyan, 0.8f);
     }
 
+    // ================= 漫画の擬音（本人 2026-09-28「コミックの擬音エフェクトも欲しい」）=================
+    // 出る: 2 倍から跳ね返って 1 倍（0.12 秒）・2F 白・傾きが戻る / 出ている間: 2F ごとに小刻みに震える / 消える: 少し膨らんで 0.12 秒で消える
+    static void Sfx(Ctx c, Texture2D tex, Vector3 pos, float t0, float rotDeg, float height, float hold, float shake = 0.035f, uint seed = 1)
+    {
+        var size = new Vector2(height * tex.width / tex.height, height);
+        var m = new Material(Shader.Find("Lab/Sprite")) { mainTexture = tex };
+        var q = Quad(c.root, "Sfx", pos + new Vector3(0, 0, -3.5f), size, m);
+        var r = new System.Random((int)seed);
+        Vector3 jit = Vector3.zero; int lastStep = -1;
+        c.OnUpdateReal(rt =>
+        {
+            float a = rt - c.Real(t0);
+            if (a < 0 || a > hold + 0.14f) { q.gameObject.SetActive(false); return; }
+            q.gameObject.SetActive(true);
+            float sIn = a < 0.12f ? Mathf.LerpUnclamped(2.0f, 1f, EaseOutBack(a / 0.12f)) : 1f;
+            float ex = Mathf.Clamp01((a - hold) / 0.12f);
+            int step = Mathf.FloorToInt(a * 30);
+            if (step != lastStep) { lastStep = step; jit = new Vector3(((float)r.NextDouble() - 0.5f) * 2, ((float)r.NextDouble() - 0.5f) * 2, 0) * shake; }
+            q.localScale = new Vector3(size.x, size.y, 1) * (sIn * (1 + 0.25f * ex));
+            q.position = pos + new Vector3(0, 0, -3.5f) + (a > 0.12f ? jit : Vector3.zero);
+            q.rotation = Quaternion.Euler(0, 0, rotDeg + (a < 0.12f ? 14f * (1 - a / 0.12f) : 0));
+            m.SetFloat("_Flash", a < 2 / 60f ? 1f : 0f);
+            m.SetColor("_Color", new Color(1, 1, 1, 1 - ex));
+        });
+    }
+
+    static void P31SfxDon(Ctx c)
+    {
+        Flip(c, "BigHit", PO, c.tx.fbBigHit, 6, 5, 1, 12, 0.36f, 5f, Color.white, 1.8f, 1311, t: 0.25f);
+        Flip(c, "HitLines", PO, c.tx.fbHitLines, 6, 4, 1, 12, 0.32f, 6f, new Color(1f, 0.9f, 0.6f), 2f, 1312, t: 0.25f);
+        c.OnUpdate(t => { float a = t - 0.25f; if (a >= 0 && a < 0.35f) c.post.trauma += 0.7f * (1 - a / 0.35f); if (a >= 0 && a < 0.03f) c.post.flash = 0.35f; });
+        Sfx(c, c.tx.sfxDon, PO + new Vector3(0.6f, 1.2f, 0), 0.27f, 8f, 2.2f, 0.7f, 0.05f, 1313);
+    }
+    static void P32SfxZuba(Ctx c)
+    {
+        SlashThrough(c, PO, -30, 25, 2.6f, 1.15f, 165, Cyan, 0.25f);
+        CutLine(c, PO, -30, 8f, 0.3f, PCyan);
+        Sfx(c, c.tx.sfxZuba, PO + new Vector3(-0.8f, 1.4f, 0), 0.3f, 12f, 1.9f, 0.6f, 0.03f, 1321);
+    }
+    static void P33SfxBari(Ctx c)
+    {
+        Lightning(c, new Vector3(0.9f, 4.2f, -1f), new Vector3(0.2f, GroundY + 0.1f, -1f), 0.25f, new Color(0.45f, 0.6f, 1f), 1331);
+        Sfx(c, c.tx.sfxBari, PO + new Vector3(-1.6f, 1.0f, 0), 0.27f, -6f, 1.4f, 0.8f, 0.07f, 1332);
+    }
+    static void P34SfxGogo(Ctx c)
+    {
+        // ゴゴゴ: 画面を暗くし、「ゴ」を時間差で置いて震わせ続ける（大きさも位置もばらす）
+        c.OnUpdate(t => { if (t >= 0.2f) { c.post.stageDim = Mathf.Max(c.post.stageDim, 0.35f); c.post.darken = 0.6f; } });
+        var spots = new[] { (-4.2f, 1.6f, 1.6f, -8f), (-2.2f, 2.3f, 1.2f, 6f), (2.6f, 1.9f, 1.4f, -4f), (4.4f, 0.9f, 1.0f, 10f), (-3.4f, -0.4f, 1.1f, 4f), (3.6f, -1.2f, 1.3f, -10f) };
+        for (int k = 0; k < spots.Length; k++)
+        {
+            var (x, y, h, rot) = spots[k];
+            Sfx(c, c.tx.sfxGo, new Vector3(x, y, 0), 0.25f + k * 0.12f, rot, h, 2.2f - k * 0.12f, 0.045f, 1341 + (uint)k);
+        }
+    }
+    static void P35SfxKira(Ctx c)
+    {
+        Bokeh(c, PO, 0.25f, new Color(1f, 0.7f, 0.9f), 2.2f, 1351); Flare(c, PO + new Vector3(0.8f, 0.6f, 0), 0.25f, new Color(1f, 0.7f, 0.9f), 2.8f, 1352);
+        Glint(c, PO + new Vector3(-0.8f, 0.2f, -1f), 0.35f, Color.white); Glint(c, PO + new Vector3(1.2f, -0.4f, -1f), 0.5f, Color.white);
+        Sfx(c, c.tx.sfxKira, PO + new Vector3(0, 1.3f, 0), 0.27f, -5f, 1.3f, 0.9f, 0.015f, 1353);
+    }
+
     // 部品のクリップ一覧（名前・秒・舞台）
     static IEnumerable<Clip> PartClips()
     {
@@ -1344,6 +1404,132 @@ public static class FxLab
         yield return P("p28_aura", 2.4f, P28Aura, hero: true);
         yield return P("p29_shield", 3.2f, ShieldClip, hero: true);
         yield return P("p30_dissolve", 2.0f, DeathDissolve, goblin: true);
+        yield return P("p31_sfx_don", 1.4f, P31SfxDon);
+        yield return P("p32_sfx_zuba", 1.3f, P32SfxZuba);
+        yield return P("p33_sfx_bari", 1.4f, P33SfxBari);
+        yield return P("p34_sfx_gogo", 2.8f, P34SfxGogo, forest: true, hero: true, goblin: true);
+        yield return P("p35_sfx_kira", 1.5f, P35SfxKira);
+    }
+
+    // ================= 稲妻（強弱のある作り。本人 2026-09-28「電撃とか細い箇所・大きい箇所もない」）=================
+    // 幹 → 枝 → 枝の枝で太さと明るさを段にする（幹 1 : 枝 0.45 : 枝の枝 0.2、明るさ 1 : 0.6 : 0.35）。どれも先へ細る
+    // 形は大きな折れ → 細かいギザギザの順に中点をずらして作る（段ごとにずれを 0.55 倍）
+    // 光り方は本物の雷の「再発光」: 光る → 消える（残光）→ また光る を 2〜3 回。2 回目以降は幹と一部の枝だけ
+    static List<Vector3> Jagged(Vector3 a, Vector3 b, float disp, int levels, System.Random r)
+    {
+        var pts = new List<Vector3> { a, b };
+        for (int l = 0; l < levels; l++)
+        {
+            var np = new List<Vector3>(pts.Count * 2);
+            for (int i = 0; i < pts.Count - 1; i++)
+            {
+                var p = pts[i]; var q = pts[i + 1]; var d = q - p;
+                var perp = new Vector3(-d.y, d.x, 0).normalized;
+                np.Add(p); np.Add((p + q) * 0.5f + perp * (((float)r.NextDouble() * 2 - 1) * disp));
+            }
+            np.Add(pts[pts.Count - 1]); pts = np; disp *= 0.55f;
+        }
+        return pts;
+    }
+
+    class Channel { public List<Vector3> pts; public int gen; public LineRenderer core, glow; public float seedT; }
+
+    static void Lightning(Ctx c, Vector3 a, Vector3 b, float t0, Color glowCol, uint seed, float width = 0.075f, int branches = 6, float scale = 1f, bool impact = true)
+    {
+        var r = new System.Random((int)seed);
+        float R() => (float)r.NextDouble();
+        var chans = new List<Channel>();
+        float len = (b - a).magnitude;
+        var main = Jagged(a, b, len * 0.16f, 7, r);
+        chans.Add(new Channel { pts = main, gen = 0 });
+        // 枝: 幹の 15〜80% の位置から、幹の向きを 20〜50° ずらして伸ばす。長さは残りの 25〜55%
+        for (int k = 0; k < branches; k++)
+        {
+            int i0 = Mathf.Clamp((int)(main.Count * (0.15f + R() * 0.65f)), 1, main.Count - 2);
+            var from = main[i0]; var dir = (main[Mathf.Min(i0 + 4, main.Count - 1)] - main[i0 - 1]).normalized;
+            float ang = (R() < 0.5f ? -1 : 1) * (20 + R() * 30) * Mathf.Deg2Rad;
+            var bd = new Vector3(dir.x * Mathf.Cos(ang) - dir.y * Mathf.Sin(ang), dir.x * Mathf.Sin(ang) + dir.y * Mathf.Cos(ang), 0);
+            float bl = len * (1 - i0 / (float)main.Count) * (0.25f + R() * 0.3f);
+            var bp = Jagged(from, from + bd * bl, bl * 0.2f, 5, r);
+            chans.Add(new Channel { pts = bp, gen = 1 });
+            if (R() < 0.55f)
+            {
+                int j0 = Mathf.Clamp((int)(bp.Count * (0.3f + R() * 0.4f)), 1, bp.Count - 2);
+                float ang2 = (R() < 0.5f ? -1 : 1) * (25 + R() * 30) * Mathf.Deg2Rad;
+                var d2 = (bp[j0 + 1] - bp[j0 - 1]).normalized;
+                var bd2 = new Vector3(d2.x * Mathf.Cos(ang2) - d2.y * Mathf.Sin(ang2), d2.x * Mathf.Sin(ang2) + d2.y * Mathf.Cos(ang2), 0);
+                float bl2 = bl * (0.3f + R() * 0.25f);
+                chans.Add(new Channel { pts = Jagged(bp[j0], bp[j0] + bd2 * bl2, bl2 * 0.22f, 4, r), gen = 2 });
+            }
+        }
+        float[] wGen = { 1f, 0.45f, 0.2f }, bGen = { 1f, 0.6f, 0.35f };
+        foreach (var ch in chans)
+        {
+            LineRenderer Line(string n, float inten)
+            {
+                var lr = new GameObject(n).AddComponent<LineRenderer>(); lr.transform.SetParent(c.root, false);
+                lr.useWorldSpace = true; lr.positionCount = ch.pts.Count; lr.SetPositions(ch.pts.ToArray());
+                lr.sharedMaterial = AddMat(c.tx.trail, inten); lr.textureMode = LineTextureMode.Stretch; lr.numCapVertices = 2; lr.numCornerVertices = 1;
+                // 太さ: 先へ細る。途中にムラ（0.6〜1.25 倍）。幹の根元は太く、枝は先で 0
+                var keys = new List<Keyframe>();
+                for (int k = 0; k <= 8; k++)
+                {
+                    float s = k / 8f;
+                    float taper = ch.gen == 0 ? Mathf.Lerp(1f, 0.35f, s) : Mathf.Pow(1 - s, 0.8f);
+                    keys.Add(new Keyframe(s, taper * (0.6f + 0.65f * R())));
+                }
+                lr.widthCurve = new AnimationCurve(keys.ToArray());
+                return lr;
+            }
+            ch.core = Line("BoltCore", 4.2f * bGen[ch.gen]); ch.core.widthMultiplier = width * scale * wGen[ch.gen];
+            ch.glow = Line("BoltGlow", 0.75f * bGen[ch.gen]); ch.glow.widthMultiplier = width * scale * wGen[ch.gen] * 7f;
+            ch.core.startColor = ch.core.endColor = Color.white; ch.glow.startColor = ch.glow.endColor = glowCol;
+            ch.seedT = R();
+        }
+        // 再発光の時刻（60fps のコマ）: 1 回目 0〜3 / 2 回目 6〜9（幹＋枝の半分）/ 3 回目 13〜15（幹だけ）/ 残光は 25 コマで消える
+        var strokes = new[] { (0, 3, 1f, 2), (6, 9, 0.8f, 1), (13, 15, 0.6f, 0) };
+        var jitter = new System.Random((int)seed + 7);
+        int lastStroke = -1;
+        c.OnUpdate(t =>
+        {
+            int f = Mathf.FloorToInt((t - t0) * 60f);
+            float bright = 0; int maxGen = -1, si = -1;
+            for (int s = 0; s < strokes.Length; s++) if (f >= strokes[s].Item1 && f < strokes[s].Item2) { bright = strokes[s].Item3; maxGen = strokes[s].Item4; si = s; }
+            float after = f < 0 ? 0 : Mathf.Clamp01(1 - (f - 3) / 25f) * 0.35f;   // 残光（幹の周りの光だけ）
+            if (si != lastStroke && si >= 0)
+            {
+                lastStroke = si;
+                // 2 回目以降は同じ道筋を少しだけずらす（形はほぼ同じ）
+                foreach (var ch in chans)
+                {
+                    var p = ch.pts.ToArray();
+                    for (int i = 1; i < p.Length - 1; i++) p[i] += new Vector3(((float)jitter.NextDouble() - 0.5f) * 0.04f, ((float)jitter.NextDouble() - 0.5f) * 0.04f, 0);
+                    ch.core.SetPositions(p); ch.glow.SetPositions(p);
+                }
+            }
+            foreach (var ch in chans)
+            {
+                bool lit = bright > 0 && ch.gen <= maxGen && (ch.gen == 0 || ch.seedT < (si == 0 ? 1f : 0.5f));
+                ch.core.enabled = lit;
+                ch.core.startColor = ch.core.endColor = Color.white * (lit ? bright : 0);
+                float g = lit ? bright : (ch.gen == 0 ? after : 0);
+                ch.glow.enabled = g > 0.01f;
+                ch.glow.startColor = ch.glow.endColor = glowCol * g;
+            }
+            if (bright > 0) { c.post.flash = Mathf.Max(c.post.flash, 0.25f * bright); c.post.trauma += 0.35f * bright; }
+        });
+        if (impact)
+        {
+            Flare(c, b, t0, glowCol, 3.2f * scale, seed + 1);
+            Flip(c, "BoltRing" + seed, b + new Vector3(0, 0.15f, -0.2f), c.tx.fbElecRing, 6, 5, 0, 12, 0.35f, 3f * scale, Color.white, 1.4f, seed + 2, t: t0 + 0.02f);
+            var sp = PS(c, "BoltSparks" + seed, b, AddMat(c.tx.diamond, 3f), seed + 3);
+            var m = sp.main; m.startLifetime = new MinMaxCurve(0.15f, 0.4f); m.startSpeed = new MinMaxCurve(3f, 9f); m.startSize = new MinMaxCurve(0.04f, 0.09f); m.startColor = Color.Lerp(glowCol, Color.white, 0.5f); m.gravityModifier = 0.6f;
+            sp.emission.SetBursts(new[] { new Burst(0, 30), new Burst(0.1f, 14), new Burst(0.22f, 8) });
+            var sh = sp.shape; sh.enabled = true; sh.shapeType = ParticleSystemShapeType.Cone; sh.angle = 70; sp.transform.rotation = Quaternion.LookRotation(Vector3.up);
+            var rr = sp.GetComponent<ParticleSystemRenderer>(); rr.renderMode = ParticleSystemRenderMode.Stretch; rr.velocityScale = 0.04f; rr.lengthScale = 1.5f;
+            ColorLife(sp, Grad(new[] { (0f, Color.white), (1f, glowCol) }, new[] { (0f, 1f), (1f, 0f) }));
+            c.Play(sp, t0);
+        }
     }
 
     // ================= 部品: 斬撃 =================
@@ -1453,25 +1639,43 @@ public static class FxLab
     }
 
     // 衝撃波: 半径は一気に広げて後はゆっくり。太さ（＝明るさ）は細→太→細
-    static ParticleSystem Ring(Ctx c, Vector3 pos, float t, Color col, float size, uint seed, float squash = 1f, float delay = 0f)
+    // 衝撃波の輪（Lab/Ring の 0）: 太さと明るさに角度ごとのムラ・切れ目・外縁は硬く内側は柔らかい・最後は削れて消える
+    // 半径は一気に広げて後はゆっくり、太さは細 → 太 → 細（docs/FX_RESEARCH.md 1）
+    static void Ring(Ctx c, Vector3 pos, float t, Color col, float size, uint seed, float squash = 1f, float delay = 0f)
     {
-        var ps = PS(c, "Ring", pos + new Vector3(0, 0, -0.65f), AddMat(c.tx.ring, 1.4f), seed);
-        var m = ps.main; m.startLifetime = 0.25f; m.startSize3D = true; m.startSizeX = size; m.startSizeY = size * squash; m.startSizeZ = 1; m.startColor = col;
-        ps.emission.SetBursts(new[] { new Burst(0, 1) });
-        SizeLife(ps, Curve((0, 0.25f), (0.25f, 0.8f), (1, 1f)));
-        ColorLife(ps, Grad(new[] { (0f, Color.white), (1f, Color.white) }, new[] { (0f, 0.2f), (0.15f, 1f), (1f, 0f) }));
-        c.Play(ps, t, delay); return ps;
+        var m = new Material(Shader.Find("Lab/Ring")); m.SetTexture("_NoiseTex", c.tx.noise); m.SetFloat("_Mode", 0); m.SetFloat("_Seed", (seed % 97) * 0.173f);
+        m.SetColor("_Col", col * 0.9f); m.SetColor("_Core", Color.Lerp(col, Color.white, 0.6f) * 3f);
+        var q = Quad(c.root, "Ring", pos + new Vector3(0, 0, -0.65f), new Vector2(size, size * squash), m);
+        const float life = 0.3f;
+        c.OnUpdateReal(rt =>
+        {
+            float a = (rt - c.Real(t) - delay) / life;
+            q.gameObject.SetActive(a >= 0 && a <= 1);
+            if (a < 0 || a > 1) return;
+            m.SetFloat("_R", Mathf.Lerp(0.06f, 0.46f, 1 - Mathf.Pow(1 - a, 3)));
+            m.SetFloat("_W", 0.012f + 0.05f * Mathf.Sin(Mathf.PI * Mathf.Min(1, a * 1.6f)));
+            m.SetFloat("_Erode", Mathf.Clamp01((a - 0.35f) / 0.65f) * 1.05f);
+            m.SetFloat("_Intensity", Mathf.Clamp01(a / 0.08f) * 1.4f);
+        });
     }
 
-    // 放射の爆ぜ: 棘の形が 5F だけ開いて消える（向きはばらす）
-    static ParticleSystem Burst(Ctx c, Vector3 pos, float t, Color col, float size, uint seed)
+    // 放射の爆ぜ（Lab/Ring の 1）: 筋ごとに長さ・太さ・明るさが違う。3F で伸び、細って消える（全体 9F）
+    static void Burst(Ctx c, Vector3 pos, float t, Color col, float size, uint seed)
     {
-        var ps = PS(c, "Burst", pos + new Vector3(0, 0, -0.68f), AddMat(c.tx.burst, 2.4f), seed);
-        var m = ps.main; m.startLifetime = 0.09f; m.startSize = size; m.startRotation = new MinMaxCurve(0, 6.28f); m.startColor = Color.white;
-        ps.emission.SetBursts(new[] { new Burst(0, 1) });
-        ColorLife(ps, Grad(new[] { (0f, Color.white), (1f, col) }, new[] { (0f, 1f), (1f, 0f) }));
-        SizeLife(ps, Curve((0, 0.7f), (0.4f, 1f), (1, 1.1f)));
-        c.Play(ps, t); return ps;
+        var m = new Material(Shader.Find("Lab/Ring")); m.SetFloat("_Mode", 1); m.SetFloat("_Seed", (seed % 97) * 0.173f); m.SetFloat("_Count", 24);
+        m.SetColor("_Col", col); m.SetColor("_Core", Color.Lerp(col, Color.white, 0.7f) * 3.2f);
+        var q = Quad(c.root, "Burst", pos + new Vector3(0, 0, -0.68f), new Vector2(size, size), m);
+        q.rotation = Quaternion.Euler(0, 0, (seed * 37) % 360);
+        const float life = 0.15f;
+        c.OnUpdateReal(rt =>
+        {
+            float a = (rt - c.Real(t)) / life;
+            q.gameObject.SetActive(a >= 0 && a <= 1);
+            if (a < 0 || a > 1) return;
+            m.SetFloat("_Grow", Mathf.Lerp(0.45f, 1f, Mathf.Clamp01(a / 0.3f)));
+            m.SetFloat("_Erode", Mathf.Clamp01((a - 0.3f) / 0.7f));
+            m.SetFloat("_Intensity", 1.3f);
+        });
     }
 
     // 空気: 薄い煙が広がって消える（1 未満。光らせない）。当たりの重さを足す層
@@ -1652,7 +1856,7 @@ public static class FxLab
         public float heat; public Color fireLight;   // 炎の枠: 陽炎の強さ、照り返し（a = 届く距離）
         public Vector4 shock;   // 空間の歪み: xy 中心（uv）、z 半径（画面の高さ比）、w 強さ
     }
-    class Tx { public Texture2D dot, glow, ring, star4, diamond, plus, flame, flame2, streak, trail, noise, column, coinFace, burst, air, sparkle, magic, fbHitLines, fbBigHit, fbCharge, fbElecRing, fbFireRing, fbFlame, fbSmoke, fibers, square, fireFlame03, fbStarExp, fbVortex, fbWavy, lightRing, bolt, ringDouble, twirl, starCross, smokePuff; }
+    class Tx { public Texture2D dot, glow, ring, star4, diamond, plus, flame, flame2, streak, trail, noise, column, coinFace, burst, air, sparkle, magic, fbHitLines, fbBigHit, fbCharge, fbElecRing, fbFireRing, fbFlame, fbSmoke, fibers, square, fireFlame03, fbStarExp, fbVortex, fbWavy, lightRing, bolt, ringDouble, twirl, starCross, smokePuff, sfxDon, sfxZuba, sfxBari, sfxGo, sfxKira; }
     class Ctx
     {
         public Transform root, heroT, goblinT; public Texture2D hero, goblin; public Tx tx;
@@ -1951,7 +2155,8 @@ public static class FxLab
             fib.wrapModeU = TextureWrapMode.Repeat; fib.wrapModeV = TextureWrapMode.Clamp; fib.filterMode = FilterMode.Trilinear; fib.Apply(true); tx.fibers = fib;
             tx.fbElecRing = K("fb_elecring_6x5"); tx.fireFlame03 = K("fire_flame03_16x4");
             tx.fbStarExp = K("fb_starexp_7x6");   // 名前は 6x5 で配られていたが実際は 7×6 tx.fbVortex = K("fb_vortex_6x5"); tx.fbWavy = K("fb_wavy_6x5");
-            tx.lightRing = K("light_ring"); tx.bolt = K("bolt"); tx.ringDouble = K("ring_double"); tx.twirl = K("twirl"); tx.starCross = K("star_cross"); tx.smokePuff = K("smoke_puff"); tx.fbFireRing = K("fb_firering_6x5"); tx.fbFlame = K("fb_flame_16x4"); tx.fbSmoke = K("fb_smoke_8x8");
+            tx.lightRing = K("light_ring"); tx.bolt = K("bolt"); tx.ringDouble = K("ring_double"); tx.twirl = K("twirl"); tx.starCross = K("star_cross"); tx.smokePuff = K("smoke_puff");
+            tx.sfxDon = K("sfx_don"); tx.sfxZuba = K("sfx_zuba"); tx.sfxBari = K("sfx_bari"); tx.sfxGo = K("sfx_go"); tx.sfxKira = K("sfx_kira");   // 擬音（make_sfx_tex.py） tx.fbFireRing = K("fb_firering_6x5"); tx.fbFlame = K("fb_flame_16x4"); tx.fbSmoke = K("fb_smoke_8x8");
         }
         return tx;
     }

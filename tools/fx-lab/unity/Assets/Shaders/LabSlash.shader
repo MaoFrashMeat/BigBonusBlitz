@@ -69,6 +69,8 @@ Shader "Lab/Slash"
                 float3 col = lerp(_ColOuter.rgb, _ColMid.rgb, body);
                 col = lerp(col, _ColCore.rgb, core);
                 col = lerp(col, _ColCore.rgb, burn); core = max(core, burn);
+                // 強弱: 刃先（s=1）ほど明るく、尾ほど暗い
+                col *= lerp(0.5, 1.1, s);
                 float a = mask * _Alpha * lerp(_ColOuter.a, _ColMid.a, body);
                 return float4(col * a * _LabEmit, a * (1 - core * 0.5));
             }
