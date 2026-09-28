@@ -14,6 +14,7 @@ Shader "Hidden/LabBloom"
     float _Darken, _Invert, _Mono, _Flash; float4 _Tint;
     float _Dim, _Contrast, _Sat;   // 背景を沈める量（0〜1。光っていない所だけ）、表示のコントラストと彩度
     float _Heat, _LabT; float4 _FireLight;   // 炎の枠: 陽炎の強さ、照り返しの色（a = 届く距離 world）
+    float4 _Shock;   // 空間の歪み: xy 中心 uv、z 半径（画面の高さ比）、w 強さ
     struct v2f { float4 pos:SV_POSITION; float2 uv:TEXCOORD0; };
     v2f vert(appdata_img v){ v2f o; o.pos=UnityObjectToClipPos(v.vertex); o.uv=v.texcoord; return o; }
     float3 box4(float2 uv, float d)
@@ -131,6 +132,14 @@ Shader "Hidden/LabBloom"
                     float hm = 1 - smoothstep(0.0, 1.4, edgeD);
                     float2 w = float2(sin(uv.y * 95 - _LabT * 9 + sin(uv.x * 41) * 2.2), cos(uv.x * 73 + uv.y * 51 - _LabT * 7.3));
                     uv += w * (_Heat * 0.0022 * hm);
+                }
+                if (_Shock.w > 0)
+                {
+                    // 空間の歪み: 広がる輪の所だけ、外へ押し出すように uv をずらす
+                    float2 dv = (uv - _Shock.xy) * float2(aspect > 0 ? 1 / aspect : 1.777, 1);
+                    float r = length(dv);
+                    float k = exp(-pow((r - _Shock.z) / 0.045, 2));
+                    uv -= (dv / max(r, 1e-4)) * float2(aspect, 1) * (_Shock.w * 0.035 * k);
                 }
                 float3 c = tex2D(_MainTex, uv).rgb;
                 // 炎の照り返し: 縁に近い所ほど、炎の色で照らす（掛け算。霧ではなく明かりに見せる）
