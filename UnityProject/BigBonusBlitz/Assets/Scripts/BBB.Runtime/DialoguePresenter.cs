@@ -64,6 +64,7 @@ namespace BBB.Runtime
         }
         public void Begin(string who, string text, string heroName="サリア", string expression=null)
         {
+            if(string.IsNullOrEmpty(heroName)||heroName=="主人公")heroName="サリア";
             gameObject.SetActive(true);speaker=who ?? "";narration=speaker=="*";
             Name.text=narration?"":string.IsNullOrEmpty(speaker)||speaker=="主人公"?heroName:speaker;
             portraitFrame.gameObject.SetActive(!narration);

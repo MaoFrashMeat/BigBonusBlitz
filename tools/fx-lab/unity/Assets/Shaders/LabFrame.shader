@@ -166,9 +166,12 @@ Shader "Lab/Frame"
                     // ちぎれて浮く塊: 先の方でだけ、別のノイズが強い所を残す
                     float blob = tex2D(_NoiseTex, float2(u * 1.3 + 0.5, vv * 0.7 - t * 1.2)).r;
                     F = max(F, (blob - 0.72) * 2.2 * smoothstep(0.35, 0.8, vv) * (1 - smoothstep(0.9, 1.2, vv)));
-                    // 中に抜ける小さな穴（アニメの炎の抜け）
-                    float hole = tex2D(_NoiseTex, float2(u * 2.2 + 0.31, vv * 1.4 - t * 1.4)).r;
-                    F -= smoothstep(0.66, 0.74, hole) * smoothstep(0.15, 0.45, vv) * 0.6;
+                    // 穴（本人 2026-09-29「もっと穴だらけ」）: 大きな穴・中くらい・小さな穴の 3 つの大きさ。縦長にして炎と一緒に流す。根元の近くまで抜ける
+                    float h1 = tex2D(_NoiseTex, float2(u * 1.6 + 0.31, vv * 0.7 - t * 1.4)).r;
+                    float h2 = tex2D(_NoiseTex, float2(u * 3.2 + 0.77, vv * 1.3 - t * 1.9)).r;
+                    float h3 = tex2D(_NoiseTex, float2(u * 9.0 + 0.13, vv * 3.2 - t * 2.6)).r;
+                    // 穴の場（大きいほど穴）。段の塗りとは別に、炎を背景まで貫通して抜き、縁に暗い線を付ける
+                    float hf = (max(h1 - 0.53, (h2 - 0.6) * 0.8) + (h3 - 0.5) * 0.04) * smoothstep(0.04, 0.22, vv);   // 大きい穴と中くらいの穴。細かいノイズは縁を揺らすだけ
                     float aa = max(fwidth(F) * 1.1, 1e-3);
                     // 段ごとに別のノイズでしきい値を揺らす（明るい芯そのものが舌の形になる。縁と平行な帯にしない）
                     float m1 = tex2D(_NoiseTex, qw * 2.0 + float2(0.53, 0.29)).r - 0.5;
@@ -179,6 +182,12 @@ Shader "Lab/Frame"
                     float3 ac = a0 * e0;
                     ac = lerp(ac, a1, e1); ac = lerp(ac, a2, e2); ac = lerp(ac, a3, e3);
                     ac *= lerp(1.12, 0.8, saturate(vv));                                   // 同じ段の中でも根元が明るい
+                    float haa = max(fwidth(hf) * 1.2, 1e-3);
+                    float holeCut = smoothstep(0.0, haa, hf);                               // 穴（背景が見える）
+                    float holeRim = smoothstep(-0.035, -0.035 + haa, hf) * (1 - holeCut) * e0;   // 穴の縁の暗い線（炎の中だけ）
+                    ac = lerp(ac, a0 * 0.85, holeRim);
+                    e0 *= 1 - holeCut; e1 *= 1 - holeCut;
+                    ac *= 1 - holeCut;   // 穴の中は色も消す（加算で漏れないように）
                     // 光のエネルギー（本人 2026-09-29「光源らしさ・ほのかな発光・グロウ」）
                     //   芯（明るい 2 段）を HDR にしてブルームで光らせる / 炎の外に柔らかな光の輪（加算。覆いは増やさない）/ 脈打ち
                     float emit = 1 + _Glow * (e2 * 0.25 + e3 * 0.75);   // 芯だけ HDR（塗りの段が白く飛ばない所まで）

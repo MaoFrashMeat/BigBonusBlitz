@@ -12,6 +12,11 @@
     {"speaker":"宿の主人","atlas":"town","cell":0},
     {"speaker":"灯守","atlas":"town","cell":1},
     {"speaker":"店主","atlas":"town","cell":2},
-    {"speaker":"門番","atlas":"town","cell":3}
+    {"speaker":"門番","atlas":"town","cell":3},
+    {"speaker":"行商人","atlas":"travelers","cell":0},
+    {"speaker":"巡礼者","atlas":"travelers","cell":1},
+    {"speaker":"狩人","atlas":"travelers","cell":2},
+    {"speaker":"占い師","atlas":"travelers","cell":3},
+    {"speaker":"王の使者","atlas":"travelers","cell":4}
   ]
 }

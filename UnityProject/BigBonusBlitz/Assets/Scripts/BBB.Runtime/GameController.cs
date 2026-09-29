@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using BBB.Core;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -43,6 +43,7 @@ namespace BBB.Runtime
 
         private RectTransform _charRt;
         private SpriteAnimator _charAnim;
+        private AdventureHeroPresenter _adventureHero;
         private Sprite[] _idleFrames, _walkFrames, _attackFrames;
         private Sprite[] _slashFrames, _castFrames, _guardFrames, _hitFrames, _victoryFrames, _focusFrames;
         private string _charState = "";        // 今流している動き。同じものを再指定しても頭出しし直さない
@@ -50,6 +51,9 @@ namespace BBB.Runtime
 
         private RectTransform _enemyRt;
         private Image _enemyImg;
+        private AdventureEnemyPresenter _adventureEnemy;
+        private int _enemyPresentationVersion;
+        private Coroutine _enemySpawn;
         private CanvasGroup _enemyCg;
         private Coroutine _enemyIdle;
         private Coroutine _enemyRainbow;
@@ -582,6 +586,7 @@ namespace BBB.Runtime
             _charRt = MakeImage(_area, "Character", new Vector2(-AreaW * 0.5f + 0.15f * AreaW + charSize * 0.5f, -AreaH * 0.5f + 6f + charSize * 0.5f), new Vector2(charSize, charSize), null);
             _charRt.GetComponent<Image>().color = Color.white;
             _charAnim = _charRt.gameObject.AddComponent<SpriteAnimator>();
+            if(HeroPresentation.Config.gameplayEnabled)_adventureHero=AdventureHeroPresenter.Attach(_charRt);
 
             // 前兆: 暗幕（背景の上・キャラの下）とシルエット
             _darken = UiFactory.Panel(_area, "Darken", Vector2.zero, new Vector2(AreaW, AreaH), new Color(0, 0, 0, 0)).GetComponent<Image>();
@@ -593,6 +598,7 @@ namespace BBB.Runtime
             // 敵（右 20%）
             _enemyRt = MakeImage(_area, "Enemy", new Vector2(EnemyX, EnemyY), new Vector2(150, 150), null);
             _enemyImg = _enemyRt.GetComponent<Image>();
+            _adventureEnemy = AdventureEnemyPresenter.Attach(_enemyRt,-EnemyBaseSize.y*.5f);
             _enemyCg = _enemyRt.gameObject.AddComponent<CanvasGroup>();
             _enemyCg.alpha = 0f;
             _dustRt = MakeImage(_area, "Dust", _enemyRt.anchoredPosition, new Vector2(180, 180), ArtLoader.Sprite("Art/UI/dust_cloud"));
@@ -1241,7 +1247,7 @@ namespace BBB.Runtime
             RefreshGraphAlwaysLabel();
         }
         /// <summary>レバーオン・Esc でモーダルを閉じる（game-design §16.9: 遊技を止めさせない）。</summary>
-        private void CloseModals() { if (_settingsBox != null) _settingsBox.SetActive(false); if (_debugBox != null) _debugBox.SetActive(false); if (_graphBox != null) _graphBox.SetActive(false); if (_mapBox != null) _mapBox.SetActive(false); if (_trophyBox != null) { Destroy(_trophyBox); _trophyBox = null; } if (_statsBox != null) { Destroy(_statsBox); _statsBox = null; } if (_curseListBox != null) { Destroy(_curseListBox); _curseListBox = null; } if (_equipBox != null) { Destroy(_equipBox); _equipBox = null; } }
+        private void CloseModals() { _curseHud?.HideTooltip(); if (_settingsBox != null) _settingsBox.SetActive(false); if (_debugBox != null) _debugBox.SetActive(false); if (_graphBox != null) _graphBox.SetActive(false); if (_mapBox != null) _mapBox.SetActive(false); if (_trophyBox != null) { Destroy(_trophyBox); _trophyBox = null; } if (_statsBox != null) { Destroy(_statsBox); _statsBox = null; } if (_curseListBox != null) { Destroy(_curseListBox); _curseListBox = null; } if (_equipBox != null) { Destroy(_equipBox); _equipBox = null; } }
 
         /// <summary>実績と図鑑の窓の開け閉め（★ ボタン）。開くたびに作り直す（解除と進み具合が変わるため）。</summary>
         private void ToggleTrophy()
@@ -1290,6 +1296,7 @@ namespace BBB.Runtime
 
         private void RefreshUi()
         {
+            _adventureHero?.Equip(_m.Equip.WornOf(EquipSlot.Weapon));
             _bg?.PlaceWeatherAboveCharacters();
             if(_bg!=null && _bg.CurrentStageId!=_m.Adv.nodeId){_bg.SetStage(_m.Adv.nodeId);_bg.PlaceWeatherAboveCharacters();}
             if(_bgOuter!=null && _bgOuter.CurrentStageId!=_m.Adv.nodeId)_bgOuter.SetStage(_m.Adv.nodeId);
@@ -1574,17 +1581,21 @@ namespace BBB.Runtime
         /// <summary>第三停止のバッジに結果（○ = 正解 / × = 外れ）を出し、少し見せてから消す。</summary>
         private IEnumerator RevealNaviBadge(int i, bool ok)
         {
+            int betSerial = _gainBetSerial;
             ApplyNaviBadge(i, ok ? "○" : "×", ok ? ColGold : ColAccent, ok ? ColGold : ColAccent,
                            ok ? new Color(1f, 0.85f, 0.3f, 0.6f) : new Color(1f, 0.3f, 0.4f, 0.5f));
             yield return new WaitForSeconds(0.9f);
+            if (betSerial != _gainBetSerial) yield break;
             yield return PopNaviBadge(i);
         }
 
         private IEnumerator PopNaviBadge(int i)
         {
+            int betSerial = _gainBetSerial;
             var cell = _naviCells[i];
             if (cell == null) yield break;
-            var cg = cell.GetComponent<CanvasGroup>() ?? cell.gameObject.AddComponent<CanvasGroup>();
+            var cg = cell.GetComponent<CanvasGroup>();
+            if (cg == null) cg = cell.gameObject.AddComponent<CanvasGroup>();
             // 暗くする板と星は、初回だけ作って使い回す
             var dim = cell.Find("Dim") as RectTransform;
             if (dim == null)
@@ -1610,6 +1621,7 @@ namespace BBB.Runtime
             float t = 0f, d1 = 0.08f;
             while (t < d1)
             {
+                if (betSerial != _gainBetSerial || cell == null || cg == null) yield break;
                 t += Time.deltaTime;
                 float u = Mathf.Clamp01(t / d1);
                 cell.localScale = Vector3.one * (1f - 0.08f * u);
@@ -1620,6 +1632,7 @@ namespace BBB.Runtime
             t = 0f; float d2 = 0.22f;
             while (t < d2)
             {
+                if (betSerial != _gainBetSerial || cell == null || cg == null) yield break;
                 t += Time.deltaTime;
                 float u = Mathf.Clamp01(t / d2);
                 float e = u * u;                                  // だんだん速く
@@ -1628,16 +1641,19 @@ namespace BBB.Runtime
                 yield return null;
             }
             // 3. 星になる: バッジの中身は消して、星だけを出す
+            if (betSerial != _gainBetSerial || cell == null || cg == null) yield break;
             cg.alpha = 0f;
             cell.localRotation = Quaternion.identity;
             cell.localScale = Vector3.one;
             star.gameObject.SetActive(true);
-            var sg = star.GetComponent<CanvasGroup>() ?? star.gameObject.AddComponent<CanvasGroup>();
+            var sg = star.GetComponent<CanvasGroup>();
+            if (sg == null) sg = star.gameObject.AddComponent<CanvasGroup>();
             sg.ignoreParentGroups = true;                         // 親を透明にしても星は見える
             // 4. チョンと弾けて消える: ぱっと大きくなって、すぐ縮んで消える
             t = 0f; float d3 = 0.18f;
             while (t < d3)
             {
+                if (betSerial != _gainBetSerial || star == null || sg == null) yield break;
                 t += Time.deltaTime;
                 float u = Mathf.Clamp01(t / d3);
                 float pop = u < 0.35f ? Mathf.Lerp(0.4f, 1.3f, u / 0.35f) : Mathf.Lerp(1.3f, 0f, (u - 0.35f) / 0.65f);
@@ -1646,6 +1662,7 @@ namespace BBB.Runtime
                 sg.alpha = u < 0.35f ? 1f : 1f - (u - 0.35f) / 0.65f;
                 yield return null;
             }
+            if (betSerial != _gainBetSerial || star == null || dimImg == null) yield break;
             star.gameObject.SetActive(false);
             dimImg.color = new Color(0, 0, 0, 0f);
         }
@@ -2053,7 +2070,7 @@ namespace BBB.Runtime
             _hint.text = "……外した";
             _hint.color = ColAccent;
             // 敵の攻撃を食らう: 敵が前に出て、キャラが仰け反り、赤い縁光
-            StartCoroutine(Effects.Hit(_enemyRt, 0.35f));
+            StartCoroutine(EnemyHit(0.35f));
             StartCoroutine(Effects.Miss(_charRt, 0.6f));
             StartCoroutine(Effects.Shake(_stage, 0.3f, 6f));
             yield return Effects.RedGlow(_redGlow, 0.8f);
@@ -2183,6 +2200,12 @@ namespace BBB.Runtime
         private void PlayCharacter(string type)
         {
             if (type == "walk" && (_m.EnemyActive || _m.PrecursorRemaining > 0)) type = "idle";
+            if(_adventureHero!=null)
+            {
+                _adventureHero.Request(type,_m.IsGameActive&&_m.CurrentFlag.IsBell());
+                _bg.IsWalking=_adventureHero.View.Player.State=="walk";_bgOuter.IsWalking=_bg.IsWalking;
+                return;
+            }
             bool loop = type == "idle" || type == "walk" || type == "focus";
             if (loop && Time.time < _charHoldUntil) return;       // 決め動作の途中は邪魔しない
             if (loop && type == _charState) { _bg.IsWalking = type == "walk"; _bgOuter.IsWalking = _bg.IsWalking; return; }
@@ -2225,16 +2248,54 @@ namespace BBB.Runtime
             if (table != null && !string.IsNullOrEmpty(table.color) && ColorUtility.TryParseHtmlString(table.color, out var c)) _enemyBaseColor = c;
         }
 
+        private void BeginEnemyPresentation(string type,EnemyTable table)
+        {
+            _enemyPresentationVersion++;
+            HideEngageBanners();
+            if(_bossBarAnim!=null){StopCoroutine(_bossBarAnim);_bossBarAnim=null;}
+            _engagedBoss=false;_engagedName=null;_bossHp=1f;
+            if(_enemySpawn!=null){StopCoroutine(_enemySpawn);_enemySpawn=null;}
+            if(_enemyIdle!=null){StopCoroutine(_enemyIdle);_enemyIdle=null;}
+            _enemyRt.localScale=Vector3.one;_enemyRt.localRotation=Quaternion.identity;
+            _enemyRt.anchoredPosition=new Vector2(EnemyX,EnemyY);
+            _enemyCg.alpha=0;
+            _enemyImg.sprite=ArtLoader.EnemySprite(type);
+            ApplyEnemyLook(table);
+            float scale=table!=null&&table.scale>.1f?table.scale:1;
+            _adventureEnemy.Show(type,scale,_charRt.anchoredPosition.x-_enemyRt.anchoredPosition.x);
+        }
+
+        private IEnumerator EnemyTransition(IEnumerator effect,int version)
+        {
+            var stack=new System.Collections.Generic.Stack<IEnumerator>();stack.Push(effect);
+            while(version==_enemyPresentationVersion&&stack.Count>0)
+            {
+                var current=stack.Peek();
+                if(!current.MoveNext()){stack.Pop();continue;}
+                if(current.Current is IEnumerator nested)stack.Push(nested);
+                else yield return current.Current;
+            }
+        }
+
+        private IEnumerator EnemyHit(float duration=.3f)
+        {
+            if(_adventureEnemy.Active)
+            {
+                _adventureEnemy.Request("hit");
+                AudioManager.Create().MotionIfQuiet(MotionCue.Impact);
+                yield return new WaitForSeconds(duration);
+            }
+            else yield return EnemyTransition(Effects.Hit(_enemyRt,duration),_enemyPresentationVersion);
+        }
+
         private void ShowEnemy(EnemyTable table)
         {
             if (_traveler != null) { Destroy(_traveler.gameObject); _traveler = null; }
             HideDialogue();
-            _enemyImg.sprite = ArtLoader.EnemySprite(table?.enemyType);
-            ApplyEnemyLook(table);
+            BeginEnemyPresentation(table?.enemyType,table);
             SetEnemyColor("none");
             _hint.text = "";
-            if (_enemyIdle != null) StopCoroutine(_enemyIdle);
-            StartCoroutine(SpawnEnemyRoutine());
+            _enemySpawn = StartCoroutine(SpawnEnemyRoutine());
             // 中ボスは名乗りを上げる（通常の雑魚とはっきり区別する）
             _engagedBoss = table != null && table.IsBoss;
             _engagedName = table?.name ?? "";
@@ -2266,13 +2327,16 @@ namespace BBB.Runtime
 
         private IEnumerator SpawnEnemyRoutine()
         {
+            int version=_enemyPresentationVersion;
             yield return new WaitForSeconds(0.5f);
+            if(version!=_enemyPresentationVersion)yield break;
             _audio.EnemyAppearStart();                       // 接近のヒュゥゥ（SlideIn と同じ 0.5 秒）
-            yield return Effects.SlideIn(_enemyRt, _enemyCg);
+            yield return EnemyTransition(Effects.SlideIn(_enemyRt, _enemyCg),version);
+            if(version!=_enemyPresentationVersion)yield break;
             _audio.EnemyAppearLand();                        // 着地のドンッ＋スティング
             UiFx.Burst(_enemyRt, UiFx.Preset.Dust, new Vector2(0, -60));
             UiFx.Ring(_enemyRt, new Color(1f, 0.3f, 0.3f, 0.8f), 40, 240, 0.4f);
-            _enemyIdle = StartCoroutine(Effects.IdleBob(_enemyRt));
+            if(!_adventureEnemy.Active)_enemyIdle = StartCoroutine(Effects.IdleBob(_enemyRt));
             StartCoroutine(EngageTitleRoutine());            // 「ENEMY ENGAGE!」叩きつけ（案1）
             ShowEngageBanners();                             // 上下の流れる帯（Web 版と同じ）。倒す・逃げられるまで出しておく
         }
@@ -2296,6 +2360,7 @@ namespace BBB.Runtime
             string t;
             if (_m.EngageJudgeSpin) t = tx.judge;
             else if (_m.EngagePotionSpin) t = tx.potion;
+            else if (_m.EngageNextLarge) t = tx.potionLarge;
             else if (_m.EngageTurn == 1) t = tx.turn1;
             else switch (_m.EngageStance)
                 {
@@ -2307,11 +2372,29 @@ namespace BBB.Runtime
             return EngageBattle.Fill(t, Mathf.Min(_m.EngageSet, _m.EngageSets), _m.EngageSets, _m.EngageTurn);
         }
 
+        // Combat intensity is expressed by the band tint as well as its copy. Keep the
+        // same readable navy base for setup, then reserve warm colors for a real threat,
+        // a confirmed strike, and the Judge/Potion peaks so the battle has a visible wave.
+        private Color EngageBandColor()
+        {
+            if (_m.EngageJudgeSpin) return new Color(0.72f, 0.12f, 0.34f, 0.62f);
+            if (_m.EngagePotionSpin) return new Color(0.42f, 0.18f, 0.72f, 0.56f);
+            if (_m.EngageNextLarge) return new Color(0.78f, 0.42f, 0.08f, 0.58f);
+            if (_m.EngageTurn == 1) return new Color(0.04f, 0.28f, 0.72f, 0.52f);
+            switch (_m.EngageStance)
+            {
+                case EngageStance.EnemyAttack: return new Color(0.68f, 0.10f, 0.16f, 0.58f);
+                case EngageStance.HeroCharge: return new Color(0.08f, 0.36f, 0.72f, 0.54f);
+                case EngageStance.HeroAttack: return new Color(0.68f, 0.38f, 0.06f, 0.58f);
+                default: return new Color(0.04f, 0.28f, 0.72f, 0.52f);
+            }
+        }
+
         private void ShowEngageBanners()
         {
             HideEngageBanners();
             string unit = EngageBandText();
-            var bg = new Color(0f, 0.3f, 1f, 0.6f);
+            var bg = EngageBandColor();
             const float bandW = AreaW * 1.3f, bandH = 44f, speed = 45f;
             _engageBandTop = MarqueeBand.Create(_area, "EngageBandTop", new Vector2(0, AreaH * 0.5f - 8), bandW, bandH, -7f, unit, 22, bg, Color.white, speed, 0f);
             _engageBandBottom = MarqueeBand.Create(_area, "EngageBandBottom", new Vector2(0, -AreaH * 0.5f + 14), bandW, bandH, -7f, unit, 22, bg, Color.white, speed, 0.53f);
@@ -2401,6 +2484,9 @@ namespace BBB.Runtime
 
         private void HideEnemy()
         {
+            _enemyPresentationVersion++;
+            if(_enemySpawn!=null){StopCoroutine(_enemySpawn);_enemySpawn=null;}
+            _adventureEnemy?.Hide();
             HideEngageBanners();
             if (_bossBarAnim != null) { StopCoroutine(_bossBarAnim); _bossBarAnim = null; }
             _bossHp = 1f;
@@ -2422,6 +2508,16 @@ namespace BBB.Runtime
             if(_curseHud!=null)_curseHud.Refresh(presentationBlocked);
             // Play 中にスクリプトが再コンパイルされると非シリアライズ参照が消える。その状態で回さない（NRE の連打防止）
             if (_m == null || _creditNum == null) return;
+            if(_adventureEnemy!=null&&!AtelierModalOpen()&&_curseBox==null&&!OpeningPlayer.IsDialogueVisible)
+                _adventureEnemy.Step(Time.deltaTime);
+            if(_adventureHero!=null)
+            {
+                _adventureHero.Equip(_m.Equip.WornOf(EquipSlot.Weapon));
+                bool heroBlocked=AtelierModalOpen()||_curseBox!=null||OpeningPlayer.IsDialogueVisible;
+                if(!heroBlocked)_adventureHero.Step(Time.deltaTime);
+                _bg.IsWalking=_adventureHero.View.Player.State=="walk";_bgOuter.IsWalking=_bg.IsWalking;
+            }
+            RefreshExplanationVisibility();
             var kb = Keyboard.current;
             // 呪いの申し出: Space で受ける、Shift で断る（2026-09-14 本人）。窓が出ている間は他のキーを取らない
             if (kb != null && _curseBox != null)
@@ -2477,6 +2573,7 @@ namespace BBB.Runtime
             SlumpGraph.ClearSaved();
             int setting = _m.Setting;
             _m = GameDataLoader.CreateMachine(new SystemRandom(), setting);
+            _curseHud?.BindMachine(_m);
             HideEnemy();
             StopPrecursor();
             _lastPayout = 0;
@@ -2680,13 +2777,14 @@ namespace BBB.Runtime
         }
 
         private bool StopsLocked => Time.time < _stopUnlockTime;
+        private bool BattleOwnsCharacter => (_m.IsTier2 && _m.EnemyActive) || _m.InBattle;
 
         private void StartReels(HintKind hint)
         {
             _audio.SpinStart();
             if (!StopsLocked) SetMessage($"{_m.SpinCount}G");
             // JS drawLottery: ベル当選なら attack-f1、それ以外は walk
-            PlayCharacter(_m.CurrentFlag.IsBell() ? "attack-f1" : "walk");
+            PlayCharacter(BattleOwnsCharacter ? "idle" : _m.CurrentFlag.IsBell() ? "attack-f1" : "walk");
             foreach (var r in _reels) r.StartSpin();
             RefreshUi();
             if (_autoMode) StartAuto();
@@ -2743,7 +2841,7 @@ namespace BBB.Runtime
             int pressed = 0;
             for (int k = 0; k < 3; k++) if (_m.Stopped[k] != null) pressed++;
             if (_m.IsTier2 && _m.EngageJudgeSpin && _m.JudgeHeat >= 0) JudgeStopFx(pressed);   // ジャッジの G: 停止ごとに段階的に
-            if (_m.CurrentFlag.IsBell())
+            if (_m.CurrentFlag.IsBell() && !BattleOwnsCharacter)
             {
                 if (pressed == 1) PlayCharacter("attack-f2");
                 else if (pressed == 2)
@@ -2779,6 +2877,8 @@ namespace BBB.Runtime
             // 期待度のランクは判定前に控えておく（昇格したかを比べるため）
             string rankBefore = AtDirector.RankFor(_m.Config.atExpect, _m.AtExpectPercent)?.name;
             var r = _m.Evaluate();
+            // Payout/reel feedback stays shared; battle results exclusively own character actions.
+            bool battleAction = r.engage != null || r.battleDamage > 0 || r.battleResolved.HasValue || _m.InBattle;
             _lastPayout = r.win.payout;
             _lastWasReplay = r.win.isReplay;
             // ログ: 役と払い出し（ハズレは書かない。2026-09-16 本人「役や払い出しも欲しい」）
@@ -2823,7 +2923,7 @@ namespace BBB.Runtime
                 UiFx.PopText(_payoutNum.rectTransform, $"+{r.win.payout}", ColGold, 24, new Vector2(0, 20));
                 if (r.win.winType == WinType.BELL) EnqueueGain("ember", r.win.payout);
                 RoleFx(r.win.winType, CellMaskFor(r.win));
-                switch (r.win.winType)
+                if (!battleAction) switch (r.win.winType)
                 {
                     case WinType.BELL:
                         // 1〜2G目に「死んだように見える」演出は禁止。ヒット＋砂煙のみ。決着は3G目終了時の判定だけ
@@ -2832,13 +2932,13 @@ namespace BBB.Runtime
                     case WinType.CHERRY:
                         PlayCharacter("slash");
                         StartCoroutine(Effects.Cherry(_charRt));
-                        if (_m.EnemyActive) { StartCoroutine(Effects.Hit(_enemyRt)); UiFx.Slash(_enemyRt, 10f, 200f, new Color(1f, 0.5f, 0.7f)); }
+                        if (_m.EnemyActive) { StartCoroutine(EnemyHit()); UiFx.Slash(_enemyRt, 10f, 200f, new Color(1f, 0.5f, 0.7f)); }
                         else UiFx.Slash(_charRt, 10f, 180f, new Color(1f, 0.5f, 0.7f));
                         break;
                     case WinType.WATERMELON:
                         PlayCharacter("cast");
                         StartCoroutine(Effects.Watermelon(_charRt));
-                        if (_m.EnemyActive) StartCoroutine(Effects.Hit(_enemyRt));
+                        if (_m.EnemyActive) StartCoroutine(EnemyHit());
                         StartCoroutine(Effects.Shake(_stage));
                         StartCoroutine(DelayedFx(0.36f, () => { UiFx.Burst(_charRt, UiFx.Preset.Splash, new Vector2(0, -90)); UiFx.Ring(_charRt, new Color(0.6f, 1f, 0.5f, 0.8f), 40, 260, 0.45f); }));
                         break;
@@ -2852,17 +2952,20 @@ namespace BBB.Runtime
                 RoleFx(WinType.REPLAY, CellMaskFor(r.win));
                 // 主人公のリプレイ行動（弁当・水・背伸び…）。敵がいる時・ボーナス中は従来の小さな動きだけ
                 string act = (_m.EnemyActive || _m.BonusMode != BonusMode.NORMAL) ? "none" : HeroDirector.RollReplayAction(_m.Config.hero, _fxRng);
-                if (act == "none") StartCoroutine(Effects.Replay(_charRt));
-                else StartCoroutine(ReplayAction(act));
+                if (!battleAction)
+                {
+                    if (act == "none") StartCoroutine(Effects.Replay(_charRt));
+                    else StartCoroutine(ReplayAction(act));
+                }
                 SetMessage("REPLAY!", true);
             }
             else
             {
-                if (_m.BonusMode == BonusMode.NORMAL)
+                if (_m.BonusMode == BonusMode.NORMAL && !battleAction)
                 {
                     PlayCharacter("hit");
                     StartCoroutine(Effects.Miss(_charRt));
-                    if (_m.EnemyActive) { StartCoroutine(Effects.Hit(_enemyRt)); UiFx.Burst(_charRt, UiFx.Preset.RedShards, new Vector2(20, 20)); }
+                    if (_m.EnemyActive) { StartCoroutine(EnemyHit()); UiFx.Burst(_charRt, UiFx.Preset.RedShards, new Vector2(20, 20)); }
                 }
                 if (r.win.winType == WinType.CHANCE) RoleFx(WinType.CHANCE, CellMaskFor(r.win));
                 SetMessage(_m.BonusMode != BonusMode.NORMAL ? $"BONUS: {_m.BonusEarned} / {_m.BonusPayoutTarget}" : (r.win.winType == WinType.CHANCE ? "CHANCE!" : "..."));
@@ -2879,14 +2982,13 @@ namespace BBB.Runtime
             // エンゲージのターン: 構え / 被弾 / 防御 / 回避 / 攻撃 / ルーレット / ジャッジ。帯の文も次のターンのものに
             if (r.engage != null)
             {
-                StartCoroutine(EngageStepRoutine(r.engage));
+                StartCoroutine(PresentEngageResult(r));
                 if (!r.enemyResolved.HasValue && _engageBandTop != null) ShowEngageBanners();
             }
-            // 決着の見せ方。ジャッジの G は溜めのあと（EngageStepRoutine の 0.9 秒）に出す
-            if (r.enemyResolved.HasValue)
+            // Engage resolves its visuals only after its authored impact. Core rewards are already settled.
+            if (r.enemyResolved.HasValue && r.engage == null)
             {
-                if (r.engage != null && r.engage.judgeSpin) StartCoroutine(ResolveEnemyAfter(r, 0.9f));
-                else ResolveEnemyVisuals(r);
+                ResolveEnemyVisuals(r);
             }
             if (r.precursorStarted)
             {
@@ -3627,6 +3729,23 @@ namespace BBB.Runtime
             _dialogRoutine = null;
         }
 
+        // Give moving combat silhouettes the foreground. Story dialogue keeps its own priority.
+        private bool BattleMotionCoversExplanation()
+        {
+            bool enemyVisible=_adventureEnemy!=null&&_adventureEnemy.Active;
+            if(!enemyVisible&&!_m.InBattle)return false;
+            string enemy=enemyVisible?_adventureEnemy.View.Player.State:"idle";
+            if(enemy=="strike"||enemy=="attack"||enemy=="hit"||enemy=="defeat")return true;
+            string hero=_adventureHero!=null?_adventureHero.View.Player.State:"idle";
+            return hero=="attack-f3-4"||hero=="attack"||hero=="recover"||hero=="hit"||hero=="guard";
+        }
+
+        private void RefreshExplanationVisibility()
+        {
+            if(_explainActive&&_dialogBox!=null)
+                _dialogBox.SetActive(!BattleMotionCoversExplanation());
+        }
+
         /// <summary>1 行分: タグを付けて本文をタイプライタ表示し、seconds 経つまで保持。</summary>
         private IEnumerator ShowLine(string speaker,string text,Color tagBg,Color tagFg,float seconds,bool essential=false)
         {
@@ -3636,6 +3755,16 @@ namespace BBB.Runtime
             float held=0;
             while(true)
             {
+                if(essential)
+                {
+                    RefreshExplanationVisibility();
+                    if(BattleMotionCoversExplanation())
+                    {
+                        _dialogueAdvance=false;
+                        yield return null;
+                        continue; // Preserve both the typewriter position and the reading time.
+                    }
+                }
                 if(AtelierModalOpen()||_curseBox!=null||OpeningPlayer.IsShowing){yield return null;continue;}
                 bool wasRevealed=_dialogue.Revealed;
                 _dialogue.Tick(Time.unscaledDeltaTime);
@@ -4117,16 +4246,18 @@ namespace BBB.Runtime
         {
             HideDialogue();
             if (_traveler != null) { Destroy(_traveler.gameObject); _traveler = null; }
-            _enemyImg.sprite = ArtLoader.EnemySprite(mon?.enemyType);
+            BeginEnemyPresentation(mon?.enemyType,null);
+            int version=_enemyPresentationVersion;
             SetEnemyColor("none");
-            if (_enemyIdle != null) StopCoroutine(_enemyIdle);
             PlayCharacter("idle");
             yield return new WaitForSeconds(0.3f);
+            if(version!=_enemyPresentationVersion)yield break;
             _audio.EnemyAppearStart();
-            yield return Effects.SlideIn(_enemyRt, _enemyCg);
+            yield return EnemyTransition(Effects.SlideIn(_enemyRt, _enemyCg),version);
+            if(version!=_enemyPresentationVersion)yield break;
             _audio.EnemyAppearLand();
             UiFx.Burst(_enemyRt, UiFx.Preset.Dust, new Vector2(0, -60));
-            _enemyIdle = StartCoroutine(Effects.IdleBob(_enemyRt));
+            if(!_adventureEnemy.Active)_enemyIdle = StartCoroutine(Effects.IdleBob(_enemyRt));
             StartCoroutine(SlamTitle($"{mon?.name} 出現！", new Color(1f, 0.45f, 0.15f), 1.3f, 48));
         }
 
@@ -4139,7 +4270,7 @@ namespace BBB.Runtime
                 UiFx.Slash(_enemyRt, -35f, 240f);
                 UiFx.Burst(_enemyRt, UiFx.Preset.Sparks);
                 UiFx.PopText(_enemyRt, $"-{r.battleDamage}", ColGold, 30, new Vector2(0, 60));
-                StartCoroutine(Effects.Hit(_enemyRt, 0.3f));
+                StartCoroutine(EnemyHit(0.3f));
                 PlayCharacter("attack-f3-4");
             }
             yield return new WaitForSeconds(0.35f);
@@ -4688,6 +4819,10 @@ namespace BBB.Runtime
                     pic.preserveAspect = true; pic.rectTransform.localRotation = Quaternion.Euler(0, 0, fx.picRot); pieces.Add(pic);
                 }
             }
+            // Fit large amounts within the reserved band; keep the generated number and GET artwork together.
+            float rowHalf=bandW*.5f;
+            foreach(RectTransform child in row)rowHalf=Mathf.Max(rowHalf,Mathf.Abs(child.anchoredPosition.x)+child.rect.width*.5f);
+            row.localScale=Vector3.one*Mathf.Min(1,bandW/Mathf.Max(1,rowHalf*2));
             // 縁取り → 落ち影 の順に付ける（影は縁取りごと落ちる）
             foreach (var g in pieces)
             {
@@ -5071,13 +5206,36 @@ namespace BBB.Runtime
         {
             var tx = _m.Config.engage?.texts ?? new EngageTexts();
             var red = new Color(1f, 0.35f, 0.35f); var blue = new Color(0.45f, 0.75f, 1f);
+            int version=_enemyPresentationVersion;
+            bool incoming=st.outcome==EngageOutcome.Hit||st.outcome==EngageOutcome.Guard||st.outcome==EngageOutcome.Dodge||st.outcome==EngageOutcome.Counter;
+            if(incoming&&_adventureEnemy.Active)
+            {
+                _adventureEnemy.Request("strike");
+                while(version==_enemyPresentationVersion&&_adventureEnemy.Active&&!_adventureEnemy.ImpactReady&&_adventureEnemy.View.Player.State=="strike")yield return null;
+                if(version!=_enemyPresentationVersion||!_adventureEnemy.ImpactReady)yield break;
+            }
+            bool outgoing=st.outcome==EngageOutcome.Attack||st.outcome==EngageOutcome.Counter||st.outcome==EngageOutcome.Judge&&st.defeated;
+            if(outgoing)
+            {
+                if(st.outcome==EngageOutcome.Counter)StartCoroutine(Effects.Shake(_charRt,0.2f,8f));
+                PlayCharacter("attack-f3-4");
+                if(_adventureHero!=null)
+                {
+                    int motionVersion=_adventureHero.MotionVersion;
+                    while(version==_enemyPresentationVersion&&motionVersion==_adventureHero.MotionVersion&&
+                          ((!_adventureHero.ImpactReady&&_adventureHero.View.Player.State=="attack-f3-4")||
+                           AtelierModalOpen()||_curseBox!=null||OpeningPlayer.IsDialogueVisible))yield return null;
+                    if(version!=_enemyPresentationVersion||motionVersion!=_adventureHero.MotionVersion||!_adventureHero.ImpactReady)yield break;
+                }
+            }
             switch (st.outcome)
             {
                 case EngageOutcome.Stance:
                     if (st.stance == EngageStance.EnemyAttack)
                     {
                         if (!_audio.TryPlay("engage_stance_enemy")) _audio.EnemyEscape();   // 低いポップ音を「身構え」に
-                        StartCoroutine(Effects.Hit(_enemyRt, 0.25f));
+                        if(_adventureEnemy.Active)_adventureEnemy.Request("ready");
+                        else StartCoroutine(EnemyHit(0.25f));
                         UiFx.PopText(_enemyRt, "敵の攻撃が来る……", red, 20, new Vector2(0, 70));
                         _hint.text = "……来る"; _hint.color = red;
                     }
@@ -5109,21 +5267,22 @@ namespace BBB.Runtime
                     UiFx.Slash(_charRt, 30f, 200f, new Color(1f, 0.3f, 0.3f));
                     UiFx.PopText(_charRt, EngageBattle.Fill(tx.hit, st.set, st.sets, st.turn, st.damage), red, 24, new Vector2(0, 80));
                     _hint.text = EngageBattle.Fill(tx.hit, st.set, st.sets, st.turn, st.damage); _hint.color = ColAccent;
-                    StartCoroutine(Effects.Hit(_enemyRt, 0.35f));
+                    if(!_adventureEnemy.Active)StartCoroutine(EnemyHit(0.35f));
+                    PlayCharacter("hit");
                     StartCoroutine(Effects.Miss(_charRt, 0.6f));
                     StartCoroutine(Effects.Shake(_stage, 0.3f, 6f));
                     yield return Effects.RedGlow(_redGlow, 0.8f);
                     break;
                 case EngageOutcome.Guard:
                     PlayCharacter("guard"); _audio.TryPlay("engage_guard");
-                    StartCoroutine(Effects.Hit(_enemyRt, 0.3f));
+                    if(!_adventureEnemy.Active)StartCoroutine(EnemyHit(0.3f));
                     UiFx.Ring(_charRt, new Color(0.6f, 0.8f, 1f, 0.9f), 40, 200, 0.4f);
                     UiFx.PopText(_charRt, tx.guard, blue, 24, new Vector2(0, 80));
                     _hint.text = tx.guard; _hint.color = blue;
                     break;
                 case EngageOutcome.Dodge:
                     _audio.TryPlay("engage_dodge");
-                    StartCoroutine(Effects.Hit(_enemyRt, 0.3f));
+                    if(!_adventureEnemy.Active)StartCoroutine(EnemyHit(0.3f));
                     StartCoroutine(Effects.Shake(_charRt, 0.25f, 10f));
                     UiFx.PopText(_charRt, tx.dodge, blue, 24, new Vector2(0, 80));
                     _hint.text = tx.dodge; _hint.color = blue;
@@ -5132,12 +5291,11 @@ namespace BBB.Runtime
                 case EngageOutcome.Attack:
                 {
                     bool counter = st.outcome == EngageOutcome.Counter;
-                    if (counter) { StartCoroutine(Effects.Hit(_enemyRt, 0.25f)); StartCoroutine(Effects.Shake(_charRt, 0.2f, 8f)); yield return new WaitForSeconds(0.25f); }
                     float k = st.attackSize == AttackSize.Large ? 1f : st.attackSize == AttackSize.Medium || st.attackSize == AttackSize.Counter ? 0.6f : 0.3f;
-                    PlayCharacter("attack-f3-4");
                     string atkKey = counter ? "engage_counter" : st.attackSize == AttackSize.Large ? "engage_attack_large" : st.attackSize == AttackSize.Medium ? "engage_attack_medium" : "engage_attack_small";
                     if (!_audio.TryPlay(atkKey)) _audio.Attack();
                     _audio.Voice("attack");
+                    if(_adventureEnemy.Active)_adventureEnemy.Request("hit");
                     UiFx.Slash(_enemyRt, -30f, 160f + 140f * k, ColGold);
                     UiFx.Burst(_enemyRt, UiFx.Preset.Sparks, new Vector2(0, 20));
                     StartCoroutine(Effects.Shake(_stage, 0.25f + 0.2f * k, 3f + 8f * k));
@@ -5154,7 +5312,6 @@ namespace BBB.Runtime
                     _audio.NaviChoice(false);
                     if (st.defeated)
                     {
-                        PlayCharacter("attack-f3-4");
                         if (!_audio.TryPlay("engage_judge_win")) _audio.Attack();
                         _audio.Voice("attack");
                         UiFx.Slash(_enemyRt, -30f, 320f, ColGold);
@@ -5208,10 +5365,11 @@ namespace BBB.Runtime
             Destroy(host.gameObject);
         }
 
-        private IEnumerator ResolveEnemyAfter(GameResult r, float delay)
+        private IEnumerator PresentEngageResult(GameResult r)
         {
-            yield return new WaitForSeconds(delay);
-            ResolveEnemyVisuals(r);
+            int version=_enemyPresentationVersion;
+            yield return EngageStepRoutine(r.engage);
+            if(version==_enemyPresentationVersion&&r.enemyResolved.HasValue)ResolveEnemyVisuals(r);
         }
 
         /// <summary>討伐 / 逃走の見せ方（HP バーの決着、音、帯、揺れ）。</summary>
@@ -5305,7 +5463,10 @@ namespace BBB.Runtime
             Color heatCol = Hex(fx.heatColors != null && fx.heatColors.Length > h ? fx.heatColors[h] : "#ffd23f");
             if (pressed == 1)
             {
-                StartCoroutine(Effects.Hit(_enemyRt, 0.25f));
+                // Judge の第一停止は「熱さの前触れ」。ここで被弾を先に出すと、
+                // とどめの主人公 contact より前に敵が hit へ遷移してしまう。
+                // 決着時の JudgeStepRoutine が contact 後にだけ演出を確定する。
+                if (_adventureEnemy.Active) _adventureEnemy.Request("ready");
                 UiFx.PopText(_enemyRt, Pick(fx.stop1Texts), heatCol, 22 + h * 2, new Vector2(0, 90));
                 _audio.PlayKeyPublic("stop", 1f);
             }
@@ -5328,7 +5489,16 @@ namespace BBB.Runtime
             _enemyCg.alpha = 1f;
             _enemyImg.color = Color.white;
             UiFx.Ring(_enemyRt, new Color(1f, 1f, 1f, 0.9f), 40, 320, 0.4f);
-            yield return Effects.Defeat(_enemyRt, _enemyImg, _enemyCg);
+            int version=_enemyPresentationVersion;
+            if(_adventureEnemy.Active)
+            {
+                _adventureEnemy.Request("defeat");
+                var motion=System.Array.Find(_adventureEnemy.View.Look.motions,m=>m.id=="defeat");
+                int last=motion.frames[motion.frames.Length-1];
+                while(version==_enemyPresentationVersion&&(_adventureEnemy.View.Player.PoseIndex!=last||_adventureEnemy.View.Player.Progress<1))yield return null;
+            }
+            else yield return EnemyTransition(Effects.Defeat(_enemyRt, _enemyImg, _enemyCg),version);
+            if(version!=_enemyPresentationVersion)yield break;
             UiFx.Burst(_enemyRt, UiFx.Preset.Explode);
             UiFx.PopText(_enemyRt, $"EXP +{_m.Config.expPerDefeat}", ColGold, 22, new Vector2(0, 60));
             HideEnemy();
@@ -5336,13 +5506,16 @@ namespace BBB.Runtime
 
         private IEnumerator EscapeRoutine()
         {
+            int version=_enemyPresentationVersion;
+            _adventureEnemy.Request("idle");
             if (_enemyIdle != null) { StopCoroutine(_enemyIdle); _enemyIdle = null; }
             if (_enemyRainbow != null) { StopCoroutine(_enemyRainbow); _enemyRainbow = null; }
             _dustRt.gameObject.SetActive(false);
             _enemyCg.alpha = 1f;
             _enemyImg.color = Color.white;
             UiFx.Burst(_enemyRt, UiFx.Preset.Dust, new Vector2(-20, -50));
-            yield return Effects.SlideOut(_enemyRt, _enemyCg);
+            yield return EnemyTransition(Effects.SlideOut(_enemyRt, _enemyCg),version);
+            if(version!=_enemyPresentationVersion)yield break;
             HideEnemy();
         }
 
@@ -5373,7 +5546,7 @@ namespace BBB.Runtime
             UiFx.Slash(_enemyRt, -35f, 240f);
             UiFx.Burst(_enemyRt, UiFx.Preset.Sparks);
             UiFx.Ring(_enemyRt, new Color(1f, 0.9f, 0.6f, 0.8f), 30, 180, 0.35f);
-            yield return Effects.Hit(_enemyRt, 0.35f);
+            yield return EnemyHit(0.35f);
             yield return new WaitForSeconds(0.15f);
             _dustRt.gameObject.SetActive(false);
         }

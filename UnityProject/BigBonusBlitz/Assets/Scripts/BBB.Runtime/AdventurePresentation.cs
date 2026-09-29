@@ -42,9 +42,10 @@ namespace BBB.Runtime
             string key = atlas + "/" + cell;
             if (sprites.TryGetValue(key, out var found) && found != null) return found;
             var t = Resources.Load<Texture2D>("Art/UI/AdventureDialogue/" + atlas);
-            if (t == null || cell < 0 || cell > 3) return null;
-            float w = t.width / 2f, h = t.height / 2f;
-            return sprites[key] = Sprite.Create(t, new Rect((cell % 2) * w, (1 - cell / 2) * h, w, h), new Vector2(.5f,.5f), 100, 0, SpriteMeshType.FullRect);
+            int rows=atlas=="travelers"?3:2;
+            if (t == null || cell < 0 || cell >= rows*2) return null;
+            float w = t.width / 2f, h = t.height / rows;
+            return sprites[key] = Sprite.Create(t, new Rect((cell % 2) * w, (rows-1-cell/2) * h, w, h), new Vector2(.5f,.5f), 100, 0, SpriteMeshType.FullRect);
         }
         public static Sprite Portrait(string speaker, string heroName, string expression)
         {

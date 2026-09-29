@@ -82,7 +82,7 @@ namespace BBB.Runtime
                 case CurseEffects.TorchDrain: return $"ライフの減りが {v}% 速くなる";
                 case CurseEffects.ConditionHarder: return $"ルートの必要回数が +{v}";
                 case CurseEffects.PayoutCut: return $"払い出しが {v}% 減る";
-                case CurseEffects.BetExtra: return $"1 回転あたり {v} 多く灯を使う";
+                case CurseEffects.BetExtra: return $"1 回転あたりエンバーを {v} 多く使う";
                 default:
                     return $"{EquipDirector.EffectName(effect)} {(isCurse ? "-" : "+")}{v}{EquipDirector.EffectUnit(effect)}";
             }
