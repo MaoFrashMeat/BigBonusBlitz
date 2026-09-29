@@ -2806,12 +2806,13 @@ public static class FxLab
         else
             foreach (var side in new[] { -1f, 1f })
             {
-                var m = DoorMat(texL); var q = Quad(c.root, side < 0 ? "DoorL" : "DoorR", new Vector3(side * 3.2f, 0, -3.3f), new Vector2(6.45f, 7.25f), m);
-                if (side > 0) q.localScale = new Vector3(-6.45f, 7.25f, 1);            // 右は左右反転
+                var texR = vault ? c.tx.doorVaultR : c.tx.doorGateR;
+                var m = DoorMat(side > 0 && texR != null ? texR : texL); var q = Quad(c.root, side < 0 ? "DoorL" : "DoorR", new Vector3(side * 3.2f, 0, -3.3f), new Vector2(6.45f, 7.25f), m);
+                if (side > 0 && texR == null) q.localScale = new Vector3(-6.45f, 7.25f, 1);   // 右の絵が無ければ左を反転
                 parts.Add((q, m, side));
             }
         Transform lockT = null; Material lockM = null;
-        if (vault) { lockM = DoorMat(c.tx.doorLock); lockM.renderQueue = 2991; lockT = Quad(c.root, "VaultLock", new Vector3(0, 0, -3.35f), new Vector2(2.1f, 2.1f), lockM); }
+        if (vault) { lockM = DoorMat(c.tx.doorLock); lockM.renderQueue = 2991; lockT = Quad(c.root, "VaultLock", new Vector3(0, 0, -3.35f), new Vector2(3.0f, 3.0f), lockM); }
         // 合わせ目の光（ドアの隙間。シャッターは下の隙間）
         var seam = Quad(c.root, "Seam", shutter ? new Vector3(0, -3.55f, -3.25f) : new Vector3(0, 0, -3.25f), shutter ? new Vector2(13f, 0.5f) : new Vector2(0.5f, 7.4f), QMat(c, c.tx.glow, 0, Vector2.one, 0));
         var seamM = seam.GetComponent<MeshRenderer>().sharedMaterial; seamM.renderQueue = 3001;
@@ -2833,7 +2834,7 @@ public static class FxLab
                 Vector3 p;
                 if (shutter) p = new Vector3(0, Mathf.Lerp(7.4f, 0, close) + bounce * 2 + open * 7.6f + (t >= s2 && t < s3 ? 0.18f : 0), -3.3f);   // 第 2 停止でガコッと少し上がる
                 else p = new Vector3(side * (3.2f + Mathf.Lerp(3.4f, 0, close) + bounce * side + open * 3.6f), 0, -3.3f);
-                if (vault && t >= s3) { float sw = open; var sc = tr.localScale; tr.localScale = new Vector3(Mathf.Sign(sc.x) * 6.45f * (1 - sw * 0.85f), 7.25f, 1); p.x = side * (6.45f * 0.5f * (1 - sw * 0.85f) + sw * 3.2f + 0.02f); }   // 金庫は蝶番で開く
+                if (vault && t >= s3) { float sw = open; var sc = tr.localScale; tr.localScale = new Vector3((sc.x < 0 ? -1 : 1) * 6.45f * (1 - sw * 0.85f), 7.25f, 1); p.x = side * (6.45f * 0.5f * (1 - sw * 0.85f) + sw * 3.2f + 0.02f); }   // 金庫は蝶番で開く
                 tr.position = p + jit * shake;
                 tr.rotation = Quaternion.Euler(0, 0, jit.x * shake * 6f);
                 m.SetFloat("_Flash", t >= s3 && t < s3 + 2 / 60f ? 1f : 0f);
@@ -3207,7 +3208,7 @@ public static class FxLab
         public Vector4 shock;   // 空間の歪み: xy 中心（uv）、z 半径（画面の高さ比）、w 強さ
         public Vector4 split; public Color splitCol; public float black; public Vector4 slit;   // 真っ二つ / 暗転 / 暗転中の光の裂け目
     }
-    class Tx { public Texture2D dot, glow, ring, star4, diamond, plus, flame, flame2, streak, trail, noise, column, coinFace, burst, air, sparkle, magic, fbHitLines, fbBigHit, fbCharge, fbElecRing, fbFireRing, fbFlame, fbSmoke, fibers, square, fireFlame03, hexTile, arrowUp, fbStarExp, fbVortex, fbWavy, blCampfire, blWall, lightRing, bolt, ringDouble, twirl, starCross, smokePuff, sfxDon, sfxZuba, sfxBari, sfxGo, sfxKira, shieldCrest, doorGate, doorVault, doorLock, shutter; }
+    class Tx { public Texture2D dot, glow, ring, star4, diamond, plus, flame, flame2, streak, trail, noise, column, coinFace, burst, air, sparkle, magic, fbHitLines, fbBigHit, fbCharge, fbElecRing, fbFireRing, fbFlame, fbSmoke, fibers, square, fireFlame03, hexTile, arrowUp, fbStarExp, fbVortex, fbWavy, blCampfire, blWall, lightRing, bolt, ringDouble, twirl, starCross, smokePuff, sfxDon, sfxZuba, sfxBari, sfxGo, sfxKira, shieldCrest, doorGate, doorVault, doorLock, shutter, doorGateR, doorVaultR; }
     class Ctx
     {
         public Transform root, heroT, goblinT; public Texture2D hero, goblin; public Tx tx;
@@ -3528,7 +3529,8 @@ public static class FxLab
             tx.fbVortex = K("fb_vortex_6x5"); tx.fbWavy = K("fb_wavy_6x5");   // 星の爆発は配布名 6x5 だが実際は 7×6（上の行）
             tx.lightRing = K("light_ring"); tx.bolt = K("bolt"); tx.ringDouble = K("ring_double"); tx.twirl = K("twirl"); tx.starCross = K("star_cross"); tx.smokePuff = K("smoke_puff");
             tx.sfxDon = K("sfx_don"); tx.sfxZuba = K("sfx_zuba"); tx.sfxBari = K("sfx_bari"); tx.sfxGo = K("sfx_go"); tx.sfxKira = K("sfx_kira"); tx.shieldCrest = K("shield_crest");   // 擬音（make_sfx_tex.py）・盾の紋章（make_shield_tex.py）
-            tx.doorGate = K("door_gate_L"); tx.doorVault = K("door_vault_L"); tx.doorLock = K("door_vault_lock"); tx.shutter = K("shutter");   // 扉（make_door_tex.py）
+            tx.doorGate = K("door_gate_L"); tx.doorGateR = K("door_gate_R"); tx.doorVault = K("door_vault_L"); tx.doorVaultR = K("door_vault_R"); tx.doorLock = K("door_vault_lock"); tx.shutter = K("shutter");
+            // 扉は落とした CC0 の 3D 素材を Blender で撮ったもの（blender/render_doors.py、LICENSE-doors.txt）
             tx.fbFireRing = K("fb_firering_6x5"); tx.fbFlame = K("fb_flame_16x4"); tx.fbSmoke = K("fb_smoke_8x8");
         }
         return tx;
