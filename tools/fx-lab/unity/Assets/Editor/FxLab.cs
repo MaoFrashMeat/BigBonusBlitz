@@ -2815,8 +2815,9 @@ public static class FxLab
         Transform lockT = null; Material lockM = null;
         if (vault) { lockM = DoorMat(c.tx.doorLock); lockM.renderQueue = 2991; lockT = Quad(c.root, "VaultLock", new Vector3(0, 0, -3.35f), new Vector2(3.0f, 3.0f), lockM); }
         // 合わせ目の光（ドアの隙間。シャッターは下の隙間）
-        var seam = Quad(c.root, "Seam", shutter ? new Vector3(0, -3.55f, -3.25f) : new Vector3(0, 0, -3.25f), shutter ? new Vector2(13f, 0.5f) : new Vector2(0.5f, 7.4f), QMat(c, c.tx.glow, 0, Vector2.one, 0));
-        var seamM = seam.GetComponent<MeshRenderer>().sharedMaterial; seamM.renderQueue = 3001;
+        var seamM = new Material(Shader.Find("Lab/Rush")); seamM.SetFloat("_Mode", 1); seamM.SetFloat("_Aspect", 5f / 7.4f); seamM.SetFloat("_Seed", kind.Length * 3.1f); seamM.renderQueue = 3001;
+        var seam = Quad(c.root, "Seam", shutter ? new Vector3(0, -3.55f, -3.25f) : new Vector3(0, 0, -3.25f), new Vector2(5f, 7.4f), seamM);
+        if (shutter) { seam.rotation = Quaternion.Euler(0, 0, 90); seam.localScale = new Vector3(5f, 13f, 1); seamM.SetFloat("_Aspect", 5f / 13f); }
         var rnd = new System.Random(kind.Length * 97);
         Vector3 jit = Vector3.zero; int lastJ = -1;
         c.OnUpdate(t =>
@@ -2839,7 +2840,7 @@ public static class FxLab
                 tr.position = p + jit * shake;
                 tr.rotation = Quaternion.Euler(0, 0, jit.x * shake * 6f);
                 m.SetFloat("_Flash", t >= s3 && t < s3 + 2 / 60f ? 1f : 0f);
-                m.SetColor("_Color", Color.white * (t >= s2 && t < s3 ? 0.9f + 0.1f * Mathf.Sin(t * 30f) : 1f));
+                float pul = t >= s2 && t < s3 ? 0.9f + 0.1f * Mathf.Sin(t * 30f) : 1f; m.SetColor("_Color", new Color(pul, pul, pul, 1));   // 不透明のまま（Color.white * x は透明度まで下げる）
             }
             if (lockT != null)
             {
@@ -2850,9 +2851,8 @@ public static class FxLab
             // 合わせ目の光: 第 1 停止で青く細く、第 2 停止で赤く太く脈打つ、第 3 停止で白く噴く
             Color sc2 = t < s2 ? blue : t < s3 ? red : Color.Lerp(gold, Color.white, 0.4f);
             float w = t < s1 ? 0 : t < s2 ? 0.35f : t < s3 ? 0.8f + 0.2f * Mathf.Sin(t * 20f) : 2.5f * (1 - open);
-            float br = t < s1 ? 0 : t < s2 ? 1.2f * Mathf.Clamp01((t - s1) / 0.1f) : t < s3 ? 2f + 0.6f * Mathf.Sin(t * 20f) : 4f * (1 - open);
-            seam.localScale = shutter ? new Vector3(13f, 0.5f * (0.4f + w), 1) : new Vector3(0.5f * (0.4f + w), 7.4f, 1);
-            seamM.SetColor("_Tint", sc2 * br);
+            float br = t < s1 ? 0 : t < s2 ? 1.2f * Mathf.Clamp01((t - s1) / 0.1f) : t < s3 ? 2f + 0.6f * Mathf.Sin(t * 20f) : 1.2f * (1 - open) * (1 - open);
+            seamM.SetFloat("_Width", 0.005f + 0.006f * Mathf.Min(w, 1f)); seamM.SetColor("_Col", sc2); seamM.SetColor("_Hot", Color.Lerp(sc2, Color.white, 0.5f)); seamM.SetFloat("_T", t); seamM.SetFloat("_Intensity", Mathf.Min(br, 2.2f) * 0.6f);
             // 画面
             if (t > tClose) c.post.stageDim = Mathf.Max(c.post.stageDim, 0.4f);
             if (t >= tClose + 0.22f && t < tClose + 0.25f) c.post.flash = 0.3f;
@@ -2874,10 +2874,6 @@ public static class FxLab
         PopLabel(c, "第 2 停止", new Vector3(-4.6f, 3.1f, -3.7f), 0.035f, red, s2, 0.7f);
         PopLabel(c, "第 3 停止", new Vector3(-4.6f, 3.1f, -3.7f), 0.035f, gold, s3, 0.8f);
         var burstAt = shutter ? new Vector3(0, -3.2f, -3.6f) : new Vector3(0, 0, -3.6f);
-        Flare(c, burstAt, s3, gold, 8f, 2430); Burst(c, burstAt, s3, gold, 12f, 2431);
-        var cols = new[] { new Color(1f, 0.3f, 0.3f), new Color(1f, 0.85f, 0.3f), new Color(0.3f, 1f, 0.5f), new Color(0.3f, 0.7f, 1f), new Color(0.8f, 0.4f, 1f) };
-        for (int k = 0; k < cols.Length; k++) Ring(c, new Vector3(0, 0, -3.6f), s3 + 0.04f + k * 0.04f, cols[k], 14f - k * 1.6f, 2432 + (uint)k);
-        Bokeh(c, new Vector3(0, 0, -3.6f), s3, gold, 4.5f, 2440);
         LightRush(c, burstAt, s3, red, 1.35f, 2450);
     }
     static void DoorGate(Ctx c) => DoorStep(c, "gate");
@@ -2885,35 +2881,21 @@ public static class FxLab
     // 筋は細い多数＋太い少数（太さの強弱）。速く、画面の端まで届く長さ。芯は白、外へ行くほど色。周りは暗く落として筋を立たせる
     static void LightRush(Ctx c, Vector3 pos, float t, Color col, float dur, uint seed)
     {
-        pos.z = -3.15f;   // 扉（-3.3・2990）の奥。扉が開くと見える
-        var hot = Color.Lerp(col, new Color(1f, 0.75f, 0.4f), 0.35f);
-        foreach (var (name, rate, burst, s0, s1, v0, v1, inten) in new[] { ("RushThin", 1100f, 300, 0.02f, 0.06f, 35f, 85f, 6f), ("RushThick", 90f, 30, 0.09f, 0.22f, 25f, 55f, 4f) })
-        {
-            var rm = AddMat(c.tx.dot, inten); rm.renderQueue = 2987; var ps = PS(c, name, pos, rm, seed++);
-            var m = ps.main; m.duration = dur; m.loop = false; m.startLifetime = new MinMaxCurve(0.14f, 0.34f); m.startSpeed = new MinMaxCurve(v0, v1);
-            m.startSize = new MinMaxCurve(s0, s1); m.startColor = new MinMaxGradient(Color.white, hot);
-            var e = ps.emission; e.rateOverTime = new MinMaxCurve(rate, Curve((0, 1), (0.6f, 0.7f), (1, 0))); e.SetBursts(new[] { new Burst(0, (short)burst) });
-            var sh = ps.shape; sh.enabled = true; sh.shapeType = ParticleSystemShapeType.Circle; sh.radius = 0.25f; sh.radiusThickness = 1;
-            ColorLife(ps, Grad(new[] { (0f, Color.white), (0.25f, hot), (1f, col) }, new[] { (0f, 0f), (0.08f, 1f), (0.7f, 0.9f), (1f, 0f) }));
-            var r = ps.GetComponent<ParticleSystemRenderer>(); r.renderMode = ParticleSystemRenderMode.Stretch; r.velocityScale = 0.09f; r.lengthScale = 3f;
-            c.Play(ps, t);
-        }
-        // 背景を黒く落とす（筋は暗い地でないと立たない）・芯（白く飛ぶ）・周りの赤いにじみ
-        var plate = BlackPlate(c, pos.z + 0.05f); plate.renderQueue = 2984;
-        var core = Quad(c.root, "RushCore", pos + new Vector3(0, 0, -0.02f), Vector2.one * 5f, QMat(c, c.tx.glow, 0, Vector2.one, 0)); var coreM = core.GetComponent<MeshRenderer>().sharedMaterial; coreM.renderQueue = 2988;
-        var haze = Quad(c.root, "RushHaze", pos + new Vector3(0, 0, -0.01f), Vector2.one * 11f, QMat(c, c.tx.glow, 0, Vector2.one, 0)); var hazeM = haze.GetComponent<MeshRenderer>().sharedMaterial; hazeM.renderQueue = 2986;
+        // 板 1 枚の式の光（Lab/Rush 0）。扉（2990）の奥に描き、開いた隙間から見せる
+        var plate = BlackPlate(c, -3.12f); plate.renderQueue = 2984;
+        var m = new Material(Shader.Find("Lab/Rush")); m.SetFloat("_Mode", 0); m.SetFloat("_Seed", seed % 97); m.SetFloat("_Aspect", 14f / 8f);
+        m.SetColor("_Col", col); m.SetColor("_Hot", Color.Lerp(col, new Color(1f, 0.55f, 0.2f), 0.5f)); m.renderQueue = 2987;
+        var q = Quad(c.root, "Rush", new Vector3(pos.x, pos.y, -3.15f), new Vector2(14f, 8f), m);
         c.OnUpdate(tt =>
         {
-            float a = tt - t; bool on = a >= 0 && a < dur + 0.25f; core.gameObject.SetActive(on); haze.gameObject.SetActive(on); if (!on) return;
-            float fade = 1 - Mathf.Clamp01((a - dur * 0.55f) / (dur * 0.35f));
-            float flick = 0.85f + 0.15f * Mathf.Sin(a * 47f) * Mathf.Sin(a * 19f);
-            SetPlate(plate, 0.88f * Mathf.Clamp01(a / 0.06f) * fade);
-            core.localScale = Vector3.one * (1.3f + 1.1f * Mathf.Clamp01(a / 0.12f)) * (0.9f + 0.1f * flick);
-            coreM.SetColor("_Tint", Color.white * 3.5f * flick * fade);
-            hazeM.SetColor("_Tint", col * 0.45f * fade * Mathf.Clamp01(a / 0.1f));
-            // 周りを暗く落とす・前へ吸い込まれるように少し寄る
-            c.post.darken = Mathf.Max(c.post.darken, 0.55f * fade);
-            c.post.zoom *= 1f + 0.06f * Mathf.Clamp01(a / 0.5f) * fade;
+            float a = tt - t; bool on = a >= 0 && a < dur + 0.3f; q.gameObject.SetActive(on); if (!on) { if (a < 0) SetPlate(plate, 0); return; }
+            float fade = 1 - Mathf.Clamp01((a - dur * 0.55f) / (dur * 0.4f));
+            m.SetFloat("_T", a);
+            m.SetFloat("_Reach", Mathf.Lerp(0.15f, 1.5f, EaseOut(Mathf.Clamp01(a / 0.35f))));          // 中心から外へ突き抜ける
+            m.SetFloat("_Intensity", (1.6f * Mathf.Exp(-a * 3f) + 0.9f) * fade);                       // 出だしが一番強い
+            m.SetFloat("_Core", (0.6f + 0.6f * Mathf.Exp(-a * 5f)) * fade);
+            SetPlate(plate, 0.9f * Mathf.Clamp01(a / 0.05f) * fade);
+            c.post.zoom *= 1f + 0.05f * Mathf.Clamp01(a / 0.5f) * fade;
             c.post.trauma += 0.25f * fade * Mathf.Exp(-a * 2f);
         });
     }
@@ -2988,10 +2970,6 @@ public static class FxLab
         PopLabel(c, "第 1 停止", new Vector3(-4.6f, 3.1f, -3.7f), 0.035f, blue, s1, 0.6f);
         PopLabel(c, "第 2 停止", new Vector3(-4.6f, 3.1f, -3.7f), 0.035f, red, s2, 0.7f);
         PopLabel(c, "第 3 停止", new Vector3(-4.6f, 3.1f, -3.7f), 0.035f, gold, s3, 0.8f);
-        Flare(c, new Vector3(0, 0, -3.6f), s3 + 0.1f, gold, 8f, 2530); Burst(c, new Vector3(0, 0, -3.6f), s3 + 0.1f, gold, 11f, 2531);
-        var cols = new[] { new Color(1f, 0.3f, 0.3f), new Color(1f, 0.85f, 0.3f), new Color(0.3f, 1f, 0.5f), new Color(0.3f, 0.7f, 1f), new Color(0.8f, 0.4f, 1f) };
-        for (int k = 0; k < cols.Length; k++) Ring(c, new Vector3(0, 0, -3.6f), s3 + 0.14f + k * 0.04f, cols[k], 14f - k * 1.6f, 2532 + (uint)k);
-        Bokeh(c, new Vector3(0, 0, -3.6f), s3 + 0.1f, gold, 4.5f, 2540);
         LightRush(c, new Vector3(0, 0, -3.6f), s3 + 0.08f, red, 1.3f, 2550);
     }
     static float EaseInOut(float x) => x < 0.5f ? 4 * x * x * x : 1 - Mathf.Pow(-2 * x + 2, 3) / 2;
