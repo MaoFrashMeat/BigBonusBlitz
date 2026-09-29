@@ -14,11 +14,11 @@ os.makedirs(OUT, exist_ok=True)
 
 def setup_scene(w, h):
     sc = bpy.context.scene
-    sc.render.engine = "BLENDER_EEVEE"
+    sc.render.engine = "CYCLES"; sc.cycles.device = "CPU"; sc.cycles.samples = 128; sc.cycles.use_denoising = True   # 金属の映り込みと陰を正しく
     sc.render.resolution_x, sc.render.resolution_y = w * 2, h * 2          # 2 倍で撮って縮める
     sc.render.film_transparent = True
     sc.render.image_settings.file_format = "PNG"; sc.render.image_settings.color_mode = "RGBA"
-    sc.view_settings.view_transform = "Standard"; sc.view_settings.look = "None"
+    sc.view_settings.view_transform = "AgX"; sc.view_settings.look = "AgX - Medium High Contrast"
     sc.world = bpy.data.worlds.new("W")   # 素材の .blend に入っている環境（見つからない HDRI でピンクになる）は使わない
     sc.world.color = (0.05, 0.05, 0.06)
     try:

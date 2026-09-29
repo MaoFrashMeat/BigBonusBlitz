@@ -31,6 +31,7 @@ batchmode で連番 PNG → mp4 にする。本体を Unity で開いたまま�
 | `unity/Assets/Shaders/LabFx*.shader` / `LabMisc.shader` | 粒子の加算・アルファ、板ポリの加算 |
 | `textures/` | エフェクト素材（`LAB_TEX` で読む）。Kenney Particle Pack（CC0、`LICENSE-kenney.txt`）の単体 12 枚、Brackeys VFX Bundle（CC0、`LICENSE-brackeys.txt`）の連番 7 本（`fb_<名前>_<横>x<縦>.png`）、Unity 公式の炎の連番（CC0、`LICENSE-unity-vfx.txt`）、斬撃の繊維 `slash_fibers.png` |
 | `blender/fire_sim.py` / `blender/make_flipbook.py` | Blender（5.2）で炎を流体シミュレーション → 8×8 の連番（`textures/bl_*_8x8.png`）。`blender -b -P blender/fire_sim.py -- <出力> 128 64 campfire` |
+| `blender/render_vault.py` | 金庫の大扉を Blender でモデリングして撮る（枠・扉の閂あり/なし・ハンドル） |
 | `blender/render_doors.py` | 扉のステップアップの絵。落とした CC0 の 3D 素材（Poly Haven の城門・シャッター、ambientCG の金属板）を Blender で正面から撮る。`make_door_tex.py`（自前の絵）は使わない |
 | `make_shield_tex.py` | 盾の紋章（`textures/shield_crest.png`） |
 | `unity/Assets/Shaders/LabGhost.shader` | 守護の影（キャラのシルエットを光で描く） |

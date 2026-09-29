@@ -2879,7 +2879,81 @@ public static class FxLab
         Bokeh(c, new Vector3(0, 0, -3.6f), s3, gold, 4.5f, 2440);
     }
     static void DoorGate(Ctx c) => DoorStep(c, "gate");
-    static void DoorVault(Ctx c) => DoorStep(c, "vault");
+    static void DoorVault(Ctx c) { if (c.tx.vaultFrame != null) VaultStep(c); else DoorStep(c, "vault"); }
+    // 金庫の大扉（本人 2026-09-29「モデルとディテールも作り込んで」）。絵は blender/render_vault.py で作り込んだモデルを撮ったもの（枠・扉 2 状態・ハンドル）
+    // 落ちてきて閉まる → 第 1 停止: ハンドルが回る・扉の縁から青い光 → 第 2 停止: 閂が抜ける（絵を切り替え）・蒸気・赤い光・火花
+    // → 第 3 停止: ハンドルが高速で回り、蝶番を軸に扉が開く・穴から光が噴く → 壁ごと手前へ抜ける
+    static void VaultStep(Ctx c)
+    {
+        float tClose = 0.3f, s1 = 1.0f, s2 = 1.7f, s3 = 2.45f;
+        var blue = new Color(0.35f, 0.7f, 1f); var red = new Color(1f, 0.25f, 0.12f); var gold = new Color(1f, 0.82f, 0.35f);
+        const float Hinge = 3.47f, DoorR = 2.54f;                                   // 蝶番の x・扉の半径（Blender 7.2 m 幅 → 12.8）
+        Material M(Texture2D t, int q) { var m = DoorMat(t); m.renderQueue = q; return m; }
+        var root = new GameObject("Vault").transform; root.SetParent(c.root, false);
+        var frameM = M(c.tx.vaultFrame, 2988); var frame = Quad(root, "VaultFrame", new Vector3(0, 0, -3.3f), new Vector2(12.8f, 7.2f), frameM);
+        var pivot = new GameObject("VaultPivot").transform; pivot.SetParent(root, false); pivot.localPosition = new Vector3(Hinge, 0, -3.31f);
+        var lockedM = M(c.tx.vaultLocked, 2991); var openM = M(c.tx.vaultOpen, 2991);
+        var doorL = Quad(pivot, "VaultDoorLocked", Vector3.zero, new Vector2(12.8f, 7.2f), lockedM); doorL.localPosition = new Vector3(-Hinge, 0, 0);
+        var doorO = Quad(pivot, "VaultDoorOpen", Vector3.zero, new Vector2(12.8f, 7.2f), openM); doorO.localPosition = new Vector3(-Hinge, 0, 0);
+        var wheelM = M(c.tx.vaultWheel, 2992); var wheelT = Quad(pivot, "VaultWheel", Vector3.zero, new Vector2(12.8f, 7.2f), wheelM); wheelT.localPosition = new Vector3(-Hinge, 0, -0.01f);
+        var glow = Quad(root, "VaultGlow", new Vector3(0, 0, -3.29f), Vector2.one * DoorR * 2.75f, QMat(c, c.tx.ring, 0, Vector2.one, 0)); var glowM = glow.GetComponent<MeshRenderer>().sharedMaterial; glowM.renderQueue = 2989;   // 扉の後ろ（縁の隙間から見える）
+        var rnd = new System.Random(2501); Vector3 jit = Vector3.zero; int lastJ = -1;
+        c.OnUpdate(t =>
+        {
+            // 落ちてきて閉まる
+            float drop = t < tClose ? 8f : Mathf.Max(0, 8f * (1 - EaseIn(Mathf.Clamp01((t - tClose) / 0.22f))));
+            float bounce = t > tClose + 0.22f ? Mathf.Sin((t - tClose - 0.22f) * 38f) * Mathf.Exp(-(t - tClose - 0.22f) * 11f) * 0.12f : 0;
+            float shake = 0;
+            foreach (var (ts, amp) in new[] { (s1, 0.05f), (s2, 0.12f) }) { float a = t - ts; if (a >= 0 && a < 0.6f) shake = Mathf.Max(shake, amp * Mathf.Exp(-a * 5f)); }
+            if (t >= s2 && t < s3) shake = Mathf.Max(shake, 0.018f);
+            int st = Mathf.FloorToInt(t * 30); if (st != lastJ) { lastJ = st; jit = new Vector3((float)rnd.NextDouble() - 0.5f, (float)rnd.NextDouble() - 0.5f, 0) * 2f; }
+            // 抜ける（開いた後、壁ごと手前へ大きくなって消える）
+            float exit = Mathf.Clamp01((t - s3 - 0.45f) / 0.3f);
+            root.localPosition = new Vector3(0, drop + bounce, 0) + jit * shake;
+            root.localScale = Vector3.one * (1 + exit * exit * 1.5f);
+            var fade = new Color(1, 1, 1, 1 - exit);
+            // ハンドル: 第 1 で 120°、第 2 で 120°、第 3 で高速に回る
+            float spin = (t >= s1 ? EaseOut(Mathf.Clamp01((t - s1) / 0.35f)) * 120f : 0) + (t >= s2 ? EaseOut(Mathf.Clamp01((t - s2) / 0.35f)) * 120f : 0) + (t >= s3 ? (t - s3) * 1400f : 0);
+            wheelT.localRotation = Quaternion.Euler(0, 0, -spin);
+            // 閂が抜ける（第 2 停止で絵を切り替え。一瞬扉が白く光る）
+            bool open = t >= s2 + 0.06f;
+            doorL.gameObject.SetActive(!open); doorO.gameObject.SetActive(open);
+            // 扉が蝶番を軸に開く（横に縮めて奥へ回る見え方。暗くなる）
+            float sw = t < s3 + 0.08f ? 0 : EaseInOut(Mathf.Clamp01((t - s3 - 0.08f) / 0.32f));
+            pivot.localScale = new Vector3(Mathf.Lerp(1f, 0.06f, sw), 1, 1);
+            float shade = Mathf.Lerp(1f, 0.35f, sw);
+            foreach (var m in new[] { lockedM, openM, wheelM }) { m.SetColor("_Color", new Color(shade, shade, shade, 1 - exit)); m.SetFloat("_Flash", (t >= s2 && t < s2 + 3 / 60f) || (t >= s3 && t < s3 + 2 / 60f) ? 0.8f : 0f); }
+            frameM.SetColor("_Color", fade);
+            // 扉の縁の光（第 1 青・第 2 赤く脈打つ・第 3 白く噴く）
+            Color gc = t < s2 ? blue : t < s3 ? red : Color.Lerp(gold, Color.white, 0.4f);
+            float gb = t < s1 ? 0 : t < s2 ? 1.1f * Mathf.Clamp01((t - s1) / 0.1f) : t < s3 ? 1.8f + 0.6f * Mathf.Sin(t * 20f) : 4f * (1 - sw);
+            glowM.SetColor("_Tint", gc * gb * (1 - exit));
+            // 画面
+            if (t > tClose) c.post.stageDim = Mathf.Max(c.post.stageDim, 0.4f * (1 - exit));
+            if (t >= tClose + 0.22f && t < tClose + 0.25f) c.post.flash = 0.3f;
+            float a1 = t - (tClose + 0.22f); if (a1 >= 0 && a1 < 0.4f) c.post.trauma += 0.7f * (1 - a1 / 0.4f);
+            foreach (var ts in new[] { s1, s2 }) { float a = t - ts; if (a >= 0 && a < 0.4f) c.post.trauma += (ts == s2 ? 0.7f : 0.4f) * (1 - a / 0.4f); }
+            float b = t - s3; if (b >= 0 && b < 3 / 60f) c.post.flash = 0.9f; if (b >= 0 && b < 0.5f) c.post.trauma += 0.8f * (1 - b / 0.5f);
+            if (b >= 0) c.post.tint = new Color(1f, 0.9f, 0.6f, 0.35f * (1 - Mathf.Clamp01(b / 0.8f)));
+        });
+        for (int k = 0; k < 4; k++) Flip(c, "VaultDust" + k, new Vector3(-4.5f + k * 3f, -3.1f, -3.4f), c.tx.fbSmoke, 8, 8, k * 6, 40 + k * 6, 0.9f, 2.4f, new Color(0.7f, 0.68f, 0.66f, 0.6f), 1f, 2502 + (uint)k, alpha: true, t: tClose + 0.22f);
+        // 第 2 停止: 閂の 8 か所から蒸気と火花
+        for (int k = 0; k < 8; k++)
+        {
+            float a = k * Mathf.PI * 2 / 8 + Mathf.PI / 8;
+            var p = new Vector3(Mathf.Cos(a) * DoorR * 1.05f, Mathf.Sin(a) * DoorR * 1.05f, -3.45f);
+            Flip(c, "VaultSteam" + k, p + new Vector3(Mathf.Cos(a), Mathf.Sin(a), 0) * 0.3f, c.tx.fbSmoke, 8, 8, k * 5, 40 + k * 5, 0.9f, 1.6f, new Color(0.95f, 0.95f, 1f, 0.55f), 1f, 2510 + (uint)k, delay: 0.02f, alpha: true, t: s2);
+            if (k % 2 == 0) RealSparks(c, p, a * Mathf.Rad2Deg, s2 + 0.02f, 14, 6f, 2520 + (uint)k);
+        }
+        PopLabel(c, "第 1 停止", new Vector3(-4.6f, 3.1f, -3.7f), 0.035f, blue, s1, 0.6f);
+        PopLabel(c, "第 2 停止", new Vector3(-4.6f, 3.1f, -3.7f), 0.035f, red, s2, 0.7f);
+        PopLabel(c, "第 3 停止", new Vector3(-4.6f, 3.1f, -3.7f), 0.035f, gold, s3, 0.8f);
+        Flare(c, new Vector3(0, 0, -3.6f), s3 + 0.1f, gold, 8f, 2530); Burst(c, new Vector3(0, 0, -3.6f), s3 + 0.1f, gold, 11f, 2531);
+        var cols = new[] { new Color(1f, 0.3f, 0.3f), new Color(1f, 0.85f, 0.3f), new Color(0.3f, 1f, 0.5f), new Color(0.3f, 0.7f, 1f), new Color(0.8f, 0.4f, 1f) };
+        for (int k = 0; k < cols.Length; k++) Ring(c, new Vector3(0, 0, -3.6f), s3 + 0.14f + k * 0.04f, cols[k], 14f - k * 1.6f, 2532 + (uint)k);
+        Bokeh(c, new Vector3(0, 0, -3.6f), s3 + 0.1f, gold, 4.5f, 2540);
+    }
+    static float EaseInOut(float x) => x < 0.5f ? 4 * x * x * x : 1 - Mathf.Pow(-2 * x + 2, 3) / 2;
     static void DoorShutter(Ctx c) => DoorStep(c, "shutter");
 
     // ================= 部品: 斬撃 =================
@@ -3208,7 +3282,7 @@ public static class FxLab
         public Vector4 shock;   // 空間の歪み: xy 中心（uv）、z 半径（画面の高さ比）、w 強さ
         public Vector4 split; public Color splitCol; public float black; public Vector4 slit;   // 真っ二つ / 暗転 / 暗転中の光の裂け目
     }
-    class Tx { public Texture2D dot, glow, ring, star4, diamond, plus, flame, flame2, streak, trail, noise, column, coinFace, burst, air, sparkle, magic, fbHitLines, fbBigHit, fbCharge, fbElecRing, fbFireRing, fbFlame, fbSmoke, fibers, square, fireFlame03, hexTile, arrowUp, fbStarExp, fbVortex, fbWavy, blCampfire, blWall, lightRing, bolt, ringDouble, twirl, starCross, smokePuff, sfxDon, sfxZuba, sfxBari, sfxGo, sfxKira, shieldCrest, doorGate, doorVault, doorLock, shutter, doorGateR, doorVaultR; }
+    class Tx { public Texture2D dot, glow, ring, star4, diamond, plus, flame, flame2, streak, trail, noise, column, coinFace, burst, air, sparkle, magic, fbHitLines, fbBigHit, fbCharge, fbElecRing, fbFireRing, fbFlame, fbSmoke, fibers, square, fireFlame03, hexTile, arrowUp, fbStarExp, fbVortex, fbWavy, blCampfire, blWall, lightRing, bolt, ringDouble, twirl, starCross, smokePuff, sfxDon, sfxZuba, sfxBari, sfxGo, sfxKira, shieldCrest, doorGate, doorVault, doorLock, shutter, doorGateR, doorVaultR, vaultFrame, vaultLocked, vaultOpen, vaultWheel; }
     class Ctx
     {
         public Transform root, heroT, goblinT; public Texture2D hero, goblin; public Tx tx;
@@ -3531,6 +3605,7 @@ public static class FxLab
             tx.sfxDon = K("sfx_don"); tx.sfxZuba = K("sfx_zuba"); tx.sfxBari = K("sfx_bari"); tx.sfxGo = K("sfx_go"); tx.sfxKira = K("sfx_kira"); tx.shieldCrest = K("shield_crest");   // 擬音（make_sfx_tex.py）・盾の紋章（make_shield_tex.py）
             tx.doorGate = K("door_gate_L"); tx.doorGateR = K("door_gate_R"); tx.doorVault = K("door_vault_L"); tx.doorVaultR = K("door_vault_R"); tx.doorLock = K("door_vault_lock"); tx.shutter = K("shutter");
             // 扉は落とした CC0 の 3D 素材を Blender で撮ったもの（blender/render_doors.py、LICENSE-doors.txt）
+            if (File.Exists(Path.Combine(dir, "vault_frame.png"))) { tx.vaultFrame = K("vault_frame"); tx.vaultLocked = K("vault_door_locked"); tx.vaultOpen = K("vault_door_open"); tx.vaultWheel = K("vault_wheel"); }   // 作り込んだ金庫（blender/render_vault.py）
             tx.fbFireRing = K("fb_firering_6x5"); tx.fbFlame = K("fb_flame_16x4"); tx.fbSmoke = K("fb_smoke_8x8");
         }
         return tx;
