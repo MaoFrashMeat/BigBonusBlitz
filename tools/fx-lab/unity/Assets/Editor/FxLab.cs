@@ -88,10 +88,10 @@ public static class FxLab
         yield return new Clip { name = "omen_stare", dur = 2.6f, hold = 1, build = OmenStare };
         yield return new Clip { name = "omen_letterbox", dur = 2.6f, hold = 1, build = OmenLetterbox };
         yield return new Clip { name = "omen_glitch", dur = 3.1f, hold = 1, build = OmenGlitch };
-        yield return new Clip { name = "door_gate", dur = 3.3f, hold = 1, build = DoorGate };
-        yield return new Clip { name = "door_vault", dur = 3.3f, hold = 1, build = DoorVault };
-        yield return new Clip { name = "door_shutter", dur = 3.3f, hold = 1, build = DoorShutter };
-        yield return new Clip { name = "door_gold", dur = 3.3f, hold = 1, build = DoorGold };
+        yield return new Clip { name = "door_gate", dur = 3.9f, hold = 1, build = DoorGate };
+        yield return new Clip { name = "door_vault", dur = 3.9f, hold = 1, build = DoorVault };
+        yield return new Clip { name = "door_shutter", dur = 3.9f, hold = 1, build = DoorShutter };
+        yield return new Clip { name = "door_gold", dur = 3.9f, hold = 1, build = DoorGold };
         yield return new Clip { name = "cutin_vs", dur = 2.2f, hold = 1, build = CutVs };
         yield return new Clip { name = "cutin_vertical", dur = 1.8f, hold = 1, build = CutVertical };
         yield return new Clip { name = "cutin_panels", dur = 2.1f, hold = 1, build = CutPanels };
@@ -2834,7 +2834,7 @@ public static class FxLab
             {
                 Vector3 p;
                 if (shutter) p = new Vector3(0, Mathf.Lerp(7.4f, 0, close) + bounce * 2 + open * 7.6f + (t >= s2 && t < s3 ? 0.18f : 0), -3.3f);   // 第 2 停止でガコッと少し上がる
-                else p = new Vector3(side * (3.2f + Mathf.Lerp(3.4f, 0, close) + bounce * side + open * 3.6f), 0, -3.3f);
+                else p = new Vector3(side * (3.2f + Mathf.Lerp(3.4f, 0, close) + bounce * side + open * 7f), 0, -3.3f);
                 if (vault && t >= s3) { float sw = open; var sc = tr.localScale; tr.localScale = new Vector3((sc.x < 0 ? -1 : 1) * 6.45f * (1 - sw * 0.85f), 7.25f, 1); p.x = side * (6.45f * 0.5f * (1 - sw * 0.85f) + sw * 3.2f + 0.02f); }   // 金庫は蝶番で開く
                 tr.position = p + jit * shake;
                 tr.rotation = Quaternion.Euler(0, 0, jit.x * shake * 6f);
@@ -2878,8 +2878,44 @@ public static class FxLab
         var cols = new[] { new Color(1f, 0.3f, 0.3f), new Color(1f, 0.85f, 0.3f), new Color(0.3f, 1f, 0.5f), new Color(0.3f, 0.7f, 1f), new Color(0.8f, 0.4f, 1f) };
         for (int k = 0; k < cols.Length; k++) Ring(c, new Vector3(0, 0, -3.6f), s3 + 0.04f + k * 0.04f, cols[k], 14f - k * 1.6f, 2432 + (uint)k);
         Bokeh(c, new Vector3(0, 0, -3.6f), s3, gold, 4.5f, 2440);
+        LightRush(c, burstAt, s3, red, 1.35f, 2450);
     }
     static void DoorGate(Ctx c) => DoorStep(c, "gate");
+    // 光の奔流（本人 2026-09-29「光の差し込みが甘い」＋参考画像: 中心が白く飛び、赤い光の筋が画面の外へ突き抜ける）
+    // 筋は細い多数＋太い少数（太さの強弱）。速く、画面の端まで届く長さ。芯は白、外へ行くほど色。周りは暗く落として筋を立たせる
+    static void LightRush(Ctx c, Vector3 pos, float t, Color col, float dur, uint seed)
+    {
+        var hot = Color.Lerp(col, new Color(1f, 0.75f, 0.4f), 0.35f);
+        foreach (var (name, rate, burst, s0, s1, v0, v1, inten) in new[] { ("RushThin", 1100f, 300, 0.02f, 0.06f, 35f, 85f, 6f), ("RushThick", 90f, 30, 0.09f, 0.22f, 25f, 55f, 4f) })
+        {
+            var ps = PS(c, name, pos + new Vector3(0, 0, -0.3f), AddMat(c.tx.dot, inten), seed++);
+            var m = ps.main; m.duration = dur; m.loop = false; m.startLifetime = new MinMaxCurve(0.14f, 0.34f); m.startSpeed = new MinMaxCurve(v0, v1);
+            m.startSize = new MinMaxCurve(s0, s1); m.startColor = new MinMaxGradient(Color.white, hot);
+            var e = ps.emission; e.rateOverTime = new MinMaxCurve(rate, Curve((0, 1), (0.6f, 0.7f), (1, 0))); e.SetBursts(new[] { new Burst(0, (short)burst) });
+            var sh = ps.shape; sh.enabled = true; sh.shapeType = ParticleSystemShapeType.Circle; sh.radius = 0.25f; sh.radiusThickness = 1;
+            ColorLife(ps, Grad(new[] { (0f, Color.white), (0.25f, hot), (1f, col) }, new[] { (0f, 0f), (0.08f, 1f), (0.7f, 0.9f), (1f, 0f) }));
+            var r = ps.GetComponent<ParticleSystemRenderer>(); r.renderMode = ParticleSystemRenderMode.Stretch; r.velocityScale = 0.09f; r.lengthScale = 3f;
+            c.Play(ps, t);
+        }
+        // 背景を黒く落とす（筋は暗い地でないと立たない）・芯（白く飛ぶ）・周りの赤いにじみ
+        var plate = BlackPlate(c, pos.z + 0.05f);
+        var core = Quad(c.root, "RushCore", pos + new Vector3(0, 0, -0.35f), Vector2.one * 5f, QMat(c, c.tx.glow, 0, Vector2.one, 0)); var coreM = core.GetComponent<MeshRenderer>().sharedMaterial;
+        var haze = Quad(c.root, "RushHaze", pos + new Vector3(0, 0, -0.2f), Vector2.one * 11f, QMat(c, c.tx.glow, 0, Vector2.one, 0)); var hazeM = haze.GetComponent<MeshRenderer>().sharedMaterial;
+        c.OnUpdate(tt =>
+        {
+            float a = tt - t; bool on = a >= 0 && a < dur + 0.25f; core.gameObject.SetActive(on); haze.gameObject.SetActive(on); if (!on) return;
+            float fade = 1 - Mathf.Clamp01((a - dur * 0.55f) / (dur * 0.35f));
+            float flick = 0.85f + 0.15f * Mathf.Sin(a * 47f) * Mathf.Sin(a * 19f);
+            SetPlate(plate, 0.88f * Mathf.Clamp01(a / 0.06f) * fade);
+            core.localScale = Vector3.one * (1.3f + 1.1f * Mathf.Clamp01(a / 0.12f)) * (0.9f + 0.1f * flick);
+            coreM.SetColor("_Tint", Color.white * 3.5f * flick * fade);
+            hazeM.SetColor("_Tint", col * 0.45f * fade * Mathf.Clamp01(a / 0.1f));
+            // 周りを暗く落とす・前へ吸い込まれるように少し寄る
+            c.post.darken = Mathf.Max(c.post.darken, 0.55f * fade);
+            c.post.zoom *= 1f + 0.06f * Mathf.Clamp01(a / 0.5f) * fade;
+            c.post.trauma += 0.25f * fade * Mathf.Exp(-a * 2f);
+        });
+    }
     // 金の扉（本人 2026-09-29 の参考画像「こういうかんじ」: 金の浮き彫り・放射の筋・炎の飾り・中央の錠）。絵は blender/render_golddoor.py でモデリングして撮ったもの
     static void DoorGold(Ctx c) => DoorStep(c, "gold");
     static void DoorVault(Ctx c) { if (c.tx.vaultFrame != null) VaultStep(c); else DoorStep(c, "vault"); }
@@ -2955,6 +2991,7 @@ public static class FxLab
         var cols = new[] { new Color(1f, 0.3f, 0.3f), new Color(1f, 0.85f, 0.3f), new Color(0.3f, 1f, 0.5f), new Color(0.3f, 0.7f, 1f), new Color(0.8f, 0.4f, 1f) };
         for (int k = 0; k < cols.Length; k++) Ring(c, new Vector3(0, 0, -3.6f), s3 + 0.14f + k * 0.04f, cols[k], 14f - k * 1.6f, 2532 + (uint)k);
         Bokeh(c, new Vector3(0, 0, -3.6f), s3 + 0.1f, gold, 4.5f, 2540);
+        LightRush(c, new Vector3(0, 0, -3.6f), s3 + 0.08f, red, 1.3f, 2550);
     }
     static float EaseInOut(float x) => x < 0.5f ? 4 * x * x * x : 1 - Mathf.Pow(-2 * x + 2, 3) / 2;
     static void DoorShutter(Ctx c) => DoorStep(c, "shutter");
