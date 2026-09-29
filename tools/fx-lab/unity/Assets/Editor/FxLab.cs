@@ -840,10 +840,11 @@ public static class FxLab
             new FrameStep { label = "STEP 6", mode = 3, col = Color.white, core = Color.white * 2.4f, reach = 1.1f, intensity = 1.1f, rainbow = true, thunderOverlay = true, particle = Color.white, embers = true },
         };
         float first = 0.4f, gap = 1.0f;
-        // 炎の段（4 緑・5 赤・6 虹）は本物寄りの炎の枠
-        FireFrame(c, first + 3 * gap, first + 4 * gap, FireGreen, 0.9f, 510);
-        FireFrame(c, first + 4 * gap, first + 5 * gap, FireRed, 1f, 520);
-        FireFrame(c, first + 5 * gap, 7.2f, FireRainbow, 1.15f, 530);
+        // 全段を同じ炎にして、色だけ替える（本人 2026-09-29「炎の差し替えではなく色の差し替え」）。炎の形は段が変わっても途切れない
+        var pals = new[] { FireWhite, FireBlue, FireYellow, FireGreen, FireRed, FireRainbow };
+        int StepAt(float t) => Mathf.Clamp(Mathf.FloorToInt((t - first) / gap), 0, pals.Length - 1);
+        FireFrame(c, first, 7.2f, FireWhite, 1f, 510, palAt: t => pals[StepAt(t)], kicks: Enumerable.Range(0, pals.Length).Select(k => first + k * gap).ToArray(),
+                  powerAt: t => 0.8f + 0.07f * StepAt(t));
         const float FW = 13.0f, FH = 7.4f, T = 1.2f;
         // 枠は画面の縁に沿う角丸の四角。一周の長さに素材の繰り返しをぴったり合わせて継ぎ目を消す
         const float R = 1.0f; var half = new Vector2(6.4f, 3.6f);
@@ -876,10 +877,10 @@ public static class FxLab
             float burst = Mathf.Exp(-a * 9f);
             mainMat.SetFloat("_Mode", st.mode); mainMat.SetColor("_Col", st.mode > 2.5f ? st.col * 0.55f : st.col);   // 炎の段は床の明かりだけ（炎は連番が描く） mainMat.SetColor("_Core", st.core); mainMat.SetColor("_Edge", st.edge);
             mainMat.SetFloat("_Rainbow", st.rainbow ? 1 : 0); mainMat.SetFloat("_Burst", burst);
-            bool fireStep = st.mode > 2.5f;   // 炎の段は FireFrame の帯が描く
+            bool fireStep = true;   // 全段を FireFrame の炎が描く（色だけ替える）
             mainMat.SetFloat("_Thick", (st.mode > 2.5f ? 2.0f : T * st.reach) * (1 + 0.45f * burst)); mainMat.SetFloat("_Shade", st.mode > 2.5f ? 0.82f : 0.35f + 0.07f * k); mainMat.SetFloat("_Intensity", fireStep ? 0 : st.intensity * Mathf.Clamp01(a / 0.03f + 0.3f));
             thunderMat.SetFloat("_Mode", 1); thunderMat.SetFloat("_Rainbow", 1); thunderMat.SetFloat("_Burst", burst); thunderMat.SetFloat("_Thick", T * 0.75f); thunderMat.SetFloat("_Shade", 0f);
-            thunderMat.SetColor("_Core", Color.white * 2.6f); thunderMat.SetFloat("_Intensity", st.thunderOverlay ? 0.9f : 0);
+            thunderMat.SetColor("_Core", Color.white * 2.6f); thunderMat.SetFloat("_Intensity", 0);   // 雷は重ねない（色だけで段を見せる）
             // 段が上がる瞬間: 白く光る 2F・揺れ（段ごとに強く）・背景を段ごとに沈める
             if (a < 2 / 60f) c.post.flash = Mathf.Max(c.post.flash, 0.35f + 0.05f * k);
             c.post.trauma += (0.3f + 0.08f * k) * Mathf.Clamp01(1 - a / 0.3f);
@@ -926,6 +927,10 @@ public static class FxLab
     static readonly FirePal FireGreen = new FirePal { c0 = new Color(0f, 0.08f, 0.02f), c1 = new Color(0.04f, 0.55f, 0.1f), c2 = new Color(0.35f, 1f, 0.3f), c3 = new Color(1.6f, 2.8f, 1.5f), light = new Color(0.3f, 1f, 0.35f),
         a0 = new Color(0.02f, 0.35f, 0.08f), a1 = new Color(0.1f, 0.75f, 0.2f), a2 = new Color(0.45f, 1f, 0.4f), a3 = new Color(1.1f, 1.5f, 0.9f) };
     static readonly FirePal FireRainbow = new FirePal { c0 = new Color(0.12f, 0.01f, 0f), c1 = new Color(0.9f, 0.16f, 0.01f), c2 = new Color(1f, 0.55f, 0.08f), c3 = new Color(2.4f, 2.4f, 2.4f), light = new Color(0.9f, 0.6f, 0.9f), rainbow = true };
+    static readonly FirePal FireWhite = new FirePal { c0 = new Color(0.1f, 0.1f, 0.14f), c1 = new Color(0.6f, 0.65f, 0.8f), c2 = new Color(0.9f, 0.93f, 1f), c3 = new Color(2f, 2f, 2.1f), light = new Color(0.8f, 0.85f, 1f),
+        a0 = new Color(0.45f, 0.5f, 0.68f), a1 = new Color(0.72f, 0.78f, 0.95f), a2 = new Color(0.9f, 0.94f, 1f), a3 = new Color(1.35f, 1.4f, 1.45f) };
+    static readonly FirePal FireYellow = new FirePal { c0 = new Color(0.3f, 0.15f, 0f), c1 = new Color(1f, 0.7f, 0.05f), c2 = new Color(1f, 0.9f, 0.3f), c3 = new Color(2.2f, 2f, 1f), light = new Color(1f, 0.8f, 0.25f),
+        a0 = new Color(0.85f, 0.5f, 0.02f), a1 = new Color(1f, 0.75f, 0.06f), a2 = new Color(1f, 0.92f, 0.3f), a3 = new Color(1.45f, 1.4f, 0.9f) };
     // 理想の画像（本人 2026-09-29）: 先は濃い青、根元は薄い水色
     static readonly FirePal FireBlue = new FirePal { c0 = new Color(0f, 0.02f, 0.15f), c1 = new Color(0.05f, 0.25f, 1f), c2 = new Color(0.2f, 0.75f, 1f), c3 = new Color(1.3f, 2f, 2.4f), light = new Color(0.25f, 0.55f, 1f),
         a0 = new Color(0.05f, 0.18f, 0.85f), a1 = new Color(0.12f, 0.42f, 1f), a2 = new Color(0.2f, 0.8f, 1f), a3 = new Color(0.85f, 1.35f, 1.45f) };
@@ -1000,8 +1005,12 @@ public static class FxLab
 
     // flipbook = true で炎の連番を辺に並べる作り（2026-09-28 本人「並べるんじゃなくて枠で一つの炎」で既定は false。枠でつながった 1 つの炎）
     // anime = true（既定。本人 2026-09-29 の理想画像）: 同じ形を 4 段に塗り分けるアニメの炎。false で Blender の連番の本物寄り
-    static void FireFrame(Ctx c, float t0, float t1, FirePal pal, float power, uint seed, bool flipbook = false, bool anime = true)
+    // palAt: 時刻ごとの色（ステップアップで炎はそのまま色だけ替える）。kicks: 弾む時刻（段が上がった瞬間）。powerAt: 時刻ごとの太さ
+    static void FireFrame(Ctx c, float t0, float t1, FirePal pal, float power, uint seed, bool flipbook = false, bool anime = true,
+        Func<float, FirePal> palAt = null, float[] kicks = null, Func<float, float> powerAt = null)
     {
+        Func<float, FirePal> P = t => palAt != null ? palAt(t) : pal;
+        Func<float, float> Kick = t => { float last = t0; if (kicks != null) foreach (var k in kicks) if (t >= k) last = k; return Mathf.Exp(-(t - last) * 9f); };
         // 枠でつながった炎（Lab/Frame の 4）。下地の暗さ・うねり・段が上がった瞬間の弾みもここ
         {
             const float R = 1.0f; var half = new Vector2(6.4f, 3.6f);
@@ -1018,9 +1027,14 @@ public static class FxLab
             c.OnUpdate(t =>
             {
                 bool on = t >= t0 && t < t1 + 0.12f;
+                var pp = P(t);
+                fm.SetColor("_A0", pp.a0); fm.SetColor("_A1", pp.a1); fm.SetColor("_A2", pp.a2); fm.SetColor("_A3", pp.a3); fm.SetFloat("_Rainbow", pp.rainbow ? 1 : 0);
                 fm.SetFloat("_Intensity", on ? Mathf.Clamp01((t - t0) / 0.06f) : 0);
-                fm.SetFloat("_Burst", on ? Mathf.Exp(-(t - t0) * 9f) : 0);
-                if (pal.rainbow) fm.SetColor("_Col", Color.white);
+                fm.SetFloat("_Burst", on ? Kick(t) : 0);
+                if (powerAt != null) fm.SetFloat("_Thick", (anime ? 1.5f : 1.8f) * powerAt(t) * (1 + 0.35f * Kick(t)));
+                // 脈打ち: ゆっくりした呼吸（約 1.6 回/秒）＋速いちらつき
+                fm.SetFloat("_Pulse", 1f + 0.1f * Mathf.Sin(t * 10f) + 0.06f * (Mathf.PerlinNoise(t * 18f, 2.2f) - 0.5f));
+                if (pp.rainbow) fm.SetColor("_Col", Color.white);
             });
         }
         var sheets = new[] { c.tx.fbFlame, c.tx.fireFlame03 ?? c.tx.fbFlame };
@@ -1062,6 +1076,7 @@ public static class FxLab
             if (!anime) Trail(em, AddMat(c.tx.trail, 3f), new MinMaxCurve(0.06f, 0.1f));
             c.Play(em, t0);
             c.OnUpdate(t => { if (t >= t1 + 0.12f) em.Clear(); });
+            if (palAt != null) c.OnUpdate(t => { var pp = P(t); var mm = em.main; mm.startColor = pp.rainbow ? new MinMaxGradient(RainbowGrad()) { mode = ParticleSystemGradientMode.RandomColor } : new MinMaxGradient(anime ? pp.a3 : pp.c2); });
         }
         // 薄い煙: 上の縁に溜まって昇る（暗く、少しだけ）
         if (c.tx.fbSmoke != null)
@@ -1085,8 +1100,11 @@ public static class FxLab
             float k = Mathf.Clamp01((t - t0) / 0.1f);
             float fl = 0.75f + 0.25f * Mathf.PerlinNoise(t * 14f, seed * 0.1f) + 0.15f * (Mathf.PerlinNoise(t * 31f, 3.3f) - 0.5f);   // 速いちらつき
             c.post.heat = Mathf.Max(c.post.heat, power * k);
-            var lc = pal.rainbow ? Color.HSVToRGB(Mathf.Repeat(t * 0.5f, 1f), 0.5f, 1f) : pal.light;
-            c.post.fireLight = new Color(lc.r, lc.g, lc.b, 0) * (0.35f * power * fl * k); c.post.fireLight.a = 2.5f;
+            var pp = P(t);
+            var lc = pp.rainbow ? Color.HSVToRGB(Mathf.Repeat(t * 0.5f, 1f), 0.5f, 1f) : pp.light;
+            float pw = powerAt != null ? powerAt(t) : power;
+            // 照り返し: 炎の色で周りを照らす。段が上がった瞬間は強く
+            c.post.fireLight = new Color(lc.r, lc.g, lc.b, 0) * (0.5f * pw * fl * k * (1 + 0.8f * Kick(t))); c.post.fireLight.a = 3.2f;
         });
     }
 

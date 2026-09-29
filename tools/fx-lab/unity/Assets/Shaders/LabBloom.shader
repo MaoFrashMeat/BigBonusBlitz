@@ -143,7 +143,11 @@ Shader "Hidden/LabBloom"
                 }
                 float3 c = tex2D(_MainTex, uv).rgb;
                 // 炎の照り返し: 縁に近い所ほど、炎の色で照らす（掛け算。霧ではなく明かりに見せる）
-                if (_FireLight.a > 0) c *= 1 + _FireLight.rgb * (1 - smoothstep(0.0, _FireLight.a, edgeD));
+                if (_FireLight.a > 0)
+                {
+                    float fk = 1 - smoothstep(0.0, _FireLight.a, edgeD);
+                    c = c * (1 + _FireLight.rgb * fk) + _FireLight.rgb * fk * fk * fk * 0.08;   // 照らす（掛け算）＋空気が光る（足し算）
+                }
                 // メリハリ: 強い一撃のときは、光っていない所（背景・キャラ）だけ暗く沈める。光（HDR 1 以上）とブルームはそのまま
                 float lum0 = dot(c, float3(0.2126, 0.7152, 0.0722));
                 c *= lerp(1, 1 - _Dim, 1 - smoothstep(0.7, 1.6, lum0));

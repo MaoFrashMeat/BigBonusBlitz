@@ -12,6 +12,8 @@ Shader "Lab/Frame"
         _FireRate ("FireRate", Float) = 30
         _FireTile ("FireTile", Float) = 3
         _Anime ("Anime", Float) = 0
+        _Glow ("Glow", Float) = 1
+        _Pulse ("Pulse", Float) = 1
         _Steps ("Steps", Float) = 0
         _A0 ("A0", Color) = (0.95,0.22,0.05,1)
         _A1 ("A1", Color) = (1,0.55,0.08,1)
@@ -37,7 +39,7 @@ Shader "Lab/Frame"
     }
     CGINCLUDE
     #include "UnityCG.cginc"
-    sampler2D _NoiseTex, _FiberTex, _FireTex; float _FireRate, _FireTile, _Anime, _Steps; float4 _A0, _A1, _A2, _A3;
+    sampler2D _NoiseTex, _FiberTex, _FireTex; float _FireRate, _FireTile, _Anime, _Steps, _Glow, _Pulse; float4 _A0, _A1, _A2, _A3;
     // アニメ調の炎（本人 2026-09-29 の参考画像）: 温度を 4 段にくっきり塗り分ける。暗い赤の縁 → 橙 → 黄 → 薄い黄の芯。外側に薄い光だけ残す
     // hole = 中に穴を抜くためのノイズ（0〜1）。境目は fwidth で 1px だけなめらかに
     float3 AnimeFire(float T, float hole, float3 c0, float3 c1, float3 c2, float3 c3, out float mask)
@@ -177,8 +179,14 @@ Shader "Lab/Frame"
                     float3 ac = a0 * e0;
                     ac = lerp(ac, a1, e1); ac = lerp(ac, a2, e2); ac = lerp(ac, a3, e3);
                     ac *= lerp(1.12, 0.8, saturate(vv));                                   // 同じ段の中でも根元が明るい
-                    c = ac + a1 * pow(saturate(1 - v), 5) * 0.35 * e0;                     // 根元にだけ薄い光
-                    return float4(c * _Intensity * (1 + _Burst * 0.6) * corner, e0 * saturate(_Intensity) * corner);   // 不透明に塗る
+                    // 光のエネルギー（本人 2026-09-29「光源らしさ・ほのかな発光・グロウ」）
+                    //   芯（明るい 2 段）を HDR にしてブルームで光らせる / 炎の外に柔らかな光の輪（加算。覆いは増やさない）/ 脈打ち
+                    float emit = 1 + _Glow * (e2 * 0.25 + e3 * 0.75);   // 芯だけ HDR（塗りの段が白く飛ばない所まで）
+                    c = ac * emit + a1 * pow(saturate(1 - v), 5) * 0.35 * e0;
+                    float halo = exp(-max(-F, 0) * 16) * (1 - e0) * smoothstep(1.2, 0.3, vv);   // 炎のすぐ外だけ
+                    float3 haloCol = a1 * halo * 0.4 * _Glow;
+                    float k = _Intensity * _Pulse * (1 + _Burst * 0.8) * corner;
+                    return float4(c * k + haloCol * k, e0 * saturate(_Intensity) * corner);   // 炎は不透明に塗り、光の輪は加算
                 }
                 else if (_Mode > 4.5)
                 {
