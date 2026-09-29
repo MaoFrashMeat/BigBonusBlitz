@@ -1,0 +1,15 @@
+Use case: stylized-concept
+Asset type: game enemy roster concept sheet, reference only (not a final sprite sheet)
+Primary request: a polished fantasy adventure enemy roster concept sheet showing exactly twenty distinct original creatures arranged in a clean 5 columns by 4 rows grid, each creature centered in its own equal square cell with generous separation. Include varied silhouettes and readable combat roles: slime, goblin, flying bat, forest wolf, armored beetle, mushroom mage, crystal golem, thorn plant, sand scorpion, ice wisp, swamp frog, clockwork knight, harpy, shadow raven, fire salamander, sea serpent, stone troll, moon moth, cursed knight, and small dragon.
+Scene/backdrop: deep midnight navy studio backdrop with subtle indigo vignette and faint gold star dust; no scenery that merges cells.
+Subject: expressive but game-readable full-body creatures, clear silhouettes, appealing high-end Japanese fantasy RPG concept art.
+Style/medium: polished anime fantasy game concept illustration, crisp linework, controlled painterly shading, coherent proportions across the sheet, ornate but readable details.
+Composition/framing: orthographic front/three-quarter character lineup, full body visible, consistent scale per cell, 5x4 grid with clear empty gutters; no UI frame.
+Lighting/mood: cool blue rim light with restrained warm gold accents, each creature readable against navy.
+Color palette: azure blue, violet, emerald, ember orange, ivory, and gold accents; each creature has a distinct accent color.
+Materials/textures: clean fantasy RPG materials, translucent slime, fur, carved crystal, metal, leaves, scales, cloth.
+Text (verbatim): none
+Constraints: exactly 20 creatures, one per cell, plain background, no labels, no numbers, no logos, no watermark, preserve empty gutters between cells.
+Avoid: duplicated creatures, extra creatures, humans, weapons covering bodies, text, borders touching the characters, cropped silhouettes, photorealism, messy collage, checkerboard transparency.
+
+Generation record: 2026-09-29, built-in image generation requested once; failed with HTTP 429 usage_limit_reached before an image was returned. No generated image is treated as an asset.

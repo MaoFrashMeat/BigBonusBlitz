@@ -57,6 +57,7 @@ public static class FxLab
         // 画面の枠（ステップアップ）
         yield return new Clip { name = "stepup", dur = 7.2f, hold = 1, build = StepUpClip };
         yield return new Clip { name = "fire_frame", dur = 4.4f, hold = 1, build = FireFrameClip };
+        yield return new Clip { name = "fire_frame_red", dur = 4.4f, hold = 1, build = c => { FireFrame(c, 0.3f, 4.2f, FireRed, 1f, 501); c.OnUpdate(t => { if (t >= 0.3f) c.post.stageDim = Mathf.Max(c.post.stageDim, 0.25f); }); } };
         foreach (var p in PartClips()) yield return p;   // 部品集
     }
 
@@ -919,10 +920,15 @@ public static class FxLab
     // ================= 本物寄りの炎の枠 =================
     // シミュレーションの炎の連番（Thomas Iché・CC0）を四辺に重ね、温度の色で塗る（Lab/Fire）。
     // 足すもの: 火の粉（上へ舞う・乱流・尾）/ 薄い煙（上の縁）/ 床の明かり（Lab/Frame の 3）/ 照り返し（背景を炎の色で照らす・ちらつく）/ 陽炎
-    class FirePal { public Color c0, c1, c2, c3, light; public bool rainbow; }
-    static readonly FirePal FireRed = new FirePal { c0 = new Color(0.12f, 0.01f, 0f), c1 = new Color(0.9f, 0.16f, 0.01f), c2 = new Color(1f, 0.55f, 0.08f), c3 = new Color(2.1f, 1.35f, 0.45f), light = new Color(1f, 0.45f, 0.12f) };
-    static readonly FirePal FireGreen = new FirePal { c0 = new Color(0f, 0.08f, 0.02f), c1 = new Color(0.04f, 0.55f, 0.1f), c2 = new Color(0.35f, 1f, 0.3f), c3 = new Color(1.6f, 2.8f, 1.5f), light = new Color(0.3f, 1f, 0.35f) };
+    class FirePal { public Color c0, c1, c2, c3, light; public bool rainbow; public Color a0, a1, a2, a3; }   // a0〜a3 = アニメの 4 段（先の暗い色 → 根元の明るい色）
+    static readonly FirePal FireRed = new FirePal { c0 = new Color(0.12f, 0.01f, 0f), c1 = new Color(0.9f, 0.16f, 0.01f), c2 = new Color(1f, 0.55f, 0.08f), c3 = new Color(2.1f, 1.35f, 0.45f), light = new Color(1f, 0.45f, 0.12f),
+        a0 = new Color(0.75f, 0.1f, 0.04f), a1 = new Color(1f, 0.38f, 0.05f), a2 = new Color(1f, 0.72f, 0.12f), a3 = new Color(1.4f, 1.3f, 0.75f) };
+    static readonly FirePal FireGreen = new FirePal { c0 = new Color(0f, 0.08f, 0.02f), c1 = new Color(0.04f, 0.55f, 0.1f), c2 = new Color(0.35f, 1f, 0.3f), c3 = new Color(1.6f, 2.8f, 1.5f), light = new Color(0.3f, 1f, 0.35f),
+        a0 = new Color(0.02f, 0.35f, 0.08f), a1 = new Color(0.1f, 0.75f, 0.2f), a2 = new Color(0.45f, 1f, 0.4f), a3 = new Color(1.1f, 1.5f, 0.9f) };
     static readonly FirePal FireRainbow = new FirePal { c0 = new Color(0.12f, 0.01f, 0f), c1 = new Color(0.9f, 0.16f, 0.01f), c2 = new Color(1f, 0.55f, 0.08f), c3 = new Color(2.4f, 2.4f, 2.4f), light = new Color(0.9f, 0.6f, 0.9f), rainbow = true };
+    // 理想の画像（本人 2026-09-29）: 先は濃い青、根元は薄い水色
+    static readonly FirePal FireBlue = new FirePal { c0 = new Color(0f, 0.02f, 0.15f), c1 = new Color(0.05f, 0.25f, 1f), c2 = new Color(0.2f, 0.75f, 1f), c3 = new Color(1.3f, 2f, 2.4f), light = new Color(0.25f, 0.55f, 1f),
+        a0 = new Color(0.05f, 0.18f, 0.85f), a1 = new Color(0.12f, 0.42f, 1f), a2 = new Color(0.2f, 0.8f, 1f), a3 = new Color(0.85f, 1.35f, 1.45f) };
 
     // 連番のコマの並び。Blender で作った炎（bl_*）は 8×8、それ以外の炎の連番は 16×4
     static Vector2Int GridOf(Texture t) => t != null && t.name.StartsWith("bl_") ? new Vector2Int(8, 8) : new Vector2Int(16, 4);
@@ -993,17 +999,20 @@ public static class FxLab
     }
 
     // flipbook = true で炎の連番を辺に並べる作り（2026-09-28 本人「並べるんじゃなくて枠で一つの炎」で既定は false。枠でつながった 1 つの炎）
-    static void FireFrame(Ctx c, float t0, float t1, FirePal pal, float power, uint seed, bool flipbook = false)
+    // anime = true（既定。本人 2026-09-29 の理想画像）: 同じ形を 4 段に塗り分けるアニメの炎。false で Blender の連番の本物寄り
+    static void FireFrame(Ctx c, float t0, float t1, FirePal pal, float power, uint seed, bool flipbook = false, bool anime = true)
     {
         // 枠でつながった炎（Lab/Frame の 4）。下地の暗さ・うねり・段が上がった瞬間の弾みもここ
         {
             const float R = 1.0f; var half = new Vector2(6.4f, 3.6f);
             float per = 4 * (half.x - R) + 4 * (half.y - R) + 2 * Mathf.PI * R;
             var fm = new Material(Shader.Find("Lab/Frame"));
-            fm.SetTexture("_NoiseTex", c.tx.noise); fm.SetFloat("_Mode", c.tx.blWall != null ? 5 : 4); fm.SetFloat("_Seed", seed * 0.37f);
+            fm.SetTexture("_NoiseTex", c.tx.noise); fm.SetFloat("_Mode", anime ? 6 : c.tx.blWall != null ? 5 : 4); fm.SetFloat("_Seed", seed * 0.37f);
+            fm.SetFloat("_Steps", anime ? 12 : 0);   // アニメはコマ打ち（12 枚/秒）
+            fm.SetColor("_A0", pal.a0); fm.SetColor("_A1", pal.a1); fm.SetColor("_A2", pal.a2); fm.SetColor("_A3", pal.a3);
             if (c.tx.blWall != null) { fm.SetTexture("_FireTex", c.tx.blWall); fm.SetFloat("_FireRate", 45); fm.SetFloat("_FireTile", 1); }   // Blender の炎（一周で約 7 枚並ぶ）
             fm.SetVector("_Half", half); fm.SetFloat("_Radius", R); fm.SetFloat("_UScale", Mathf.Round(per / 2.2f) / per);
-            fm.SetFloat("_Thick", 1.8f * power); fm.SetFloat("_Shade", 0.8f);
+            fm.SetFloat("_Thick", (anime ? 1.5f : 1.8f) * power); fm.SetFloat("_Shade", 0.8f);
             fm.SetColor("_R0", pal.c0); fm.SetColor("_R1", pal.c1); fm.SetColor("_R2", pal.c2); fm.SetColor("_R3", pal.c3); fm.SetFloat("_Rainbow", pal.rainbow ? 1 : 0);
             Quad(c.root, "FireBand", new Vector3(0, 0, -3.02f), new Vector2(13f, 7.4f), fm);
             c.OnUpdate(t =>
@@ -1036,7 +1045,8 @@ public static class FxLab
         }
 
         // 火の粉: 縁から上へ舞う。乱流と短い尾
-        var em = PS(c, "Embers", new Vector3(0, 0, -3.1f), AddMat(c.tx.dot, 4f), seed + 40);
+        var em = PS(c, "Embers", new Vector3(0, 0, -3.1f), AddMat(anime ? c.tx.diamond : c.tx.dot, anime ? 3f : 4f), seed + 40);
+        if (anime) { var er = em.GetComponent<ParticleSystemRenderer>(); er.renderMode = ParticleSystemRenderMode.Stretch; er.velocityScale = 0.02f; er.lengthScale = 3f; }   // 細い線の火の粉
         {
             var m = em.main; m.duration = Mathf.Max(t1 - t0, 0.1f); m.startLifetime = new MinMaxCurve(0.8f, 1.8f); m.startSize = new MinMaxCurve(0.02f, 0.045f);
             m.startColor = pal.rainbow ? new MinMaxGradient(RainbowGrad()) { mode = ParticleSystemGradientMode.RandomColor } : new MinMaxGradient(Color.white);
@@ -1046,10 +1056,10 @@ public static class FxLab
             var v = em.velocityOverLifetime; v.enabled = true; v.space = ParticleSystemSimulationSpace.Local;
             v.radial = new MinMaxCurve(-4.5f, -2f);   // 縁から中心へ飛ぶ
             var no = em.noise; no.enabled = true; no.strength = 1.1f; no.frequency = 1.6f; no.scrollSpeed = 1f;
-            var hot = pal.rainbow ? Color.white : Color.Lerp(pal.c2, Color.white, 0.5f);
+            var hot = pal.rainbow ? Color.white : anime ? pal.a3 : Color.Lerp(pal.c2, Color.white, 0.5f);
             ColorLife(em, Grad(new[] { (0f, hot), (0.4f, pal.rainbow ? Color.white : pal.c2), (1f, pal.rainbow ? Color.white : pal.c1) }, new[] { (0f, 1f), (0.7f, 1f), (1f, 0f) }));
             SizeLife(em, Curve((0, 1), (1, 0.4f)));
-            Trail(em, AddMat(c.tx.trail, 3f), new MinMaxCurve(0.06f, 0.1f));
+            if (!anime) Trail(em, AddMat(c.tx.trail, 3f), new MinMaxCurve(0.06f, 0.1f));
             c.Play(em, t0);
             c.OnUpdate(t => { if (t >= t1 + 0.12f) em.Clear(); });
         }
@@ -1084,7 +1094,7 @@ public static class FxLab
     static void FireFrameClip(Ctx c)
     {
         float on = 0.3f;
-        FireFrame(c, on, 4.2f, FireRed, 1f, 500);
+        FireFrame(c, on, 4.2f, FireBlue, 1f, 500);
         c.OnUpdate(t => { if (t >= on) { c.post.stageDim = Mathf.Max(c.post.stageDim, 0.25f); } if (t >= on && t < on + 2 / 60f) c.post.flash = 0.3f; });
     }
 
