@@ -69,6 +69,12 @@ CLIPS = [
     ('cutin_fire', 'カットイン 3  炎の帯'),
     ('cutin_focus', 'カットイン 4  集中線＋白黒'),
     ('cutin_rainbow', 'カットイン 5  虹（プレミア）'),
+    ('drop_embers', '落ちて集まる 1  エンバー（燃えさし）'),
+    ('drop_shards', '落ちて集まる 2  シャード（結晶）'),
+    ('drop_souls', '落ちて集まる 3  ソウル（魂の光）'),
+    ('cutin_upgrade', 'カットインの昇格（第 1 停止で赤・第 2 停止で虹）'),
+    ('longfreeze', 'ブラックアウト（ロングフリーズ）'),
+    ('sword_split', '剣が画面を真っ二つ（前兆）'),
 ]
 # 2 つ目の引数で絞る（run.ps1 -Only と同じ名前をカンマ区切り）
 if len(sys.argv) > 2 and sys.argv[2]:

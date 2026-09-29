@@ -9,6 +9,7 @@ Shader "Lab/CutChar"
         _Flash ("Flash", Float) = 0
         _Tint ("Tint", Color) = (1,1,1,1)
         _Alpha ("Alpha", Float) = 1
+        _EdgeX ("EdgeX", Float) = 1
     }
     SubShader
     {
@@ -20,7 +21,7 @@ Shader "Lab/CutChar"
             #pragma vertex vert
             #pragma fragment frag
             #include "UnityCG.cginc"
-            sampler2D _MainTex; float4 _MainTex_TexelSize, _OutlineCol, _Tint; float _Outline, _Flash, _Alpha;
+            sampler2D _MainTex; float4 _MainTex_TexelSize, _OutlineCol, _Tint; float _Outline, _Flash, _Alpha, _EdgeX;
             struct appdata { float4 pos:POSITION; float2 uv:TEXCOORD0; };
             struct v2f { float4 pos:SV_POSITION; float2 uv:TEXCOORD0; };
             v2f vert(appdata i){ v2f o; o.pos=UnityObjectToClipPos(i.pos); o.uv=i.uv; return o; }
@@ -39,7 +40,7 @@ Shader "Lab/CutChar"
                 float alpha = max(a, smoothstep(0.3, 0.6, o) * _OutlineCol.a);
                 // 絵の四辺は柔らかく消す（絵の中のエフェクトが縁で切れて四角が見えるため）
                 float2 e = min(i.uv, 1 - i.uv);
-                float edge = smoothstep(0.0, 0.12, e.x) * smoothstep(0.0, 0.16, e.y);
+                float edge = smoothstep(0.0, 0.12 * _EdgeX, e.x) * smoothstep(0.0, 0.16, e.y);   // 立ち絵は横を消さない（_EdgeX 0）、切った下だけ消える
                 return float4(col, alpha * _Alpha * edge);
             }
             ENDCG

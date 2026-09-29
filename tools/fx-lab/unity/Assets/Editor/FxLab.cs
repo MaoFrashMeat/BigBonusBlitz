@@ -65,6 +65,14 @@ public static class FxLab
         yield return new Clip { name = "cutin_fire", dur = 1.8f, hold = 1, build = CutFire };
         yield return new Clip { name = "cutin_focus", dur = 1.8f, hold = 1, build = CutFocus };
         yield return new Clip { name = "cutin_rainbow", dur = 1.8f, hold = 1, build = CutRainbow };
+        // 落ちて主人公に集まる
+        yield return new Clip { name = "drop_embers", dur = 3.2f, hold = 1, build = DropEmbers };
+        yield return new Clip { name = "drop_shards", dur = 3.2f, hold = 1, build = DropShards };
+        yield return new Clip { name = "drop_souls", dur = 3.2f, hold = 1, build = DropSouls };
+        // 前兆・昇格
+        yield return new Clip { name = "cutin_upgrade", dur = 3.0f, hold = 1, build = CutUpgrade };
+        yield return new Clip { name = "longfreeze", dur = 5.4f, hold = 1, build = LongFreeze };
+        yield return new Clip { name = "sword_split", dur = 3.0f, hold = 1, build = SwordSplit };
     }
 
     // 3 段（docs/FX_RESEARCH.md 2・3）: 暗い縁（背景から切り離す）／飽和した本体（1 未満で光らせない）／細い白芯（ここだけ HDR で光る）
@@ -1577,6 +1585,18 @@ public static class FxLab
     //       → 抜け: キャラが反対へ飛び出し（7F）、帯が閉じる（6F）
     class CutStyle { public float mode; public Color bas, c1, c2, c3; public float angle = -9f, speed = 3f; public bool chevron, bolts, sparkle, focus; public Color chevA, chevB; }
 
+    // 立ち絵（本人 2026-09-29「立ち絵があるよね？」）: 背景が透明な全身の絵から、胸から上を切り出す（keep = 上から残す割合）
+    static Texture2D StandTex(string rel, float keep)
+    {
+        string dir = Environment.GetEnvironmentVariable("LAB_TEX");
+        var p = Path.GetFullPath(Path.Combine(dir, "../../../", rel));
+        var src = new Texture2D(2, 2, TextureFormat.RGBA32, false); src.LoadImage(File.ReadAllBytes(p));
+        int w = src.width, h = Mathf.RoundToInt(src.height * keep);
+        var t = new Texture2D(w, h, TextureFormat.RGBA32, true);
+        t.SetPixels(src.GetPixels(0, src.height - h, w, h)); t.filterMode = FilterMode.Trilinear; t.wrapMode = TextureWrapMode.Clamp; t.Apply(true);
+        return t;
+    }
+
     static Texture2D CutTex(Ctx c, int n)
     {
         string dir = Environment.GetEnvironmentVariable("LAB_TEX");
@@ -1592,7 +1612,7 @@ public static class FxLab
         return m;
     }
 
-    static void CutIn(Ctx c, CutStyle st, Texture2D chr, float t0, float hold = 1.15f)
+    static void CutIn(Ctx c, CutStyle st, Texture2D chr, float t0, float hold = 1.15f, float charH = 0f, Vector2 charOff = default, (float t, CutStyle st, string label)[] ups = null)
     {
         float tIn = t0 + 0.05f, tOut = t0 + hold;
         var bandPos = new Vector3(0, -0.35f, -3.4f);
@@ -1611,16 +1631,18 @@ public static class FxLab
             }
         }
         // キャラと残像（残像は帯の色で塗って、遅れて付いてくる）
-        var size = new Vector2(12.8f, 7.2f) * 0.7f;   // 絵は 7 割（帯が見えるように）
+        // 立ち絵（charH > 0）は高さ charH で絵の比率のまま。カットイン絵は画面の 7 割（帯が見えるように）
+        var size = charH > 0 ? new Vector2(charH * chr.width / chr.height, charH) : new Vector2(12.8f, 7.2f) * 0.7f;
         Material CharMat(float alpha, Color tint, float outline, int queue)
         {
             var m = new Material(Shader.Find("Lab/CutChar")) { mainTexture = chr };
             m.SetFloat("_Alpha", alpha); m.SetColor("_Tint", tint); m.SetFloat("_Outline", outline); m.renderQueue = queue;
+            m.SetFloat("_EdgeX", charH > 0 ? 0.0001f : 1f);
             if (outline <= 0) m.SetColor("_OutlineCol", new Color(0, 0, 0, 0));
             return m;
         }
         var chM = CharMat(1, Color.white, 4, 3018);
-        var ch = Quad(c.root, "CutChar", bandPos + new Vector3(1.4f, 0.3f, -0.2f), size, chM);
+        var ch = Quad(c.root, "CutChar", bandPos + (charH > 0 ? new Vector3(charOff.x, charOff.y, -0.2f) : new Vector3(1.4f, 0.3f, -0.2f)), size, chM);
         var ghosts = new List<(Transform tr, Material m, float lag)>();
         for (int k = 0; k < 3; k++)
         {
@@ -1706,15 +1728,281 @@ public static class FxLab
             });
             Ring(c, home + new Vector3(0, 0, -0.4f), tIn + 0.14f, st.c2, 9f, 1405);
         }
+        if (ups != null)
+        {
+            // 昇格: 停止の瞬間に帯が割れて色が変わる。白 3F・ガラスの破片が帯から弾ける・揺れ・キャラが白く光る・段の札
+            var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            var lab = new GameObject("StopLabel"); lab.transform.SetParent(c.root, false); lab.transform.position = new Vector3(-4.4f, -3.0f, -3.6f);
+            var tm = lab.AddComponent<TextMesh>(); tm.font = font; tm.fontSize = 90; tm.characterSize = 0.04f; tm.anchor = TextAnchor.MiddleCenter; tm.fontStyle = FontStyle.Bold; tm.text = "";
+            lab.GetComponent<MeshRenderer>().sharedMaterial = font.material;
+            int k = 0;
+            foreach (var u in ups)
+            {
+                var ns = u.st; float tu = u.t;
+                c.OnUpdate(t =>
+                {
+                    if (t < tu) return;
+                    if (band != null) { band.SetFloat("_Mode", ns.mode); band.SetColor("_Base", ns.bas); band.SetColor("_C1", ns.c1); band.SetColor("_C2", ns.c2); band.SetColor("_C3", ns.c3); band.SetFloat("_Speed", ns.speed); }
+                    if (chev != null) { chev.SetColor("_C1", ns.chevA); chev.SetColor("_C2", ns.chevB); chev.SetColor("_Base", ns.bas * 0.6f); }
+                    float a = t - tu;
+                    if (a < 3 / 60f) c.post.flash = Mathf.Max(c.post.flash, 0.85f);
+                    if (a < 0.35f) c.post.trauma += 0.7f * (1 - a / 0.35f);
+                    if (a < 0.1f) chM.SetFloat("_Flash", 0.8f * (1 - a / 0.1f));
+                    if (band != null && a < 0.12f) band.SetFloat("_Open", 1f + 0.25f * Mathf.Sin(a / 0.12f * Mathf.PI));   // 帯が一瞬ふくらむ
+                });
+                // 帯から弾けるガラスの破片（帯の色）と、帯に沿った閃光
+                for (int j = 0; j < 4; j++)
+                {
+                    var p = bandPos + rot * new Vector3(-6f + j * 4f, (j % 2 == 0 ? 1 : -1) * 1.8f, -0.4f);
+                    Shards(c, p, tu, j % 2 == 0 ? st.c2 : ns.c2, 1.4f, (j % 2 == 0 ? 90 : -90) + st.angle, 120, 16, 1450 + (uint)(k * 10 + j));
+                }
+                Flare(c, bandPos + new Vector3(0, 0, -0.5f), tu, ns.c2, 6f, 1460 + (uint)k);
+                Ring(c, bandPos + new Vector3(0, 0, -0.5f), tu, ns.c2, 10f, 1470 + (uint)k, squash: 0.5f);
+                if (ns.sparkle) { Bokeh(c, home + new Vector3(0, 0.3f, -0.4f), tu, ns.c2, 3.5f, 1480); }
+                string lbl = u.label;
+                c.OnUpdate(t => { if (t >= tu) { tm.text = lbl; lab.transform.localScale = Vector3.one * (1 + 0.4f * Mathf.Exp(-(t - tu) * 14f)); tm.color = Color.white; } });
+                k++;
+            }
+            c.OnUpdate(t => { if (t >= tOut) tm.text = ""; });
+        }
     }
 
-    static void CutStreak(Ctx c) => CutIn(c, new CutStyle { mode = 0, bas = new Color(0.25f, 0.06f, 0.02f), c1 = new Color(1f, 0.38f, 0.05f), c2 = new Color(1f, 0.78f, 0.2f), c3 = new Color(2f, 1.6f, 0.9f), speed = 3.2f }, CutTex(c, 2), 0.25f);
+    const string Equip = "UnityProject/BigBonusBlitz/Assets/Resources/Art/UI/AzureEquip/";
+    static void CutStreak(Ctx c) => CutIn(c, new CutStyle { mode = 0, bas = new Color(0.25f, 0.06f, 0.02f), c1 = new Color(1f, 0.38f, 0.05f), c2 = new Color(1f, 0.78f, 0.2f), c3 = new Color(2f, 1.6f, 0.9f), speed = 3.2f },
+        StandTex("assets/characters/salia/salia_title_reach.png", 0.82f), 0.25f, charH: 6.4f, charOff: new Vector2(0.6f, 0.9f));
     static void CutElec(Ctx c) => CutIn(c, new CutStyle { mode = 1, bas = new Color(0.02f, 0.06f, 0.2f), c1 = new Color(0.15f, 0.55f, 1f), c2 = new Color(0.55f, 0.9f, 1f), c3 = new Color(1.6f, 2.2f, 2.6f), speed = 3.5f,
-        chevron = true, chevA = new Color(0.25f, 0.55f, 1f), chevB = new Color(0.8f, 0.95f, 1f), bolts = true, angle = -7f }, CutTex(c, 1), 0.25f);
-    static void CutFire(Ctx c) => CutIn(c, new CutStyle { mode = 2, bas = new Color(0.12f, 0.02f, 0.02f), c1 = new Color(1f, 0.3f, 0.04f), c2 = new Color(1f, 0.72f, 0.12f), c3 = new Color(1.45f, 1.35f, 0.8f), speed = 2.4f, angle = -11f }, CutTex(c, 3), 0.25f);
-    static void CutFocus(Ctx c) => CutIn(c, new CutStyle { mode = 0, bas = Color.black, c1 = Color.white, c2 = new Color(1f, 0.9f, 0.6f), c3 = Color.white * 2, focus = true }, CutTex(c, 4), 0.25f);
+        chevron = true, chevA = new Color(0.25f, 0.55f, 1f), chevB = new Color(0.8f, 0.95f, 1f), bolts = true, angle = -7f }, StandTex(Equip + "salia-2.png", 0.55f), 0.25f, charH: 6.6f, charOff: new Vector2(1.6f, 1.2f));
+    static void CutFire(Ctx c) => CutIn(c, new CutStyle { mode = 2, bas = new Color(0.12f, 0.02f, 0.02f), c1 = new Color(1f, 0.3f, 0.04f), c2 = new Color(1f, 0.72f, 0.12f), c3 = new Color(1.45f, 1.35f, 0.8f), speed = 2.4f, angle = -11f }, StandTex(Equip + "salia-4.png", 0.6f), 0.25f, charH: 6.8f, charOff: new Vector2(1.4f, 1.1f));
+    static void CutFocus(Ctx c) => CutIn(c, new CutStyle { mode = 0, bas = Color.black, c1 = Color.white, c2 = new Color(1f, 0.9f, 0.6f), c3 = Color.white * 2, focus = true }, StandTex(Equip + "salia-0.png", 0.55f), 0.25f, charH: 7.4f, charOff: new Vector2(0f, 1.1f));
     static void CutRainbow(Ctx c) => CutIn(c, new CutStyle { mode = 4, bas = new Color(0.05f, 0.03f, 0.1f), c1 = new Color(1f, 0.8f, 0.3f), c2 = new Color(1f, 0.9f, 0.5f), c3 = new Color(2.2f, 2f, 1.6f), speed = 3.2f,
-        chevron = true, chevA = new Color(1f, 0.75f, 0.2f), chevB = new Color(1.3f, 1.2f, 0.8f), sparkle = true, angle = -9f }, CutTex(c, 5), 0.25f);
+        chevron = true, chevA = new Color(1f, 0.75f, 0.2f), chevB = new Color(1.3f, 1.2f, 0.8f), sparkle = true, angle = -9f }, StandTex(Equip + "salia-1.png", 0.55f), 0.25f, charH: 6.6f, charOff: new Vector2(1.6f, 1.2f));
+
+    // ================= 落ちて、主人公に集まる（本人 2026-09-29「コインじゃなくエンバーやシャードが落ちる」「落ちてしばらくしたら主人公に集まって獲得」）=================
+    // 流れ: 敵が倒れる → かけらが噴き上がる → 地面で跳ねて止まる（光ったまま脈打つ）→ 間 → 1 つずつ時間差で浮き上がり、弧を描いて主人公へ吸い込まれる
+    //       → 触れた瞬間に主人公が光り、小さな閃光。最後の 1 つで大きめの光
+    static Mesh ShardMesh()
+    {
+        // 細長い六角の両錐（結晶）。面ごとに法線を分けて平らに塗る
+        var v = new List<Vector3>(); var n = new List<Vector3>(); var tri = new List<int>();
+        var top = new Vector3(0, 1f, 0); var bot = new Vector3(0, -0.7f, 0);
+        var ring = Enumerable.Range(0, 6).Select(k => new Vector3(Mathf.Cos(k * Mathf.PI / 3) * 0.32f, 0.05f * ((k % 2) * 2 - 1), Mathf.Sin(k * Mathf.PI / 3) * 0.32f)).ToArray();
+        void Face(Vector3 a, Vector3 b, Vector3 cc)
+        {
+            var fn = Vector3.Cross(b - a, cc - a).normalized; int i0 = v.Count;
+            v.Add(a); v.Add(b); v.Add(cc); n.Add(fn); n.Add(fn); n.Add(fn); tri.AddRange(new[] { i0, i0 + 1, i0 + 2 });
+        }
+        for (int k = 0; k < 6; k++) { var a = ring[k]; var b = ring[(k + 1) % 6]; Face(top, b, a); Face(bot, a, b); }
+        var m = new Mesh { vertices = v.ToArray(), normals = n.ToArray(), triangles = tri.ToArray() }; m.RecalculateBounds(); return m;
+    }
+
+    // kind: "ember"（燃えさし・光の粒＋尾）/ "shard"（結晶のかけら・回る）/ "soul"（魂の光・ふわふわ）
+    static void DropCollect(Ctx c, string kind, Color col, int count, uint seed)
+    {
+        var from = G + new Vector3(0, 0.2f, -0.6f);
+        var hero = HeroHome + new Vector3(0.1f, 0.3f, -0.6f);
+        float tDie = 0.3f, tBurst = 0.36f, tCollect = 1.45f;
+        // 敵: 白く光ってから溶けて消える（倒れる 1 の短い版）
+        Impact(c, tDie, 1, 0);
+        var size = SpriteSize(c.goblin, 2.7f);
+        var dm = BakeDeath(c, (u, v2) => Fbm(u * 5f + 3.1f, v2 * 5f + 1.3f) * 0.8f + (1 - v2) * 0.2f, 0, seed + 1);
+        var dmat = DeathMat(c, dm, col * 3f, 0.04f, new Color(col.r * 0.2f, col.g * 0.2f, col.b * 0.2f, 0.9f), 0.04f);
+        c.goblinT.GetComponent<MeshRenderer>().sharedMaterial = dmat;
+        c.OnUpdate(t => dmat.SetFloat("_Cut", Mathf.Clamp01((t - tBurst) / 0.35f) * 1.02f));
+        Flare(c, from, tBurst, col, 3f, seed + 2); Ring(c, from, tBurst, col, 3.5f, seed + 3, delay: 0.03f);
+
+        // かけら
+        Material mat; bool mesh = kind == "shard";
+        if (mesh) mat = new Material(Shader.Find("Lab/Crystal"));
+        else mat = AddMat(c.tx.dot, kind == "ember" ? 5f : 3.5f);
+        var ps = PS(c, "Drops", from, mat, seed + 4);
+        var m = ps.main; m.maxParticles = 200; m.startLifetime = 9f; m.startSpeed = new MinMaxCurve(4.5f, 8.5f);
+        m.startSize = mesh ? new MinMaxCurve(0.5f, 0.75f) : kind == "ember" ? new MinMaxCurve(0.16f, 0.26f) : new MinMaxCurve(0.22f, 0.32f);
+        m.gravityModifier = 0f;   // 重さと跳ね返りは下の OnUpdate で自前に計算する（ParticleSystem の当たりは止まる所でジグザグになった） m.startColor = mesh ? new MinMaxGradient(col, Color.Lerp(col, Color.white, 0.4f)) : new MinMaxGradient(Color.white);
+        if (mesh) { m.startRotation3D = true; m.startRotationX = new MinMaxCurve(0, 6.28f); m.startRotationY = new MinMaxCurve(0, 6.28f); m.startRotationZ = new MinMaxCurve(0, 6.28f); }
+        ps.emission.SetBursts(new[] { new Burst(0, (short)(count * 0.6f)), new Burst(0.05f, (short)(count * 0.4f)) });
+        var sh = ps.shape; sh.enabled = true; sh.shapeType = ParticleSystemShapeType.Cone; sh.angle = 38; sh.radius = 0.2f;
+        ps.transform.rotation = Quaternion.LookRotation(new Vector3(-0.35f, 1f, 0f));
+
+        if (mesh)
+        {
+            var rot = ps.rotationOverLifetime; rot.enabled = true; rot.separateAxes = true; rot.x = new MinMaxCurve(3f, 8f); rot.y = new MinMaxCurve(2f, 6f); rot.z = new MinMaxCurve(-3f, 3f);
+            var r = ps.GetComponent<ParticleSystemRenderer>(); r.renderMode = ParticleSystemRenderMode.Mesh; r.mesh = ShardMesh(); r.alignment = ParticleSystemRenderSpace.World;
+            r.SetActiveVertexStreams(new List<ParticleSystemVertexStream> { ParticleSystemVertexStream.Position, ParticleSystemVertexStream.Normal, ParticleSystemVertexStream.Color });
+        }
+        else Trail(ps, AddMat(c.tx.trail, 2.5f), new MinMaxCurve(0.05f, 0.05f));   // 尾はごく短く（長いと噴水に見えた）
+        if (kind == "soul") { var no = ps.noise; no.enabled = true; no.strength = 0.5f; no.frequency = 0.8f; }
+        c.Play(ps, tBurst);
+
+        // 止まっている間は脈打つ（頂点色の明るさ）、集める間は主人公へ吸い寄せる
+        var buf = new ParticleSystem.Particle[256];
+        var order = new Dictionary<uint, float>();   // 粒ごとの飛び立つ時刻（順番にずらす）
+        var baseCols = new Dictionary<uint, Color>();   // 粒ごとの元の色（毎コマ掛け算すると色が飛ぶので覚えておく）
+        var picked = new HashSet<uint>();
+        int pickedCount = 0; var rnd = new System.Random((int)seed);
+        var heroMat = c.heroT.GetComponent<MeshRenderer>().sharedMaterial;
+        var pickFx = new List<float>();
+        float lastT = tBurst; float g = kind == "soul" ? 1.2f : 14f, floorY = GroundY + 0.18f;
+        c.OnUpdate(t =>
+        {
+            if (t < tBurst) return;
+            float dt = Mathf.Max(t - lastT, 0); lastT = t;
+            int n = ps.GetParticles(buf);
+            for (int i = 0; i < n; i++)
+            {
+                var p = buf[i];
+                if (!order.ContainsKey(p.randomSeed)) order[p.randomSeed] = tCollect + (float)rnd.NextDouble() * 0.55f;
+                float go = order[p.randomSeed];
+                float pulse = 0.8f + 0.2f * Mathf.Sin(t * 9f + p.randomSeed % 7);
+                if (!baseCols.ContainsKey(p.randomSeed)) baseCols[p.randomSeed] = mesh ? (Color)p.startColor : Color.Lerp(col, Color.white, 0.35f);
+                var baseCol = baseCols[p.randomSeed];
+                if (t < go)
+                {
+                    // 落ちて跳ねる: 重さ・空気の抵抗・地面で 4 割の高さに跳ね返り、横は 6 割に。ほぼ止まったら止める
+                    var v = p.velocity; v.y -= g * dt; v *= Mathf.Pow(kind == "soul" ? 0.2f : 0.7f, dt);
+                    var pos = p.position;
+                    if (pos.y <= floorY && v.y < 0) { pos.y = floorY; v.y = Mathf.Abs(v.y) > 1.2f ? -v.y * 0.4f : 0; v.x *= 0.6f; if (v.y == 0) v.x *= 0.8f; }
+                    if (kind == "soul") v += new Vector3(Mathf.Sin(t * 3f + p.randomSeed) * 0.02f, 0, 0);
+                    p.position = pos; p.velocity = v;
+                    p.startColor = WithAlpha(baseCol * (t > tCollect - 0.6f ? pulse * 1.15f : 1f), 1f); buf[i] = p; continue;
+                }
+                // 飛び立つ: 最初の 0.12 秒は上へ浮き、その後は主人公へ加速（弧を描く）
+                float a = t - go;
+                var to = hero - p.position;
+                var dir = to.normalized;
+                var want = a < 0.12f ? new Vector3(0, 3.5f, 0) : dir * Mathf.Lerp(4f, 16f, Mathf.Clamp01((a - 0.12f) / 0.35f));
+                p.velocity = Vector3.Lerp(p.velocity, want, 0.35f);
+                p.startColor = WithAlpha(Color.Lerp(baseCol, Color.white, 0.4f) * 1.3f, 1f);
+                if (a > 0.12f && to.magnitude < 0.35f)
+                {
+                    p.remainingLifetime = 0;
+                    if (picked.Add(p.randomSeed)) { pickedCount++; pickFx.Add(t); }
+                }
+                buf[i] = p;
+            }
+            ps.SetParticles(buf, n);
+
+        });
+        // 獲得: 触れるたびに主人公が光る（重なるほど強く）、最後に大きめの光
+        c.OnUpdate(t =>
+        {
+            float k = 0;
+            foreach (var pt in pickFx) { float a = t - pt; if (a >= 0 && a < 0.12f) k += (1 - a / 0.12f) * 0.35f; }
+            heroMat.SetFloat("_DimMul", 0.1f);
+            c.post.stageDim = Mathf.Max(c.post.stageDim, t > tDie && t < tCollect + 1.2f ? 0.3f : 0f);
+            HeroGlow(c, Mathf.Min(k, 1f), col);
+        });
+        // 最後の 1 つを取った後の光（主人公の足元の輪と閃光）
+        float doneT = tCollect + 0.55f + 0.5f;
+        Flare(c, hero, doneT, col, 2.6f, seed + 5); Ring(c, new Vector3(hero.x, GroundY + 0.15f, -0.6f), doneT, col, 4f, seed + 6, squash: 0.25f);
+        Bokeh(c, hero, doneT, col, 1.2f, seed + 7);
+        // 触れた瞬間の小さな閃光（粒ごと）
+        var pk = PS(c, "PickFlash", hero, AddMat(c.tx.star4, 3f), seed + 8);
+        { var pm = pk.main; pm.startLifetime = 0.12f; pm.startSize = new MinMaxCurve(0.6f, 1.1f); pm.startColor = Color.Lerp(col, Color.white, 0.5f); pm.startRotation = new MinMaxCurve(0, 6.28f); var pe = pk.emission; pe.rateOverTime = 0; c.Play(pk, 0f); }
+        int emitted = 0;
+        c.OnUpdate(t => { while (emitted < pickFx.Count) { pk.Emit(new EmitParams { position = hero + new Vector3(0, 0, -0.1f), applyShapeToPosition = false }, 1); emitted++; } });
+    }
+
+    // 主人公を一瞬その色で光らせる（重ねがけ用）
+    static void HeroGlow(Ctx c, float k, Color col)
+    {
+        if (c.heroGlow == null)
+        {
+            var q = Quad(c.root, "HeroGlow", c.heroT.position + new Vector3(0, 0, -0.03f), SpriteSize(c.hero, 3.3f), QMat(c, c.hero, 0, Vector2.one, 0));
+            c.heroGlow = q.GetComponent<MeshRenderer>().sharedMaterial;
+        }
+        c.heroGlow.SetColor("_Tint", Color.Lerp(col, Color.white, 0.5f) * k);
+    }
+
+    static void DropEmbers(Ctx c) => DropCollect(c, "ember", new Color(1f, 0.45f, 0.1f), 36, 1501);
+    static void DropShards(Ctx c) => DropCollect(c, "shard", new Color(0.35f, 0.8f, 1f), 18, 1511);
+    static void DropSouls(Ctx c) => DropCollect(c, "soul", new Color(0.75f, 0.45f, 1f), 12, 1521);
+
+    // ================= カットインの昇格（本人 2026-09-29「第 1 停止で変化して赤カットインや虹カットインになる」）=================
+    // 青で出る → 第 1 停止: 帯が割れて（白 3F・ガラスの破片・揺れ）赤に → 第 2 停止: もう一度割れて虹に。キャラは白く光って残る
+    static void CutUpgrade(Ctx c)
+    {
+        var blue = new CutStyle { mode = 1, bas = new Color(0.02f, 0.06f, 0.2f), c1 = new Color(0.15f, 0.55f, 1f), c2 = new Color(0.55f, 0.9f, 1f), c3 = new Color(1.6f, 2.2f, 2.6f), speed = 3.5f,
+            chevron = true, chevA = new Color(0.25f, 0.55f, 1f), chevB = new Color(0.8f, 0.95f, 1f), angle = -7f };
+        var red = new CutStyle { mode = 2, bas = new Color(0.12f, 0.02f, 0.02f), c1 = new Color(1f, 0.25f, 0.04f), c2 = new Color(1f, 0.65f, 0.1f), c3 = new Color(1.45f, 1.3f, 0.75f), speed = 3.2f,
+            chevA = new Color(1f, 0.3f, 0.05f), chevB = new Color(1.2f, 0.9f, 0.5f) };
+        var rainbow = new CutStyle { mode = 4, bas = new Color(0.05f, 0.03f, 0.1f), c1 = new Color(1f, 0.8f, 0.3f), c2 = new Color(1f, 0.9f, 0.5f), c3 = new Color(2.2f, 2f, 1.6f), speed = 3.8f,
+            chevA = new Color(1f, 0.75f, 0.2f), chevB = new Color(1.3f, 1.2f, 0.8f), sparkle = true };
+        CutIn(c, blue, StandTex(Equip + "salia-2.png", 0.55f), 0.25f, hold: 2.35f, charH: 6.6f, charOff: new Vector2(1.6f, 1.2f),
+              ups: new[] { (1.0f, red, "第 1 停止"), (1.75f, rainbow, "第 2 停止") });
+    }
+
+    // ================= ブラックアウト（ロングフリーズ。本人 2026-09-29）=================
+    // 3F で真っ暗 → 無音の溜め（中央の小さな光が 2 回脈打つ）→ 縦に光の裂け目が走って開く → 白 → 虹で明ける（虹の炎の枠・虹の輪・きらめき）
+    static void LongFreeze(Ctx c)
+    {
+        float tb = 0.3f, tSlit = 1.9f, tOpen = 2.35f;
+        c.OnUpdate(t =>
+        {
+            if (t < tb) return;
+            float k = Mathf.Clamp01((t - tb) / 0.05f);
+            if (t < tOpen) c.post.black = k;
+            else c.post.black = 1 - Mathf.Clamp01((t - tOpen) / 0.25f);
+            // 心臓の鼓動のような脈（2 回）
+            foreach (var hb in new[] { 0.95f, 1.35f })
+            {
+                float a = t - hb;
+                if (a >= 0 && a < 0.35f) c.post.slit = new Vector4(0.0015f, 0.9f * Mathf.Exp(-a * 9f), 0, 0);
+            }
+            // 光の裂け目: 細い線が走り（上から下へ伸びる代わりに明るさで）→ 開く
+            if (t >= tSlit && t < tOpen) { float a = (t - tSlit) / (tOpen - tSlit); c.post.slit = new Vector4(Mathf.Lerp(0.002f, 0.5f, a * a * a), Mathf.Lerp(0.8f, 3f, a), 0, 0); }
+            if (t >= tOpen && t < tOpen + 0.05f) c.post.flash = 1f;
+            float s = t - tSlit; if (s >= 0 && s < 0.5f) c.post.trauma += 0.25f * s * 2;
+        });
+        // 明けたら虹
+        FireFrame(c, tOpen, 5.2f, FireRainbow, 1.1f, 1601);
+        Ring(c, new Vector3(0, 0, -1f), tOpen, Color.white, 12f, 1602); Ring(c, new Vector3(0, 0, -1f), tOpen + 0.06f, new Color(1f, 0.7f, 0.9f), 9f, 1603);
+        Bokeh(c, new Vector3(0, 0.3f, -1f), tOpen, new Color(1f, 0.9f, 0.6f), 4f, 1604);
+        c.OnUpdate(t => { float a = t - tOpen; if (a >= 0 && a < 0.5f) c.post.trauma += 0.8f * (1 - a / 0.5f); });
+    }
+
+    // ================= 剣が画面を真っ二つ（凄いことが起こる前兆。本人 2026-09-29）=================
+    // 暗くなる → 刃の光が斜めに走る（巨大な斬撃と斬線）→ 画面が線で割れて上下が逆へずれ、裂け目から赤い光 → 震えて溜め → 元に戻って揺れ、赤い光が残る
+    static void SwordSplit(Ctx c)
+    {
+        const float ang = -24f;
+        float tCut = 0.45f, tSplit = 0.52f, tBack = 1.55f;
+        var red = new Color(1f, 0.12f, 0.05f);
+        c.OnUpdate(t => { if (t > 0.2f) { c.post.stageDim = Mathf.Max(c.post.stageDim, t < tBack + 0.8f ? 0.55f : 0.3f); c.post.stageDesat = Mathf.Max(c.post.stageDesat, 0.4f); } });
+        // 刃の光（画面を横断する斬撃・斬線・予兆のきらめき）
+        Glint(c, new Vector3(-5.6f, 2.6f, -3f), 0.3f, Color.white);
+        SlashThrough(c, new Vector3(0, 0.2f, -2f), ang, 5, 12f, 1.3f, 70, Crimson, tCut - 0.06f, dur: 0.06f, fade: 0.4f);
+        CutLine(c, new Vector3(0, 0, -3f), ang, 16f, tCut, Color.white);
+        c.OnUpdate(t =>
+        {
+            float a = t - tCut;
+            if (a >= 0 && a < 2 / 60f) { c.post.flash = 0.9f; }
+            if (a >= 2 / 60f && a < 5 / 60f) { c.post.mono = 1; c.post.invert = 1; }
+            // 割れ: 開いて（5F）→ 震えながら少しずつ広がる → 戻る（4F）
+            float s = 0;
+            if (t >= tSplit && t < tBack) s = EaseOutBack(Mathf.Clamp01((t - tSplit) / 0.08f)) + (t - tSplit) * 0.25f;
+            else if (t >= tBack) s = Mathf.Max(0, 1 - (t - tBack) / 0.07f) * (1 + (tBack - tSplit) * 0.25f);
+            float tremble = t >= tSplit && t < tBack ? Mathf.Sin(t * 90f) * 0.004f : 0;
+            if (s > 0)
+            {
+                c.post.split = new Vector4(ang * Mathf.Deg2Rad, 0.06f * s + tremble, 0.03f * s, 2.2f + 0.6f * Mathf.Sin(t * 40f));
+                c.post.splitCol = red;
+            }
+            if (t >= tSplit && t < tBack) c.post.trauma += 0.12f;
+            float b = t - tBack; if (b >= 0 && b < 0.45f) c.post.trauma += 0.9f * (1 - b / 0.45f);
+            if (b >= 0 && b < 2 / 60f) c.post.flash = 0.7f;
+        });
+        // 裂け目から火花、戻った瞬間に赤い衝撃
+        for (int k = 0; k < 5; k++)
+        {
+            float x = -5f + k * 2.5f; float y = Mathf.Tan(ang * Mathf.Deg2Rad) * x;
+            RealSparks(c, new Vector3(x, y, -3f), 90 + ang, tSplit + k * 0.04f, 22, 8f, 1700 + (uint)k);
+        }
+        Ring(c, new Vector3(0, 0, -3f), tBack, red, 11f, 1710); Flare(c, new Vector3(0, 0, -3f), tBack, red, 5f, 1711);
+        // 残る赤い光（凄いことが起こる）
+        var glow = Quad(c.root, "OmenGlow", new Vector3(0, 0, -2.5f), new Vector2(14f, 8f), QMat(c, c.tx.glow, 0, Vector2.one, 0));
+        var gm = glow.GetComponent<MeshRenderer>().sharedMaterial;
+        c.OnUpdate(t => { float a = t - tBack; gm.SetColor("_Tint", a < 0 ? Color.black : red * (0.35f * Mathf.Clamp01(a / 0.1f) * (0.8f + 0.2f * Mathf.Sin(t * 8f)))); });
+    }
 
     // ================= 部品: 斬撃 =================
     struct Style
@@ -2039,6 +2327,7 @@ public static class FxLab
         public float stageDim, stageDesat, trauma; public Vector2 kick; public Vector3 goblinOff;
         public float heat; public Color fireLight;   // 炎の枠: 陽炎の強さ、照り返し（a = 届く距離）
         public Vector4 shock;   // 空間の歪み: xy 中心（uv）、z 半径（画面の高さ比）、w 強さ
+        public Vector4 split; public Color splitCol; public float black; public Vector4 slit;   // 真っ二つ / 暗転 / 暗転中の光の裂け目
     }
     class Tx { public Texture2D dot, glow, ring, star4, diamond, plus, flame, flame2, streak, trail, noise, column, coinFace, burst, air, sparkle, magic, fbHitLines, fbBigHit, fbCharge, fbElecRing, fbFireRing, fbFlame, fbSmoke, fibers, square, fireFlame03, fbStarExp, fbVortex, fbWavy, blCampfire, blWall, lightRing, bolt, ringDouble, twirl, starCross, smokePuff, sfxDon, sfxZuba, sfxBari, sfxGo, sfxKira; }
     class Ctx
@@ -2048,7 +2337,7 @@ public static class FxLab
         public List<Sys> systems = new List<Sys>();
         public List<Action<float>> updates = new List<Action<float>>();
         public Dictionary<float, Transform> planes = new Dictionary<float, Transform>();
-        public Material goblinMat;
+        public Material goblinMat, heroGlow;
         // ヒットストップ: 作る側の時刻（止めを含まない）＝ sim。描き出しの時刻＝ real。刃とキャラの動き（OnUpdate）は sim、
         // 粒子・揺れ・暗転（OnUpdateReal）は real で動くので、止めの間も火花と揺れは止まらない
         public List<(float t, float d)> freezes = new List<(float t, float d)>();
@@ -2135,7 +2424,7 @@ public static class FxLab
             for (int k = 1; k < levels; k++) Graphics.Blit(mips[k - 1], mips[k], bloom, 1);
             bloom.SetFloat("_BloomIntensity", BloomIntensity); bloom.SetFloat("_Exposure", 1f);
             bloom.SetFloat("_Dim", 0f); bloom.SetFloat("_Contrast", 1f); bloom.SetFloat("_Sat", 1f);
-            bloom.SetFloat("_Heat", p.heat); bloom.SetColor("_FireLight", p.fireLight); bloom.SetVector("_Shock", p.shock);
+            bloom.SetFloat("_Heat", p.heat); bloom.SetColor("_FireLight", p.fireLight); bloom.SetVector("_Shock", p.shock); bloom.SetVector("_Split", p.split); bloom.SetColor("_SplitCol", p.splitCol); bloom.SetFloat("_Black", p.black); bloom.SetVector("_Slit", p.slit);
             bloom.SetVector("_Shake", new Vector4(p.shake.x, p.shake.y, p.rot, 0));
             bloom.SetFloat("_Zoom", p.zoom); bloom.SetVector("_ZoomCenter", new Vector4(p.zoomCenter.x, p.zoomCenter.y, 1, 0));
             bloom.SetVector("_BlurDir", p.blurDir); bloom.SetFloat("_BlurAmt", p.blur);

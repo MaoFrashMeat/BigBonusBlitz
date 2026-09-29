@@ -15,6 +15,8 @@ Shader "Hidden/LabBloom"
     float _Dim, _Contrast, _Sat;   // 背景を沈める量（0〜1。光っていない所だけ）、表示のコントラストと彩度
     float _Heat, _LabT; float4 _FireLight;   // 炎の枠: 陽炎の強さ、照り返しの色（a = 届く距離 world）
     float4 _Shock;   // 空間の歪み: xy 中心 uv、z 半径（画面の高さ比）、w 強さ
+    float4 _Split; float4 _SplitCol;   // 画面を真っ二つ: x 角度(rad) y ずれ（線に沿う） z 隙間の幅 w 裂け目の光
+    float _Black; float4 _Slit;          // 暗転（0〜1）/ 暗転中の光の裂け目: x 幅 y 明るさ
     struct v2f { float4 pos:SV_POSITION; float2 uv:TEXCOORD0; };
     v2f vert(appdata_img v){ v2f o; o.pos=UnityObjectToClipPos(v.vertex); o.uv=v.texcoord; return o; }
     float3 box4(float2 uv, float d)
@@ -141,7 +143,26 @@ Shader "Hidden/LabBloom"
                     float k = exp(-pow((r - _Shock.z) / 0.045, 2));
                     uv -= (dv / max(r, 1e-4)) * float2(aspect, 1) * (_Shock.w * 0.035 * k);
                 }
+                float splitMask = 0, splitCore = 0, splitHalo = 0;
+                if (_Split.z > 0 || _Split.y != 0)
+                {
+                    // 画面を斜めに割る: 線の上と下で、線に沿って逆向きにずらし、隙間を開ける
+                    float2 pp = (uv - 0.5) * float2(1 / aspect, 1);
+                    float2 dir = float2(cos(_Split.x), sin(_Split.x)), nrm = float2(-dir.y, dir.x);
+                    float sd = dot(pp, nrm), side = sd >= 0 ? 1 : -1;
+                    splitMask = 1 - smoothstep(_Split.z * 0.5, _Split.z * 0.5 + 0.003, abs(sd));
+                    splitCore = saturate(1 - abs(sd) / max(_Split.z * 0.5, 1e-4));          // 裂け目の中心ほど白熱
+                    splitHalo = exp(-max(abs(sd) - _Split.z * 0.5, 0) * 38);                   // 裂け目の外にこぼれる光
+                    pp -= side * (dir * _Split.y + nrm * _Split.z * 0.5);
+                    uv = pp * float2(aspect, 1) + 0.5;
+                }
                 float3 c = tex2D(_MainTex, uv).rgb;
+                if (_Split.z > 0 || _Split.y != 0)
+                {
+                    float3 gap = lerp(_SplitCol.rgb, float3(1.6, 1.4, 1.2), splitCore * splitCore) * _Split.w;
+                    c = lerp(c, gap, splitMask);
+                    c += _SplitCol.rgb * splitHalo * (1 - splitMask) * _Split.w * 0.6;
+                }
                 // 炎の照り返し: 縁に近い所ほど、炎の色で照らす（掛け算。霧ではなく明かりに見せる）
                 if (_FireLight.a > 0)
                 {
@@ -184,6 +205,15 @@ Shader "Hidden/LabBloom"
                 g = lerp(g, mono.xxx, _Mono);
                 g = lerp(g, 1 - g, _Invert);
                 g = lerp(g, 1, _Flash * 0.6);   // 白フラッシュは控えめ（強さは光と暗転で出す）
+                // 暗転（ブラックアウト）と、暗転の中に開く光の裂け目（縦）
+                g = lerp(g, 0, _Black);
+                if (_Slit.y > 0)
+                {
+                    float sx = abs(i.uv.x - 0.5);
+                    float core = 1 - smoothstep(_Slit.x * 0.5, _Slit.x * 0.5 + 0.004, sx);
+                    float halo = exp(-sx / max(_Slit.x * 2 + 0.01, 1e-3)) * 0.5;
+                    g += (float3(1, 1, 1) * core + float3(0.8, 0.9, 1) * halo) * _Slit.y;
+                }
                 return float4(pow(saturate(g), 2.2), 1);
             }
             ENDCG }
