@@ -195,7 +195,13 @@ Shader "Lab/Frame"
                     float halo = exp(-max(-F, 0) * 16) * (1 - e0) * smoothstep(1.2, 0.3, vv);   // 炎のすぐ外だけ
                     float3 haloCol = a1 * halo * 0.4 * _Glow;
                     float k = _Intensity * _Pulse * (1 + _Burst * 0.8) * corner;
-                    return float4(c * k + haloCol * k, e0 * saturate(_Intensity) * corner);   // 炎は不透明に塗り、光の輪は加算
+                    // 透明度（本人 2026-09-29「ところどころリアルな炎のように透明度を持ちたい」）:
+                    //   外側の暗い段と舌の先は、ゆっくり流れるノイズでところどころ半透明（0.3〜1）。明るい 2 段（芯）は不透明のまま
+                    float tp = tex2D(_NoiseTex, float2(u * 0.9 + 0.43, vv * 0.6 - t * 0.7)).r;
+                    float patchy = lerp(0.3, 1.0, smoothstep(0.35, 0.65, tp));
+                    float tip = lerp(1.0, 0.45, smoothstep(0.45, 1.0, vv));
+                    float op = lerp(patchy * tip, 1.0, max(e2, e1 * 0.5));
+                    return float4(c * k * op + haloCol * k, e0 * op * saturate(_Intensity) * corner);   // 炎は（ところどころ半透明に）塗り、光の輪は加算
                 }
                 else if (_Mode > 4.5)
                 {
