@@ -2824,7 +2824,7 @@ public static class FxLab
             // 閉まる・ぐらつく・開く
             float close = EaseIn(Mathf.Clamp01((t - tClose) / 0.22f));
             float bounce = t > tClose + 0.22f ? Mathf.Sin((t - tClose - 0.22f) * 40f) * Mathf.Exp(-(t - tClose - 0.22f) * 12f) * 0.08f : 0;
-            float open = t < s3 ? 0 : EaseOut(Mathf.Clamp01((t - s3 - 0.05f) / 0.25f));
+            float oa = t - s3; float open = oa < 0 ? 0 : oa < 0.1f ? 0.07f * EaseOut(oa / 0.1f) : oa < 0.28f ? 0.07f : 0.07f + 0.93f * EaseInOut(Mathf.Clamp01((oa - 0.28f) / 0.55f));   // 隙間 → 一拍 → 開く
             float shake = 0;
             foreach (var (ts, amp) in new[] { (s1, 0.06f), (s2, 0.14f) }) { float a = t - ts; if (a >= 0 && a < 0.6f) shake = Mathf.Max(shake, amp * Mathf.Exp(-a * 5f)); }
             if (t >= s2 && t < s3) shake = Mathf.Max(shake, 0.02f);                    // 第 2 停止の後は小刻みに震え続ける
@@ -2885,10 +2885,11 @@ public static class FxLab
     // 筋は細い多数＋太い少数（太さの強弱）。速く、画面の端まで届く長さ。芯は白、外へ行くほど色。周りは暗く落として筋を立たせる
     static void LightRush(Ctx c, Vector3 pos, float t, Color col, float dur, uint seed)
     {
+        pos.z = -3.15f;   // 扉（-3.3・2990）の奥。扉が開くと見える
         var hot = Color.Lerp(col, new Color(1f, 0.75f, 0.4f), 0.35f);
         foreach (var (name, rate, burst, s0, s1, v0, v1, inten) in new[] { ("RushThin", 1100f, 300, 0.02f, 0.06f, 35f, 85f, 6f), ("RushThick", 90f, 30, 0.09f, 0.22f, 25f, 55f, 4f) })
         {
-            var ps = PS(c, name, pos + new Vector3(0, 0, -0.3f), AddMat(c.tx.dot, inten), seed++);
+            var rm = AddMat(c.tx.dot, inten); rm.renderQueue = 2987; var ps = PS(c, name, pos, rm, seed++);
             var m = ps.main; m.duration = dur; m.loop = false; m.startLifetime = new MinMaxCurve(0.14f, 0.34f); m.startSpeed = new MinMaxCurve(v0, v1);
             m.startSize = new MinMaxCurve(s0, s1); m.startColor = new MinMaxGradient(Color.white, hot);
             var e = ps.emission; e.rateOverTime = new MinMaxCurve(rate, Curve((0, 1), (0.6f, 0.7f), (1, 0))); e.SetBursts(new[] { new Burst(0, (short)burst) });
@@ -2898,9 +2899,9 @@ public static class FxLab
             c.Play(ps, t);
         }
         // 背景を黒く落とす（筋は暗い地でないと立たない）・芯（白く飛ぶ）・周りの赤いにじみ
-        var plate = BlackPlate(c, pos.z + 0.05f);
-        var core = Quad(c.root, "RushCore", pos + new Vector3(0, 0, -0.35f), Vector2.one * 5f, QMat(c, c.tx.glow, 0, Vector2.one, 0)); var coreM = core.GetComponent<MeshRenderer>().sharedMaterial;
-        var haze = Quad(c.root, "RushHaze", pos + new Vector3(0, 0, -0.2f), Vector2.one * 11f, QMat(c, c.tx.glow, 0, Vector2.one, 0)); var hazeM = haze.GetComponent<MeshRenderer>().sharedMaterial;
+        var plate = BlackPlate(c, pos.z + 0.05f); plate.renderQueue = 2984;
+        var core = Quad(c.root, "RushCore", pos + new Vector3(0, 0, -0.02f), Vector2.one * 5f, QMat(c, c.tx.glow, 0, Vector2.one, 0)); var coreM = core.GetComponent<MeshRenderer>().sharedMaterial; coreM.renderQueue = 2988;
+        var haze = Quad(c.root, "RushHaze", pos + new Vector3(0, 0, -0.01f), Vector2.one * 11f, QMat(c, c.tx.glow, 0, Vector2.one, 0)); var hazeM = haze.GetComponent<MeshRenderer>().sharedMaterial; hazeM.renderQueue = 2986;
         c.OnUpdate(tt =>
         {
             float a = tt - t; bool on = a >= 0 && a < dur + 0.25f; core.gameObject.SetActive(on); haze.gameObject.SetActive(on); if (!on) return;
@@ -2947,7 +2948,7 @@ public static class FxLab
             if (t >= s2 && t < s3) shake = Mathf.Max(shake, 0.018f);
             int st = Mathf.FloorToInt(t * 30); if (st != lastJ) { lastJ = st; jit = new Vector3((float)rnd.NextDouble() - 0.5f, (float)rnd.NextDouble() - 0.5f, 0) * 2f; }
             // 抜ける（開いた後、壁ごと手前へ大きくなって消える）
-            float exit = Mathf.Clamp01((t - s3 - 0.45f) / 0.3f);
+            float exit = Mathf.Clamp01((t - s3 - 0.75f) / 0.35f);
             root.localPosition = new Vector3(0, drop + bounce, 0) + jit * shake;
             root.localScale = Vector3.one * (1 + exit * exit * 1.5f);
             var fade = new Color(1, 1, 1, 1 - exit);
@@ -2958,7 +2959,7 @@ public static class FxLab
             bool open = t >= s2 + 0.06f;
             doorL.gameObject.SetActive(!open); doorO.gameObject.SetActive(open);
             // 扉が蝶番を軸に開く（横に縮めて奥へ回る見え方。暗くなる）
-            float sw = t < s3 + 0.08f ? 0 : EaseInOut(Mathf.Clamp01((t - s3 - 0.08f) / 0.32f));
+            float sw = t < s3 + 0.08f ? 0 : EaseInOut(Mathf.Clamp01((t - s3 - 0.08f) / 0.6f));
             pivot.localScale = new Vector3(Mathf.Lerp(1f, 0.06f, sw), 1, 1);
             float shade = Mathf.Lerp(1f, 0.35f, sw);
             foreach (var m in new[] { lockedM, openM, wheelM }) { m.SetColor("_Color", new Color(shade, shade, shade, 1 - exit)); m.SetFloat("_Flash", (t >= s2 && t < s2 + 3 / 60f) || (t >= s3 && t < s3 + 2 / 60f) ? 0.8f : 0f); }
