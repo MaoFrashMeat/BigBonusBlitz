@@ -59,6 +59,12 @@ public static class FxLab
         yield return new Clip { name = "fire_frame", dur = 4.4f, hold = 1, build = FireFrameClip };
         yield return new Clip { name = "fire_frame_red", dur = 4.4f, hold = 1, build = c => { FireFrame(c, 0.3f, 4.2f, FireRed, 1f, 501); c.OnUpdate(t => { if (t >= 0.3f) c.post.stageDim = Mathf.Max(c.post.stageDim, 0.25f); }); } };
         foreach (var p in PartClips()) yield return p;   // 部品集
+        // カットイン
+        yield return new Clip { name = "cutin_streak", dur = 1.8f, hold = 1, build = CutStreak };
+        yield return new Clip { name = "cutin_elec", dur = 1.8f, hold = 1, build = CutElec };
+        yield return new Clip { name = "cutin_fire", dur = 1.8f, hold = 1, build = CutFire };
+        yield return new Clip { name = "cutin_focus", dur = 1.8f, hold = 1, build = CutFocus };
+        yield return new Clip { name = "cutin_rainbow", dur = 1.8f, hold = 1, build = CutRainbow };
     }
 
     // 3 段（docs/FX_RESEARCH.md 2・3）: 暗い縁（背景から切り離す）／飽和した本体（1 未満で光らせない）／細い白芯（ここだけ HDR で光る）
@@ -1565,6 +1571,150 @@ public static class FxLab
             c.Play(sp, t0);
         }
     }
+
+    // ================= カットイン（本人 2026-09-29「カットインの演出のエフェクト色々」）=================
+    // 流れ: 白 2F・背景を沈める → 帯が上下から開く（6F・跳ね返る）→ キャラが残像を引いて滑り込む（7F・行き過ぎて戻る）→ 止まって揺れ・ゆっくり流れる
+    //       → 抜け: キャラが反対へ飛び出し（7F）、帯が閉じる（6F）
+    class CutStyle { public float mode; public Color bas, c1, c2, c3; public float angle = -9f, speed = 3f; public bool chevron, bolts, sparkle, focus; public Color chevA, chevB; }
+
+    static Texture2D CutTex(Ctx c, int n)
+    {
+        string dir = Environment.GetEnvironmentVariable("LAB_TEX");
+        var p = Path.GetFullPath(Path.Combine(dir, $"../../../UnityProject/BigBonusBlitz/Assets/Resources/Art/UI/CutIn/cut_salia_0{n}.png"));
+        var t = new Texture2D(2, 2, TextureFormat.RGBA32, true); t.LoadImage(File.ReadAllBytes(p)); t.filterMode = FilterMode.Trilinear; t.wrapMode = TextureWrapMode.Clamp; t.Apply(true); return t;
+    }
+
+    static Material CutBandMat(Ctx c, CutStyle st, float mode, float seed)
+    {
+        var m = new Material(Shader.Find("Lab/CutBand")); m.SetTexture("_NoiseTex", c.tx.noise);
+        m.SetFloat("_Mode", mode); m.SetColor("_Base", st.bas); m.SetColor("_C1", st.c1); m.SetColor("_C2", st.c2); m.SetColor("_C3", st.c3);
+        m.SetFloat("_Speed", st.speed); m.SetFloat("_Seed", seed); m.SetFloat("_Open", 0);
+        return m;
+    }
+
+    static void CutIn(Ctx c, CutStyle st, Texture2D chr, float t0, float hold = 1.15f)
+    {
+        float tIn = t0 + 0.05f, tOut = t0 + hold;
+        var bandPos = new Vector3(0, -0.35f, -3.4f);
+        var rot = Quaternion.Euler(0, 0, st.angle);
+        // 帯
+        Material band = null, chev = null; Transform bandT = null, chevT = null;
+        if (!st.focus)
+        {
+            band = CutBandMat(c, st, st.mode, 1.3f);
+            bandT = Quad(c.root, "CutBand", bandPos, new Vector2(17f, 4.3f), band); bandT.rotation = rot; band.SetFloat("_Aspect", 17f / 4.3f);
+            if (st.chevron)
+            {
+                var cs = new CutStyle { bas = st.bas * 0.6f, c1 = st.chevA, c2 = st.chevB, c3 = st.c3, speed = st.speed };
+                chev = CutBandMat(c, cs, 3, 2.1f);
+                chevT = Quad(c.root, "CutChevron", bandPos + rot * new Vector3(0, -2.7f, -0.01f), new Vector2(17f, 0.8f), chev); chevT.rotation = rot; chev.SetFloat("_Aspect", 17f / 0.8f);
+            }
+        }
+        // キャラと残像（残像は帯の色で塗って、遅れて付いてくる）
+        var size = new Vector2(12.8f, 7.2f) * 0.7f;   // 絵は 7 割（帯が見えるように）
+        Material CharMat(float alpha, Color tint, float outline, int queue)
+        {
+            var m = new Material(Shader.Find("Lab/CutChar")) { mainTexture = chr };
+            m.SetFloat("_Alpha", alpha); m.SetColor("_Tint", tint); m.SetFloat("_Outline", outline); m.renderQueue = queue;
+            if (outline <= 0) m.SetColor("_OutlineCol", new Color(0, 0, 0, 0));
+            return m;
+        }
+        var chM = CharMat(1, Color.white, 4, 3018);
+        var ch = Quad(c.root, "CutChar", bandPos + new Vector3(1.4f, 0.3f, -0.2f), size, chM);
+        var ghosts = new List<(Transform tr, Material m, float lag)>();
+        for (int k = 0; k < 3; k++)
+        {
+            var gm = CharMat(0.5f - k * 0.13f, Color.Lerp(st.c2, Color.white, 0.2f) * 1.2f, 0, 3017 - k);
+            ghosts.Add((Quad(c.root, "CutGhost" + k, ch.position, size, gm), gm, 0.018f * (k + 1)));
+        }
+        Vector3 home = ch.position;
+        var dirIn = (Vector3)(rot * Vector3.right);
+        Func<float, Vector3> PosAt = t =>
+        {
+            if (st.focus)
+                return home;
+            if (t < tIn) return home + dirIn * 14f;
+            if (t < tIn + 0.12f) return home + dirIn * Mathf.LerpUnclamped(14f, 0f, EaseOutBack(Mathf.Clamp01((t - tIn) / 0.12f)));
+            if (t < tOut) return home - dirIn * (0.35f * (t - tIn - 0.12f));                      // ゆっくり流れる
+            float e = Mathf.Clamp01((t - tOut) / 0.12f);
+            return home - dirIn * (0.35f * (tOut - tIn - 0.12f) + 16f * e * e);
+        };
+        c.OnUpdate(t =>
+        {
+            bool on = t >= tIn && t < tOut + 0.14f;
+            ch.gameObject.SetActive(on);
+            // 帯の開き（6F で開いて少し行き過ぎ、抜けで 6F で閉じる）
+            float open = t < t0 ? 0 : t < tOut + 0.02f ? Mathf.Clamp(EaseOutBack(Mathf.Clamp01((t - t0) / 0.1f)), 0, 1.15f) : 1 - Mathf.Clamp01((t - tOut - 0.02f) / 0.1f);
+            if (band != null) { band.SetFloat("_Open", Mathf.Max(open, 0)); bandT.gameObject.SetActive(open > 0.001f); }
+            if (chev != null) { chev.SetFloat("_Open", Mathf.Max(open, 0)); chevT.gameObject.SetActive(open > 0.001f); }
+            if (!on) { foreach (var g in ghosts) g.tr.gameObject.SetActive(false); return; }
+            if (st.focus)
+            {
+                // 集中線: 小さく出て一気に寄る
+                float z = Mathf.LerpUnclamped(0.55f, 1f, EaseOutBack(Mathf.Clamp01((t - tIn) / 0.14f)));
+                float ex = Mathf.Clamp01((t - tOut) / 0.12f);
+                ch.localScale = new Vector3(size.x, size.y, 1) * (z * (1 + ex * 0.6f));
+                chM.SetFloat("_Alpha", 1 - ex);
+            }
+            ch.position = PosAt(t);
+            chM.SetFloat("_Flash", t < tIn + 2 / 60f ? 1f : t < tIn + 0.14f && t >= tIn + 0.12f ? 0.5f : 0f);
+            foreach (var g in ghosts)
+            {
+                bool moving = !st.focus && (t < tIn + 0.2f || t > tOut);
+                g.tr.gameObject.SetActive(moving);
+                g.tr.position = PosAt(t - g.lag) + new Vector3(0, 0, 0.05f);
+            }
+        });
+        // 画面: 白 2F・背景を沈める・止まった瞬間に揺れ
+        c.OnUpdate(t =>
+        {
+            if (t >= t0 && t < t0 + 2 / 60f) c.post.flash = Mathf.Max(c.post.flash, 0.55f);
+            if (t >= t0 && t < tOut + 0.14f) { c.post.stageDim = Mathf.Max(c.post.stageDim, 0.7f); c.post.stageDesat = Mathf.Max(c.post.stageDesat, 0.4f); }
+            float a = t - (tIn + 0.12f);
+            if (a >= 0 && a < 0.3f) c.post.trauma += 0.55f * (1 - a / 0.3f);
+        });
+        // 画面の外の流線（帯の外にも速さを出す）
+        var sp = PS(c, "CutSpeed", bandPos + new Vector3(10f, 0, -0.1f), AddMat(c.tx.streak, 1.6f), 900 + (uint)(st.mode * 10));
+        {
+            var m = sp.main; m.duration = hold; m.startLifetime = new MinMaxCurve(0.18f, 0.32f); m.startSpeed = new MinMaxCurve(55f, 80f);
+            m.startSize3D = true; m.startSizeX = new MinMaxCurve(3f, 7f); m.startSizeY = new MinMaxCurve(0.03f, 0.08f); m.startSizeZ = 1; m.startColor = st.c2;
+            m.startRotation = st.angle * Mathf.Deg2Rad * -1f;
+            var e = sp.emission; e.rateOverTime = st.focus ? 0 : 45;
+            var sh = sp.shape; sh.enabled = true; sh.shapeType = ParticleSystemShapeType.Box; sh.scale = new Vector3(0.1f, 9f, 0.1f);
+            sp.transform.rotation = Quaternion.LookRotation(-(rot * Vector3.right), Vector3.forward) ;
+            ColorLife(sp, Grad(new[] { (0f, Color.white), (1f, Color.white) }, new[] { (0f, 0f), (0.2f, 0.8f), (1f, 0f) }));
+            c.Play(sp, tIn);
+        }
+        if (st.bolts)
+        {
+            Lightning(c, bandPos + rot * new Vector3(-7f, 0.9f, -0.3f), bandPos + rot * new Vector3(6f, -0.6f, -0.3f), tIn + 0.14f, st.c1, 1401, width: 0.05f, branches: 4, impact: false);
+            Lightning(c, bandPos + rot * new Vector3(7f, -1.1f, -0.3f), bandPos + rot * new Vector3(-5f, 1.0f, -0.3f), tIn + 0.55f, st.c1, 1402, width: 0.04f, branches: 3, impact: false);
+        }
+        if (st.sparkle) { Bokeh(c, home + new Vector3(0, 0.3f, -0.4f), tIn + 0.12f, st.c2, 3.5f, 1403); Flare(c, home + new Vector3(1.5f, 1.2f, -0.4f), tIn + 0.14f, st.c2, 3.2f, 1404); }
+        if (st.focus)
+        {
+            c.OnUpdate(t =>
+            {
+                float a = t - t0;
+                if (a >= 0 && a < 2 / 60f) { c.post.invert = 1; c.post.mono = 1; }       // 白黒の衝撃コマ
+                else if (a >= 2 / 60f && a < 5 / 60f) c.post.mono = 1;
+                if (t >= tIn && t < tOut + 0.1f)
+                {
+                    c.post.lines = 0.9f; c.post.linesMode = 1; c.post.linesSeed = Mathf.Floor(t * 20); c.post.linesDensity = 0.55f;
+                    c.post.linesCenter = new Vector2(0.5f, 0.5f);
+                }
+            });
+            Ring(c, home + new Vector3(0, 0, -0.4f), tIn + 0.14f, st.c2, 9f, 1405);
+        }
+    }
+
+    static void CutStreak(Ctx c) => CutIn(c, new CutStyle { mode = 0, bas = new Color(0.25f, 0.06f, 0.02f), c1 = new Color(1f, 0.38f, 0.05f), c2 = new Color(1f, 0.78f, 0.2f), c3 = new Color(2f, 1.6f, 0.9f), speed = 3.2f }, CutTex(c, 2), 0.25f);
+    static void CutElec(Ctx c) => CutIn(c, new CutStyle { mode = 1, bas = new Color(0.02f, 0.06f, 0.2f), c1 = new Color(0.15f, 0.55f, 1f), c2 = new Color(0.55f, 0.9f, 1f), c3 = new Color(1.6f, 2.2f, 2.6f), speed = 3.5f,
+        chevron = true, chevA = new Color(0.25f, 0.55f, 1f), chevB = new Color(0.8f, 0.95f, 1f), bolts = true, angle = -7f }, CutTex(c, 1), 0.25f);
+    static void CutFire(Ctx c) => CutIn(c, new CutStyle { mode = 2, bas = new Color(0.12f, 0.02f, 0.02f), c1 = new Color(1f, 0.3f, 0.04f), c2 = new Color(1f, 0.72f, 0.12f), c3 = new Color(1.45f, 1.35f, 0.8f), speed = 2.4f, angle = -11f }, CutTex(c, 3), 0.25f);
+    static void CutFocus(Ctx c) => CutIn(c, new CutStyle { mode = 0, bas = Color.black, c1 = Color.white, c2 = new Color(1f, 0.9f, 0.6f), c3 = Color.white * 2, focus = true }, CutTex(c, 4), 0.25f);
+    static void CutRainbow(Ctx c) => CutIn(c, new CutStyle { mode = 4, bas = new Color(0.05f, 0.03f, 0.1f), c1 = new Color(1f, 0.8f, 0.3f), c2 = new Color(1f, 0.9f, 0.5f), c3 = new Color(2.2f, 2f, 1.6f), speed = 3.2f,
+        chevron = true, chevA = new Color(1f, 0.75f, 0.2f), chevB = new Color(1.3f, 1.2f, 0.8f), sparkle = true, angle = -9f }, CutTex(c, 5), 0.25f);
 
     // ================= 部品: 斬撃 =================
     struct Style

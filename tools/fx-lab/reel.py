@@ -64,6 +64,11 @@ CLIPS = [
     ('p33_sfx_bari', '部品 33  擬音 バリバリ'),
     ('p34_sfx_gogo', '部品 34  擬音 ゴゴゴ'),
     ('p35_sfx_kira', '部品 35  擬音 キラーン'),
+    ('cutin_streak', 'カットイン 1  斜め帯＋流線'),
+    ('cutin_elec', 'カットイン 2  電撃＋矢印'),
+    ('cutin_fire', 'カットイン 3  炎の帯'),
+    ('cutin_focus', 'カットイン 4  集中線＋白黒'),
+    ('cutin_rainbow', 'カットイン 5  虹（プレミア）'),
 ]
 # 2 つ目の引数で絞る（run.ps1 -Only と同じ名前をカンマ区切り）
 if len(sys.argv) > 2 and sys.argv[2]:
