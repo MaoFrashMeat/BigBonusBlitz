@@ -2,7 +2,7 @@
 
 `py -3 docs/note/build_images.py` で再生成できる。元素材が消えていてもスキップして続行する。
 
-## 1. いま入っているもの（23枚）
+## 1. いま入っているもの（25枚）
 
 | ファイル | 中身 | 出どころ | 記事のどこ |
 |---|---|---|---|
@@ -15,7 +15,7 @@
 | `07-before-after.png` | 決定を会話に置くか、ファイルに置くか | 図解 | 2章 |
 | `08-memory-promotion.png` | 観測1回→2回→3回の昇格 | 図解 | 4章 |
 | `09-acceptance-flow.png` | 完成条件と検品の流れ | 図解 | 5章 |
-| `10-failure-types.png` | 壊れ方の5つの型 | 図解 | 7章 |
+| `10-failure-types.png` | 壊れ方の6つの型（36件） | 図解 | 7章 |
 | `19-title-rig-layers.png` | タイトル立ち絵の15パーツ一覧 | `Assets/Resources/SaliaRig/layers/` から合成（`build_rig_images.py`） | 8章 |
 | `20-title-rig-composite.png` | 15パーツを重ねた立ち絵 | 同上（model.json の順に合成） | 8章 |
 | `21-title-unity.png` | 新しいタイトル画面（Unity 実機・2026-09-11） | 本人のスクリーンショット。Unity のツールバーだけ切り落とした（1058×496） | 無料パート冒頭 |
@@ -30,6 +30,8 @@
 | `29-forest-v2.png` | 参考3枚を渡したあとの見本 v2 | 同 `forest-reference-v2.png`（AI 生成） | 同上 |
 | `30-title-blink.png` | まばたきの前後（顔まわり） | `tools/salia-viewer/qa/unity-neutral.png` + `unity-blink.png`（AI の描き出し） | 8章「タイトルの立ち絵は、別のAIに作らせた」 |
 | `32-bg-layers.png` | 背景の3層 | 同 `c1-layers/far,middle,near.png`（AI 生成） | 8章「背景のテイストは、まだ決まっていない」 |
+| `33-equip-azure.png` | 作り直した装備画面（Azure） | `tools/azure-equip-qa/2026-09-22/v3-final/equipped-1280.png`（AI の描き出し） | 8章「言わなくても、同じ質にしてもらう」 |
+| `34-fx-samples.png` | エフェクトの見本13本のうち | `docs/art/2026-09-25/fx-samples-frames-1.png`（AI 生成） | 8章「見本を先に作って、合格したものだけ本体へ入れる」 |
 
 01〜03 は**ブラウザ版**の画面。記事のキャプションにもそう書いてある。
 出どころは3種類。(a) 本人のスクリーンショット（Screenpresso）、(b) AI が Unity を裏で動かして描き出した QA 画像（`tools/*-qa/`、`tools/salia-viewer/qa/`）、(c) AI が生成した見本（`docs/art/`）。(b)(c) は AI 側で勝手に増えるので、`tools/` と `docs/art/` を見れば拾える。`build_shots.py` で再生成できる。

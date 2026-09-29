@@ -178,6 +178,16 @@ def main():
             y += t.height + gap
         save(im, "32-bg-layers.png")
 
+    # 33: 作り直した装備画面（Azure。別セッションが本人の参照画像から組んだもの）
+    eq = load(os.path.join(ROOT, "tools", "azure-equip-qa", "2026-09-22", "v3-final", "equipped-1280.png"))
+    if eq is not None:
+        save(eq, "33-equip-azure.png")
+
+    # 34: エフェクトの見本（本体に入れる前の、隔離した場所での描き出し）
+    fx = load(os.path.join(ROOT, "docs", "art", "2026-09-25", "fx-samples-frames-1.png"))
+    if fx is not None:
+        save(fx, "34-fx-samples.png")
+
     print("\n作成 %d 件" % len(made))
     if skipped:
         print("スキップ:", ", ".join(skipped))
