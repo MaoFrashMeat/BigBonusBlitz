@@ -16,7 +16,8 @@ Shader "Hidden/LabBloom"
     float _Heat, _LabT; float4 _FireLight;   // 炎の枠: 陽炎の強さ、照り返しの色（a = 届く距離 world）
     float4 _Shock;   // 空間の歪み: xy 中心 uv、z 半径（画面の高さ比）、w 強さ
     float4 _Split; float4 _SplitCol;   // 画面を真っ二つ: x 角度(rad) y ずれ（線に沿う） z 隙間の幅 w 裂け目の光
-    float _Black; float4 _Slit;          // 暗転（0〜1）/ 暗転中の光の裂け目: x 幅 y 明るさ
+    float _Black; float4 _Slit;          // 暗転（0〜1）/ 暗転中の光の裂け目: x 幅 y 明るさ z 1 = 横向き
+    float4 _SlitTint; float _Glitch, _Bars;   // 裂け目の色（a 0 = 白）/ 映像の乱れ（0〜1）/ 上下の黒帯（画面の高さ比、片側）
     struct v2f { float4 pos:SV_POSITION; float2 uv:TEXCOORD0; };
     v2f vert(appdata_img v){ v2f o; o.pos=UnityObjectToClipPos(v.vertex); o.uv=v.texcoord; return o; }
     float3 box4(float2 uv, float d)
@@ -159,7 +160,19 @@ Shader "Hidden/LabBloom"
                     pp -= side * (dir * _Split.y + nrm * _Split.z * 0.5);
                     uv = pp * float2(aspect, 1) + 0.5;
                 }
+                if (_Glitch > 0)
+                {
+                    // 映像の乱れ: 横の帯ごとにずれる（ところどころ）
+                    float row = floor(uv.y * 48), ft = floor(_LabT * 24);
+                    float hr = frac(sin(row * 12.9898 + ft * 78.233) * 43758.5453);
+                    uv.x += (hr - 0.5) * 0.12 * _Glitch * step(1 - _Glitch * 0.6, frac(hr * 7.13));
+                }
                 float3 c = tex2D(_MainTex, uv).rgb;
+                if (_Glitch > 0)
+                {
+                    float off = 0.012 * _Glitch;                                     // 色ずれ（赤と青を左右へ）
+                    c.r = tex2D(_MainTex, uv + float2(off, 0)).r; c.b = tex2D(_MainTex, uv - float2(off, 0)).b;
+                }
                 if (_Split.z > 0 || _Split.y != 0)
                 {
                     float3 gap = lerp(_SplitCol.rgb, float3(1.6, 1.4, 1.2), splitCore * splitCore) * _Split.w;
@@ -212,11 +225,14 @@ Shader "Hidden/LabBloom"
                 g = lerp(g, 0, _Black);
                 if (_Slit.y > 0)
                 {
-                    float sx = abs(i.uv.x - 0.5);
+                    float sx = _Slit.z > 0.5 ? abs(i.uv.y - 0.5) : abs(i.uv.x - 0.5);
                     float core = 1 - smoothstep(_Slit.x * 0.5, _Slit.x * 0.5 + 0.004, sx);
                     float halo = exp(-sx / max(_Slit.x * 2 + 0.01, 1e-3)) * 0.5;
-                    g += (float3(1, 1, 1) * core + float3(0.8, 0.9, 1) * halo) * _Slit.y;
+                    float3 sc = _SlitTint.a > 0 ? _SlitTint.rgb : float3(0.8, 0.9, 1);
+                    g += (float3(1, 1, 1) * core + sc * halo) * _Slit.y;
                 }
+                if (_Glitch > 0) g *= 1 - 0.18 * _Glitch * step(0.5, frac(i.uv.y * 180));   // 走査線
+                if (_Bars > 0 && abs(i.uv.y - 0.5) > 0.5 - _Bars) g = 0;                     // 上下の黒帯
                 return float4(pow(saturate(g), 2.2), 1);
             }
             ENDCG }
