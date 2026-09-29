@@ -151,23 +151,26 @@ Shader "Lab/Frame"
                     if (_Steps > 0) t = floor(t * _Steps) / _Steps;   // コマ打ち
                     float wave = 0.5 + 0.5 * sin(u * 6.2831853 * 0.5 - t * 3.0);
                     float vv = v / (0.8 + 0.45 * wave + 0.45 * _Burst);
-                    // 形は大きく滑らかに（一周で舌 20 本前後。細かいノイズはほとんど混ぜない）
-                    float2 q = float2(u * 0.32 + _Seed, vv * 0.3 - t * 0.55);
+                    // 形（本人 2026-09-29「もっと細かく」: 一周で舌 40 本前後、細かい揺らぎを 3 割混ぜる）
+                    float2 q = float2(u * 0.62 + _Seed, vv * 0.45 - t * 0.8);
                     float w1 = tex2D(_NoiseTex, q * 0.5).r, w2 = tex2D(_NoiseTex, q * 0.5 + float2(0.37, 0.11)).r;
                     float2 qw = q + float2(w1 - 0.5, (w2 - 0.5) * 0.35) * 0.6;          // 横へねじる（舌がうねる）
-                    float n = tex2D(_NoiseTex, qw).r * 0.85 + tex2D(_NoiseTex, qw * 1.8 + float2(0.21, -t * 0.3)).r * 0.15;
+                    float n = tex2D(_NoiseTex, qw).r * 0.68 + tex2D(_NoiseTex, qw * 2.4 + float2(0.21, -t * 0.5)).r * 0.32;
                     n = saturate((n - 0.5) * 1.7 + 0.5);
                     float F = (1 - vv) * 1.35 - n * 1.15 + 0.05;
                     // 先を尖らせる: うねらせた三角波で、内側ほど舌と舌の間を削る（先が尖った舌になる）
-                    float tooth = abs(frac(u * 1.9 + (w1 - 0.5) * 1.6 + t * 0.15) - 0.5) * 2;
+                    float tooth = abs(frac(u * 3.6 + (w1 - 0.5) * 2.2 + t * 0.2) - 0.5) * 2;
                     F -= tooth * tooth * saturate(vv) * 0.75;
                     // ちぎれて浮く塊: 先の方でだけ、別のノイズが強い所を残す
-                    float blob = tex2D(_NoiseTex, float2(u * 0.6 + 0.5, vv * 0.45 - t * 0.9)).r;
+                    float blob = tex2D(_NoiseTex, float2(u * 1.3 + 0.5, vv * 0.7 - t * 1.2)).r;
                     F = max(F, (blob - 0.72) * 2.2 * smoothstep(0.35, 0.8, vv) * (1 - smoothstep(0.9, 1.2, vv)));
+                    // 中に抜ける小さな穴（アニメの炎の抜け）
+                    float hole = tex2D(_NoiseTex, float2(u * 2.2 + 0.31, vv * 1.4 - t * 1.4)).r;
+                    F -= smoothstep(0.66, 0.74, hole) * smoothstep(0.15, 0.45, vv) * 0.6;
                     float aa = max(fwidth(F) * 1.1, 1e-3);
                     // 段ごとに別のノイズでしきい値を揺らす（明るい芯そのものが舌の形になる。縁と平行な帯にしない）
-                    float m1 = tex2D(_NoiseTex, qw * 1.3 + float2(0.53, 0.29)).r - 0.5;
-                    float m2 = tex2D(_NoiseTex, qw * 1.6 + float2(0.17, 0.71)).r - 0.5;
+                    float m1 = tex2D(_NoiseTex, qw * 2.0 + float2(0.53, 0.29)).r - 0.5;
+                    float m2 = tex2D(_NoiseTex, qw * 2.6 + float2(0.17, 0.71)).r - 0.5;
                     float e0 = smoothstep(0.0, aa, F), e1 = smoothstep(0.22, 0.22 + aa, F + m1 * 0.35), e2 = smoothstep(0.5, 0.5 + aa, F + m2 * 0.45), e3 = smoothstep(0.85, 0.85 + aa, F + (m1 + m2) * 0.35);
                     float3 a0 = _A0.rgb, a1 = _A1.rgb, a2 = _A2.rgb, a3 = _A3.rgb;
                     if (_Rainbow > 0) { a0 = base * 0.45; a1 = base * 0.8; a2 = lerp(base, 1, 0.45); a3 = lerp(base, 1, 0.8) * 1.4; }
