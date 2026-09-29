@@ -91,6 +91,7 @@ public static class FxLab
         yield return new Clip { name = "door_gate", dur = 3.3f, hold = 1, build = DoorGate };
         yield return new Clip { name = "door_vault", dur = 3.3f, hold = 1, build = DoorVault };
         yield return new Clip { name = "door_shutter", dur = 3.3f, hold = 1, build = DoorShutter };
+        yield return new Clip { name = "door_gold", dur = 3.3f, hold = 1, build = DoorGold };
         yield return new Clip { name = "cutin_vs", dur = 2.2f, hold = 1, build = CutVs };
         yield return new Clip { name = "cutin_vertical", dur = 1.8f, hold = 1, build = CutVertical };
         yield return new Clip { name = "cutin_panels", dur = 2.1f, hold = 1, build = CutPanels };
@@ -2799,14 +2800,14 @@ public static class FxLab
     {
         float tClose = 0.3f, s1 = 1.0f, s2 = 1.7f, s3 = 2.45f;
         var blue = new Color(0.35f, 0.7f, 1f); var red = new Color(1f, 0.25f, 0.12f); var gold = new Color(1f, 0.82f, 0.35f);
-        bool shutter = kind == "shutter", vault = kind == "vault";
-        Texture2D texL = shutter ? c.tx.shutter : vault ? c.tx.doorVault : c.tx.doorGate;
+        bool shutter = kind == "shutter", vault = kind == "vault", goldK = kind == "gold";
+        Texture2D texL = shutter ? c.tx.shutter : vault ? c.tx.doorVault : goldK ? c.tx.doorGold : c.tx.doorGate;
         var parts = new List<(Transform tr, Material m, float side)>();
         if (shutter) { var m = DoorMat(texL); parts.Add((Quad(c.root, "Shutter", new Vector3(0, 0, -3.3f), new Vector2(12.9f, 7.25f), m), m, 0)); }
         else
             foreach (var side in new[] { -1f, 1f })
             {
-                var texR = vault ? c.tx.doorVaultR : c.tx.doorGateR;
+                var texR = vault ? c.tx.doorVaultR : goldK ? c.tx.doorGoldR : c.tx.doorGateR;
                 var m = DoorMat(side > 0 && texR != null ? texR : texL); var q = Quad(c.root, side < 0 ? "DoorL" : "DoorR", new Vector3(side * 3.2f, 0, -3.3f), new Vector2(6.45f, 7.25f), m);
                 if (side > 0 && texR == null) q.localScale = new Vector3(-6.45f, 7.25f, 1);   // 右の絵が無ければ左を反転
                 parts.Add((q, m, side));
@@ -2879,6 +2880,8 @@ public static class FxLab
         Bokeh(c, new Vector3(0, 0, -3.6f), s3, gold, 4.5f, 2440);
     }
     static void DoorGate(Ctx c) => DoorStep(c, "gate");
+    // 金の扉（本人 2026-09-29 の参考画像「こういうかんじ」: 金の浮き彫り・放射の筋・炎の飾り・中央の錠）。絵は blender/render_golddoor.py でモデリングして撮ったもの
+    static void DoorGold(Ctx c) => DoorStep(c, "gold");
     static void DoorVault(Ctx c) { if (c.tx.vaultFrame != null) VaultStep(c); else DoorStep(c, "vault"); }
     // 金庫の大扉（本人 2026-09-29「モデルとディテールも作り込んで」）。絵は blender/render_vault.py で作り込んだモデルを撮ったもの（枠・扉 2 状態・ハンドル）
     // 落ちてきて閉まる → 第 1 停止: ハンドルが回る・扉の縁から青い光 → 第 2 停止: 閂が抜ける（絵を切り替え）・蒸気・赤い光・火花
@@ -3282,7 +3285,7 @@ public static class FxLab
         public Vector4 shock;   // 空間の歪み: xy 中心（uv）、z 半径（画面の高さ比）、w 強さ
         public Vector4 split; public Color splitCol; public float black; public Vector4 slit;   // 真っ二つ / 暗転 / 暗転中の光の裂け目
     }
-    class Tx { public Texture2D dot, glow, ring, star4, diamond, plus, flame, flame2, streak, trail, noise, column, coinFace, burst, air, sparkle, magic, fbHitLines, fbBigHit, fbCharge, fbElecRing, fbFireRing, fbFlame, fbSmoke, fibers, square, fireFlame03, hexTile, arrowUp, fbStarExp, fbVortex, fbWavy, blCampfire, blWall, lightRing, bolt, ringDouble, twirl, starCross, smokePuff, sfxDon, sfxZuba, sfxBari, sfxGo, sfxKira, shieldCrest, doorGate, doorVault, doorLock, shutter, doorGateR, doorVaultR, vaultFrame, vaultLocked, vaultOpen, vaultWheel; }
+    class Tx { public Texture2D dot, glow, ring, star4, diamond, plus, flame, flame2, streak, trail, noise, column, coinFace, burst, air, sparkle, magic, fbHitLines, fbBigHit, fbCharge, fbElecRing, fbFireRing, fbFlame, fbSmoke, fibers, square, fireFlame03, hexTile, arrowUp, fbStarExp, fbVortex, fbWavy, blCampfire, blWall, lightRing, bolt, ringDouble, twirl, starCross, smokePuff, sfxDon, sfxZuba, sfxBari, sfxGo, sfxKira, shieldCrest, doorGate, doorVault, doorLock, shutter, doorGateR, doorVaultR, doorGold, doorGoldR, vaultFrame, vaultLocked, vaultOpen, vaultWheel; }
     class Ctx
     {
         public Transform root, heroT, goblinT; public Texture2D hero, goblin; public Tx tx;
@@ -3604,6 +3607,8 @@ public static class FxLab
             tx.lightRing = K("light_ring"); tx.bolt = K("bolt"); tx.ringDouble = K("ring_double"); tx.twirl = K("twirl"); tx.starCross = K("star_cross"); tx.smokePuff = K("smoke_puff");
             tx.sfxDon = K("sfx_don"); tx.sfxZuba = K("sfx_zuba"); tx.sfxBari = K("sfx_bari"); tx.sfxGo = K("sfx_go"); tx.sfxKira = K("sfx_kira"); tx.shieldCrest = K("shield_crest");   // 擬音（make_sfx_tex.py）・盾の紋章（make_shield_tex.py）
             tx.doorGate = K("door_gate_L"); tx.doorGateR = K("door_gate_R"); tx.doorVault = K("door_vault_L"); tx.doorVaultR = K("door_vault_R"); tx.doorLock = K("door_vault_lock"); tx.shutter = K("shutter");
+            tx.doorGold = K("door_gold_L");
+            tx.doorGoldR = K("door_gold_R");
             // 扉は落とした CC0 の 3D 素材を Blender で撮ったもの（blender/render_doors.py、LICENSE-doors.txt）
             if (File.Exists(Path.Combine(dir, "vault_frame.png"))) { tx.vaultFrame = K("vault_frame"); tx.vaultLocked = K("vault_door_locked"); tx.vaultOpen = K("vault_door_open"); tx.vaultWheel = K("vault_wheel"); }   // 作り込んだ金庫（blender/render_vault.py）
             tx.fbFireRing = K("fb_firering_6x5"); tx.fbFlame = K("fb_flame_16x4"); tx.fbSmoke = K("fb_smoke_8x8");

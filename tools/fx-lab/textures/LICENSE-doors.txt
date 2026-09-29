@@ -2,3 +2,4 @@ door_gate_L.png / door_gate_R.png: Poly Haven "Large Castle Door" (https://polyh
 shutter.png: Poly Haven "Rollershutter Door" (https://polyhaven.com/a/rollershutter_door) CC0 — 同上（横に 2.2 倍）
 door_vault_L.png / door_vault_R.png / door_vault_lock.png: ambientCG "MetalPlates006" (https://ambientcg.com/view?id=MetalPlates006) CC0 を貼った扉を Blender で組んで撮影
 vault_frame.png / vault_door_locked.png / vault_door_open.png / vault_wheel.png: Blender でモデリングした金庫（tools/fx-lab/blender/render_vault.py）。壁の質感に ambientCG "MetalPlates006"（CC0）
+door_gold_L.png / door_gold_R.png: Blender でモデリングした金の扉（tools/fx-lab/blender/render_golddoor.py）。外部素材なし
