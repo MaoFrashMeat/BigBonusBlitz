@@ -73,6 +73,10 @@ public static class FxLab
         yield return new Clip { name = "cutin_upgrade", dur = 3.0f, hold = 1, build = CutUpgrade };
         yield return new Clip { name = "longfreeze", dur = 5.4f, hold = 1, build = LongFreeze };
         yield return new Clip { name = "sword_split", dur = 3.0f, hold = 1, build = SwordSplit };
+        // シールド
+        yield return new Clip { name = "shield_orbit", dur = 3.0f, hold = 1, build = ShieldOrbit };
+        yield return new Clip { name = "shield_big", dur = 2.6f, hold = 1, build = ShieldBig };
+        yield return new Clip { name = "shield_guardian", dur = 3.0f, hold = 1, build = ShieldGuardian };
     }
 
     // 3 段（docs/FX_RESEARCH.md 2・3）: 暗い縁（背景から切り離す）／飽和した本体（1 未満で光らせない）／細い白芯（ここだけ HDR で光る）
@@ -2004,6 +2008,133 @@ public static class FxLab
         c.OnUpdate(t => { float a = t - tBack; gm.SetColor("_Tint", a < 0 ? Color.black : red * (0.35f * Mathf.Clamp01(a / 0.1f) * (0.8f + 0.2f * Mathf.Sin(t * 8f)))); });
     }
 
+    // ================= シールド（本人 2026-09-29「シールドのエフェクトいろんなの」「盾のエフェクト」「ガーディアン」「盾がくるくる回ってる」）=================
+    static Material CrestMat(Ctx c, Color col) { var m = QMat(c, c.tx.shieldCrest, 0, Vector2.one, 0); m.SetColor("_Tint", col); return m; }
+
+    // 盾が回る: 4 枚の光の盾が主人公の周りを楕円に回る。手前は明るく大きく、奥は暗く小さく主人公の後ろへ。盾そのものも縦軸で回る
+    static void ShieldOrbit(Ctx c)
+    {
+        var hero = HeroHome + new Vector3(1.4f, 0, 0); c.heroT.position = hero;
+        var center = hero + new Vector3(0, 0.1f, 0);
+        var col = new Color(0.35f, 0.8f, 1f);
+        float on = 0.25f;
+        Surge(c, on, center, new Vector3(center.x, GroundY + 0.02f, 0), col, 0.8f);
+        const int N = 4;
+        for (int k = 0; k < N; k++)
+        {
+            var m = CrestMat(c, Color.black);
+            var q = Quad(c.root, "OrbitShield" + k, center, new Vector2(1.5f, 1.7f), m);
+            float ph = k * Mathf.PI * 2 / N;
+            c.OnUpdate(t =>
+            {
+                float a = t - on; if (a < 0) { q.gameObject.SetActive(false); return; }
+                q.gameObject.SetActive(true);
+                float grow = EaseOutBack(Mathf.Clamp01(a / 0.35f));                      // 中心から外へ広がって出る
+                float ang = ph + a * 4.2f;                                                // 公転（約 0.67 回/秒）
+                float depth = Mathf.Sin(ang);                                             // -1 奥 … 1 手前
+                q.position = center + new Vector3(Mathf.Cos(ang) * 1.9f * grow, 0.15f + Mathf.Sin(ang * 2) * 0.12f - depth * 0.25f * grow, depth > 0 ? -0.6f : 0.35f);
+                float spin = Mathf.Cos(a * 7f + ph);                                      // 盾そのものの回転（縦軸）
+                float sc = Mathf.Lerp(0.72f, 1.1f, (depth + 1) * 0.5f) * grow;
+                q.localScale = new Vector3(1.5f * sc * (0.2f + 0.8f * Mathf.Abs(spin)), 1.7f * sc, 1);
+                float br = Mathf.Lerp(0.5f, 1.6f, (depth + 1) * 0.5f) * (0.8f + 0.5f * Mathf.Abs(spin));   // 正面を向くときらりと明るい
+                m.SetColor("_Tint", col * br * Mathf.Clamp01(a / 0.1f));
+            });
+        }
+        // 足元の輪と、盾の軌跡に沿うきらめき
+        var ring = Quad(c.root, "OrbitRing", new Vector3(center.x, GroundY + 0.12f, 0.2f), new Vector2(4.4f, 4.4f), QMat(c, c.tx.magic ?? c.tx.ring, 0, Vector2.one, 0));
+        var rm = ring.GetComponent<MeshRenderer>().sharedMaterial;
+        c.OnUpdate(t => { ring.rotation = Quaternion.Euler(72, 0, 0) * Quaternion.Euler(0, 0, -t * 60f); rm.SetColor("_Tint", col * (t < on ? 0 : 0.9f * Mathf.Clamp01((t - on) / 0.2f))); });
+        c.OnUpdate(t => { if (t >= on) c.post.stageDim = Mathf.Max(c.post.stageDim, 0.35f); });
+        c.heroT.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_DimMul", 0.1f);
+        var tw = SimplePS(c, "OrbitSparkle", center, AddMat(c.tx.sparkle ?? c.tx.dot, 2f), 1801, on, 3f, 18, 0.4f, 0.8f, 0.12f, 0.26f, col);
+        var sh = tw.shape; sh.enabled = true; sh.shapeType = ParticleSystemShapeType.Circle; sh.radius = 1.9f; sh.radiusThickness = 0; sh.rotation = new Vector3(0, 0, 0); tw.transform.localScale = new Vector3(1, 0.3f, 1);
+        ColorLife(tw, Grad(new[] { (0f, Color.white), (1f, col) }, new[] { (0f, 0f), (0.2f, 1f), (1f, 0f) }));
+    }
+
+    // 大盾: 主人公の前に大きな光の盾が出る（大きく出て締まる・白 2F）。敵の弾を 2 発受けて、盾に波紋・盾が光る・破片が跳ね返る
+    static void ShieldBig(Ctx c)
+    {
+        var hero = HeroHome + new Vector3(1.0f, 0, 0); c.heroT.position = hero;
+        var pos = hero + new Vector3(1.5f, 0.25f, -0.6f);
+        var col = new Color(1f, 0.82f, 0.35f);
+        float on = 0.3f;
+        var m = CrestMat(c, Color.black);
+        var q = Quad(c.root, "BigShield", pos, new Vector2(2.6f, 3.0f), m);
+        var baseSize = new Vector3(2.6f, 3.0f, 1);
+        var hits = new[] { 1.05f, 1.75f };
+        c.OnUpdate(t =>
+        {
+            float a = t - on; if (a < 0) { q.gameObject.SetActive(false); return; }
+            q.gameObject.SetActive(true);
+            float s = a < 0.14f ? Mathf.LerpUnclamped(1.6f, 1f, EaseOut(a / 0.14f)) : 1f;
+            float hitK = 0; foreach (var h in hits) { float b = t - h; if (b >= 0 && b < 0.25f) hitK = Mathf.Max(hitK, 1 - b / 0.25f); }
+            q.localScale = baseSize * (s * (1 + 0.05f * hitK)) ;
+            q.position = pos + new Vector3(0.12f * hitK, 0, 0);                            // 受けた瞬間に少し押し返される
+            float br = (a < 2 / 60f ? 2.2f : 1.1f + 0.1f * Mathf.Sin(t * 6f)) + 0.6f * hitK;
+            m.SetColor("_Tint", col * br * Mathf.Clamp01(a / 0.05f));
+        });
+        Flare(c, pos, on, col, 3.6f, 1811); Ring(c, pos, on, col, 5f, 1812, delay: 0.03f);
+        for (int i = 0; i < hits.Length; i++)
+        {
+            float h = hits[i];
+            var from = GoblinHome + new Vector3(-0.6f, 0.3f - i * 0.5f, -0.6f);
+            var hitPoint = pos + new Vector3(0.1f, 0.2f - i * 0.6f, 0);
+            var orb = PS(c, "BigShieldOrb" + i, from, AddMat(c.tx.dot, 7f), 1820 + (uint)i);
+            float speed = 12f, time = (hitPoint - from).magnitude / speed;
+            orb.transform.rotation = Quaternion.LookRotation((hitPoint - from).normalized);
+            var om = orb.main; om.startLifetime = time; om.startSpeed = speed; om.startSize = 0.35f; om.startColor = new Color(1f, 0.3f, 0.8f);
+            orb.emission.SetBursts(new[] { new Burst(0, 1) });
+            Trail(orb, AddMat(c.tx.trail, 3f), new MinMaxCurve(0.3f, 0.3f));
+            c.Play(orb, h - time);
+            Flare(c, hitPoint, h, col, 2.4f, 1830 + (uint)i);
+            Ring(c, hitPoint, h, col, 2.6f, 1840 + (uint)i);                                // 盾に広がる波紋
+            Shards(c, hitPoint, h, col, 1f, 20, 100, 18, 1850 + (uint)i);                   // 跳ね返る破片（敵の方へ）
+            Impact(c, h, -1, 180f, enemy: false);
+        }
+    }
+
+    // ガーディアン: 主人公の背後に光の守護者（主人公のシルエットを大きく）が下から立ち上がり、前に盾を構える。光の柱と昇る粒
+    static void ShieldGuardian(Ctx c)
+    {
+        var hero = HeroHome + new Vector3(1.2f, 0, 0); c.heroT.position = hero;
+        var col = new Color(1f, 0.78f, 0.3f);
+        float on = 0.3f;
+        var size = SpriteSize(c.hero, 3.3f) * 1.7f;
+        var gpos = new Vector3(hero.x - 0.5f, GroundY + size.y * 0.5f - 0.1f, 0.4f);
+        var gm = new Material(Shader.Find("Lab/Ghost")) { mainTexture = c.hero };
+        gm.SetTexture("_NoiseTex", c.tx.noise); gm.SetColor("_Col", col * 0.9f); gm.SetColor("_Rim", new Color(1.8f, 1.45f, 0.8f)); gm.SetFloat("_Edge", 2.5f);
+        var g = Quad(c.root, "Guardian", gpos, size, gm);
+        c.OnUpdate(t =>
+        {
+            float a = t - on;
+            gm.SetFloat("_Appear", a < 0 ? -0.05f : Mathf.Clamp01(a / 0.6f) * 1.05f);
+            gm.SetFloat("_Intensity", a < 0 ? 0 : 0.9f + 0.1f * Mathf.Sin(t * 4f));
+            g.position = gpos + new Vector3(0, Mathf.Sin(t * 2.2f) * 0.05f, 0);            // ゆっくり呼吸する
+        });
+        // 構える盾（守護者の前、主人公の前）
+        var cm = CrestMat(c, Color.black);
+        var cq = Quad(c.root, "GuardianShield", hero + new Vector3(1.3f, 0.6f, -0.6f), new Vector2(2.2f, 2.5f), cm);
+        c.OnUpdate(t =>
+        {
+            float a = t - (on + 0.55f); cq.gameObject.SetActive(a >= 0);
+            if (a < 0) return;
+            cq.localScale = new Vector3(2.2f, 2.5f, 1) * Mathf.LerpUnclamped(0.3f, 1f, EaseOutBack(Mathf.Clamp01(a / 0.18f)));
+            cm.SetColor("_Tint", col * ((a < 2 / 60f ? 3f : 1.15f) + 0.1f * Mathf.Sin(t * 6f)));
+        });
+        Flare(c, hero + new Vector3(1.3f, 0.6f, -0.7f), on + 0.55f, col, 3.2f, 1861);
+        // 光の柱・足元の輪・昇る粒
+        var beam = Quad(c.root, "GuardianBeam", new Vector3(gpos.x, 0.8f, 0.5f), new Vector2(3.4f, 8f), QMat(c, c.tx.column, 0.6f, new Vector2(2, 1), 0.8f));
+        var bm = beam.GetComponent<MeshRenderer>().sharedMaterial;
+        c.OnUpdate(t => { float a = t - on; bm.SetColor("_Tint", a < 0 ? Color.black : col * (0.7f * Mathf.Clamp01(a / 0.2f) * (1 - 0.5f * Mathf.Clamp01((a - 0.8f) / 0.8f)))); });
+        Ring(c, new Vector3(gpos.x, GroundY + 0.15f, -0.6f), on, col, 6f, 1862, squash: 0.25f);
+        var mo = SimplePS(c, "GuardianMotes", new Vector3(gpos.x, GroundY + 0.2f, 0.3f), AddMat(c.tx.dot, 4f), 1863, on, 3f, 30, 1.2f, 2f, 0.05f, 0.11f, col);
+        var sh = mo.shape; sh.enabled = true; sh.shapeType = ParticleSystemShapeType.Box; sh.scale = new Vector3(3f, 0.2f, 0.2f);
+        var v = mo.velocityOverLifetime; v.enabled = true; v.space = ParticleSystemSimulationSpace.World; v.x = new MinMaxCurve(-0.1f, 0.1f); v.y = new MinMaxCurve(1f, 2.2f); v.z = new MinMaxCurve(0f, 0f);
+        ColorLife(mo, Grad(new[] { (0f, Color.white), (1f, col) }, new[] { (0f, 0f), (0.15f, 1f), (1f, 0f) }));
+        c.OnUpdate(t => { if (t >= on) { c.post.stageDim = Mathf.Max(c.post.stageDim, 0.35f); } });
+        c.heroT.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_DimMul", 0.1f);
+    }
+
     // ================= 部品: 斬撃 =================
     struct Style
     {
@@ -2329,7 +2460,7 @@ public static class FxLab
         public Vector4 shock;   // 空間の歪み: xy 中心（uv）、z 半径（画面の高さ比）、w 強さ
         public Vector4 split; public Color splitCol; public float black; public Vector4 slit;   // 真っ二つ / 暗転 / 暗転中の光の裂け目
     }
-    class Tx { public Texture2D dot, glow, ring, star4, diamond, plus, flame, flame2, streak, trail, noise, column, coinFace, burst, air, sparkle, magic, fbHitLines, fbBigHit, fbCharge, fbElecRing, fbFireRing, fbFlame, fbSmoke, fibers, square, fireFlame03, fbStarExp, fbVortex, fbWavy, blCampfire, blWall, lightRing, bolt, ringDouble, twirl, starCross, smokePuff, sfxDon, sfxZuba, sfxBari, sfxGo, sfxKira; }
+    class Tx { public Texture2D dot, glow, ring, star4, diamond, plus, flame, flame2, streak, trail, noise, column, coinFace, burst, air, sparkle, magic, fbHitLines, fbBigHit, fbCharge, fbElecRing, fbFireRing, fbFlame, fbSmoke, fibers, square, fireFlame03, fbStarExp, fbVortex, fbWavy, blCampfire, blWall, lightRing, bolt, ringDouble, twirl, starCross, smokePuff, sfxDon, sfxZuba, sfxBari, sfxGo, sfxKira, shieldCrest; }
     class Ctx
     {
         public Transform root, heroT, goblinT; public Texture2D hero, goblin; public Tx tx;
@@ -2632,7 +2763,7 @@ public static class FxLab
             if (File.Exists(Path.Combine(dir, "bl_campfire_8x8.png"))) { tx.blCampfire = K("bl_campfire_8x8"); tx.blCampfire.name = "bl_campfire"; }
             if (File.Exists(Path.Combine(dir, "bl_wall_8x8.png"))) { tx.blWall = K("bl_wall_8x8"); tx.blWall.name = "bl_wall"; }   // 名前は 6x5 で配られていたが実際は 7×6 tx.fbVortex = K("fb_vortex_6x5"); tx.fbWavy = K("fb_wavy_6x5");
             tx.lightRing = K("light_ring"); tx.bolt = K("bolt"); tx.ringDouble = K("ring_double"); tx.twirl = K("twirl"); tx.starCross = K("star_cross"); tx.smokePuff = K("smoke_puff");
-            tx.sfxDon = K("sfx_don"); tx.sfxZuba = K("sfx_zuba"); tx.sfxBari = K("sfx_bari"); tx.sfxGo = K("sfx_go"); tx.sfxKira = K("sfx_kira");   // 擬音（make_sfx_tex.py） tx.fbFireRing = K("fb_firering_6x5"); tx.fbFlame = K("fb_flame_16x4"); tx.fbSmoke = K("fb_smoke_8x8");
+            tx.sfxDon = K("sfx_don"); tx.sfxZuba = K("sfx_zuba"); tx.sfxBari = K("sfx_bari"); tx.sfxGo = K("sfx_go"); tx.sfxKira = K("sfx_kira"); tx.shieldCrest = K("shield_crest");   // 盾の紋章（make_shield_tex.py）   // 擬音（make_sfx_tex.py） tx.fbFireRing = K("fb_firering_6x5"); tx.fbFlame = K("fb_flame_16x4"); tx.fbSmoke = K("fb_smoke_8x8");
         }
         return tx;
     }

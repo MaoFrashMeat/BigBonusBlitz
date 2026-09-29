@@ -75,6 +75,9 @@ CLIPS = [
     ('cutin_upgrade', 'カットインの昇格（第 1 停止で赤・第 2 停止で虹）'),
     ('longfreeze', 'ブラックアウト（ロングフリーズ）'),
     ('sword_split', '剣が画面を真っ二つ（前兆）'),
+    ('shield_orbit', 'シールド 1  盾が回る'),
+    ('shield_big', 'シールド 2  大盾で受ける'),
+    ('shield_guardian', 'シールド 3  ガーディアン'),
 ]
 # 2 つ目の引数で絞る（run.ps1 -Only と同じ名前をカンマ区切り）
 if len(sys.argv) > 2 and sys.argv[2]:
