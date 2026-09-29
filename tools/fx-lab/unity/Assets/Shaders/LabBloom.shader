@@ -130,10 +130,13 @@ Shader "Hidden/LabBloom"
                 float edgeD = min(eq.x, eq.y * 0.8);
                 if (_Heat > 0)
                 {
-                    // 陽炎: 縁ほど強く、上へ流れる揺らぎで uv をずらす
-                    float hm = 1 - smoothstep(0.0, 1.4, edgeD);
-                    float2 w = float2(sin(uv.y * 95 - _LabT * 9 + sin(uv.x * 41) * 2.2), cos(uv.x * 73 + uv.y * 51 - _LabT * 7.3));
-                    uv += w * (_Heat * 0.0022 * hm);
+                    // 陽炎・蜃気楼（本人 2026-09-29「蜃気楼もバックに」）: 炎の近くほど強く、上へ流れて揺らぐ。
+                    //   大きなゆらぎ（背景がゆっくり波打つ）＋細かいゆらぎ（熱で細かく震える）。炎の内側 2.8 まで届く
+                    float hm = 1 - smoothstep(0.0, 2.8, edgeD);
+                    hm *= hm;
+                    float2 wBig = float2(sin(uv.y * 22 - _LabT * 3.2 + sin(uv.x * 9 + _LabT) * 1.6), cos(uv.x * 17 + uv.y * 13 - _LabT * 2.6));
+                    float2 wFine = float2(sin(uv.y * 95 - _LabT * 9 + sin(uv.x * 41) * 2.2), cos(uv.x * 73 + uv.y * 51 - _LabT * 7.3));
+                    uv += (wBig * 0.0065 + wFine * 0.0025) * _Heat * hm;
                 }
                 if (_Shock.w > 0)
                 {

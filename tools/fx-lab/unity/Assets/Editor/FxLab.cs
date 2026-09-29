@@ -2604,7 +2604,7 @@ public static class FxLab
         tx.streak = Tex(256, 32, (u, v) => { float x = u * 2 - 1, y = v * 2 - 1; return Mathf.Exp(-y * y * 30f) * Mathf.Pow(Mathf.Max(0, 1 - Mathf.Abs(x)), 1.6f); });
         tx.trail = Tex(8, 32, (u, v) => { float y = v * 2 - 1; return Mathf.Exp(-y * y * 6f) * Smooth(1f, 0.8f, Mathf.Abs(y)); });
         tx.column = Tex(64, 128, (u, v) => { float x = u * 2 - 1; return Mathf.Exp(-x * x * 5f) * Smooth(0f, 0.08f, v) * Mathf.Pow(1 - v, 1.4f); });
-        tx.noise = TileNoise(128);
+        tx.noise = TileNoise(512);   // 128 だと拡大したとき輪郭が折れ線になってジャギが出た（本人 2026-09-29「ジャギが目立つ」）
         tx.flame = Tex(96, 96, (u, v) =>
         {
             float x = u * 2 - 1, y = v * 2 - 1, r = Mathf.Sqrt(x * x + y * y);

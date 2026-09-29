@@ -172,7 +172,7 @@ Shader "Lab/Frame"
                     float h3 = tex2D(_NoiseTex, float2(u * 9.0 + 0.13, vv * 3.2 - t * 2.6)).r;
                     // 穴の場（大きいほど穴）。段の塗りとは別に、炎を背景まで貫通して抜き、縁に暗い線を付ける
                     float hf = (max(h1 - 0.53, (h2 - 0.6) * 0.8) + (h3 - 0.5) * 0.04) * smoothstep(0.04, 0.22, vv);   // 大きい穴と中くらいの穴。細かいノイズは縁を揺らすだけ
-                    float aa = max(fwidth(F) * 1.1, 1e-3);
+                    float aa = max(fwidth(F) * 1.6, 1e-3);   // 縁は 1.6px でなめらかに（ジャギ対策）
                     // 段ごとに別のノイズでしきい値を揺らす（明るい芯そのものが舌の形になる。縁と平行な帯にしない）
                     float m1 = tex2D(_NoiseTex, qw * 2.0 + float2(0.53, 0.29)).r - 0.5;
                     float m2 = tex2D(_NoiseTex, qw * 2.6 + float2(0.17, 0.71)).r - 0.5;
@@ -181,8 +181,10 @@ Shader "Lab/Frame"
                     if (_Rainbow > 0) { a0 = base * 0.45; a1 = base * 0.8; a2 = lerp(base, 1, 0.45); a3 = lerp(base, 1, 0.8) * 1.4; }
                     float3 ac = a0 * e0;
                     ac = lerp(ac, a1, e1); ac = lerp(ac, a2, e2); ac = lerp(ac, a3, e3);
-                    ac *= lerp(1.12, 0.8, saturate(vv));                                   // 同じ段の中でも根元が明るい
-                    float haa = max(fwidth(hf) * 1.2, 1e-3);
+                    // 枠に向かって明度を上げる（本人「枠に向かって明度高く」）: 根元ほど明るく、白熱の色へ寄せる
+                    ac *= lerp(1.35, 0.72, saturate(vv));
+                    ac = lerp(ac, a3, pow(saturate(1 - vv), 3) * 0.55 * e0);
+                    float haa = max(fwidth(hf) * 1.8, 1e-3);   // 穴の縁もなめらかに（ジャギ対策）
                     float holeCut = smoothstep(0.0, haa, hf);                               // 穴（背景が見える）
                     float holeRim = smoothstep(-0.035, -0.035 + haa, hf) * (1 - holeCut) * e0;   // 穴の縁の暗い線（炎の中だけ）
                     ac = lerp(ac, a0 * 0.85, holeRim);
@@ -197,10 +199,15 @@ Shader "Lab/Frame"
                     float k = _Intensity * _Pulse * (1 + _Burst * 0.8) * corner;
                     // 透明度（本人 2026-09-29「ところどころリアルな炎のように透明度を持ちたい」）:
                     //   外側の暗い段と舌の先は、ゆっくり流れるノイズでところどころ半透明（0.3〜1）。明るい 2 段（芯）は不透明のまま
+                    //   本人「しっかりマスクで抜いて」: ぼかさず、縁のくっきりしたマスクで抜く。不透明度は 2 段（1 / 0.4）だけ
                     float tp = tex2D(_NoiseTex, float2(u * 0.9 + 0.43, vv * 0.6 - t * 0.7)).r;
-                    float patchy = lerp(0.3, 1.0, smoothstep(0.35, 0.65, tp));
-                    float tip = lerp(1.0, 0.45, smoothstep(0.45, 1.0, vv));
-                    float op = lerp(patchy * tip, 1.0, max(e2, e1 * 0.5));
+                    float mk = tp - 0.5 + (vv - 0.55) * 0.5;                          // 先へ行くほど抜けやすい
+                    float maa = max(fwidth(mk) * 1.6, 1e-3);
+                    float cut = smoothstep(0.0, maa, mk);                              // 1 = 抜く（形はマスクでくっきり）
+                    //   マスクとグラデーション: 抜いた中は先へ行くほど薄くなる（0.75 → 0.12）。抜かない所も先だけ少し薄く
+                    float grad = lerp(0.75, 0.12, smoothstep(0.25, 1.0, vv));
+                    float keep = lerp(1.0, 0.82, smoothstep(0.6, 1.1, vv));
+                    float op = lerp(keep, grad, cut * (1 - max(e2, e1 * 0.5)));       // 明るい段（芯）は抜かない
                     return float4(c * k * op + haloCol * k, e0 * op * saturate(_Intensity) * corner);   // 炎は（ところどころ半透明に）塗り、光の輪は加算
                 }
                 else if (_Mode > 4.5)
