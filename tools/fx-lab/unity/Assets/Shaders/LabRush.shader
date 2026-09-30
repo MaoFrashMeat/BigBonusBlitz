@@ -17,6 +17,7 @@ Shader "Lab/Rush"
         _Seed ("Seed", Float) = 0
         _Reach ("Reach", Float) = 1
         _Width ("Width", Float) = 0.02
+        _Rainbow ("Rainbow", Float) = 0
     }
     SubShader
     {
@@ -29,7 +30,7 @@ Shader "Lab/Rush"
             #pragma fragment frag
             #pragma target 3.5
             #include "UnityCG.cginc"
-            float4 _Col, _Hot; float _Mode, _T, _Intensity, _Core, _Aspect, _Seed, _Reach, _Width;
+            float4 _Col, _Hot; float _Mode, _T, _Intensity, _Core, _Aspect, _Seed, _Reach, _Width, _Rainbow;
             struct appdata { float4 pos:POSITION; float2 uv:TEXCOORD0; };
             struct v2f { float4 pos:SV_POSITION; float2 uv:TEXCOORD0; };
             v2f vert(appdata i){ v2f o; o.pos=UnityObjectToClipPos(i.pos); o.uv=i.uv; return o; }
@@ -105,6 +106,7 @@ Shader "Lab/Rush"
                     float r = length(p);
                     // 色の傾き: 強い所・中心ほど白、弱い所・外ほど深い色
                     float3 col = lerp(_Col.rgb, _Hot.rgb, saturate(kk * 0.8));
+                    if (_Rainbow > 0.5) { float hh = frac(atan2(p.y, p.x) / 6.2831853 + _T * 0.15); col = lerp(saturate(abs(frac(hh + float3(0, 0.667, 0.333)) * 6 - 3) - 1), 1, 0.15); }   // 角度で色相が回る
                     col = lerp(col, 1, saturate(kk * kk * 0.35 + (1 - smoothstep(0, 0.35, r)) * 0.6));
                     c = col * k3 * 2.2;
                     // 芯: 指数の光（丸い円盤にしない）＋星の光条（角度ノイズで長短）＋横のアナモルフィック

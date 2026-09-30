@@ -223,3 +223,4 @@ GameController の SlamTitle / EdgeGlow / PaylineFlash / GainSlide。
 2. 0 の土台を作る（どちらの方式にするか本人に 1 行で確認）
 3. 1 の割り当てから本体へ移す。数値は `game_config.json`、調整は `tools/fx_viewer.html` に項目を足す
 4. 2 の新規分は上から
+- 式で描く光 9（2026-09-30 本人「他にもいろいろ作ってみて」。`Lab/Proc`・`Lab/Rush`。コマ `docs/art/2026-09-30/fx-proc-lights.png`）: P1 光の柱 / P2 光芒 / P3 稲妻 / P4 炎の渦 / P5 光の球 / P6 衝撃波 / P7 魔法陣 / P8 虹の奔流 / P9 星のワープ。絵の素材は使わない
