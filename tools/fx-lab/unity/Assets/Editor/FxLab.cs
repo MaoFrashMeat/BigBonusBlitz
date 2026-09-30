@@ -88,10 +88,10 @@ public static class FxLab
         yield return new Clip { name = "omen_stare", dur = 2.6f, hold = 1, build = OmenStare };
         yield return new Clip { name = "omen_letterbox", dur = 2.6f, hold = 1, build = OmenLetterbox };
         yield return new Clip { name = "omen_glitch", dur = 3.1f, hold = 1, build = OmenGlitch };
-        yield return new Clip { name = "door_gate", dur = 3.9f, hold = 1, build = DoorGate };
-        yield return new Clip { name = "door_vault", dur = 3.9f, hold = 1, build = DoorVault };
-        yield return new Clip { name = "door_shutter", dur = 3.9f, hold = 1, build = DoorShutter };
-        yield return new Clip { name = "door_gold", dur = 3.9f, hold = 1, build = DoorGold };
+        yield return new Clip { name = "door_gate", dur = 4.7f, hold = 1, build = DoorGate };
+        yield return new Clip { name = "door_vault", dur = 4.7f, hold = 1, build = DoorVault };
+        yield return new Clip { name = "door_shutter", dur = 4.7f, hold = 1, build = DoorShutter };
+        yield return new Clip { name = "door_gold", dur = 4.7f, hold = 1, build = DoorGold };
         yield return new Clip { name = "cutin_vs", dur = 2.2f, hold = 1, build = CutVs };
         yield return new Clip { name = "cutin_vertical", dur = 1.8f, hold = 1, build = CutVertical };
         yield return new Clip { name = "cutin_panels", dur = 2.1f, hold = 1, build = CutPanels };
@@ -2874,7 +2874,7 @@ public static class FxLab
         PopLabel(c, "第 2 停止", new Vector3(-4.6f, 3.1f, -3.7f), 0.035f, red, s2, 0.7f);
         PopLabel(c, "第 3 停止", new Vector3(-4.6f, 3.1f, -3.7f), 0.035f, gold, s3, 0.8f);
         var burstAt = shutter ? new Vector3(0, -3.2f, -3.6f) : new Vector3(0, 0, -3.6f);
-        LightRush(c, burstAt, s3, red, 1.35f, 2450);
+        LightRush(c, burstAt, s3, red, 2.1f, 2450);
     }
     static void DoorGate(Ctx c) => DoorStep(c, "gate");
     // 光の奔流（本人 2026-09-29「光の差し込みが甘い」＋参考画像: 中心が白く飛び、赤い光の筋が画面の外へ突き抜ける）
@@ -2882,19 +2882,23 @@ public static class FxLab
     static void LightRush(Ctx c, Vector3 pos, float t, Color col, float dur, uint seed)
     {
         // 板 1 枚の式の光（Lab/Rush 0）。扉（2990）の奥に描き、開いた隙間から見せる
+        // 扉の奥は白く飛んで何も見えない → 目が慣れるように、だんだん奥（舞台）が見えてくる（本人 2026-09-30）
         var plate = BlackPlate(c, -3.12f); plate.renderQueue = 2984;
+        const float WhiteHold = 1.0f, WhiteFade = 1.0f;
         var m = new Material(Shader.Find("Lab/Rush")); m.SetFloat("_Mode", 0); m.SetFloat("_Seed", seed % 97); m.SetFloat("_Aspect", 14f / 8f);
         m.SetColor("_Col", col); m.SetColor("_Hot", Color.Lerp(col, new Color(1f, 0.55f, 0.2f), 0.5f)); m.renderQueue = 2987;
         var q = Quad(c.root, "Rush", new Vector3(pos.x, pos.y, -3.15f), new Vector2(14f, 8f), m);
         c.OnUpdate(tt =>
         {
-            float a = tt - t; bool on = a >= 0 && a < dur + 0.3f; q.gameObject.SetActive(on); if (!on) { if (a < 0) SetPlate(plate, 0); return; }
-            float fade = 1 - Mathf.Clamp01((a - dur * 0.55f) / (dur * 0.4f));
+            float a = tt - t; bool on = a >= 0 && a < dur + 0.3f; q.gameObject.SetActive(on); if (!on) { SetPlate(plate, 0); return; }
+            float fade = 1 - Mathf.Clamp01((a - dur * 0.6f) / (dur * 0.35f));
+            float wa = 1 - Mathf.SmoothStep(0, 1, Mathf.Clamp01((a - WhiteHold) / WhiteFade));              // 白の幕: 保つ → ゆっくり晴れる
+            float hdr = 1f + 2.5f * Mathf.Exp(-a * 1.8f);                                                    // 最初は眩しく（ブルームで扉の縁まで滲む）
+            plate.SetColor("_Color", new Color(hdr, hdr * 0.97f, hdr * 0.9f, wa));
             m.SetFloat("_T", a);
             m.SetFloat("_Reach", Mathf.Lerp(0.15f, 1.5f, EaseOut(Mathf.Clamp01(a / 0.35f))));          // 中心から外へ突き抜ける
             m.SetFloat("_Intensity", (1.6f * Mathf.Exp(-a * 3f) + 0.9f) * fade);                       // 出だしが一番強い
             m.SetFloat("_Core", (0.6f + 0.6f * Mathf.Exp(-a * 5f)) * fade);
-            SetPlate(plate, 0.9f * Mathf.Clamp01(a / 0.05f) * fade);
             c.post.zoom *= 1f + 0.05f * Mathf.Clamp01(a / 0.5f) * fade;
             c.post.trauma += 0.25f * fade * Mathf.Exp(-a * 2f);
         });
@@ -2970,7 +2974,7 @@ public static class FxLab
         PopLabel(c, "第 1 停止", new Vector3(-4.6f, 3.1f, -3.7f), 0.035f, blue, s1, 0.6f);
         PopLabel(c, "第 2 停止", new Vector3(-4.6f, 3.1f, -3.7f), 0.035f, red, s2, 0.7f);
         PopLabel(c, "第 3 停止", new Vector3(-4.6f, 3.1f, -3.7f), 0.035f, gold, s3, 0.8f);
-        LightRush(c, new Vector3(0, 0, -3.6f), s3 + 0.08f, red, 1.3f, 2550);
+        LightRush(c, new Vector3(0, 0, -3.6f), s3 + 0.08f, red, 2.1f, 2550);
     }
     static float EaseInOut(float x) => x < 0.5f ? 4 * x * x * x : 1 - Mathf.Pow(-2 * x + 2, 3) / 2;
     static void DoorShutter(Ctx c) => DoorStep(c, "shutter");
