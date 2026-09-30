@@ -2902,174 +2902,230 @@ public static class FxLab
         var f = Proc(c, name + "Front", mode, new Vector3(0, 0, -3.5f), new Vector2(14f, 8f), col, hot, 3005, seed, 1).m;
         return (b, f);
     }
-    static float Env(float a, float inT, float hold, float outT) => a < 0 ? 0 : a < inT ? EaseOut(a / inT) : a < inT + hold ? 1 : 1 - EaseIn(Mathf.Clamp01((a - inT - hold) / outT));
     static void Both(Material a, Material b, System.Action<Material> f) { f(a); f(b); }
-    // P1 光の柱: 天から降りて主人公を包む。着地で輪が走り、らせんの帯が回り、縁が裂けて火の粉が昇る。主人公は柱の中（前後の層）
+    // ---- 動きの抑揚（本人 2026-09-30「抑揚とメリハリが全く無い。急激な動きが無い」）----
+    // 型: 溜め（縮む・暗くなる・細い糸だけ）→ 一気（2〜3 コマで出し切る）→ 行き過ぎて戻る → 止め（ヒットストップ）→ ゆっくり減衰 → 一気に消える。等速の ease で全部を繋がない
+    const float F = 1f / 60f;
+    static float Snap(float a, float dur) => a <= 0 ? 0 : a >= dur ? 1 : 1 - Mathf.Pow(1 - a / dur, 5);                                   // 2〜3 コマで出し切る
+    static float Over(float a, float amt, float freq, float decay) => a <= 0 ? 1 : 1 + amt * Mathf.Sin(a * freq) * Mathf.Exp(-a * decay);   // 行き過ぎて戻る（掛ける）
+    static float Stair(float a, float dur, int steps) => a <= 0 ? 0 : a >= dur ? 1 : Mathf.Floor(a / dur * steps) / steps;                 // 階段（コマ落とし）
+    static float Decay(float a, float k) => a <= 0 ? 1 : Mathf.Exp(-a * k);
+    static float Collapse(float a, float dur) => a <= 0 ? 1 : a >= dur ? 0 : Mathf.Pow(1 - a / dur, 3);                                    // 一気に消える
+    static float Hash01(float x) => Mathf.Abs(Mathf.Sin(x * 12.9898f + 78.233f) * 43758.5453f) % 1f;
+    static float Flick(float t, float rate, float seed, float depth) { float h = Hash01(Mathf.Floor(t * rate) + seed * 31f); return 1 - depth * (h < 0.22f ? 1 : 0); }   // ときどき落ちる（コマ単位）
+    static float Spike(float t, float period, float seed) { float h = Hash01(Mathf.Floor(t / period) + seed * 17f); float ph = (t % period) / period; return (h > 0.4f && ph < 3 * F / period) ? 1 : 0; }   // ときどき一瞬跳ねる
+    static float Env(float a, float inT, float hold, float outT) => a < 0 ? 0 : a < inT ? EaseOut(a / inT) : a < inT + hold ? 1 : 1 - EaseIn(Mathf.Clamp01((a - inT - hold) / outT));
+    static void Punch(Ctx c, float a, float flash, float trauma, float zoom) { if (a >= 0 && a < 2 * F) c.post.flash = Mathf.Max(c.post.flash, flash); if (a >= 0) { c.post.trauma += trauma * Decay(a, 7f); c.post.zoom *= 1f + zoom * Decay(a, 6f); } }
+
+    // P1 光の柱: 溜め（細い糸が上から垂れ、舞台が沈む）→ 一気に落ちて着地（太さは行き過ぎて戻る・止め）→ 呼吸して保つ → 一気に消えて余光
     static void ProcPillar(Ctx c)
     {
-        var hero = BuffHero(c); float on = 0.3f, land = on + 0.18f; var col = new Color(1f, 0.72f, 0.3f); var hot = new Color(1f, 0.95f, 0.8f);
+        var hero = BuffHero(c); float on = 0.55f, off = on + 1.8f; var col = new Color(1f, 0.72f, 0.3f); var hot = new Color(1f, 0.95f, 0.8f);
         var (mb, mf) = Proc2(c, "Pillar", 0, col, hot, 1);
-        Both(mb, mf, m => { m.SetFloat("_Width", 0.09f); });
+        c.Freeze(on + 2 * F, 4 * F);
         c.OnUpdate(t =>
         {
-            float a = t - on; float e = Env(a, 0.18f, 1.7f, 0.55f);
-            float hit = Mathf.Clamp01((t - land) / 0.55f);
-            Both(mb, mf, m => { m.SetFloat("_T", t); m.SetFloat("_Reach", Mathf.Clamp01(a / 0.18f) * 1.25f); m.SetVector("_Origin", new Vector4(PX(hero.x), 0, hit, 0)); m.SetFloat("_Intensity", e * (1f + 1.2f * Mathf.Exp(-Mathf.Max(0, t - land) * 4f))); });
-            if (a >= 0 && a < 2 / 60f) c.post.flash = 0.35f;
-            if (t >= land && t < land + 2 / 60f) c.post.flash = 0.6f;
-            if (a >= 0)
-            {
-                c.post.stageDim = Mathf.Max(c.post.stageDim, 0.5f * e); c.post.darken = Mathf.Max(c.post.darken, 0.35f * e);
-                float b = t - land; if (b >= 0) { c.post.trauma += 0.6f * Mathf.Exp(-b * 6f); c.post.zoom *= 1f + 0.04f * Mathf.Exp(-b * 5f); }
-                HeroGlow(c, 0.7f * e, col);
-            }
+            float a = t - on, pre = Mathf.Clamp01((t - (on - 0.3f)) / 0.3f), b = t - off;
+            float width, inten, reach, hit;
+            if (a < 0) { width = 0.012f; inten = 0.35f * pre * Flick(t, 30, 1, 0.6f); reach = 1.25f * pre; hit = 0; }               // 溜め: 細い糸だけ、ちらつく
+            else if (b < 0) { width = 0.09f * Over(a - 2 * F, 0.7f, 28f, 8f); inten = (1f + 2.2f * Decay(a, 6f)) * (1f + 0.05f * Mathf.Sin(t * 9f)) * Flick(t, 12, 2, 0.15f); reach = 1.25f * Snap(a, 3 * F); hit = Mathf.Clamp01((a - 2 * F) / 0.45f); }
+            else { width = 0.09f * Collapse(b, 4 * F) + 0.008f; inten = b < 4 * F ? 2.5f : 0.5f * Decay(b - 4 * F, 4f); reach = 1.25f; hit = 1; }   // 一気に消えて、糸と余光
+            Both(mb, mf, m => { m.SetFloat("_T", t); m.SetFloat("_Width", width); m.SetFloat("_Reach", reach); m.SetVector("_Origin", new Vector4(PX(hero.x), 0, hit, 0)); m.SetFloat("_Intensity", inten); });
+            c.post.stageDim = Mathf.Max(c.post.stageDim, 0.55f * (b < 0 ? pre : Decay(b, 3f))); c.post.darken = Mathf.Max(c.post.darken, 0.4f * (b < 0 ? pre : Decay(b, 3f)));
+            Punch(c, a - 2 * F, 0.8f, 0.9f, 0.07f); Punch(c, b, 0.35f, 0.3f, -0.03f);
+            if (a >= 0 && b < 0) HeroGlow(c, 0.7f, col); else if (b >= 0) HeroGlow(c, 0.7f * Decay(b, 4f), col);
         });
     }
-    // P2 光芒: 左上の画面の外から差す光の帯。遠い太い帯と近い細い筋の 2 層がゆっくり呼吸し、塵が漂う
+    // P2 光芒: 沈む → 雲が裂けて一気に差す（行き過ぎて戻る）→ ときどき急に強まる → 一瞬白く、一気に閉じる
     static void ProcGodRays(Ctx c)
     {
-        float on = 0.2f; var col = new Color(1f, 0.85f, 0.55f); var hot = new Color(1f, 0.98f, 0.9f);
+        float on = 0.45f, off = on + 1.7f; var col = new Color(1f, 0.85f, 0.55f); var hot = new Color(1f, 0.98f, 0.9f);
         var (q, m) = Proc(c, "GodRays", 1, new Vector3(0, 0, -3.5f), new Vector2(14f, 8f), col, hot, 3005, 3);
         m.SetVector("_Origin", new Vector4(-2.3f, 1.5f, 0, 0));
         c.OnUpdate(t =>
         {
-            float a = t - on; float e = Env(a, 0.7f, 1.5f, 0.6f);
-            m.SetFloat("_T", t); m.SetFloat("_Reach", 1f); m.SetFloat("_Intensity", e * 2.2f);
-            if (a >= 0) { c.post.stageDim = Mathf.Max(c.post.stageDim, 0.5f * e); c.post.darken = Mathf.Max(c.post.darken, 0.3f * e); c.post.tint = new Color(1f, 0.92f, 0.75f, 0.15f * e); }
+            float a = t - on, pre = Mathf.Clamp01((t - (on - 0.35f)) / 0.35f), b = t - off;
+            float inten = a < 0 ? 0.08f * pre : b < 0 ? 2.2f * Snap(a, 3 * F) * Over(a - 3 * F, 0.8f, 20f, 5f) * (1f + 0.6f * Spike(t, 0.4f, 3)) : (b < 3 * F ? 3.5f : 2.2f * Collapse(b - 3 * F, 5 * F));
+            m.SetFloat("_T", t); m.SetFloat("_Reach", 1f); m.SetFloat("_Intensity", inten);
+            float e = b < 0 ? pre : Decay(b, 5f);
+            c.post.stageDim = Mathf.Max(c.post.stageDim, 0.5f * e); c.post.darken = Mathf.Max(c.post.darken, 0.3f * e); c.post.tint = new Color(1f, 0.92f, 0.75f, 0.15f * e);
+            Punch(c, a, 0.3f, 0.15f, 0.02f);
         });
     }
-    // P3 稲妻: 本線 3 本と枝が 1/24 秒ごとに形を変え、前の 2 コマが残像で残る。落ちた所で火花が散り地面が照る。落ちた瞬間は画面が白く揺れる
+    // P3 稲妻: 落ちる前に一瞬沈む → 2〜3 本が続けざまに落ちる（止め・白・揺れ）→ 間 → また落ちる。均一な点滅にしない
     static void ProcLightning(Ctx c)
     {
-        float on = 0.25f; var col = new Color(0.55f, 0.75f, 1f); var hot = Color.white;
+        var col = new Color(0.55f, 0.75f, 1f); var hot = Color.white;
         var (q, m) = Proc(c, "Lightning", 2, new Vector3(0, 0, -3.5f), new Vector2(14f, 8f), col, hot, 3005, 5);
-        var rnd = new System.Random(77); int last = -1;
+        float[] strikes = { 0.35f, 0.42f, 0.5f, 1.05f, 1.6f, 1.66f, 1.72f, 2.2f };
+        foreach (var ts in strikes) c.Freeze(ts + F, 2 * F);
         c.OnUpdate(t =>
         {
-            float a = t - on; float e = Env(a, 0.05f, 1.5f, 0.4f); m.SetFloat("_T", t); m.SetFloat("_Intensity", e * 1.3f);
-            if (a < 0) return;
-            int st = Mathf.FloorToInt(t * 24); if (st != last) { last = st; if (rnd.NextDouble() < 0.3) { c.post.flash = Mathf.Max(c.post.flash, 0.4f); c.post.trauma += 0.4f; c.post.zoom *= 1.015f; } }
-            c.post.stageDim = Mathf.Max(c.post.stageDim, 0.55f * e); c.post.darken = Mathf.Max(c.post.darken, 0.4f * e); c.post.tint = new Color(0.6f, 0.75f, 1f, 0.18f * e);
+            float inten = 0, dip = 0;
+            foreach (var ts in strikes)
+            {
+                float a = t - ts; if (a >= 0 && a < 3 * F) inten = Mathf.Max(inten, 1.8f); else if (a >= 3 * F) inten = Mathf.Max(inten, 1.2f * Decay(a - 3 * F, 9f));
+                float d = t - (ts - 8 * F); if (d >= 0 && d < 8 * F) dip = Mathf.Max(dip, 1f);                                                   // 落ちる直前に沈む
+                Punch(c, a, 0.55f, 0.7f, 0.035f);
+            }
+            m.SetFloat("_T", t); m.SetFloat("_Intensity", inten);
+            float e = Mathf.Clamp01((t - 0.15f) / 0.2f) * (1 - Mathf.Clamp01((t - 2.35f) / 0.25f));
+            c.post.stageDim = Mathf.Max(c.post.stageDim, (0.5f + 0.3f * dip) * e); c.post.darken = Mathf.Max(c.post.darken, (0.4f + 0.3f * dip) * e); c.post.tint = new Color(0.6f, 0.75f, 1f, 0.18f * e);
         });
     }
-    // P4 炎の渦: 舞台の中央で 2 つの渦（大きく遅い・小さく速い）が重なり、穴のある炎が中心へ巻き込む。火の粉が螺旋で外へ。陽炎と照り返し
+    // P4 炎の渦: 種火がちらつく → 一気に燃え上がる（大きさは行き過ぎて戻る・止め・速く回る）→ ときどき炎が跳ねる → 中心へ一気に吸い込まれて弾ける
     static void ProcFireVortex(Ctx c)
     {
-        float on = 0.25f;
+        float on = 0.5f, off = on + 1.55f;
         var (q, m) = Proc(c, "FireVortex", 3, new Vector3(0, 0, -3.5f), new Vector2(14f, 8f), new Color(1f, 0.5f, 0.15f), Color.white, 3005, 2);
         m.SetVector("_Origin", new Vector4(0, -0.05f, 0, 0));
+        c.Freeze(on + 2 * F, 3 * F);
         c.OnUpdate(t =>
         {
-            float a = t - on; m.SetFloat("_T", t * 1.3f);
-            float e = Env(a, 0.5f, 1.4f, 0.6f); m.SetFloat("_Radius", 0.45f + 0.6f * e); m.SetFloat("_Reach", 0.7f + 0.5f * e); m.SetFloat("_Intensity", e * 1.2f);
-            if (a >= 0) { c.post.stageDim = Mathf.Max(c.post.stageDim, 0.55f * e); c.post.darken = Mathf.Max(c.post.darken, 0.4f * e); c.post.heat = Mathf.Max(c.post.heat, 0.7f * e); c.post.fireLight = new Color(1f, 0.5f, 0.18f, 0) * (0.7f * e); c.post.fireLight.a = 3.2f; c.post.trauma += 0.1f * e; }
+            float a = t - on, pre = Mathf.Clamp01((t - (on - 0.3f)) / 0.3f), b = t - off;
+            float rad, inten, reach;
+            if (a < 0) { rad = 0.12f; inten = 0.35f * pre * Flick(t, 24, 4, 0.7f); reach = 0.6f; }
+            else if (b < 0) { rad = 1.05f * Snap(a, 3 * F) * Over(a - 3 * F, 0.35f, 24f, 7f) * (1f + 0.08f * Spike(t, 0.45f, 2)); inten = (1f + 1.8f * Decay(a, 7f)) * (1f + 0.7f * Spike(t, 0.45f, 2)); reach = 0.9f + 0.4f * Decay(a, 5f); }
+            else { rad = 1.05f * Collapse(b, 6 * F) + 0.03f; inten = b < 6 * F ? 2.2f : (b < 8 * F ? 4f : 0); reach = 1.4f; }      // 吸い込まれて弾ける
+            m.SetFloat("_T", t * 1.2f + 2.5f * (1 - Decay(Mathf.Max(0, a), 2.5f))); m.SetFloat("_Radius", rad); m.SetFloat("_Reach", reach); m.SetFloat("_Intensity", inten);
+            float e = b < 0 ? pre : Decay(b, 6f);
+            c.post.stageDim = Mathf.Max(c.post.stageDim, 0.55f * e); c.post.darken = Mathf.Max(c.post.darken, 0.4f * e); c.post.heat = Mathf.Max(c.post.heat, 0.7f * e * (a > 0 ? 1 : 0.2f));
+            c.post.fireLight = new Color(1f, 0.5f, 0.18f, 0) * (0.7f * e * (a > 0 ? 1 : 0.15f)); c.post.fireLight.a = 3.2f;
+            Punch(c, a, 0.6f, 0.7f, 0.05f); Punch(c, b - 6 * F, 0.7f, 0.6f, 0.06f);
         });
     }
-    // P5 光の球: 主人公の前に球が生まれ、白熱の核・プラズマの糸・表面の放電・周回する粒が育ち、弾けて奔流
+    // P5 光の球: 3 段の階段で急に育つ（段ごとに止め・白）→ 脈が速まる → 一瞬縮む（溜め）→ 弾けて奔流
     static void ProcOrb(Ctx c)
     {
-        var hero = BuffHero(c); float on = 0.25f, pop = 2.1f; var col = new Color(0.3f, 0.6f, 1f); var hot = new Color(0.85f, 0.95f, 1f);
+        var hero = BuffHero(c); float on = 0.35f, pop = 2.15f; var col = new Color(0.3f, 0.6f, 1f); var hot = new Color(0.85f, 0.95f, 1f);
         var pos = new Vector3(hero.x + 1.7f, hero.y + 0.35f, 0);
         var (mb, mf) = Proc2(c, "Orb", 4, col, hot, 4);
         Both(mb, mf, m => { m.SetVector("_Origin", new Vector4(PX(pos.x), PY(pos.y), 0, 0)); });
+        float[] steps = { on, on + 0.55f, on + 1.05f }; foreach (var ts in steps) c.Freeze(ts + F, 3 * F);
+        c.Freeze(pop + F, 3 * F);
         c.OnUpdate(t =>
         {
             float a = t - on; float grow = Mathf.Clamp01(a / (pop - on));
-            float r = 0.02f + 0.3f * EaseOut(grow) + 0.012f * Mathf.Sin(t * 14f) * grow;
-            float inten = t < pop ? Mathf.Clamp01(a / 0.2f) * (0.9f + 0.5f * grow) * (1f + 0.12f * Mathf.Sin(t * 23f) * grow) : 0;
-            Both(mb, mf, m => { m.SetFloat("_T", t); m.SetFloat("_Radius", r); m.SetFloat("_Reach", 1f); m.SetFloat("_Intensity", inten); });
-            if (a >= 0 && t < pop) { c.post.stageDim = Mathf.Max(c.post.stageDim, 0.4f); c.post.darken = Mathf.Max(c.post.darken, 0.3f * grow); HeroGlow(c, 0.4f * grow, col); c.post.trauma += 0.15f * grow * grow; c.post.zoom *= 1f + 0.03f * grow * grow; }
+            float r = 0.04f; foreach (var ts in steps) { float s = t - ts; if (s >= 0) r += 0.1f * Snap(s, 2 * F) * Over(s - 2 * F, 0.5f, 30f, 9f); }
+            float pulse = 1f + 0.05f * Mathf.Sin(t * (6f + 30f * grow * grow)) * grow;                                           // 脈が速まる
+            float ant = t - (pop - 0.12f); if (ant >= 0) r *= Mathf.Lerp(1f, 0.55f, Mathf.Clamp01(ant / 0.12f));                 // 溜め: 縮む
+            float inten = t < pop ? (a < 0 ? 0 : 0.9f + 0.5f * grow) * pulse * (ant >= 0 ? 2.2f : 1f) : 0;
+            foreach (var ts in steps) { float s = t - ts; if (s >= 0 && s < 2 * F) inten = 3f; }
+            Both(mb, mf, m => { m.SetFloat("_T", t); m.SetFloat("_Radius", r * pulse); m.SetFloat("_Reach", 1f); m.SetFloat("_Intensity", inten); });
+            if (a >= 0 && t < pop) { c.post.stageDim = Mathf.Max(c.post.stageDim, 0.4f); c.post.darken = Mathf.Max(c.post.darken, 0.3f * grow); HeroGlow(c, 0.4f * grow, col); }
+            foreach (var ts in steps) Punch(c, t - ts, 0.45f, 0.45f, 0.03f);
         });
         LightRush(c, new Vector3(pos.x, pos.y, -3.6f), pop, new Color(0.35f, 0.65f, 1f), 1.4f, 2460);
     }
-    // P6 衝撃波: 主人公の前で閃光 → 硬い先端と千切れた尾を持つ輪が 3 つ、時間差で広がる。地面を土煙の輪が走り、破片が飛ぶ。画面が歪む
+    // P6 衝撃波: 一瞬吸い込む（輪が縮む）→ 白 → 最初の 2 コマで半分まで広がる（止め）→ 後はゆっくり。3 つ目は遅れて小さく速い
     static void ProcShockwave(Ctx c)
     {
-        var hero = BuffHero(c); float on = 0.3f; var col = new Color(1f, 0.55f, 0.2f);
+        var hero = BuffHero(c); float on = 0.4f; var col = new Color(1f, 0.55f, 0.2f);
         var pos = new Vector3(hero.x + 1.9f, hero.y - 0.2f, -3.5f);
         var mats = new List<(Material m, Transform q, float t0, float life, int k)>();
         for (int k = 0; k < 3; k++)
         {
             var (q, m) = Proc(c, "Shock" + k, 5, pos, new Vector2(12f, 12f), k == 1 ? new Color(1f, 0.85f, 0.45f) : col, Color.white, 3005 + k, k * 3.7f);
-            m.SetFloat("_Ground", (GroundY - pos.y) / 6f); mats.Add((m, q, on + k * 0.1f, 0.6f - k * 0.05f, k));
+            m.SetFloat("_Ground", (GroundY - pos.y) / 6f); mats.Add((m, q, on + new[] { 0f, 0.08f, 0.22f }[k], new[] { 0.7f, 0.55f, 0.35f }[k], k));
         }
+        var (iq, im) = Proc(c, "Implode", 5, pos, new Vector2(12f, 12f), new Color(0.9f, 0.5f, 0.3f), Color.white, 3008, 9); im.SetFloat("_Ground", 10f);
+        c.Freeze(on + 2 * F, 3 * F);
         c.OnUpdate(t =>
         {
+            float pre = t - (on - 6 * F); bool imp = pre >= 0 && t < on; iq.gameObject.SetActive(imp);
+            if (imp) { im.SetFloat("_T", t); im.SetFloat("_Radius", Mathf.Lerp(0.6f, 0.03f, Mathf.Pow(pre / (6 * F), 2))); im.SetFloat("_Width", 0.05f); im.SetFloat("_Reach", 0.6f); im.SetFloat("_Intensity", 0.6f); im.SetVector("_Origin", Vector4.zero); }
             foreach (var (m, q, t0, life, k) in mats)
             {
                 float a = (t - t0) / life; bool onn = a >= 0 && a <= 1; q.gameObject.SetActive(onn); if (!onn) continue;
-                m.SetFloat("_T", t); m.SetFloat("_Radius", Mathf.Lerp(0.02f, 0.98f, 1 - Mathf.Pow(1 - a, 2.8f)));
-                m.SetFloat("_Width", 0.04f + 0.1f * Mathf.Sin(Mathf.PI * Mathf.Min(1, a * 1.4f)));
-                m.SetFloat("_Reach", 1 - Mathf.Pow(a, 2.2f)); m.SetFloat("_Intensity", 1.2f);
+                float rad = Mathf.Lerp(0.02f, 0.98f, 1 - Mathf.Pow(1 - a, k == 2 ? 3f : 5f));                                       // 最初の 2 コマで半分
+                m.SetFloat("_T", t); m.SetFloat("_Radius", rad);
+                m.SetFloat("_Width", (0.03f + 0.1f * Mathf.Sin(Mathf.PI * Mathf.Min(1, a * 1.4f))) * (k == 2 ? 0.6f : 1f));
+                m.SetFloat("_Reach", 1 - Mathf.Pow(a, 2.2f)); m.SetFloat("_Intensity", k == 0 ? 1.2f + 2f * Decay(a * life, 12f) : 1.1f);
                 m.SetVector("_Origin", new Vector4(0, 0, k == 0 ? Mathf.Exp(-a * 9f) : 0, 0));
-                if (k == 0) { c.post.trauma += 0.6f * (1 - a); c.post.shock = new Vector4(0.5f + pos.x / 14f, 0.5f + pos.y / 8f, EaseOut(a) * 0.9f, 1.3f * (1 - a)); }
+                if (k == 0) c.post.shock = new Vector4(0.5f + pos.x / 14f, 0.5f + pos.y / 8f, EaseOut(a) * 0.9f, 1.3f * (1 - a));
             }
             float b = t - on;
-            if (b >= 0 && b < 2 / 60f) c.post.flash = 0.7f;
-            if (b >= 0) { float e = 1 - Mathf.Clamp01((b - 0.6f) / 0.5f); c.post.stageDim = Mathf.Max(c.post.stageDim, 0.35f * e); c.post.darken = Mathf.Max(c.post.darken, 0.3f * e); c.post.zoom *= 1f + 0.05f * Mathf.Exp(-b * 6f); }
+            Punch(c, b, 0.8f, 0.9f, 0.07f); Punch(c, b - 0.22f, 0.2f, 0.25f, 0.02f);
+            if (pre >= 0) { float e = 1 - Mathf.Clamp01((b - 0.6f) / 0.5f); c.post.stageDim = Mathf.Max(c.post.stageDim, (b < 0 ? 0.6f : 0.35f) * e); c.post.darken = Mathf.Max(c.post.darken, (b < 0 ? 0.5f : 0.3f) * e); if (b < 0) c.post.zoom *= 1f - 0.03f * (pre / (6 * F)); }
         });
     }
-    // P7 魔法陣: 主人公の足元に陣が外から内へ描かれ、文字の帯・六芒星・歯車が別々に回る。縁から細い光が立ち、粒が舞い上がり、輝きが増して光の柱が立つ
+    // P7 魔法陣: 輪が 1 本ずつ「パッ」と現れる（コマ落とし）→ 回転が最初だけ速い → 光の線 → 一瞬暗く沈む（溜め）→ 柱が一気に立つ（止め）→ 一気に消える
     static void ProcMagic(Ctx c)
     {
-        var hero = BuffHero(c); float on = 0.25f, rise = 1.7f; var col = new Color(0.55f, 0.35f, 1f); var hot = new Color(0.92f, 0.85f, 1f);
+        var hero = BuffHero(c); float on = 0.3f, rise = 1.75f, off = rise + 0.95f; var col = new Color(0.55f, 0.35f, 1f); var hot = new Color(0.92f, 0.85f, 1f);
         const float R = 2.4f, Sq = 0.36f;
-        // 陣（床に寝かせる）: 後ろの板は上半分（主人公の奥）、前の板は下半分（主人公の手前）。板を半分にして原点を縁に置く
         var cb = Proc(c, "MagicB", 6, new Vector3(hero.x, GroundY + 0.05f + R * 1.2f * Sq * 0.5f, 0.4f), new Vector2(R * 2.4f, R * 1.2f * Sq), col, hot, 3004, 6, 0);
         var cf = Proc(c, "MagicF", 6, new Vector3(hero.x, GroundY + 0.05f - R * 1.2f * Sq * 0.5f, -3.5f), new Vector2(R * 2.4f, R * 1.2f * Sq), col, hot, 3005, 6, 1);
         foreach (var (q, m) in new[] { cb, cf }) { m.SetFloat("_Aspect", 2f); m.SetFloat("_Radius", 2f / 1.2f); }
         cb.m.SetVector("_Origin", new Vector4(0, -1f, 0, 0)); cf.m.SetVector("_Origin", new Vector4(0, 1f, 0, 0));
-        // 陣の光（寝かせない板。前後）
         var (lb, lf) = Proc2(c, "MagicLight", 7, col, hot, 6);
         Both(lb, lf, m => { m.SetFloat("_Radius", PX(R)); m.SetFloat("_Width", Sq); m.SetVector("_Origin", new Vector4(PX(hero.x), 0, 0, 0)); m.SetFloat("_Ground", PY(GroundY + 0.05f)); });
-        // 柱
         var (pb, pf) = Proc2(c, "MagicPillar", 0, col, hot, 6);
-        Both(pb, pf, m => { m.SetFloat("_Width", 0.11f); });
+        c.Freeze(rise + 2 * F, 4 * F);
         c.OnUpdate(t =>
         {
-            float a = t - on; float e = Env(a, 0.6f, 2.2f, 0.4f); float draw = Mathf.Clamp01(a / 0.7f);
-            float charge = Mathf.Clamp01((t - rise + 0.4f) / 0.4f);
-            foreach (var (q, m) in new[] { cb, cf }) { m.SetFloat("_T", t); m.SetFloat("_Reach", draw); m.SetFloat("_Intensity", e * (1.3f + 1.2f * charge)); }
-            Both(lb, lf, m => { m.SetFloat("_T", t); m.SetFloat("_Reach", 1f); m.SetFloat("_Intensity", Env(a - 0.4f, 0.5f, 1.8f, 0.4f) * (0.8f + 1.2f * charge)); });
-            float b = t - rise; float hit = Mathf.Clamp01(b / 0.5f);
-            Both(pb, pf, m => { m.SetFloat("_T", t); m.SetFloat("_Reach", Mathf.Clamp01(b / 0.25f) * 1.25f); m.SetVector("_Origin", new Vector4(PX(hero.x), 0, hit, 0)); m.SetFloat("_Intensity", Env(b, 0.25f, 0.9f, 0.45f) * 1.1f); });
-            if (a >= 0) { c.post.stageDim = Mathf.Max(c.post.stageDim, 0.45f * e); c.post.darken = Mathf.Max(c.post.darken, 0.35f * e); HeroGlow(c, 0.25f * e + 0.5f * Env(b, 0.25f, 0.9f, 0.45f), col); }
-            if (b >= 0 && b < 2 / 60f) c.post.flash = 0.5f;
-            if (b >= 0) { c.post.trauma += 0.5f * Mathf.Exp(-b * 6f); c.post.zoom *= 1f + 0.04f * Mathf.Exp(-b * 5f); }
+            float a = t - on, b = t - rise, e2 = t - off;
+            float draw = Stair(a, 0.45f, 6); float stepFlash = (a >= 0 && (a % (0.45f / 6)) < F && a < 0.45f) ? 1 : 0;              // 輪が 1 本ずつパッと
+            float ant = b + 0.12f; float dipK = ant >= 0 && b < 0 ? Mathf.Lerp(1f, 0.15f, Mathf.Clamp01(ant / 0.12f)) : 1f;              // 溜め: 暗く沈む
+            float cInt = (a < 0 ? 0 : 1.3f + 0.8f * stepFlash) * dipK * (b >= 0 ? 2.2f * Decay(b, 2f) + 1f : 1f) * (e2 >= 0 ? Collapse(e2, 5 * F) : 1f);
+            float rot = t + 1.2f * (1 - Decay(Mathf.Max(0, a), 3f));                                                                 // 回転は最初だけ速い
+            foreach (var (q, m) in new[] { cb, cf }) { m.SetFloat("_T", rot); m.SetFloat("_Reach", draw); m.SetFloat("_Intensity", cInt); }
+            float lInt = (a < 0.5f ? 0 : 0.8f * Snap(a - 0.5f, 3 * F)) * dipK * (b >= 0 ? 2f : 1f) * (e2 >= 0 ? Collapse(e2, 5 * F) : 1f);
+            Both(lb, lf, m => { m.SetFloat("_T", t); m.SetFloat("_Reach", 1f); m.SetFloat("_Intensity", lInt); });
+            float width = b < 0 ? 0.012f : e2 < 0 ? 0.11f * Over(b - 2 * F, 0.7f, 28f, 8f) : 0.11f * Collapse(e2, 4 * F) + 0.008f;
+            float pInt = b < 0 ? 0 : e2 < 0 ? (1f + 2f * Decay(b, 6f)) * Flick(t, 12, 5, 0.15f) : (e2 < 4 * F ? 2.5f : 0.4f * Decay(e2 - 4 * F, 4f));
+            Both(pb, pf, m => { m.SetFloat("_T", t); m.SetFloat("_Width", width); m.SetFloat("_Reach", 1.25f * Snap(b, 2 * F)); m.SetVector("_Origin", new Vector4(PX(hero.x), 0, Mathf.Clamp01((b - 2 * F) / 0.45f), 0)); m.SetFloat("_Intensity", pInt); });
+            float e = a < 0 ? 0 : e2 < 0 ? 1 : Decay(e2, 4f);
+            c.post.stageDim = Mathf.Max(c.post.stageDim, (0.45f + 0.25f * (1 - dipK)) * e); c.post.darken = Mathf.Max(c.post.darken, 0.35f * e);
+            HeroGlow(c, (0.25f * dipK + (b >= 0 ? 0.6f : 0)) * e, col);
+            if (stepFlash > 0) c.post.trauma += 0.12f;
+            Punch(c, b - 2 * F, 0.8f, 0.9f, 0.07f); Punch(c, e2, 0.3f, 0.3f, -0.03f);
         });
     }
-    // P8 虹の奔流: 白く飛ぶ → 角度で色相が回る奔流が突き抜け、だんだん晴れる
+    // P8 虹の奔流: 6 コマ暗転して寄る（溜め）→ 一気に白（止め）→ 白を保つ → 一気に落ちて尾を引く。奔流は最初の 3 コマが一番強い
     static void ProcRainbow(Ctx c)
     {
-        float on = 0.3f;
+        float on = 0.4f;
         var m = ProcTex(c, new Material(Shader.Find("Lab/Rush"))); m.SetFloat("_Mode", 0); m.SetFloat("_Seed", 11); m.SetFloat("_Aspect", 14f / 8f); m.SetFloat("_Rainbow", 1); m.renderQueue = 3005;
         m.SetColor("_Col", new Color(1f, 0.3f, 0.3f)); m.SetColor("_Hot", new Color(1f, 0.9f, 0.7f));
         var q = Quad(c.root, "Rainbow", new Vector3(0, 0, -3.5f), new Vector2(14f, 8f), m);
         var plate = BlackPlate(c, -3.4f); plate.renderQueue = 3003;
+        c.Freeze(on + F, 3 * F);
         c.OnUpdate(t =>
         {
-            float a = t - on; bool onn = a >= 0; q.gameObject.SetActive(onn); if (!onn) { SetPlate(plate, 0); return; }
+            float a = t - on, pre = t - (on - 6 * F);
+            q.gameObject.SetActive(a >= 0);
+            if (a < 0) { plate.SetColor("_Color", new Color(0, 0, 0, pre >= 0 ? 0.85f : 0)); if (pre >= 0) c.post.zoom *= 1f + 0.12f * (pre / (6 * F)); return; }   // 溜め: 暗転して寄る
             float fade = 1 - Mathf.Clamp01((a - 1.6f) / 0.8f);
-            float wa = 1 - Mathf.SmoothStep(0, 1, Mathf.Clamp01((a - 0.35f) / 0.7f)); float hdr = 1f + 2.5f * Mathf.Exp(-a * 2.5f);
+            float wa = a < 0.4f ? 1f : a < 0.55f ? Mathf.Lerp(1f, 0.3f, (a - 0.4f) / 0.15f) : 0.3f * Decay(a - 0.55f, 2.5f);           // 白: 保つ → 一気に落ちる → 尾
+            float hdr = 1f + 2.8f * Decay(a, 2.5f);
             plate.SetColor("_Color", new Color(hdr, hdr * 0.97f, hdr * 0.92f, wa));
-            m.SetFloat("_T", a); m.SetFloat("_Reach", Mathf.Lerp(0.15f, 1.5f, EaseOut(Mathf.Clamp01(a / 0.35f))));
-            m.SetFloat("_Intensity", (1.6f * Mathf.Exp(-a * 3f) + 0.9f) * fade); m.SetFloat("_Core", (0.6f + 0.6f * Mathf.Exp(-a * 5f)) * fade);
-            c.post.stageDim = Mathf.Max(c.post.stageDim, 0.8f * fade); c.post.darken = Mathf.Max(c.post.darken, 0.4f * fade); if (a < 3 / 60f) c.post.flash = 0.8f; c.post.trauma += 0.3f * Mathf.Exp(-a * 2.5f); c.post.zoom *= 1f + 0.05f * fade;
+            m.SetFloat("_T", a); m.SetFloat("_Reach", Mathf.Lerp(0.15f, 1.5f, Snap(a, 4 * F)));
+            m.SetFloat("_Intensity", (a < 3 * F ? 3.5f : 0.9f + 1.2f * Decay(a, 3f)) * fade); m.SetFloat("_Core", (0.6f + 0.6f * Decay(a, 5f)) * fade);
+            c.post.stageDim = Mathf.Max(c.post.stageDim, 0.8f * fade); c.post.darken = Mathf.Max(c.post.darken, 0.4f * fade); Punch(c, a, 0.9f, 0.6f, 0.06f);
         });
     }
-    // P9 星のワープ: 星の点が線に伸びて外へ流れ、奥行きの輪が迫る。青白い筋は細く無数に。中心は小さく
+    // P9 星のワープ: ゆっくり漂う → 2 コマで超高速に飛び込む（点が線に・寄る・止め）→ ときどき速度が揺れる → 一瞬で止まる（線が点に戻る・白）→ 余韻
     static void ProcWarp(Ctx c)
     {
-        float on = 0.2f;
+        float on = 0.25f, jump = 0.85f, stop = 2.15f;
         var m = ProcTex(c, new Material(Shader.Find("Lab/Rush"))); m.SetFloat("_Mode", 0); m.SetFloat("_Seed", 23); m.SetFloat("_Aspect", 14f / 8f); m.SetFloat("_Stars", 1); m.renderQueue = 3005;
         m.SetColor("_Col", new Color(0.4f, 0.6f, 1f)); m.SetColor("_Hot", new Color(0.85f, 0.95f, 1f));
         var q = Quad(c.root, "Warp", new Vector3(0, 0, -3.5f), new Vector2(14f, 8f), m);
+        c.Freeze(jump + 2 * F, 2 * F); c.Freeze(stop, 3 * F);
+        float tt = 0; float lastT = 0;
         c.OnUpdate(t =>
         {
-            float a = t - on; bool onn = a >= 0; q.gameObject.SetActive(onn); if (!onn) return;
-            float e = Env(a, 0.6f, 1.2f, 0.6f); float speed = Mathf.Clamp01(a / 1.2f);
-            m.SetFloat("_T", a * (0.6f + 1.6f * speed)); m.SetFloat("_Reach", 1.6f); m.SetFloat("_Intensity", e * (0.3f + 0.4f * speed)); m.SetFloat("_Core", 0.12f * e); m.SetFloat("_Stars", 0.3f + 1.2f * speed);
-            c.post.stageDim = Mathf.Max(c.post.stageDim, 0.8f * e); c.post.darken = Mathf.Max(c.post.darken, 0.5f * e); c.post.zoom *= 1f + 0.12f * e * speed; c.post.trauma += 0.08f * e;
+            float a = t - on, j = t - jump, s = t - stop; bool onn = a >= 0; q.gameObject.SetActive(onn); if (!onn) { lastT = t; return; }
+            float speed = j < 0 ? 0.25f : s < 0 ? (0.3f + 3.2f * Snap(j, 2 * F)) * (1f + 0.25f * Mathf.Sin(t * 5f)) * Flick(t, 8, 7, 0.3f) : 0.05f;   // 漂う → 飛び込む → 揺れる → 止まる
+            tt += speed * Mathf.Max(0, t - lastT); lastT = t;
+            float stars = j < 0 ? 0.25f : s < 0 ? 0.3f + 1.2f * Snap(j, 2 * F) : 0.15f;
+            float inten = j < 0 ? 0.35f * Mathf.Clamp01(a / 0.3f) : s < 0 ? (j < 3 * F ? 1.6f : 0.7f) : 0.6f * Decay(s, 4f);
+            m.SetFloat("_T", tt); m.SetFloat("_Reach", 1.6f); m.SetFloat("_Intensity", inten); m.SetFloat("_Core", (j < 0 ? 0.05f : 0.12f) * (s < 0 ? 1 : Decay(s, 4f))); m.SetFloat("_Stars", stars);
+            float e = s < 0 ? Mathf.Clamp01(a / 0.3f) : Decay(s, 3f);
+            c.post.stageDim = Mathf.Max(c.post.stageDim, 0.8f * e); c.post.darken = Mathf.Max(c.post.darken, 0.5f * e);
+            if (j >= 0 && s < 0) c.post.zoom *= 1f + 0.06f + 0.12f * Decay(j, 5f);
+            Punch(c, j, 0.45f, 0.5f, 0f); Punch(c, s, 0.6f, 0.4f, -0.05f);
         });
     }
     // 光の奔流（本人 2026-09-29「光の差し込みが甘い」＋参考画像: 中心が白く飛び、赤い光の筋が画面の外へ突き抜ける）
