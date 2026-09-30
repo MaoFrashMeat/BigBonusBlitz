@@ -26,6 +26,12 @@ Shader "Lab/Proc"
         _Reach ("Reach", Float) = 1
         _Origin ("Origin", Vector) = (0,0,0,0)
         _Ground ("GroundY", Float) = -0.6
+        _PNoise ("ProcNoise", 2D) = "gray" {}
+        _PRidge ("ProcRidge", 2D) = "gray" {}
+        _PVoro ("ProcVoro", 2D) = "gray" {}
+        _PStreak ("ProcStreak", 2D) = "gray" {}
+        _PWarp ("ProcWarp", 2D) = "gray" {}
+        _PSparks ("ProcSparks", 2D) = "black" {}
     }
     SubShader
     {
@@ -38,6 +44,7 @@ Shader "Lab/Proc"
             #pragma fragment frag
             #pragma target 3.5
             #include "UnityCG.cginc"
+            sampler2D _PNoise, _PRidge, _PVoro, _PStreak, _PWarp, _PSparks;
             float4 _Col, _Hot, _Origin; float _Mode, _Layer, _T, _Intensity, _Aspect, _Seed, _Radius, _Width, _Reach, _Ground;
             struct appdata { float4 pos:POSITION; float2 uv:TEXCOORD0; };
             struct v2f { float4 pos:SV_POSITION; float2 uv:TEXCOORD0; };
@@ -46,15 +53,10 @@ Shader "Lab/Proc"
             float h1(float x) { return frac(sin(x * 127.1 + _Seed * 57.3) * 43758.5453); }
             float h2(float2 p) { return frac(sin(dot(p, float2(127.1, 311.7)) + _Seed * 57.3) * 43758.5453); }
             float2 g2(float2 p) { float a = h2(p) * 6.2831853; return float2(cos(a), sin(a)); }
-            float gnoise(float2 p)
-            {
-                float2 i = floor(p), f = frac(p); float2 u = f * f * f * (f * (f * 6 - 15) + 10);
-                float a = dot(g2(i), f), b = dot(g2(i + float2(1, 0)), f - float2(1, 0));
-                float c = dot(g2(i + float2(0, 1)), f - float2(0, 1)), d = dot(g2(i + 1), f - 1);
-                return lerp(lerp(a, b, u.x), lerp(c, d, u.x), u.y) * 0.7 + 0.5;
-            }
-            float fbm(float2 p) { float s = 0, a = 0.5; for (int k = 0; k < 5; k++) { s += a * gnoise(p); p = p * 2.03 + 17.1; a *= 0.5; } return s; }
-            float fbm3(float2 p) { float s = 0, a = 0.5; for (int k = 0; k < 3; k++) { s += a * gnoise(p); p = p * 2.03 + 17.1; a *= 0.5; } return s; }
+            // ノイズは Blender で焼いた継ぎ目なしの板（textures/proc_*.png。bake_textures.py）を読む。式の勾配ノイズは使わない
+            float gnoise(float2 p) { return tex2D(_PNoise, p * 0.06).b; }
+            float fbm(float2 p) { float3 n = tex2D(_PNoise, p * 0.11).rgb; return n.r * 0.5 + n.g * 0.3 + n.b * 0.2; }
+            float fbm3(float2 p) { float3 n = tex2D(_PNoise, p * 0.11).rgb; return n.g * 0.6 + n.b * 0.4; }
             float3 blackbody(float t)
             {
                 t = saturate(t);
@@ -129,10 +131,11 @@ Shader "Lab/Proc"
                     float edgeN = fbm(float2(p.y * 1.4 - _T * 2.5, 3.1));
                     float we = w * (0.8 + 0.5 * edgeN);
                     // 鞘（後ろ）: 広く柔らかい。縦に流れるむら
-                    float sheathN = 0.55 + 0.9 * fbm(float2(x * 2.5 + 5, p.y * 1.1 - _T * 1.8));
+                    float3 stk = tex2D(_PStreak, float2(p.y * 0.35 - _T * 0.9, x * 1.6 + 0.3)).rgb;                  // 縦に長い筋（u = y）
+                    float sheathN = 0.35 + 1.1 * (stk.r * 0.6 + stk.g * 0.4) + stk.b * 0.6;
                     float sheath = exp(-ax / (w * 3.2)) * sheathN * 0.55 + exp(-ax / (w * 9)) * 0.1;
                     // 芯（前）: 硬く白い。縦の細かいちらつき
-                    float coreN = 0.85 + 0.3 * gnoise(float2(p.y * 9 - _T * 14, 1));
+                    float coreN = 0.8 + 0.45 * tex2D(_PStreak, float2(p.y * 0.8 - _T * 2.2, x * 6 + 0.7)).b;
                     float core = exp(-pow(ax / we, 2) * 3.5) * coreN;
                     // らせんの帯 2 本: 手前に来たときは前の層、奥のときは後ろの層
                     float helix = 0;
@@ -164,13 +167,16 @@ Shader "Lab/Proc"
                 {
                     // ---- 光芒 ----
                     float2 o = _Origin.xy; float2 d = p - o; float r = length(d); float ang = atan2(d.y, d.x);
-                    float far_ = pow(fbm(float2(ang * 7 + _Seed, _T * 0.08)), 2.4);                        // 遠い太い帯
-                    float near_ = pow(fbm3(float2(ang * 55, _T * 0.3 + 7)), 2.0);                            // 近い細い筋
+                    float3 ray = tex2D(_PStreak, float2(r * 0.12 - _T * 0.02, ang * 1.4 + _Seed * 0.1)).rgb;          // r に長い筋（u = r、v = 角度）
+                    float3 ray2 = tex2D(_PStreak, float2(r * 0.3 + _T * 0.015, ang * 4.5 + 2.3)).rgb;
+                    float far_ = pow(ray.r * 0.7 + ray.g * 0.3, 2.6);                                            // 遠い太い帯
+                    float near_ = pow(ray2.g * 0.5 + ray2.b * 0.6, 1.8);                                        // 近い細い筋
                     float breath = 0.85 + 0.15 * sin(_T * 0.7);
                     float dust = fbm3(p * 2.5 + float2(_T * 0.2, -_T * 0.08));
                     float rays = (far_ * 0.8 + far_ * near_ * 1.6) * (0.6 + 0.6 * dust) * exp(-r * 0.5) * smoothstep(0.1, 0.5, r) * breath;
                     // 漂う塵（ゆっくり落ちる粒。光の帯の中だけ光る）
-                    float motes = particles(p, o + float2(0.6, -0.4), _T * 0.35, 36, 0.9, 0.03, 6.0, 0.006, 0.0, -0.9, 1.2, 4) * (far_ * 2 + 0.2);
+                    float3 mt = tex2D(_PSparks, p * 0.9 + float2(_T * 0.01, -_T * 0.02)).rgb;                          // 漂う塵（点の板をゆっくり流す）
+                    float motes = (mt.r * 1.2 + mt.g * 0.6) * (far_ * 2 + 0.15) * (0.6 + 0.4 * sin(_T * 3 + p.x * 20));
                     // 光源のにじみ（画面の外。縁ににじむ）
                     float src = exp(-r * 2.2) * 1.2 + exp(-abs(d.y - d.x * 0.6) * 9) * exp(-r * 1.2) * 0.5;
                     c = lerp(_Col.rgb, _Hot.rgb, saturate(rays * 1.2)) * (rays * 1.8 + src) * _Reach + _Hot.rgb * motes * 0.8;
@@ -190,7 +196,8 @@ Shader "Lab/Proc"
                             if (on <= 0) continue;
                             float x0 = (h1(sd) - 0.5) * _Aspect * 1.3 + _Origin.x;
                             float dist = boltDist(p, x0, sd, 1.0, _Ground, 1.0);
-                            float core = exp(-dist * 340) * 2.4, mid = exp(-dist * 40) * 0.5, glow = exp(-dist * 7) * 0.13;
+                            float rg = tex2D(_PRidge, float2(p.x * 0.5 + sd * 0.01, p.y * 0.5)).g;
+                            float core = exp(-dist * 340) * 2.4, mid = exp(-dist * 40) * (0.35 + 0.4 * rg), glow = exp(-dist * 7) * (0.08 + 0.12 * rg);
                             float br = 0.6 + 0.8 * h1(sd + 11);
                             k += (core + mid + glow) * on * br; hot += core * on;
                             // 枝 2 段: 本線の途中から短く、さらにその途中から
@@ -231,11 +238,11 @@ Shader "Lab/Proc"
                     float2 q = p - _Origin.xy; float r = length(q); float ang = atan2(q.y, q.x); float lr = log(max(r, 1e-4));
                     // 大きく遅い渦
                     float u1 = ang * 2.5 + lr * 3.5 - _T * 1.6, v1 = lr * 2.5 - _T * 3.5;
-                    float2 w1 = float2(fbm3(float2(u1 * 0.8 + 3, v1 * 0.8)), fbm3(float2(u1 * 0.8 + 9, v1 * 0.8 + 4)));
-                    float n1 = fbm(float2(u1, v1) + (w1 - 0.5) * 1.6);
+                    float3 wp = tex2D(_PWarp, float2(u1, v1) * 0.09).rgb;                                             // 二重に歪ませた炎の板
+                    float n1 = wp.g * 0.6 + wp.r * 0.4;
                     // 小さく速い渦（逆向きの捻り）
                     float u2 = ang * 4 - lr * 5 + _T * 2.2, v2 = lr * 4 - _T * 5.5;
-                    float n2 = fbm(float2(u2 + 11, v2));
+                    float n2 = tex2D(_PRidge, float2(u2 + 11, v2) * 0.07).g;                                           // 細い稜線の糸
                     float n = n1 * 0.65 + n2 * 0.35;
                     float mask = (1 - smoothstep(0.1, _Radius, r)) * smoothstep(0.0, 0.06, r);
                     float thin = 1 - smoothstep(0.3, 1.0, r / _Radius);                                      // 外ほど薄く穴だらけ
@@ -267,9 +274,9 @@ Shader "Lab/Proc"
                     float z = sqrt(saturate(1 - r * r));
                     float2 w = float2(fbm3(q * 2.5 / _Radius + float2(_T * 0.7, 0)), fbm3(q * 2.5 / _Radius + float2(0, -_T * 0.5) + 5));
                     float n = fbm(q * 3.2 / _Radius + (w - 0.5) * 2.2 + float2(_T * 0.3, _T * 0.2));
-                    float fil = pow(1 - saturate(abs(n - 0.5) * 9), 4);
+                    float fil = pow(tex2D(_PVoro, (q / _Radius + (w - 0.5) * 0.9) * 0.3 + float2(_T * 0.03, -_T * 0.02)).g, 3.5) * 2.2;   // セルの縁の糸
                     float n2 = fbm3(q * 7 / _Radius + float2(-_T * 0.9, _T * 0.4) + 11);
-                    float fil2 = pow(1 - saturate(abs(n2 - 0.5) * 12), 5) * 0.6;
+                    float fil2 = pow(tex2D(_PRidge, (q / _Radius) * 0.4 + float2(-_T * 0.06, _T * 0.03) + 0.4).g, 4) * 1.1;
                     // 表面の放電: 1/20 秒ごとに場所が変わる細い弧
                     float st = floor(_T * 20); float arcs = 0;
                     for (int a_ = 0; a_ < 3; a_++)
@@ -315,7 +322,7 @@ Shader "Lab/Proc"
                         float d = r - R;
                         float edge = (1 - smoothstep(0, _Width * 0.12, d)) * smoothstep(-_Width * 0.25, 0, d);        // 硬い先端
                         float body = smoothstep(-_Width, -_Width * 0.25, d) * (1 - smoothstep(-_Width * 0.25, 0, d));   // 尾
-                        float torn = pow(saturate(fbm3(cp * 3.1 + float2(r * 4, _Seed)) * 1.7 - 0.3), 2);                // 千切れ
+                        float torn = pow(tex2D(_PVoro, float2(a01 * 3, r * 0.6 + _Seed * 0.1)).r * 1.3, 2);                    // 千切れ（セルの板）
                         float bright = pow(saturate(fbm3(cp * 2.2 + _Seed * 2 + 4) * 1.6 - 0.2), 2) * 1.8 + 0.2;
                         k3[ch] = (edge * 2.2 + body * torn * 0.9) * bright + exp(-abs(d) / (_Width * 2.5)) * 0.08;
                     }

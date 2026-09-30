@@ -19,6 +19,12 @@ Shader "Lab/Rush"
         _Width ("Width", Float) = 0.02
         _Rainbow ("Rainbow", Float) = 0
         _Stars ("Stars", Float) = 0
+        _PNoise ("ProcNoise", 2D) = "gray" {}
+        _PRidge ("ProcRidge", 2D) = "gray" {}
+        _PVoro ("ProcVoro", 2D) = "gray" {}
+        _PStreak ("ProcStreak", 2D) = "gray" {}
+        _PWarp ("ProcWarp", 2D) = "gray" {}
+        _PSparks ("ProcSparks", 2D) = "black" {}
     }
     SubShader
     {
@@ -31,6 +37,7 @@ Shader "Lab/Rush"
             #pragma fragment frag
             #pragma target 3.5
             #include "UnityCG.cginc"
+            sampler2D _PNoise, _PRidge, _PVoro, _PStreak, _PWarp, _PSparks;
             float4 _Col, _Hot; float _Mode, _T, _Intensity, _Core, _Aspect, _Seed, _Reach, _Width, _Rainbow, _Stars;
             struct appdata { float4 pos:POSITION; float2 uv:TEXCOORD0; };
             struct v2f { float4 pos:SV_POSITION; float2 uv:TEXCOORD0; };
@@ -40,15 +47,10 @@ Shader "Lab/Rush"
             float h2(float2 p) { return frac(sin(dot(p, float2(127.1, 311.7)) + _Seed * 57.3) * 43758.5453); }
             // 勾配ノイズ（値ノイズより筋が出にくい）と FBM
             float2 g2(float2 p) { float a = h2(p) * 6.2831853; return float2(cos(a), sin(a)); }
-            float gnoise(float2 p)
-            {
-                float2 i = floor(p), f = frac(p); float2 u = f * f * f * (f * (f * 6 - 15) + 10);
-                float a = dot(g2(i), f), b = dot(g2(i + float2(1, 0)), f - float2(1, 0));
-                float c = dot(g2(i + float2(0, 1)), f - float2(0, 1)), d = dot(g2(i + 1), f - 1);
-                return lerp(lerp(a, b, u.x), lerp(c, d, u.x), u.y) * 0.7 + 0.5;
-            }
-            float fbm(float2 p) { float s = 0, a = 0.5; for (int k = 0; k < 5; k++) { s += a * gnoise(p); p = p * 2.03 + 17.1; a *= 0.5; } return s; }
-
+            // ノイズは Blender で焼いた継ぎ目なしの板（textures/proc_*.png。bake_textures.py）を読む。式の勾配ノイズは使わない
+            float gnoise(float2 p) { return tex2D(_PNoise, p * 0.06).b; }
+            float fbm(float2 p) { float3 n = tex2D(_PNoise, p * 0.11).rgb; return n.r * 0.5 + n.g * 0.3 + n.b * 0.2; }
+            float fbm3(float2 p) { float3 n = tex2D(_PNoise, p * 0.11).rgb; return n.g * 0.6 + n.b * 0.4; }
             // 1 層の筋: 角度を n 本に割り、筋ごとにばらした破線が外へ走る
             float streaks(float ang, float lr, float n, float speed, float widMul, float seed)
             {
@@ -84,7 +86,10 @@ Shader "Lab/Rush"
                 float thick = streaks(a, lr, 70, 2.2, 1.6, 1);
                 float mid = streaks(a, lr, 190, 3.0, 1.0, 2);
                 float thin = streaks(a, lr, 480, 3.8, 0.8, 3);
-                float k = thick * 0.9 + mid * 0.8 + thin * 0.6;
+                float3 st = tex2D(_PStreak, float2(lr * 0.28 - _T * 0.9, a * 2.5)).rgb;                 // r に長い筋の板（u = log r）
+                float3 st2 = tex2D(_PStreak, float2(lr * 0.6 - _T * 1.6, a * 7 + 0.37)).rgb;
+                float tex = pow(saturate(st.r * 0.5 + st.g * 0.5), 2) * 0.7 + pow(st.b, 2) * 1.0 + pow(st2.b, 2) * 0.6;   // 平均を下げてコントラストを付ける（そのまま足すと全面が白く飛ぶ）
+                float k = (thick * 0.9 + mid * 0.8 + thin * 0.6) * (0.35 + 1.5 * tex) + pow(tex, 2) * 0.12;
                 // 束の明暗（低い周波数の FBM）: 筋が一様に並ぶと安っぽい
                 float bundle = smoothstep(0.3, 0.75, fbm(float2(ang * 11, _T * 0.8 + 3)));
                 k *= 0.35 + 1.1 * bundle;
@@ -132,6 +137,9 @@ Shader "Lab/Rush"
                             float shape = exp(-dperp * dperp / (0.0035 * 0.0035)) * (fy > 0 ? exp(-dalong * dalong / (0.008 * 0.008)) : exp(-dalong * dalong / (tail * tail)));
                             st += shape * on * (0.3 + 1.4 * pow(h2(float2(cell, cy) + L + 5), 3));
                         }
+                        float3 sp = tex2D(_PSparks, float2(a2 * 3, lr * 0.5 - _T * 0.9)).rgb;                 // 点の板（極座標）
+                        float3 sl = tex2D(_PStreak, float2(lr * 0.5 - _T * 0.9, a2 * 3)).rgb;                  // 同じ場所を筋の板で
+                        st += lerp(pow(sp.r, 1.5) * 1.4 + pow(sp.g, 1.5) * 0.8, pow(sl.b, 3) * 1.4 + pow(sl.g, 3) * 0.5, saturate(_Stars * 0.6)) * 0.4;
                         float tunnel = pow(sin(lr * 5 - _T * 7) * 0.5 + 0.5, 14) * 0.12 * smoothstep(0.08, 0.5, r) * (1 - smoothstep(0.9, 1.6, r));
                         c += lerp(_Col.rgb, 1, 0.6) * st * smoothstep(0.03, 0.15, r) * 1.6 + _Col.rgb * tunnel;
                     }

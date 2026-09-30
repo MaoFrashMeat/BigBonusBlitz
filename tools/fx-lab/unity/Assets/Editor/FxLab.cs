@@ -2824,7 +2824,7 @@ public static class FxLab
         Transform lockT = null; Material lockM = null;
         if (vault) { lockM = DoorMat(c.tx.doorLock); lockM.renderQueue = 2991; lockT = Quad(c.root, "VaultLock", new Vector3(0, 0, -3.35f), new Vector2(3.0f, 3.0f), lockM); }
         // 合わせ目の光（ドアの隙間。シャッターは下の隙間）
-        var seamM = new Material(Shader.Find("Lab/Rush")); seamM.SetFloat("_Mode", 1); seamM.SetFloat("_Aspect", 5f / 7.4f); seamM.SetFloat("_Seed", kind.Length * 3.1f); seamM.renderQueue = 3001;
+        var seamM = ProcTex(c, new Material(Shader.Find("Lab/Rush"))); seamM.SetFloat("_Mode", 1); seamM.SetFloat("_Aspect", 5f / 7.4f); seamM.SetFloat("_Seed", kind.Length * 3.1f); seamM.renderQueue = 3001;
         var seam = Quad(c.root, "Seam", shutter ? new Vector3(0, -3.55f, -3.25f) : new Vector3(0, 0, -3.25f), new Vector2(5f, 7.4f), seamM);
         if (shutter) { seam.rotation = Quaternion.Euler(0, 0, 90); seam.localScale = new Vector3(5f, 13f, 1); seamM.SetFloat("_Aspect", 5f / 13f); }
         var rnd = new System.Random(kind.Length * 97);
@@ -2892,7 +2892,7 @@ public static class FxLab
     static float PX(float x) => x / 4f; static float PY(float y) => y / 4f;
     static (Transform q, Material m) Proc(Ctx c, string name, int mode, Vector3 pos, Vector2 size, Color col, Color hot, int queue, float seed = 0, int layer = 1)
     {
-        var m = new Material(Shader.Find("Lab/Proc")); m.SetFloat("_Mode", mode); m.SetFloat("_Layer", layer); m.SetFloat("_Aspect", size.x / size.y); m.SetFloat("_Seed", seed);
+        var m = ProcTex(c, new Material(Shader.Find("Lab/Proc"))); m.SetFloat("_Mode", mode); m.SetFloat("_Layer", layer); m.SetFloat("_Aspect", size.x / size.y); m.SetFloat("_Seed", seed);
         m.SetColor("_Col", col); m.SetColor("_Hot", hot); m.renderQueue = queue; m.SetFloat("_Intensity", 0); m.SetFloat("_Ground", PY(GroundY));
         return (Quad(c.root, name, pos, size, m), m);
     }
@@ -3042,7 +3042,7 @@ public static class FxLab
     static void ProcRainbow(Ctx c)
     {
         float on = 0.3f;
-        var m = new Material(Shader.Find("Lab/Rush")); m.SetFloat("_Mode", 0); m.SetFloat("_Seed", 11); m.SetFloat("_Aspect", 14f / 8f); m.SetFloat("_Rainbow", 1); m.renderQueue = 3005;
+        var m = ProcTex(c, new Material(Shader.Find("Lab/Rush"))); m.SetFloat("_Mode", 0); m.SetFloat("_Seed", 11); m.SetFloat("_Aspect", 14f / 8f); m.SetFloat("_Rainbow", 1); m.renderQueue = 3005;
         m.SetColor("_Col", new Color(1f, 0.3f, 0.3f)); m.SetColor("_Hot", new Color(1f, 0.9f, 0.7f));
         var q = Quad(c.root, "Rainbow", new Vector3(0, 0, -3.5f), new Vector2(14f, 8f), m);
         var plate = BlackPlate(c, -3.4f); plate.renderQueue = 3003;
@@ -3061,14 +3061,14 @@ public static class FxLab
     static void ProcWarp(Ctx c)
     {
         float on = 0.2f;
-        var m = new Material(Shader.Find("Lab/Rush")); m.SetFloat("_Mode", 0); m.SetFloat("_Seed", 23); m.SetFloat("_Aspect", 14f / 8f); m.SetFloat("_Stars", 1); m.renderQueue = 3005;
+        var m = ProcTex(c, new Material(Shader.Find("Lab/Rush"))); m.SetFloat("_Mode", 0); m.SetFloat("_Seed", 23); m.SetFloat("_Aspect", 14f / 8f); m.SetFloat("_Stars", 1); m.renderQueue = 3005;
         m.SetColor("_Col", new Color(0.4f, 0.6f, 1f)); m.SetColor("_Hot", new Color(0.85f, 0.95f, 1f));
         var q = Quad(c.root, "Warp", new Vector3(0, 0, -3.5f), new Vector2(14f, 8f), m);
         c.OnUpdate(t =>
         {
             float a = t - on; bool onn = a >= 0; q.gameObject.SetActive(onn); if (!onn) return;
             float e = Env(a, 0.6f, 1.2f, 0.6f); float speed = Mathf.Clamp01(a / 1.2f);
-            m.SetFloat("_T", a * (0.6f + 1.6f * speed)); m.SetFloat("_Reach", 1.6f); m.SetFloat("_Intensity", e * (0.5f + 0.7f * speed)); m.SetFloat("_Core", 0.2f * e); m.SetFloat("_Stars", 0.3f + 1.2f * speed);
+            m.SetFloat("_T", a * (0.6f + 1.6f * speed)); m.SetFloat("_Reach", 1.6f); m.SetFloat("_Intensity", e * (0.3f + 0.4f * speed)); m.SetFloat("_Core", 0.12f * e); m.SetFloat("_Stars", 0.3f + 1.2f * speed);
             c.post.stageDim = Mathf.Max(c.post.stageDim, 0.8f * e); c.post.darken = Mathf.Max(c.post.darken, 0.5f * e); c.post.zoom *= 1f + 0.12f * e * speed; c.post.trauma += 0.08f * e;
         });
     }
@@ -3080,7 +3080,7 @@ public static class FxLab
         // 扉の奥は白く飛んで何も見えない → 目が慣れるように、だんだん奥（舞台）が見えてくる（本人 2026-09-30）
         var plate = BlackPlate(c, -3.12f); plate.renderQueue = 2984;
         const float WhiteHold = 1.0f, WhiteFade = 1.0f;
-        var m = new Material(Shader.Find("Lab/Rush")); m.SetFloat("_Mode", 0); m.SetFloat("_Seed", seed % 97); m.SetFloat("_Aspect", 14f / 8f);
+        var m = ProcTex(c, new Material(Shader.Find("Lab/Rush"))); m.SetFloat("_Mode", 0); m.SetFloat("_Seed", seed % 97); m.SetFloat("_Aspect", 14f / 8f);
         m.SetColor("_Col", col); m.SetColor("_Hot", Color.Lerp(col, new Color(1f, 0.55f, 0.2f), 0.5f)); m.renderQueue = 2987;
         var q = Quad(c.root, "Rush", new Vector3(pos.x, pos.y, -3.15f), new Vector2(14f, 8f), m);
         c.OnUpdate(tt =>
@@ -3500,7 +3500,7 @@ public static class FxLab
         public Vector4 shock;   // 空間の歪み: xy 中心（uv）、z 半径（画面の高さ比）、w 強さ
         public Vector4 split; public Color splitCol; public float black; public Vector4 slit;   // 真っ二つ / 暗転 / 暗転中の光の裂け目
     }
-    class Tx { public Texture2D dot, glow, ring, star4, diamond, plus, flame, flame2, streak, trail, noise, column, coinFace, burst, air, sparkle, magic, fbHitLines, fbBigHit, fbCharge, fbElecRing, fbFireRing, fbFlame, fbSmoke, fibers, square, fireFlame03, hexTile, arrowUp, fbStarExp, fbVortex, fbWavy, blCampfire, blWall, lightRing, bolt, ringDouble, twirl, starCross, smokePuff, sfxDon, sfxZuba, sfxBari, sfxGo, sfxKira, shieldCrest, doorGate, doorVault, doorLock, shutter, doorGateR, doorVaultR, doorGold, doorGoldR, vaultFrame, vaultLocked, vaultOpen, vaultWheel; }
+    class Tx { public Texture2D dot, glow, ring, star4, diamond, plus, flame, flame2, streak, trail, noise, column, coinFace, burst, air, sparkle, magic, fbHitLines, fbBigHit, fbCharge, fbElecRing, fbFireRing, fbFlame, fbSmoke, fibers, square, fireFlame03, hexTile, arrowUp, fbStarExp, fbVortex, fbWavy, blCampfire, blWall, lightRing, bolt, ringDouble, twirl, starCross, smokePuff, sfxDon, sfxZuba, sfxBari, sfxGo, sfxKira, shieldCrest, doorGate, doorVault, doorLock, shutter, doorGateR, doorVaultR, doorGold, doorGoldR, pNoise, pRidge, pVoro, pStreak, pWarp, pSparks, vaultFrame, vaultLocked, vaultOpen, vaultWheel; }
     class Ctx
     {
         public Transform root, heroT, goblinT; public Texture2D hero, goblin; public Tx tx;
@@ -3715,6 +3715,15 @@ public static class FxLab
     static float EaseOutBack(float x) { const float c1 = 1.70158f, c3 = c1 + 1; return 1 + c3 * Mathf.Pow(x - 1, 3) + c1 * Mathf.Pow(x - 1, 2); }
 
     // エフェクト素材: 白＋アルファ。小さく描かれるので mipmap と bilinear
+    static Texture2D LoadProc(string path)
+    {
+        var t = new Texture2D(2, 2, TextureFormat.RGBA32, true);
+        t.LoadImage(File.ReadAllBytes(path)); t.filterMode = FilterMode.Trilinear; t.wrapMode = TextureWrapMode.Repeat; t.anisoLevel = 8; return t;
+    }
+    static Material ProcTex(Ctx c, Material m)
+    {
+        m.SetTexture("_PNoise", c.tx.pNoise); m.SetTexture("_PRidge", c.tx.pRidge); m.SetTexture("_PVoro", c.tx.pVoro); m.SetTexture("_PStreak", c.tx.pStreak); m.SetTexture("_PWarp", c.tx.pWarp); m.SetTexture("_PSparks", c.tx.pSparks); return m;
+    }
     static Texture2D LoadFx(string path, bool gray = false)
     {
         var t = new Texture2D(2, 2, TextureFormat.RGBA32, true);
@@ -3823,6 +3832,14 @@ public static class FxLab
             tx.sfxDon = K("sfx_don"); tx.sfxZuba = K("sfx_zuba"); tx.sfxBari = K("sfx_bari"); tx.sfxGo = K("sfx_go"); tx.sfxKira = K("sfx_kira"); tx.shieldCrest = K("shield_crest");   // 擬音（make_sfx_tex.py）・盾の紋章（make_shield_tex.py）
             tx.doorGate = K("door_gate_L"); tx.doorGateR = K("door_gate_R"); tx.doorVault = K("door_vault_L"); tx.doorVaultR = K("door_vault_R"); tx.doorLock = K("door_vault_lock"); tx.shutter = K("shutter");
             tx.doorGold = K("door_gold_L");
+            // 焼いたプロシージャル・テクスチャ（blender/bake_textures.py。継ぎ目なし・繰り返し・ミップマップ）
+            Texture2D P(string n) => LoadProc(Path.Combine(dir, n + ".png"));
+            tx.pNoise = P("proc_noise");
+            tx.pRidge = P("proc_ridge");
+            tx.pVoro = P("proc_voro");
+            tx.pStreak = P("proc_streak");
+            tx.pWarp = P("proc_warp");
+            tx.pSparks = P("proc_sparks");
             tx.doorGoldR = K("door_gold_R");
             // 扉は落とした CC0 の 3D 素材を Blender で撮ったもの（blender/render_doors.py、LICENSE-doors.txt）
             if (File.Exists(Path.Combine(dir, "vault_frame.png"))) { tx.vaultFrame = K("vault_frame"); tx.vaultLocked = K("vault_door_locked"); tx.vaultOpen = K("vault_door_open"); tx.vaultWheel = K("vault_wheel"); }   // 作り込んだ金庫（blender/render_vault.py）
