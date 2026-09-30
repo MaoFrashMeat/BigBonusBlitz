@@ -18,6 +18,7 @@ Shader "Lab/Rush"
         _Reach ("Reach", Float) = 1
         _Width ("Width", Float) = 0.02
         _Rainbow ("Rainbow", Float) = 0
+        _Stars ("Stars", Float) = 0
     }
     SubShader
     {
@@ -30,7 +31,7 @@ Shader "Lab/Rush"
             #pragma fragment frag
             #pragma target 3.5
             #include "UnityCG.cginc"
-            float4 _Col, _Hot; float _Mode, _T, _Intensity, _Core, _Aspect, _Seed, _Reach, _Width, _Rainbow;
+            float4 _Col, _Hot; float _Mode, _T, _Intensity, _Core, _Aspect, _Seed, _Reach, _Width, _Rainbow, _Stars;
             struct appdata { float4 pos:POSITION; float2 uv:TEXCOORD0; };
             struct v2f { float4 pos:SV_POSITION; float2 uv:TEXCOORD0; };
             v2f vert(appdata i){ v2f o; o.pos=UnityObjectToClipPos(i.pos); o.uv=i.uv; return o; }
@@ -115,6 +116,25 @@ Shader "Lab/Rush"
                     float ana = exp(-abs(p.y) * 55) * exp(-abs(p.x) * 1.6);
                     float core = exp(-r * 9) * 3 + exp(-r * 3.2) * 0.5 + spikes * 2.5 + ana * 1.4;
                     c += lerp(_Hot.rgb, 1, 0.7) * core * _Core;
+                    if (_Stars > 0)
+                    {
+                        // 星: 角度 × log 半径の格子に点を置いて外へ流す。速いほど線に伸びる。奥行きの輪（log 半径の帯）が迫る
+                        float lr = log(max(r, 1e-4)); float a2 = atan2(p.y, p.x) / 6.2831853 + 0.5;
+                        float st = 0;
+                        for (int L = 0; L < 2; L++)
+                        {
+                            float N = 150 + L * 110; float x = a2 * N; float cell = floor(x); float hx = h1(cell + L * 77);
+                            float v = lr * 1.3 - _T * (1.2 + 2.2 * hx) + h1(cell + 3) * 10; float cy = floor(v); float fy = frac(v) - 0.5;
+                            float fx = frac(x) - 0.5 - (h1(cell + cy * 0.37 + 9) - 0.5) * 0.6;
+                            float on = step(0.6, h2(float2(cell, cy) + L));
+                            float dperp = fx / N * 6.2831853 * r, dalong = fy * r;
+                            float tail = 0.01 + 0.16 * _Stars * r;
+                            float shape = exp(-dperp * dperp / (0.0035 * 0.0035)) * (fy > 0 ? exp(-dalong * dalong / (0.008 * 0.008)) : exp(-dalong * dalong / (tail * tail)));
+                            st += shape * on * (0.3 + 1.4 * pow(h2(float2(cell, cy) + L + 5), 3));
+                        }
+                        float tunnel = pow(sin(lr * 5 - _T * 7) * 0.5 + 0.5, 14) * 0.12 * smoothstep(0.08, 0.5, r) * (1 - smoothstep(0.9, 1.6, r));
+                        c += lerp(_Col.rgb, 1, 0.6) * st * smoothstep(0.03, 0.15, r) * 1.6 + _Col.rgb * tunnel;
+                    }
                 }
                 else
                 {
