@@ -26,6 +26,7 @@ Shader "Lab/Proc"
         _Reach ("Reach", Float) = 1
         _Origin ("Origin", Vector) = (0,0,0,0)
         _Ground ("GroundY", Float) = -0.6
+        _Sway ("Sway (bend, breathe, warp, drift)", Vector) = (1,1,1,1)
         _PNoise ("ProcNoise", 2D) = "gray" {}
         _PRidge ("ProcRidge", 2D) = "gray" {}
         _PVoro ("ProcVoro", 2D) = "gray" {}
@@ -45,7 +46,7 @@ Shader "Lab/Proc"
             #pragma target 3.5
             #include "UnityCG.cginc"
             sampler2D _PNoise, _PRidge, _PVoro, _PStreak, _PWarp, _PSparks;
-            float4 _Col, _Hot, _Origin; float _Mode, _Layer, _T, _Intensity, _Aspect, _Seed, _Radius, _Width, _Reach, _Ground;
+            float4 _Col, _Hot, _Origin, _Sway; float _Mode, _Layer, _T, _Intensity, _Aspect, _Seed, _Radius, _Width, _Reach, _Ground;
             struct appdata { float4 pos:POSITION; float2 uv:TEXCOORD0; };
             struct v2f { float4 pos:SV_POSITION; float2 uv:TEXCOORD0; };
             v2f vert(appdata i){ v2f o; o.pos=UnityObjectToClipPos(i.pos); o.uv=i.uv; return o; }
@@ -70,6 +71,10 @@ Shader "Lab/Proc"
                 return d;
             }
             float line_(float d, float w) { return exp(-d * d / (w * w)); }
+            // うねり: 周波数の合わない sin の和（周期が見えない）。0 を中心に ±1
+            float sway(float t, float s) { return (sin(t * 1.31 + s) * 0.5 + sin(t * 2.17 + s * 1.7) * 0.3 + sin(t * 3.71 + s * 0.4) * 0.2); }
+            // 座標の揺れ: 歪みの板を時間で流して座標を押す（形そのものがゆらゆらする）
+            float2 wobble(float2 p, float t, float amt) { float2 w = tex2D(_PWarp, p * 0.07 + float2(t * 0.013, -t * 0.009)).rg - 0.5; float2 w2 = tex2D(_PWarp, p * 0.2 + float2(-t * 0.03, t * 0.02) + 0.3).rg - 0.5; return (w * 0.7 + w2 * 0.3) * amt; }
             // 式の粒子: 原点から角度 a0 ± spread へ飛び、重力 grav で落ちる（負なら昇る）。速度方向に伸びる。life ごとに繰り返し出る
             float particles(float2 p, float2 org, float t, int n, float spd, float grav, float life, float size, float stretch, float a0, float spread, float seed)
             {
@@ -119,19 +124,21 @@ Shader "Lab/Proc"
             float4 frag(v2f i):SV_Target
             {
                 float2 p = (i.uv - 0.5) * float2(_Aspect, 1) * 2;          // 縦が -1…1
+                p += wobble(p, _T, 0.05 * _Sway.z);                          // 形そのものがゆらぐ
                 float3 c = 0;
                 float back = _Layer < 0.5 ? 1 : 0, front = 1 - back;
                 if (_Mode < 0.5)
                 {
                     // ---- 光の柱 ----
-                    float ox = _Origin.x; float x = p.x - ox; float ax = abs(x);
-                    float w = _Width;
+                    float ox = _Origin.x + (sway(_T, 1) * 0.04 + sin(p.y * 1.4 + _T * 1.9) * 0.035 * (0.5 + 0.5 * p.y)) * _Sway.x;   // しなる（上ほど大きく）
+                    float x = p.x - ox; float ax = abs(x);
+                    float w = _Width * (1 + 0.18 * sway(_T * 1.6, 3) * _Sway.y + 0.1 * sin(p.y * 3 - _T * 4) * _Sway.y);   // 呼吸（縦に波が走る）
                     float reach = smoothstep(_Reach, _Reach - 0.2, 1 - (p.y + 1) * 0.5);            // 上から降りる
                     float ground = smoothstep(_Ground - 0.02, _Ground + 0.02, p.y);
                     float edgeN = fbm(float2(p.y * 1.4 - _T * 2.5, 3.1));
                     float we = w * (0.8 + 0.5 * edgeN);
                     // 鞘（後ろ）: 広く柔らかい。縦に流れるむら
-                    float3 stk = tex2D(_PStreak, float2(p.y * 0.35 - _T * 0.9, x * 1.6 + 0.3)).rgb;                  // 縦に長い筋（u = y）
+                    float3 stk = tex2D(_PStreak, float2(p.y * 0.35 - _T * 0.9 - 0.2 * sin(_T * 0.9), x * 1.6 + 0.3 + 0.03 * sway(_T, 5))).rgb;                  // 縦に長い筋（u = y）
                     float sheathN = 0.35 + 1.1 * (stk.r * 0.6 + stk.g * 0.4) + stk.b * 0.6;
                     float sheath = exp(-ax / (w * 3.2)) * sheathN * 0.55 + exp(-ax / (w * 9)) * 0.1;
                     // 芯（前）: 硬く白い。縦の細かいちらつき
@@ -141,7 +148,7 @@ Shader "Lab/Proc"
                     float helix = 0;
                     for (int hb = 0; hb < 2; hb++)
                     {
-                        float ph = p.y * 5.5 + _T * 5 + hb * 3.14159;
+                        float ph = p.y * (5.5 + 1.5 * sin(_T * 0.6)) + _T * (5 + 1.5 * sway(_T * 0.5, 7)) + hb * 3.14159;   // らせんの間隔と速さが揺れる
                         float xb = sin(ph) * w * 2.3; float depth = cos(ph);
                         float band = line_(x - xb, w * 0.22) * (0.5 + 0.5 * abs(depth));
                         helix += band * (depth > 0 ? front : back) * (0.6 + 0.4 * gnoise(float2(p.y * 3 - _T * 2, hb * 7)));
@@ -166,9 +173,10 @@ Shader "Lab/Proc"
                 else if (_Mode < 1.5)
                 {
                     // ---- 光芒 ----
-                    float2 o = _Origin.xy; float2 d = p - o; float r = length(d); float ang = atan2(d.y, d.x);
-                    float3 ray = tex2D(_PStreak, float2(r * 0.12 - _T * 0.02, ang * 1.4 + _Seed * 0.1)).rgb;          // r に長い筋（u = r、v = 角度）
-                    float3 ray2 = tex2D(_PStreak, float2(r * 0.3 + _T * 0.015, ang * 4.5 + 2.3)).rgb;
+                    float2 o = _Origin.xy + float2(sway(_T * 0.5, 2), sway(_T * 0.4, 9)) * 0.12 * _Sway.w;   // 光源が漂う
+                    float2 d = p - o; float r = length(d); float ang = atan2(d.y, d.x) + 0.06 * sway(_T * 0.35, 4) * _Sway.x;   // 帯が掃く
+                    float3 ray = tex2D(_PStreak, float2(r * 0.12 - _T * 0.02, ang * 1.4 + _Seed * 0.1 + _T * 0.004)).rgb;          // r に長い筋（u = r、v = 角度）
+                    float3 ray2 = tex2D(_PStreak, float2(r * 0.3 + _T * 0.015, ang * 4.5 + 2.3 - _T * 0.012)).rgb;
                     float far_ = pow(ray.r * 0.7 + ray.g * 0.3, 2.6);                                            // 遠い太い帯
                     float near_ = pow(ray2.g * 0.5 + ray2.b * 0.6, 1.8);                                        // 近い細い筋
                     float breath = 0.85 + 0.15 * sin(_T * 0.7);
@@ -235,9 +243,12 @@ Shader "Lab/Proc"
                 else if (_Mode < 3.5)
                 {
                     // ---- 炎の渦 ----
-                    float2 q = p - _Origin.xy; float r = length(q); float ang = atan2(q.y, q.x); float lr = log(max(r, 1e-4));
+                    float2 q = p - _Origin.xy - float2(sway(_T * 0.8, 3), sway(_T * 0.6, 8) * 0.6) * 0.06 * _Sway.w;   // 中心が漂う
+                    q.y -= max(0, q.y) * 0.25 * (0.5 + 0.5 * sin(_T * 2.3));                                            // 上へ引かれて伸び縮み
+                    float r = length(q); float ang = atan2(q.y, q.x); float lr = log(max(r, 1e-4));
+                    float spin = _T * 1.6 + 0.5 * sway(_T * 0.7, 6) * _Sway.x;                                          // 回る速さが揺れる
                     // 大きく遅い渦
-                    float u1 = ang * 2.5 + lr * 3.5 - _T * 1.6, v1 = lr * 2.5 - _T * 3.5;
+                    float u1 = ang * 2.5 + lr * 3.5 - spin, v1 = lr * 2.5 - _T * 3.5;
                     float3 wp = tex2D(_PWarp, float2(u1, v1) * 0.09).rgb;                                             // 二重に歪ませた炎の板
                     float n1 = wp.g * 0.6 + wp.r * 0.4;
                     // 小さく速い渦（逆向きの捻り）
@@ -269,7 +280,10 @@ Shader "Lab/Proc"
                 else if (_Mode < 4.5)
                 {
                     // ---- 光の球 ----
-                    float2 q = p - _Origin.xy; float r = length(q) / _Radius; float ang = atan2(q.y, q.x);
+                    float2 q = p - _Origin.xy - float2(sin(_T * 1.3) * 0.02 + sway(_T * 0.9, 2) * 0.012, sin(_T * 2.1 + 1) * 0.03 + sway(_T * 0.7, 5) * 0.01) * _Sway.w;   // 浮いて揺れる
+                    float rr_ = _Radius * (1 + 0.02 * sway(_T * 3, 4) * _Sway.y);
+                    float ca_ = cos(_T * 0.35), sa_ = sin(_T * 0.35); q = float2(q.x * ca_ - q.y * sa_, q.x * sa_ + q.y * ca_);   // 糸がゆっくり回る
+                    float r = length(q) / rr_; float ang = atan2(q.y, q.x);
                     float inside = 1 - smoothstep(0.985, 1.0, r);
                     float z = sqrt(saturate(1 - r * r));
                     float2 w = float2(fbm3(q * 2.5 / _Radius + float2(_T * 0.7, 0)), fbm3(q * 2.5 / _Radius + float2(0, -_T * 0.5) + 5));
@@ -312,9 +326,10 @@ Shader "Lab/Proc"
                 else if (_Mode < 5.5)
                 {
                     // ---- 衝撃波 ----
-                    float2 q = p - _Origin.xy; float r = length(q); float ang = atan2(q.y, q.x); float a01 = ang / 6.2831853 + 0.5;
+                    float2 q = p - _Origin.xy; float tl = 0.12 * _Sway.x; q = float2(q.x * cos(tl) - q.y * sin(tl), (q.x * sin(tl) + q.y * cos(tl)) * (1 + 0.08 * _Sway.y));   // 少し楕円で傾く
+                    float r = length(q); float ang = atan2(q.y, q.x); float a01 = ang / 6.2831853 + 0.5;
                     float2 cp = float2(cos(ang), sin(ang));
-                    float n = fbm3(cp * 1.4 + _Seed);
+                    float n = lerp(0.5, fbm3(cp * 1.4 + _Seed + _T * 0.3), saturate(_Radius * 2.5));   // 縁のうねりは広がるほど育つ
                     float3 k3;
                     for (int ch = 0; ch < 3; ch++)
                     {
@@ -339,7 +354,7 @@ Shader "Lab/Proc"
                     float2 q = (p - _Origin.xy) / _Radius; float r = length(q); float ang = atan2(q.y, q.x);
                     float lw = 0.0075;
                     float k = 0;
-                    float rot1 = _T * 0.3, rot2 = -_T * 0.45, rot3 = _T * 0.15;
+                    float rot1 = _T * 0.3 + 0.25 * sway(_T * 0.4, 1) * _Sway.x, rot2 = -_T * 0.45 + 0.2 * sway(_T * 0.55, 6) * _Sway.x, rot3 = _T * 0.15 + 0.15 * sway(_T * 0.3, 9) * _Sway.x;
                     // 輪 7 本（太さと明るさを変える）
                     float rings[7] = { 1.0, 0.965, 0.86, 0.80, 0.62, 0.40, 0.18 };
                     float rw[7] = { 1.6, 0.7, 0.9, 0.7, 1.2, 0.8, 0.6 };
@@ -349,7 +364,8 @@ Shader "Lab/Proc"
                         float ra = ang + rot3; float N = 56; float cell = floor(ra / 6.2831853 * N + 0.5); float fa = (frac(ra / 6.2831853 * N + 0.5) - 0.5) / N * 6.2831853;   // 角度のずれ
                         float hA = h1(cell + 100), hB = h1(cell + 200), hC = h1(cell + 300);
                         float rc = 0.912; float wA = 0.012;
-                        float tick = line_(fa * rc, lw) * (1 - smoothstep(0, 0.003, abs(r - rc) - (0.012 + 0.03 * hA))) * step(0.2, hB);
+                        float blink = 0.55 + 0.45 * step(0.3, h1(cell + floor(_T * 6 + hA * 7)));                        // ルーンがコマ単位で明滅
+                        float tick = line_(fa * rc, lw) * (1 - smoothstep(0, 0.003, abs(r - rc) - (0.012 + 0.03 * hA))) * step(0.2, hB) * blink;
                         float dot_ = exp(-(pow(fa * rc, 2) + pow(r - (0.88 + 0.06 * hC), 2)) / (0.0045 * 0.0045)) * step(0.55, hA);
                         float arc = line_(r - (0.885 + 0.05 * hB), lw * 0.8) * (1 - smoothstep(0.25, 0.4, abs(fa * N / 6.2831853))) * step(0.5, hC);
                         k += (tick + dot_ + arc) * 1.2;
@@ -397,7 +413,8 @@ Shader "Lab/Proc"
                         float2 base = o + float2(cos(ph) * R, sin(ph) * R * sq);
                         float hgt = 0.25 + 0.6 * h1(id + 1); float flick = 0.6 + 0.6 * gnoise(float2(_T * 6 + id, 1));
                         float dy = p.y - base.y; float up = step(0, dy) * exp(-dy / hgt * 2.2);
-                        k += line_(p.x - base.x, 0.003 + 0.004 * h1(id + 2)) * up * flick * (0.4 + 0.8 * h1(id + 3)) * (sin(ph) > 0 ? back : front) * step(-0.02, dy);
+                        float bend = sin(dy * 6 + _T * 3 + id) * 0.02 * dy * _Sway.x;                                        // 立ち上る線がゆらぐ
+                        k += line_(p.x - base.x - bend, 0.003 + 0.004 * h1(id + 2)) * up * flick * (0.4 + 0.8 * h1(id + 3)) * (sin(ph) > 0 ? back : front) * step(-0.02, dy);
                     }
                     float motes = particles(p, o, _T, 40, 0.28, -0.06, 2.6, 0.005, 0.0, 1.5708, 2.0, 7);
                     // 陣の面の照り返し（主人公の足元がうっすら明るい）

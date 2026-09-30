@@ -2915,6 +2915,14 @@ public static class FxLab
     static float Flick(float t, float rate, float seed, float depth) { float h = Hash01(Mathf.Floor(t * rate) + seed * 31f); return 1 - depth * (h < 0.22f ? 1 : 0); }   // ときどき落ちる（コマ単位）
     static float Spike(float t, float period, float seed) { float h = Hash01(Mathf.Floor(t / period) + seed * 17f); float ph = (t % period) / period; return (h > 0.4f && ph < 3 * F / period) ? 1 : 0; }   // ときどき一瞬跳ねる
     static float Env(float a, float inT, float hold, float outT) => a < 0 ? 0 : a < inT ? EaseOut(a / inT) : a < inT + hold ? 1 : 1 - EaseIn(Mathf.Clamp01((a - inT - hold) / outT));
+    // カメラの漂い（本人 2026-10-01「動きが硬い」）: 保っている間もじっとしない。ゆっくり寄る・傾く・流れる。周波数の合わない sin で周期を見せない
+    static float Sway(float t, float s) => Mathf.Sin(t * 1.31f + s) * 0.5f + Mathf.Sin(t * 2.17f + s * 1.7f) * 0.3f + Mathf.Sin(t * 3.71f + s * 0.4f) * 0.2f;
+    static void Drift(Ctx c, float t, float k, float zoomIn = 0.03f)
+    {
+        c.post.zoom *= 1f + (zoomIn * Mathf.Clamp01(t * 0.5f) + 0.006f * Sway(t * 0.6f, 1)) * k;
+        c.post.rot += 0.35f * Sway(t * 0.45f, 4) * k;
+        c.post.shake += new Vector2(0.004f * Sway(t * 0.5f, 2), 0.003f * Sway(t * 0.4f, 6)) * k;
+    }
     static void Punch(Ctx c, float a, float flash, float trauma, float zoom) { if (a >= 0 && a < 2 * F) c.post.flash = Mathf.Max(c.post.flash, flash); if (a >= 0) { c.post.trauma += trauma * Decay(a, 7f); c.post.zoom *= 1f + zoom * Decay(a, 6f); } }
 
     // P1 光の柱: 溜め（細い糸が上から垂れ、舞台が沈む）→ 一気に落ちて着地（太さは行き過ぎて戻る・止め）→ 呼吸して保つ → 一気に消えて余光
@@ -2933,7 +2941,9 @@ public static class FxLab
             Both(mb, mf, m => { m.SetFloat("_T", t); m.SetFloat("_Width", width); m.SetFloat("_Reach", reach); m.SetVector("_Origin", new Vector4(PX(hero.x), 0, hit, 0)); m.SetFloat("_Intensity", inten); });
             c.post.stageDim = Mathf.Max(c.post.stageDim, 0.55f * (b < 0 ? pre : Decay(b, 3f))); c.post.darken = Mathf.Max(c.post.darken, 0.4f * (b < 0 ? pre : Decay(b, 3f)));
             Punch(c, a - 2 * F, 0.8f, 0.9f, 0.07f); Punch(c, b, 0.35f, 0.3f, -0.03f);
-            if (a >= 0 && b < 0) HeroGlow(c, 0.7f, col); else if (b >= 0) HeroGlow(c, 0.7f * Decay(b, 4f), col);
+            Both(mb, mf, m => m.SetVector("_Sway", new Vector4(a < 0 ? 0.3f : 1f, a < 0 ? 0.3f : 1f, a < 0 ? 0.4f : 1f, 1)));
+            Drift(c, t, b < 0 ? pre * Mathf.Clamp01(a / 0.3f) : Decay(b, 3f));
+            if (a >= 0 && b < 0) HeroGlow(c, 0.7f + 0.1f * Sway(t * 2, 3), col); else if (b >= 0) HeroGlow(c, 0.7f * Decay(b, 4f), col);
         });
     }
     // P2 光芒: 沈む → 雲が裂けて一気に差す（行き過ぎて戻る）→ ときどき急に強まる → 一瞬白く、一気に閉じる
@@ -2949,7 +2959,7 @@ public static class FxLab
             m.SetFloat("_T", t); m.SetFloat("_Reach", 1f); m.SetFloat("_Intensity", inten);
             float e = b < 0 ? pre : Decay(b, 5f);
             c.post.stageDim = Mathf.Max(c.post.stageDim, 0.5f * e); c.post.darken = Mathf.Max(c.post.darken, 0.3f * e); c.post.tint = new Color(1f, 0.92f, 0.75f, 0.15f * e);
-            Punch(c, a, 0.3f, 0.15f, 0.02f);
+            Punch(c, a, 0.3f, 0.15f, 0.02f); m.SetVector("_Sway", new Vector4(1, 1, 0.6f, 1)); Drift(c, t, e, 0.05f);
         });
     }
     // P3 稲妻: 落ちる前に一瞬沈む → 2〜3 本が続けざまに落ちる（止め・白・揺れ）→ 間 → また落ちる。均一な点滅にしない
@@ -2971,6 +2981,7 @@ public static class FxLab
             m.SetFloat("_T", t); m.SetFloat("_Intensity", inten);
             float e = Mathf.Clamp01((t - 0.15f) / 0.2f) * (1 - Mathf.Clamp01((t - 2.35f) / 0.25f));
             c.post.stageDim = Mathf.Max(c.post.stageDim, (0.5f + 0.3f * dip) * e); c.post.darken = Mathf.Max(c.post.darken, (0.4f + 0.3f * dip) * e); c.post.tint = new Color(0.6f, 0.75f, 1f, 0.18f * e);
+            m.SetVector("_Sway", new Vector4(0, 0, 0.3f, 0)); Drift(c, t, e * (1 - Mathf.Clamp01(inten)), 0.02f);
         });
     }
     // P4 炎の渦: 種火がちらつく → 一気に燃え上がる（大きさは行き過ぎて戻る・止め・速く回る）→ ときどき炎が跳ねる → 中心へ一気に吸い込まれて弾ける
@@ -2992,6 +3003,7 @@ public static class FxLab
             c.post.stageDim = Mathf.Max(c.post.stageDim, 0.55f * e); c.post.darken = Mathf.Max(c.post.darken, 0.4f * e); c.post.heat = Mathf.Max(c.post.heat, 0.7f * e * (a > 0 ? 1 : 0.2f));
             c.post.fireLight = new Color(1f, 0.5f, 0.18f, 0) * (0.7f * e * (a > 0 ? 1 : 0.15f)); c.post.fireLight.a = 3.2f;
             Punch(c, a, 0.6f, 0.7f, 0.05f); Punch(c, b - 6 * F, 0.7f, 0.6f, 0.06f);
+            m.SetVector("_Sway", new Vector4(1, 1, 1.2f, 1)); Drift(c, t, b < 0 ? Mathf.Clamp01(a / 0.3f) : Decay(b, 4f));
         });
     }
     // P5 光の球: 3 段の階段で急に育つ（段ごとに止め・白）→ 脈が速まる → 一瞬縮む（溜め）→ 弾けて奔流
@@ -3011,7 +3023,8 @@ public static class FxLab
             float ant = t - (pop - 0.12f); if (ant >= 0) r *= Mathf.Lerp(1f, 0.55f, Mathf.Clamp01(ant / 0.12f));                 // 溜め: 縮む
             float inten = t < pop ? (a < 0 ? 0 : 0.9f + 0.5f * grow) * pulse * (ant >= 0 ? 2.2f : 1f) : 0;
             foreach (var ts in steps) { float s = t - ts; if (s >= 0 && s < 2 * F) inten = 3f; }
-            Both(mb, mf, m => { m.SetFloat("_T", t); m.SetFloat("_Radius", r * pulse); m.SetFloat("_Reach", 1f); m.SetFloat("_Intensity", inten); });
+            Both(mb, mf, m => { m.SetFloat("_T", t); m.SetFloat("_Radius", r * pulse * (1f + 0.04f * Sway(t * 0.8f, 2))); m.SetFloat("_Reach", 1f); m.SetFloat("_Intensity", inten); m.SetVector("_Sway", new Vector4(1, 1, 0.8f, 1)); });
+            Drift(c, t, t < pop ? Mathf.Clamp01(a / 0.3f) : 0, 0.04f);
             if (a >= 0 && t < pop) { c.post.stageDim = Mathf.Max(c.post.stageDim, 0.4f); c.post.darken = Mathf.Max(c.post.darken, 0.3f * grow); HeroGlow(c, 0.4f * grow, col); }
             foreach (var ts in steps) Punch(c, t - ts, 0.45f, 0.45f, 0.03f);
         });
@@ -3026,7 +3039,7 @@ public static class FxLab
         for (int k = 0; k < 3; k++)
         {
             var (q, m) = Proc(c, "Shock" + k, 5, pos, new Vector2(12f, 12f), k == 1 ? new Color(1f, 0.85f, 0.45f) : col, Color.white, 3005 + k, k * 3.7f);
-            m.SetFloat("_Ground", (GroundY - pos.y) / 6f); mats.Add((m, q, on + new[] { 0f, 0.08f, 0.22f }[k], new[] { 0.7f, 0.55f, 0.35f }[k], k));
+            m.SetFloat("_Ground", (GroundY - pos.y) / 6f); m.SetVector("_Sway", new Vector4(new[] { 1f, -1.5f, 0.6f }[k], new[] { 1f, 1.8f, 0.5f }[k], 0.5f, 0)); mats.Add((m, q, on + new[] { 0f, 0.08f, 0.22f }[k], new[] { 0.7f, 0.55f, 0.35f }[k], k));
         }
         var (iq, im) = Proc(c, "Implode", 5, pos, new Vector2(12f, 12f), new Color(0.9f, 0.5f, 0.3f), Color.white, 3008, 9); im.SetFloat("_Ground", 10f);
         c.Freeze(on + 2 * F, 3 * F);
@@ -3075,7 +3088,10 @@ public static class FxLab
             float width = b < 0 ? 0.012f : e2 < 0 ? 0.11f * Over(b - 2 * F, 0.7f, 28f, 8f) : 0.11f * Collapse(e2, 4 * F) + 0.008f;
             float pInt = b < 0 ? 0 : e2 < 0 ? (1f + 2f * Decay(b, 6f)) * Flick(t, 12, 5, 0.15f) : (e2 < 4 * F ? 2.5f : 0.4f * Decay(e2 - 4 * F, 4f));
             Both(pb, pf, m => { m.SetFloat("_T", t); m.SetFloat("_Width", width); m.SetFloat("_Reach", 1.25f * Snap(b, 2 * F)); m.SetVector("_Origin", new Vector4(PX(hero.x), 0, Mathf.Clamp01((b - 2 * F) / 0.45f), 0)); m.SetFloat("_Intensity", pInt); });
+            float tilt = 1f + 0.06f * Sway(t * 0.5f, 3); cb.q.localScale = new Vector3(R * 2.4f, R * 1.2f * Sq * tilt, 1); cf.q.localScale = new Vector3(R * 2.4f, R * 1.2f * Sq * tilt, 1);   // 板が呼吸するように傾く
+            foreach (var (q, m) in new[] { cb, cf }) m.SetVector("_Sway", new Vector4(1, 1, 0.5f, 1)); Both(lb, lf, m => m.SetVector("_Sway", new Vector4(1, 1, 0.6f, 1))); Both(pb, pf, m => m.SetVector("_Sway", new Vector4(1, 1, 1, 1)));
             float e = a < 0 ? 0 : e2 < 0 ? 1 : Decay(e2, 4f);
+            Drift(c, t, e * dipK, 0.04f);
             c.post.stageDim = Mathf.Max(c.post.stageDim, (0.45f + 0.25f * (1 - dipK)) * e); c.post.darken = Mathf.Max(c.post.darken, 0.35f * e);
             HeroGlow(c, (0.25f * dipK + (b >= 0 ? 0.6f : 0)) * e, col);
             if (stepFlash > 0) c.post.trauma += 0.12f;
@@ -3103,6 +3119,7 @@ public static class FxLab
             m.SetFloat("_T", a); m.SetFloat("_Reach", Mathf.Lerp(0.15f, 1.5f, Snap(a, 4 * F)));
             m.SetFloat("_Intensity", (a < 3 * F ? 3.5f : 0.9f + 1.2f * Decay(a, 3f)) * fade); m.SetFloat("_Core", (0.6f + 0.6f * Decay(a, 5f)) * fade);
             c.post.stageDim = Mathf.Max(c.post.stageDim, 0.8f * fade); c.post.darken = Mathf.Max(c.post.darken, 0.4f * fade); Punch(c, a, 0.9f, 0.6f, 0.06f);
+            m.SetVector("_Sway", new Vector4(1, 1, 1, 1.5f)); Drift(c, t, fade, 0.02f);
         });
     }
     // P9 星のワープ: ゆっくり漂う → 2 コマで超高速に飛び込む（点が線に・寄る・止め）→ ときどき速度が揺れる → 一瞬で止まる（線が点に戻る・白）→ 余韻
@@ -3125,6 +3142,7 @@ public static class FxLab
             float e = s < 0 ? Mathf.Clamp01(a / 0.3f) : Decay(s, 3f);
             c.post.stageDim = Mathf.Max(c.post.stageDim, 0.8f * e); c.post.darken = Mathf.Max(c.post.darken, 0.5f * e);
             if (j >= 0 && s < 0) c.post.zoom *= 1f + 0.06f + 0.12f * Decay(j, 5f);
+            m.SetVector("_Sway", new Vector4(1, 1, 0.4f, j < 0 ? 0.6f : s < 0 ? 2.2f : 0.3f)); Drift(c, t, e, 0f);
             Punch(c, j, 0.45f, 0.5f, 0f); Punch(c, s, 0.6f, 0.4f, -0.05f);
         });
     }

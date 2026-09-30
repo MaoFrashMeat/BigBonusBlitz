@@ -19,6 +19,7 @@ Shader "Lab/Rush"
         _Width ("Width", Float) = 0.02
         _Rainbow ("Rainbow", Float) = 0
         _Stars ("Stars", Float) = 0
+        _Sway ("Sway", Vector) = (1,1,1,1)
         _PNoise ("ProcNoise", 2D) = "gray" {}
         _PRidge ("ProcRidge", 2D) = "gray" {}
         _PVoro ("ProcVoro", 2D) = "gray" {}
@@ -38,7 +39,7 @@ Shader "Lab/Rush"
             #pragma target 3.5
             #include "UnityCG.cginc"
             sampler2D _PNoise, _PRidge, _PVoro, _PStreak, _PWarp, _PSparks;
-            float4 _Col, _Hot; float _Mode, _T, _Intensity, _Core, _Aspect, _Seed, _Reach, _Width, _Rainbow, _Stars;
+            float4 _Col, _Hot, _Sway; float _Mode, _T, _Intensity, _Core, _Aspect, _Seed, _Reach, _Width, _Rainbow, _Stars;
             struct appdata { float4 pos:POSITION; float2 uv:TEXCOORD0; };
             struct v2f { float4 pos:SV_POSITION; float2 uv:TEXCOORD0; };
             v2f vert(appdata i){ v2f o; o.pos=UnityObjectToClipPos(i.pos); o.uv=i.uv; return o; }
@@ -75,10 +76,12 @@ Shader "Lab/Rush"
                 return acc;
             }
 
+            float sway(float t, float s) { return (sin(t * 1.31 + s) * 0.5 + sin(t * 2.17 + s * 1.7) * 0.3 + sin(t * 3.71 + s * 0.4) * 0.2); }
             float3 rushAt(float2 p, float rscale)
             {
+                p -= float2(sway(_T * 0.7, 2), sway(_T * 0.5, 7)) * 0.04 * _Sway.w;                       // 中心が漂う
                 float r = length(p) * rscale;
-                float ang = atan2(p.y, p.x) / 6.2831853 + 0.5;
+                float ang = atan2(p.y, p.x) / 6.2831853 + 0.5 + 0.01 * sway(_T * 0.4, 3) * _Sway.x;       // 筋の束がゆっくり掃く
                 float lr = log(max(r, 1e-4));
                 // 角度のうねり（FBM）で、筋の束がところどころ偏る
                 float warp = (fbm(float2(ang * 6, lr * 0.5 - _T * 0.6)) - 0.5) * 0.012;
