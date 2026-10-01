@@ -44,7 +44,7 @@ for i in range(1, n):
     if top[i] > 0.93: d.rectangle([X(i) - 2, pad + 12, X(i) + 2, pad + 20], fill=(255, 255, 255))
 d.text((pad, 12), f"{name}  {n} コマ  黄=明るさ 白=最大(上位1%) 青=動き  赤印=止め(動き≈0) 白印=白(最大>0.93)", fill=(220, 220, 230), font=font)
 # 数で要約: 最大の明るさのコマ・白のコマ数・止めの長さ・明るさが頂点の 30% に落ちるまでのコマ数
-peak = int(lum.argmax()); whites = int((top > 0.93).sum())   # トーンマップ後は 0.95 付近が上限なので 0.93 を「白」とみなす; holds = int((mot[1:] < 0.0015).sum())
+peak = int(lum.argmax()); whites = int((top > 0.93).sum()); holds = int((mot[1:] < 0.0015).sum())   # トーンマップ後は 0.95 付近が上限なので 0.93 を「白」とみなす
 after = lum[peak:]; thr = lum[peak] * 0.3 + lum[:max(1, peak)].min() * 0.7 if peak > 0 else lum[peak] * 0.3
 fall = int(np.argmax(after < thr)) if (after < thr).any() else -1
 summ = f"頂点={peak} コマ  白={whites} コマ  止め={holds} コマ  頂点から 30% まで={fall} コマ ({fall / 60:.2f} 秒)" if fall >= 0 else f"頂点={peak} コマ  白={whites} コマ  止め={holds} コマ  散りきらない"
