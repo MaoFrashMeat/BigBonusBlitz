@@ -93,6 +93,7 @@ public static class FxLab
         yield return new Clip { name = "door_shutter", dur = 4.7f, hold = 1, build = DoorShutter };
         yield return new Clip { name = "door_gold", dur = 4.7f, hold = 1, build = DoorGold };
         yield return new Clip { name = "proc_pillar", dur = 2.6f, hold = 1, build = ProcPillar };
+        yield return new Clip { name = "toon_hit", dur = 1.4f, hold = 1, build = ToonHit };
         yield return new Clip { name = "proc_godrays", dur = 3.0f, hold = 1, build = ProcGodRays };
         yield return new Clip { name = "proc_lightning", dur = 2.6f, hold = 1, build = ProcLightning };
         yield return new Clip { name = "proc_firevortex", dur = 3.0f, hold = 1, build = ProcFireVortex };
@@ -2924,6 +2925,35 @@ public static class FxLab
     }
     static void Punch(Ctx c, float a, float flash, float trauma, float zoom) { if (a >= 0 && a < 2 * F) c.post.flash = Mathf.Max(c.post.flash, flash); if (a >= 0) { c.post.trauma += trauma * 0.6f * Decay(a, 10f); c.post.zoom *= 1f + zoom * Decay(a, 6f); } }
 
+    // ===== 手描き風の硬い形（Lab/Toon。本人 2026-10-01 のリファレンス「本当にそっくりに作れますか？」→ 1 本作って並べる）=====
+    static Material ToonMat(Ctx c, int mode, Color core, Color rim, Color line, float seed)
+    {
+        var m = ProcTex(c, new Material(Shader.Find("Lab/Toon"))); m.SetFloat("_Mode", mode); m.SetColor("_Core", core); m.SetColor("_Rim", rim); m.SetColor("_Line", line); m.SetFloat("_Seed", seed); m.SetFloat("_Alpha", 0); return m;
+    }
+    // T1 打撃の閃光（Basic Hit）: 12fps のコマ落とし。点 → 最大（白・止め・蹴り）→ 穴が空き棘が伸びて体が縮む → 棘だけ → 破片 → 消える。輪と飛沫は別の時計
+    static void ToonHit(Ctx c)
+    {
+        float on = 0.3f; var core = Color.white; var rim = new Color(0.25f, 0.65f, 1f); var line = new Color(0.03f, 0.12f, 0.35f);
+        var pos = GoblinHome + new Vector3(-0.3f, 0.4f, -3.6f);
+        var mB = ToonMat(c, 0, core, rim, line, 3); var qB = Quad(c.root, "ToonBurst", pos, new Vector2(7f, 7f), mB); mB.SetFloat("_Spikes", 8); mB.SetFloat("_RimW", 0.09f); mB.SetFloat("_LineW", 0.016f);
+        var mR = ToonMat(c, 1, core, rim, line, 5); var qR = Quad(c.root, "ToonRing", pos + new Vector3(0, 0, 0.01f), new Vector2(7f, 7f), mR); mR.SetFloat("_RimW", 0.03f); mR.SetFloat("_LineW", 0.01f);
+        var mS = ToonMat(c, 2, core, rim, line, 8); var qS = Quad(c.root, "ToonSplat", pos + new Vector3(0, 0, -0.01f), new Vector2(7f, 7f), mS); mS.SetFloat("_RimW", 0.02f); mS.SetFloat("_LineW", 0.01f);
+        c.Freeze(on + 5 * F, 4 * F); c.Impulse(on + 5 * F, new Vector2(9f, -4f), 11f, 16f);
+        c.OnUpdate(t =>
+        {
+            float a = t - on; int fr = Mathf.FloorToInt(a / (5 * F)); float st = fr * 5 * F;              // 12fps のコマ落とし（5 コマごとに形が変わる）
+            bool onn = a >= 0 && fr < 8;
+            float ph = new[] { 0.05f, 0.15f, 0.3f, 0.45f, 0.6f, 0.75f, 0.9f, 1f }[Mathf.Clamp(fr, 0, 7)];
+            mB.SetFloat("_Phase", ph); mB.SetFloat("_Radius", 0.36f); mB.SetFloat("_Alpha", onn && fr < 7 ? 1 : 0);
+            // 輪: 2 コマ目から広がり、千切れて消える
+            float rp = Mathf.Clamp01((fr - 1) / 5f); mR.SetFloat("_Phase", rp); mR.SetFloat("_Radius", 0.25f + 0.7f * rp); mR.SetFloat("_Alpha", 0);   // 輪は参考に無いので止める
+            // 飛沫: 3 コマ目から外へ
+            float sp = Mathf.Clamp01((fr - 2) / 4f); mS.SetFloat("_Phase", sp); mS.SetFloat("_Radius", 0.6f); mS.SetFloat("_Alpha", onn && fr >= 2 && fr < 7 ? 1 : 0);
+            if (fr == 1 && a - st < F) c.post.flash = 0.5f;
+            if (a >= 0 && fr < 7) { c.post.stageDim = Mathf.Max(c.post.stageDim, 0.3f); }
+            float h = a - 5 * F; if (h >= 0) c.post.zoom *= 1f + 0.05f * Decay(h, 8f);
+        });
+    }
     // P1 光の柱（2026-10-01 時間表から作り直し。docs/FX_RESEARCH.md 6 節）。擬音: 「シュゥゥ…ッ、ドォン！……ジィィ…シュッ」
     //   0〜18 コマ  溜め: 細い糸が上から垂れ、舞台が沈む。糸は 12fps で明滅（コマ落とし）。最後の 4 コマ「ぐっ」（糸が太く明るく）→ 1 コマ暗く
     //  19〜21 コマ  頂点: 2 コマで出し切る。白 2 コマ。太さは 1.6 倍まで行き過ぎる。21 コマ目から止め 6 コマ（重い当たり）
