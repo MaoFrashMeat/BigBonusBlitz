@@ -27,6 +27,7 @@ Shader "Lab/Proc"
         _Origin ("Origin", Vector) = (0,0,0,0)
         _Ground ("GroundY", Float) = -0.6
         _Sway ("Sway (bend, breathe, warp, drift)", Vector) = (1,1,1,1)
+        _Cut ("Cut from bottom / hue shift / core only / sheath only", Vector) = (0,0,1,1)
         _PNoise ("ProcNoise", 2D) = "gray" {}
         _PRidge ("ProcRidge", 2D) = "gray" {}
         _PVoro ("ProcVoro", 2D) = "gray" {}
@@ -46,7 +47,7 @@ Shader "Lab/Proc"
             #pragma target 3.5
             #include "UnityCG.cginc"
             sampler2D _PNoise, _PRidge, _PVoro, _PStreak, _PWarp, _PSparks;
-            float4 _Col, _Hot, _Origin, _Sway; float _Mode, _Layer, _T, _Intensity, _Aspect, _Seed, _Radius, _Width, _Reach, _Ground;
+            float4 _Col, _Hot, _Origin, _Sway, _Cut; float _Mode, _Layer, _T, _Intensity, _Aspect, _Seed, _Radius, _Width, _Reach, _Ground;
             struct appdata { float4 pos:POSITION; float2 uv:TEXCOORD0; };
             struct v2f { float4 pos:SV_POSITION; float2 uv:TEXCOORD0; };
             v2f vert(appdata i){ v2f o; o.pos=UnityObjectToClipPos(i.pos); o.uv=i.uv; return o; }
@@ -134,15 +135,16 @@ Shader "Lab/Proc"
                     float x = p.x - ox; float ax = abs(x);
                     float w = _Width * (1 + 0.18 * sway(_T * 1.6, 3) * _Sway.y + 0.1 * sin(p.y * 3 - _T * 4) * _Sway.y);   // 呼吸（縦に波が走る）
                     float reach = smoothstep(_Reach, _Reach - 0.2, 1 - (p.y + 1) * 0.5);            // 上から降りる
+                    reach *= smoothstep(_Cut.x - 0.12, _Cut.x, (p.y + 1) * 0.5);                       // 下から退く（散り）
                     float ground = smoothstep(_Ground - 0.02, _Ground + 0.02, p.y);
                     float edgeN = fbm(float2(p.y * 1.4 - _T * 2.5, 3.1));
                     float we = w * (0.8 + 0.5 * edgeN);
                     // 鞘（後ろ）: 広く柔らかい。縦に流れるむら
                     float3 stk = tex2D(_PStreak, float2(p.y * 0.35 - _T * 0.9 - 0.2 * sin(_T * 0.9), x * 1.6 + 0.3 + 0.03 * sway(_T, 5))).rgb;                  // 縦に長い筋（u = y）
                     float sheathN = 0.35 + 1.1 * (stk.r * 0.6 + stk.g * 0.4) + stk.b * 0.6;
-                    float sheath = exp(-ax / (w * 3.2)) * sheathN * 0.55 + exp(-ax / (w * 9)) * 0.1;
+                    float sheath = exp(-ax / (w * 2.6)) * sheathN * 0.28 + exp(-ax / (w * 8)) * 0.035;
                     // 芯（前）: 硬く白い。縦の細かいちらつき
-                    float coreN = 0.8 + 0.45 * tex2D(_PStreak, float2(p.y * 0.8 - _T * 2.2, x * 6 + 0.7)).b;
+                    float coreN = 0.8 + 0.45 * tex2D(_PStreak, float2(p.y * 0.8 - _T * 0.5, x * 6 + 0.7)).b;   // 芯はほぼ止まっている（速さの対比の「静」）
                     float core = exp(-pow(ax / we, 2) * 3.5) * coreN;
                     // らせんの帯 2 本: 手前に来たときは前の層、奥のときは後ろの層
                     float helix = 0;
@@ -150,7 +152,7 @@ Shader "Lab/Proc"
                     {
                         float ph = p.y * (5.5 + 1.5 * sin(_T * 0.6)) + _T * (5 + 1.5 * sway(_T * 0.5, 7)) + hb * 3.14159;   // らせんの間隔と速さが揺れる
                         float xb = sin(ph) * w * 2.3; float depth = cos(ph);
-                        float band = line_(x - xb, w * 0.22) * (0.5 + 0.5 * abs(depth));
+                        float band = line_(x - xb, w * 0.16) * (0.5 + 0.5 * abs(depth)) * 1.4;
                         helix += band * (depth > 0 ? front : back) * (0.6 + 0.4 * gnoise(float2(p.y * 3 - _T * 2, hb * 7)));
                     }
                     // 縁の裂け: 細い筋が縁から上へ昇る
@@ -159,16 +161,18 @@ Shader "Lab/Proc"
                     float dl = 0.25 + 0.5 * h1(id + 9);
                     float tear = pow(saturate(s / dl), 3) * step(s, dl) * exp(-pow(ax / (w * 2.4), 4)) * step(w * 0.9, ax) * (0.3 + 1.2 * pow(h1(id + 13), 3));
                     // 昇る火の粉（前）と、着地の輪・地面の照り返し
-                    float sparks = particles(p, float2(ox, _Ground + 0.02), _T, 40, 0.5, -0.35, 1.6, 0.007, 3.0, 1.5708, 1.1, 1) * front;
+                    float sparks = particles(p, float2(ox, _Ground + 0.02), _T, 56, 0.7, -0.45, 1.4, 0.006, 6.0, 1.5708, 1.0, 1) * front * 1.3;   // 速く・長い尾（速さの対比の「速」）
                     float hit = _Origin.z;
                     float ring = hit > 0 ? groundRing(p, float2(ox, _Ground), hit * 1.1, 0.3, 0.05 + hit * 0.1, 3.3) * (1 - hit) * 1.6 : 0;
-                    float gl = groundLight(p, float2(ox, _Ground - 0.04), float2(0.7, 0.13), _T) * 0.9;
+                    float gl = groundLight(p, float2(ox, _Ground - 0.04), float2(0.55, 0.1), _T) * 0.4;
                     float top = smoothstep(1.0, 0.85, p.y);
-                    float k = (core * 2.0 * front + sheath + helix * 0.9 + tear * 0.9) * top * reach * ground + (ring + gl) * reach + sparks * reach;
-                    float3 col = lerp(_Col.rgb, _Hot.rgb, saturate(core * 0.9 + helix * 0.5));
-                    col = lerp(col, 1, saturate(core * core * 0.9));
+                    float k = (core * 2.0 * front * _Cut.z + (sheath + helix * 0.9 + tear * 0.9) * _Cut.w) * top * reach * ground + (ring + gl) * reach + sparks * reach;
+                    float3 deep = _Col.rgb * float3(0.7, 0.35, 0.2);                                    // 散りの色（深い赤橙）
+                    float3 colA = lerp(_Col.rgb, deep, _Cut.y);                                         // 色相を沈める
+                    float3 col = lerp(colA, _Hot.rgb, saturate(core * 0.9 + helix * 0.5) * (1 - _Cut.y));
+                    col = lerp(col, 1, saturate(core * core * 0.9) * (1 - _Cut.y * 0.8));
                     c = col * k;
-                    c += 1 * sparks * reach * 0.6;   // 火の粉は白寄り
+                    c += lerp(1, deep, _Cut.y) * sparks * reach * 0.6;   // 火の粉は白寄り（散りでは深い色）
                 }
                 else if (_Mode < 1.5)
                 {

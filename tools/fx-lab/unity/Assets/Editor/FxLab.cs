@@ -92,7 +92,7 @@ public static class FxLab
         yield return new Clip { name = "door_vault", dur = 4.7f, hold = 1, build = DoorVault };
         yield return new Clip { name = "door_shutter", dur = 4.7f, hold = 1, build = DoorShutter };
         yield return new Clip { name = "door_gold", dur = 4.7f, hold = 1, build = DoorGold };
-        yield return new Clip { name = "proc_pillar", dur = 3.0f, hold = 1, build = ProcPillar };
+        yield return new Clip { name = "proc_pillar", dur = 2.6f, hold = 1, build = ProcPillar };
         yield return new Clip { name = "proc_godrays", dur = 3.0f, hold = 1, build = ProcGodRays };
         yield return new Clip { name = "proc_lightning", dur = 2.6f, hold = 1, build = ProcLightning };
         yield return new Clip { name = "proc_firevortex", dur = 3.0f, hold = 1, build = ProcFireVortex };
@@ -2925,25 +2925,71 @@ public static class FxLab
     }
     static void Punch(Ctx c, float a, float flash, float trauma, float zoom) { if (a >= 0 && a < 2 * F) c.post.flash = Mathf.Max(c.post.flash, flash); if (a >= 0) { c.post.trauma += trauma * Decay(a, 7f); c.post.zoom *= 1f + zoom * Decay(a, 6f); } }
 
-    // P1 光の柱: 溜め（細い糸が上から垂れ、舞台が沈む）→ 一気に落ちて着地（太さは行き過ぎて戻る・止め）→ 呼吸して保つ → 一気に消えて余光
+    // P1 光の柱（2026-10-01 時間表から作り直し。docs/FX_RESEARCH.md 6 節）。擬音: 「シュゥゥ…ッ、ドォン！……ジィィ…シュッ」
+    //   0〜18 コマ  溜め: 細い糸が上から垂れ、舞台が沈む。糸は 12fps で明滅（コマ落とし）。最後の 4 コマ「ぐっ」（糸が太く明るく）→ 1 コマ暗く
+    //  19〜21 コマ  頂点: 2 コマで出し切る。白 2 コマ。太さは 1.6 倍まで行き過ぎる。21 コマ目から止め 6 コマ（重い当たり）
+    //  27〜45 コマ  戻り: 太さが 1.6 → 0.85 → 1.1 → 1.0 と減衰。着地の輪が走る。火の粉が一気に噴く
+    //  45〜90 コマ  保つ: 芯は止まり、鞘は遅く流れ、火の粉は速い（速さの対比）。1 Hz の呼吸。ときどき落ちる
+    //  90〜93 コマ  散りの溜め: 一瞬太く明るく
+    //  93〜97 コマ  一気に細る（4 コマ）。最初の 1 コマだけ跳ねる
+    //  97〜127 コマ 散り: 下から上へ退く（明度 → 色相（深い赤橙）→ 不透明度 → 大きさ の順）。火の粉だけ最後まで漂う
     static void ProcPillar(Ctx c)
     {
-        var hero = BuffHero(c); float on = 0.55f, off = on + 1.8f; var col = new Color(1f, 0.72f, 0.3f); var hot = new Color(1f, 0.95f, 0.8f);
+        var hero = BuffHero(c); var col = new Color(1f, 0.72f, 0.3f); var hot = new Color(1f, 0.95f, 0.8f);
+        const float T0 = 0.3f;                                                   // 溜めの始まり
+        float fr(float frames) => T0 + frames * F;
+        float tPre = fr(0), tHit = fr(19), tHold = fr(27), tOut0 = fr(90), tOut1 = fr(93), tOut2 = fr(97), tEnd = fr(127);
         var (mb, mf) = Proc2(c, "Pillar", 0, col, hot, 1);
-        c.Freeze(on + 2 * F, 4 * F);
+        c.Freeze(fr(21), 6 * F);
         c.OnUpdate(t =>
         {
-            float a = t - on, pre = Mathf.Clamp01((t - (on - 0.3f)) / 0.3f), b = t - off;
-            float width, inten, reach, hit;
-            if (a < 0) { width = 0.012f; inten = 0.35f * pre * Flick(t, 30, 1, 0.6f); reach = 1.25f * pre; hit = 0; }               // 溜め: 細い糸だけ、ちらつく
-            else if (b < 0) { width = 0.09f * Over(a - 2 * F, 0.7f, 28f, 8f); inten = (1f + 2.2f * Decay(a, 6f)) * (1f + 0.05f * Mathf.Sin(t * 9f)) * Flick(t, 12, 2, 0.15f); reach = 1.25f * Snap(a, 3 * F); hit = Mathf.Clamp01((a - 2 * F) / 0.45f); }
-            else { width = 0.09f * Collapse(b, 4 * F) + 0.008f; inten = b < 4 * F ? 2.5f : 0.5f * Decay(b - 4 * F, 4f); reach = 1.25f; hit = 1; }   // 一気に消えて、糸と余光
-            Both(mb, mf, m => { m.SetFloat("_T", t); m.SetFloat("_Width", width); m.SetFloat("_Reach", reach); m.SetVector("_Origin", new Vector4(PX(hero.x), 0, hit, 0)); m.SetFloat("_Intensity", inten); });
-            c.post.stageDim = Mathf.Max(c.post.stageDim, 0.55f * (b < 0 ? pre : Decay(b, 3f))); c.post.darken = Mathf.Max(c.post.darken, 0.4f * (b < 0 ? pre : Decay(b, 3f)));
-            Punch(c, a - 2 * F, 0.8f, 0.9f, 0.07f); Punch(c, b, 0.35f, 0.3f, -0.03f);
-            Both(mb, mf, m => m.SetVector("_Sway", new Vector4(a < 0 ? 0.3f : 1f, a < 0 ? 0.3f : 1f, a < 0 ? 0.4f : 1f, 1)));
-            Drift(c, t, b < 0 ? pre * Mathf.Clamp01(a / 0.3f) : Decay(b, 3f));
-            if (a >= 0 && b < 0) HeroGlow(c, 0.7f + 0.1f * Sway(t * 2, 3), col); else if (b >= 0) HeroGlow(c, 0.7f * Decay(b, 4f), col);
+            float width, inten, reach = 1.25f, hit = 0, cut = 0, hue = 0, coreK = 1, sheathK = 1, swayK = 1, zoomIn = 0;
+            float pre = Mathf.Clamp01((t - tPre) / (tHit - tPre));
+            if (t < tHit)
+            {   // 溜め
+                float last = Mathf.Clamp01((t - fr(15)) / (4 * F));                                      // 最後の 4 コマ「ぐっ」
+                float step12 = Mathf.Floor(t * 12) / 12;                                                  // 12fps で明滅
+                width = 0.012f + 0.016f * last; inten = (0.3f + 0.25f * Hash01(step12 * 7)) * pre + 0.9f * last; reach = 1.25f * Mathf.Clamp01(pre * 1.6f);
+                if (t >= fr(18)) inten *= 0.15f;                                                         // 解放の直前 1 コマ暗く
+                sheathK = 0.2f; swayK = 0.3f; zoomIn = 0.03f * pre;
+            }
+            else if (t < tOut0)
+            {   // 頂点 → 戻り → 保つ
+                float a = t - tHit;
+                float sp = 0; foreach (var sf in new[] { 60f, 78f }) { float q = t - fr(sf); if (q >= 0 && q < 2 * F) sp = 1; }        // 律動: 一瞬跳ねる
+                float spl = 0; foreach (var sf in new[] { 60f, 78f }) { float q = t - fr(sf) - 3 * F; if (q >= 0) spl = Mathf.Max(spl, Over(q, 0.5f, 22f, 9f) - 1); }   // 鞘が一拍遅れて追従
+                width = 0.09f * Snap(a, 2 * F) * (a < 2 * F ? 1.6f : Over(a - 2 * F, 0.75f, 26f, 7f)) * (1f + 0.35f * sp + 0.5f * spl);
+                inten = (0.85f + 2.5f * Decay(a, 5f)) * (1f + 0.06f * Mathf.Sin(t * 6.28f)) * Flick(t, 10, 2, 0.12f) * (1f + 1.2f * sp);   // 1 Hz の呼吸＋跳ね
+                hit = Mathf.Clamp01((a - 2 * F) / 0.4f); zoomIn = 0.03f;
+            }
+            else if (t < tOut2)
+            {   // 散りの溜め → 一気に細る
+                float b = t - tOut1;
+                width = t < tOut1 ? 0.09f * 1.3f : 0.09f * Collapse(b, 4 * F) + 0.01f;
+                inten = t < tOut1 ? 2.2f : (b < F ? 3f : 1.2f); hit = 1; zoomIn = 0.03f;
+            }
+            else
+            {   // 散り: 退く・色相を沈める・薄く・細く
+                float d = Mathf.Clamp01((t - tOut2) / (tEnd - tOut2));
+                width = 0.01f * (1 - d * 0.7f); cut = Mathf.SmoothStep(0, 1, Mathf.Clamp01(d * 1.3f)); hue = Mathf.Clamp01(d * 2f);
+                inten = 1.2f * Mathf.Pow(1 - d, 1.5f); hit = 1; coreK = 1 - d; zoomIn = 0.03f * (1 - d);
+            }
+            Both(mb, mf, m =>
+            {
+                m.SetFloat("_T", t); m.SetFloat("_Width", width); m.SetFloat("_Reach", reach); m.SetFloat("_Intensity", inten);
+                m.SetVector("_Origin", new Vector4(PX(hero.x), 0, hit, 0)); m.SetVector("_Cut", new Vector4(cut, hue, coreK, sheathK * (m == mf ? 0.3f : 1f)));   // 鞘は後ろの層だけ（主人公のシルエットを残す）
+                m.SetVector("_Sway", new Vector4(swayK, swayK, 0.6f * swayK, 1));
+            });
+            // 画面: 溜めで沈む → 白 2 コマ・揺れ 8 コマ → 保つ間はゆっくり寄る → 散りで戻る
+            float dim = t < tHit ? 0.55f * pre : t < tOut2 ? 0.55f : 0.55f * (1 - Mathf.Clamp01((t - tOut2) / 0.4f));
+            c.post.stageDim = Mathf.Max(c.post.stageDim, dim); c.post.darken = Mathf.Max(c.post.darken, dim * 0.7f);
+            if (t >= tHit && t < tHit + 2 * F) c.post.flash = 1f;
+            float h = t - fr(21); if (h >= 0 && h < 8 * F) { c.post.trauma += 1.0f * (1 - h / (8 * F)); }
+            if (h >= 0) c.post.zoom *= 1f + 0.08f * Decay(h, 8f);
+            if (t >= tOut1 && t < tOut1 + F) c.post.flash = 0.3f;
+            foreach (var sf in new[] { 60f, 78f }) { float q = t - fr(sf); if (q >= 0 && q < F) c.post.flash = Mathf.Max(c.post.flash, 0.2f); if (q >= 0) c.post.trauma += 0.25f * Decay(q, 10f); }
+            Drift(c, t, (t >= tHold && t < tOut0) ? 1f : 0f, zoomIn);
+            HeroGlow(c, t < tHit ? 0.15f * pre : t < tOut2 ? 0.7f : 0.7f * (1 - Mathf.Clamp01((t - tOut2) / 0.3f)), col);
         });
     }
     // P2 光芒: 沈む → 雲が裂けて一気に差す（行き過ぎて戻る）→ ときどき急に強まる → 一瞬白く、一気に閉じる
