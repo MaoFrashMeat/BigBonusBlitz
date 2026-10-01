@@ -2917,11 +2917,10 @@ public static class FxLab
     static float Env(float a, float inT, float hold, float outT) => a < 0 ? 0 : a < inT ? EaseOut(a / inT) : a < inT + hold ? 1 : 1 - EaseIn(Mathf.Clamp01((a - inT - hold) / outT));
     // カメラの漂い（本人 2026-10-01「動きが硬い」）: 保っている間もじっとしない。ゆっくり寄る・傾く・流れる。周波数の合わない sin で周期を見せない
     static float Sway(float t, float s) => Mathf.Sin(t * 1.31f + s) * 0.5f + Mathf.Sin(t * 2.17f + s * 1.7f) * 0.3f + Mathf.Sin(t * 3.71f + s * 0.4f) * 0.2f;
+    // 2026-10-01 本人「カメラの傾きは何？あれありえない」: 傾き（ロール）は消した。2D の舞台はカメラが傾かない（FX_RESEARCH 7 節「ロールを続けない」を自分で破っていた）。残すのはゆっくり寄るだけ
     static void Drift(Ctx c, float t, float k, float zoomIn = 0.03f)
     {
-        c.post.zoom *= 1f + (zoomIn * Mathf.Clamp01(t * 0.5f) + 0.006f * Sway(t * 0.6f, 1)) * k;
-        c.post.rot += 0.35f * Sway(t * 0.45f, 4) * k;
-        c.post.shake += new Vector2(0.004f * Sway(t * 0.5f, 2), 0.003f * Sway(t * 0.4f, 6)) * k;
+        c.post.zoom *= 1f + (zoomIn * Mathf.Clamp01(t * 0.5f) + 0.004f * Sway(t * 0.6f, 1)) * k;
     }
     static void Punch(Ctx c, float a, float flash, float trauma, float zoom) { if (a >= 0 && a < 2 * F) c.post.flash = Mathf.Max(c.post.flash, flash); if (a >= 0) { c.post.trauma += trauma * 0.6f * Decay(a, 10f); c.post.zoom *= 1f + zoom * Decay(a, 6f); } }
 
@@ -3602,7 +3601,7 @@ public static class FxLab
             float a = t - t0; if (a < 0 || a > dur) return;
             float k = 1 - a / dur; k *= k;
             c.post.shake += new Vector2(Mathf.Sin(t * 83f + ph), Mathf.Cos(t * 71f + ph * 1.3f)) * (amp * k);
-            c.post.rot += Mathf.Sin(t * 61f + ph) * rot * k;
+            // 傾きは入れない（2026-10-01。rot 引数は残すが使わない）
             c.post.zoom *= 1f + punch * k;
         });
     }
@@ -3719,7 +3718,7 @@ public static class FxLab
                 c.post.shake += new Vector2(spring.x / W, spring.y / H)
                               + new Vector2((Mathf.PerlinNoise(tq * 30f, 1.7f) - 0.5f) * 2f * ShakePx / W, (Mathf.PerlinNoise(3.1f, tq * 30f) - 0.5f) * 2f * ShakePx / H) * k2
                               + new Vector2(c.post.kick.x / W, c.post.kick.y / H);
-                c.post.rot += -springV.x * 0.00004f + (Mathf.PerlinNoise(tq * 24f, 7.3f) - 0.5f) * 2f * ShakeRot * k2 * 0.3f;
+                // 回転（ロール）は入れない（2026-10-01 本人「カメラの傾きはありえない」）。蹴りも余韻も平行移動だけ
                 float camSpeed = springV.magnitude / 60f;                                                        // 1 コマで動く px
                 if (camSpeed > 2f) { float bl = Mathf.Clamp01((camSpeed - 2f) / 14f) * 0.8f; if (bl > c.post.blur) { c.post.blur = bl; c.post.blurDir = springV.normalized * Mathf.Min(camSpeed, 16f) / W; } }
                 Shader.SetGlobalFloat("_StageDim", c.post.stageDim); Shader.SetGlobalFloat("_StageDesat", c.post.stageDesat);
