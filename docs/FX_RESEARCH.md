@@ -60,6 +60,70 @@
 - 背景の暗転は背景の絵そのものに掛ける（画面全体に掛けるとエフェクトまで暗くなる）
 - 強いときだけ、白黒の衝撃コマを 1〜3 コマ（アニメの衝撃コマ [14]）
 
+## 6. 動きの「気持ちよさ」の研究（2026-10-01。本人「揺れの良さを調べたの？ノウハウは貯めたの？何が悪いか分からないの？」）
+
+調べる前に当て推量で「揺れ」を足していた。以下は出典付きの原則。自分の 9 本の診断は末尾。
+
+### 6.1 時間の構造（3 段＋スパイク）
+- 効果は **溜め（wind-up）→ 頂点（climax）→ 散り（fall-off）**。これに **スパイク**（一瞬だけ強くなる点）を混ぜる [VA-T]
+- 「脳を溜めで導いて、待っていた瞬間に一気に浴びせる。頂点の後に処理する時間を与える」。長く感じたら長すぎる [LoL]
+- 頂点は要素が最も多く・コントラストが最も高く・彩度が最も高い。散りは短く、コントラストと不透明度を落として目立たせない [80lv]
+- 散りは「明度 → 色相 → 不透明度 → 大きさ」を順にずらして消す。明るさだけ下げない [LoL-T]
+- テンポ: 攻撃的なものは心拍（60 BPM）より速く、回復・強化は遅く [VA-T]
+- 型は 2 つ。**衝動型**（即発 / 漸増）と **律動型**（流れる / 乱れる）。1 本の中で律動 → 衝動 → 律動 と組み合わせる [VA-T]
+
+### 6.2 コマ数（60fps）
+- ヒットストップ: 軽い当たり 2〜4 コマ、重い当たり 6〜10 コマ、必殺 12〜18 コマ。代わりに 50〜70% のスローを 4〜6 コマでも可 [PX]
+- 白（ヒットフラッシュ）: 1〜2 コマ。長いとスタン表示に見える [PX]
+- 画面の揺れ: 近接 4〜8 コマの高周波、爆発 10〜16 コマ（大きな一波＋短い尾）[PX]
+- 衝撃コマ（白黒反転）: 1〜3 コマ、動作の頂点ちょうどに [BV]
+- 2D アニメは 24 コマ中 3 コマ打ちが標準。速い物でも「止まる直前にぐぐっとタメる」と重さが出る。ゆっくり動く所に枚数を使うとメリハリが出る [CGW]
+- 爆発は「最初に一気に膨らみ、後は減速」。寿命を短くすると締まる。白は最初の数コマだけで、すぐ暗い色へ [RTV]
+
+### 6.3 形と向き
+- **発生点**と**ベクトル**（向き）が曖昧だと動きに規則性が無く見える [JA]
+- 美しいのは「ずんぐり」より「スラッと抑揚のある細さで長く尾を引く」形 [JA]
+- 炎は「上に上る」。下から引っ張られて**ちぎれて**上昇。基本 4 枚で考え、色替えと動きの型で複雑にする。内と外の温度差を描く [CGW][GK]
+- 稲妻は鋭角で、2 本の線は交差させない [CGW]
+- 重さは周辺で表す（地面を割る・破片を飛ばす）。音の長さで重さが変わる（短い「ドン」は軽く、「ドーン」は重い）[CGW]
+- 主形状と副形状を分けて、副は抑える。重ねすぎない [LoL]
+- 動く物にはモーションブラー（向き・重要度・強さを伝える）[LoL]
+
+### 6.4 気持ちいい動きの条件
+- 位置を動かすときは必ず**伸縮**を足す。位置だけでなく大きさ・角度・湾曲など複数のパラメータを同時に動かす [SJ]
+- 上昇中は縦長、着地で横長 100:90 → 100:110 → 100:95 → 100:100 と段階的に戻す（減衰する波）[SJ]
+- イージングは指紋。平らな接線は止め、急な傾きは速さ。全部が直線だと機械的。チャンネルごとに接線を変えて有機的なずれを作る [SS]
+- **速さの対比**: 静止している要素があるから、動く要素が速く見える [80lv]
+- 副次的な動き（ループする稲妻・流れるエネルギー）は本体が終わっても別の時計で回し続けてよい [80lv]
+
+### 6.5 作り方の手順
+- まず**灰色の単純な形**で時間だけを決める（block-in）。色・質感・シェーダーは時間の悪さを隠す [RTV-B]
+- 擬音を声に出して録り、溜めの長さ・頂点の位置・散りの長さ・スパイクの位置を測る [VA-T]。メカアニメーターは「ジュイーン＝18 コマ」のように擬音からコマ数を決める [CGW]
+- 参考映像はコマ送りで測る [RTV]
+- 時間の値を入れ替えるだけで別の技になる（遅く優しい回復 ↔ 速く攻撃的）[RTV-B]
+
+### 6.6 パチスロの演出設計（間と裏切り）
+- 強い予兆で期待させ → ハズレで冷や水 → 復活、の構造。普通の展開からの復活の方が強い演出からの復活より効く [PR]
+- 連続演出の開始をずらして「えっ？」という**間**を作る [PR]
+- 濃い演出ばかりにしない。配分が味 [PR]
+
+### 6.7 自分の 9 本の診断（2026-10-01、上の原則に照らして）
+1. 時間が長い。保つ時間が 1.5〜2 秒で「長く感じたら長すぎる」に該当。攻撃的なもの（柱・衝撃波・稲妻・炎）は頂点後 0.5 秒で散るべき
+2. 散りが「明るさを下げるだけ」。明度 → 色相（深い色へ）→ 不透明度 → 大きさ、の順にずらしていない
+3. 速さの対比が無い。全部の層が似た速さで揺れている。止まっている層（芯）と速い層（火の粉）と遅い層（鞘）を分けていない
+4. 溜めが「細い糸」だけで、止まる直前の「ぐっと」が無い。解放の直前に 2〜3 コマ強く・太くしてから出すべき
+5. 形が「ずんぐり」。火の粉・塵に尾が無く、光の筋の太さが均一。スラッと長く尾を引く形になっていない
+6. 発生点が曖昧なものがある。球は何も無い所に湧く。稲妻は雲が薄い。炎は「ちぎれて上る」が無く渦だけ
+7. 伸縮が無い。位置や大きさを変えるときに縦長 ↔ 横長の伸縮を足していない（球・輪）
+8. 主形状と副形状の差が無い。全部同じ明るさで重なっている
+9. 揺れ（6.4 の「複数パラメータ」）は入れたが、揺れの速さが全要素で同じ（同じ sway 関数）。層ごとに別の時計にしていない
+10. 律動型と衝動型の組み合わせが無い。1 本が 1 つの型だけ
+
+直す順: 1 本（光の柱）を灰色の時間設計から作り直して確認を取り、残りに広げる。
+
+### 出典（6 節）
+[VA-T] vfxapprentice.com/blog/the-soul-of-effects-what-is-timing-in-vfx ・[LoL] vfxapprentice.com/blog/10-league-of-legends-vfx-design-tips（League of Legends VFX Style Guide 2017 の要約）・[LoL-T] deck.gallery/league-of-legends-2017/slide/32 ・[80lv] 80.lv/articles/vfx-staples-shape-color-and-motion ・[PX] gamineai.com/blog/pixel-art-combat-fx-hitstop-smear-frames-impact-timing-2026 ・[BV] brainvoyage.blog/impact-frames-meaning-animation-guide ・[CGW] cgworld.jp/feature/201805-yoshida.html（吉田徹）・[RTV] realtimevfx.com/t/how-do-i-make-my-timing-better/17547 ・[RTV-B] realtimevfx.com/t/block-ins-and-timing/29830 ・[JA] note.com/jumpaoki/n/n1defbc7ec3ea ・[GK] genkosha.pictures/movie/19091027609（小澤和則・炎）・[SJ] note.com/sonicjam/n/n32d42c283de4 ・[SS] sunstrikestudios.com/en/blog/timing_in_animation/ ・[PR] pachinko-road.com/column/34110/（佐々木真）・[GDC] gdcvault.com/play/1025417（Lyndon, Zip! Thwack! Ping!）・gdcvault.com/play/1024439（Keyser, Artistic Principles of VFX）
+
 ## 出典
 [1] shoryuken.com/2016/06/07/hitstop-in-street-fighter-v-kens-not-so-little-secret/ ・[2] dustloop.com/w/GBVS/Mechanics ・[6] infovore.org/archives/2013/10/22/making-game-feel/ ・[10] 80.lv/articles/constructing-vfx-worthy-of-league-of-legends ・[11] effekseer.github.io/Help_Tool/ja/ToolTutorial/05.html ・[12] Riot VFX style guide（slideshare） ・[13] vfxapprentice.com/blog/10-league-of-legends-vfx-design-tips ・[14] brainvoyage.blog/impact-frames-meaning-animation-guide ・[15] blog.cg-wire.com/smear-frames/ ・[16] GGXrd GDC2015（arcsystemworks.com） ・[17] kyky.blog.jp/archives/41067430.html ・[18] unity-effect.com/368/ ・[19] optica.livedoor.blog/archives/11719287.html ・[20] torchinsky.me/stylized-vfx-unity-01/ ・[23] note.com/bbds_blog/n/n99e89912fafe ・[25] アニメ塗りの段数（bd_publishing） ・[26] learnopengl.com/Guest-Articles/2022/Phys.-Based-Bloom ・[27] Unity URP Bloom ・[28] 桜井政博「エフェクトを目立たせる」 ・[29] GDC2016 Eiserloh（archive.org） ・[30] davetech.co.uk/gamedevscreenshake
 [GEA] unity-effect.com/245/ ・[RIME] simonschreibt.de/gat/stylized-vfx-in-rime/ ・[CC2] gamemakers.jp/article/2023_12_19_57404/ ・Cyanilux sword slash breakdown
