@@ -93,7 +93,7 @@ public static class FxLab
         yield return new Clip { name = "door_shutter", dur = 4.7f, hold = 1, build = DoorShutter };
         yield return new Clip { name = "door_gold", dur = 4.7f, hold = 1, build = DoorGold };
         yield return new Clip { name = "proc_pillar", dur = 2.6f, hold = 1, build = ProcPillar };
-        yield return new Clip { name = "toon_hit", dur = 1.4f, hold = 1, build = ToonHit };
+        yield return new Clip { name = "toon_hit", dur = 0.9f, hold = 1, build = ToonHit };
         yield return new Clip { name = "proc_godrays", dur = 3.0f, hold = 1, build = ProcGodRays };
         yield return new Clip { name = "proc_lightning", dur = 2.6f, hold = 1, build = ProcLightning };
         yield return new Clip { name = "proc_firevortex", dur = 3.0f, hold = 1, build = ProcFireVortex };
@@ -2930,28 +2930,26 @@ public static class FxLab
     {
         var m = ProcTex(c, new Material(Shader.Find("Lab/Toon"))); m.SetFloat("_Mode", mode); m.SetColor("_Core", core); m.SetColor("_Rim", rim); m.SetColor("_Line", line); m.SetFloat("_Seed", seed); m.SetFloat("_Alpha", 0); return m;
     }
-    // T1 打撃の閃光（Basic Hit）: 12fps のコマ落とし。点 → 最大（白・止め・蹴り）→ 穴が空き棘が伸びて体が縮む → 棘だけ → 破片 → 消える。輪と飛沫は別の時計
+    // T1 打撃の閃光（Basic Hit）: 本人「もっと一瞬。シュバッ！ 12F ぐらい」→ 全体 12 コマ（0.2 秒）。絵は 5 枚: 点 2 → 最大 3（白 1・止め 2・蹴り）→ 裂片 2 → 飛沫 2 → 消えかけ 2 → 無し
     static void ToonHit(Ctx c)
     {
         float on = 0.3f; var core = Color.white; var rim = new Color(0.25f, 0.65f, 1f); var line = new Color(0.03f, 0.12f, 0.35f);
         var pos = GoblinHome + new Vector3(-0.3f, 0.4f, -3.6f);
         var mB = ToonMat(c, 0, core, rim, line, 3); var qB = Quad(c.root, "ToonBurst", pos, new Vector2(7f, 7f), mB); mB.SetFloat("_Spikes", 8); mB.SetFloat("_RimW", 0.09f); mB.SetFloat("_LineW", 0.016f);
-        var mR = ToonMat(c, 1, core, rim, line, 5); var qR = Quad(c.root, "ToonRing", pos + new Vector3(0, 0, 0.01f), new Vector2(7f, 7f), mR); mR.SetFloat("_RimW", 0.03f); mR.SetFloat("_LineW", 0.01f);
         var mS = ToonMat(c, 2, core, rim, line, 8); var qS = Quad(c.root, "ToonSplat", pos + new Vector3(0, 0, -0.01f), new Vector2(7f, 7f), mS); mS.SetFloat("_RimW", 0.02f); mS.SetFloat("_LineW", 0.01f);
-        c.Freeze(on + 5 * F, 4 * F); c.Impulse(on + 5 * F, new Vector2(9f, -4f), 11f, 16f);
+        // 絵の切り替え（コマ番号）: 0 点 / 2 最大 / 5 裂片 / 7 飛沫 / 9 消えかけ / 11 無し。最大の絵の間に止め 2 コマ（実時間では 5 コマ見える）
+        int[] cut = { 0, 2, 5, 7, 9, 11 }; float[] phs = { 0.05f, 0.15f, 0.45f, 0.65f, 0.85f };
+        c.Freeze(on + 3 * F, 2 * F); c.Impulse(on + 2 * F, new Vector2(10f, -4f), 12f, 18f);
         c.OnUpdate(t =>
         {
-            float a = t - on; int fr = Mathf.FloorToInt(a / (5 * F)); float st = fr * 5 * F;              // 12fps のコマ落とし（5 コマごとに形が変わる）
-            bool onn = a >= 0 && fr < 8;
-            float ph = new[] { 0.05f, 0.15f, 0.3f, 0.45f, 0.6f, 0.75f, 0.9f, 1f }[Mathf.Clamp(fr, 0, 7)];
-            mB.SetFloat("_Phase", ph); mB.SetFloat("_Radius", 0.36f); mB.SetFloat("_Alpha", onn && fr < 7 ? 1 : 0);
-            // 輪: 2 コマ目から広がり、千切れて消える
-            float rp = Mathf.Clamp01((fr - 1) / 5f); mR.SetFloat("_Phase", rp); mR.SetFloat("_Radius", 0.25f + 0.7f * rp); mR.SetFloat("_Alpha", 0);   // 輪は参考に無いので止める
-            // 飛沫: 3 コマ目から外へ
-            float sp = Mathf.Clamp01((fr - 2) / 4f); mS.SetFloat("_Phase", sp); mS.SetFloat("_Radius", 0.6f); mS.SetFloat("_Alpha", onn && fr >= 2 && fr < 7 ? 1 : 0);
-            if (fr == 1 && a - st < F) c.post.flash = 0.5f;
-            if (a >= 0 && fr < 7) { c.post.stageDim = Mathf.Max(c.post.stageDim, 0.3f); }
-            float h = a - 5 * F; if (h >= 0) c.post.zoom *= 1f + 0.05f * Decay(h, 8f);
+            float a = t - on; int fr = Mathf.FloorToInt(a / F + 1e-4f);
+            int d = -1; for (int k = 0; k < phs.Length; k++) if (fr >= cut[k] && fr < cut[k + 1]) d = k;
+            bool onn = a >= 0 && d >= 0;
+            mB.SetFloat("_Phase", onn ? phs[d] : 1); mB.SetFloat("_Radius", 0.36f); mB.SetFloat("_Alpha", onn ? 1 : 0);
+            float sp = d >= 2 ? (d - 2) / 3f : 0; mS.SetFloat("_Phase", 0.15f + 0.8f * sp); mS.SetFloat("_Radius", 0.6f); mS.SetFloat("_Alpha", onn && d >= 2 ? 1 : 0);
+            if (fr == 2 && a - 2 * F < F) c.post.flash = 0.6f;
+            if (onn) c.post.stageDim = Mathf.Max(c.post.stageDim, 0.3f);
+            float h = a - 2 * F; if (h >= 0) c.post.zoom *= 1f + 0.05f * Decay(h, 10f);
         });
     }
     // P1 光の柱（2026-10-01 時間表から作り直し。docs/FX_RESEARCH.md 6 節）。擬音: 「シュゥゥ…ッ、ドォン！……ジィィ…シュッ」
