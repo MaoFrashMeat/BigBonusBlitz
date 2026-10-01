@@ -133,7 +133,7 @@ Shader "Lab/Proc"
                     // ---- 光の柱 ----
                     float ox = _Origin.x + (sway(_T, 1) * 0.04 + sin(p.y * 1.4 + _T * 1.9) * 0.035 * (0.5 + 0.5 * p.y)) * _Sway.x;   // しなる（上ほど大きく）
                     float x = p.x - ox; float ax = abs(x);
-                    float w = _Width * (1 + 0.18 * sway(_T * 1.6, 3) * _Sway.y + 0.1 * sin(p.y * 3 - _T * 4) * _Sway.y);   // 呼吸（縦に波が走る）
+                    float w = max(_Width, 1e-3) * (1 + 0.18 * sway(_T * 1.6, 3) * _Sway.y + 0.1 * sin(p.y * 3 - _T * 4) * _Sway.y);   // 呼吸（縦に波が走る）。0 は NaN の元
                     float reach = smoothstep(_Reach, _Reach - 0.2, 1 - (p.y + 1) * 0.5);            // 上から降りる
                     reach *= smoothstep(_Cut.x - 0.12, _Cut.x, (p.y + 1) * 0.5);                       // 下から退く（散り）
                     float ground = smoothstep(_Ground - 0.02, _Ground + 0.02, p.y);

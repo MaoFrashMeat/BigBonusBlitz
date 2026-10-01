@@ -2923,7 +2923,7 @@ public static class FxLab
         c.post.rot += 0.35f * Sway(t * 0.45f, 4) * k;
         c.post.shake += new Vector2(0.004f * Sway(t * 0.5f, 2), 0.003f * Sway(t * 0.4f, 6)) * k;
     }
-    static void Punch(Ctx c, float a, float flash, float trauma, float zoom) { if (a >= 0 && a < 2 * F) c.post.flash = Mathf.Max(c.post.flash, flash); if (a >= 0) { c.post.trauma += trauma * Decay(a, 7f); c.post.zoom *= 1f + zoom * Decay(a, 6f); } }
+    static void Punch(Ctx c, float a, float flash, float trauma, float zoom) { if (a >= 0 && a < 2 * F) c.post.flash = Mathf.Max(c.post.flash, flash); if (a >= 0) { c.post.trauma += trauma * 0.6f * Decay(a, 10f); c.post.zoom *= 1f + zoom * Decay(a, 6f); } }
 
     // P1 光の柱（2026-10-01 時間表から作り直し。docs/FX_RESEARCH.md 6 節）。擬音: 「シュゥゥ…ッ、ドォン！……ジィィ…シュッ」
     //   0〜18 コマ  溜め: 細い糸が上から垂れ、舞台が沈む。糸は 12fps で明滅（コマ落とし）。最後の 4 コマ「ぐっ」（糸が太く明るく）→ 1 コマ暗く
@@ -2941,6 +2941,9 @@ public static class FxLab
         float tPre = fr(0), tHit = fr(19), tHold = fr(27), tOut0 = fr(90), tOut1 = fr(93), tOut2 = fr(97), tEnd = fr(127);
         var (mb, mf) = Proc2(c, "Pillar", 0, col, hot, 1);
         c.Freeze(fr(21), 6 * F);
+        c.Impulse(fr(19), new Vector2(0, -14f), 10f, 15f);                                     // 天から落ちる → カメラは下へ押され、戻って収まる（0.2 秒）
+        c.Impulse(fr(60), new Vector2(1.5f, -3f), 12f, 20f); c.Impulse(fr(78), new Vector2(-1.5f, -3f), 12f, 20f);   // 跳ねは小さく
+        c.Impulse(fr(93), new Vector2(0, 4f), 9f, 14f);                                        // 消えるとき上へ少し
         c.OnUpdate(t =>
         {
             float width, inten, reach = 1.25f, hit = 0, cut = 0, hue = 0, coreK = 1, sheathK = 1, swayK = 1, zoomIn = 0;
@@ -2958,7 +2961,7 @@ public static class FxLab
                 float a = t - tHit;
                 float sp = 0; foreach (var sf in new[] { 60f, 78f }) { float q = t - fr(sf); if (q >= 0 && q < 2 * F) sp = 1; }        // 律動: 一瞬跳ねる
                 float spl = 0; foreach (var sf in new[] { 60f, 78f }) { float q = t - fr(sf) - 3 * F; if (q >= 0) spl = Mathf.Max(spl, Over(q, 0.5f, 22f, 9f) - 1); }   // 鞘が一拍遅れて追従
-                width = 0.09f * Snap(a, 2 * F) * (a < 2 * F ? 1.6f : Over(a - 2 * F, 0.75f, 26f, 7f)) * (1f + 0.35f * sp + 0.5f * spl);
+                width = Mathf.Max(0.006f, 0.09f * Snap(a, 2 * F) * (a < 2 * F ? 1.6f : Over(a - 2 * F, 0.75f, 26f, 7f)) * (1f + 0.35f * sp + 0.5f * spl));   // 0 だと 0 除算 → NaN がブルームで画面全体へ（灰色のコマ）
                 inten = (0.85f + 2.5f * Decay(a, 5f)) * (1f + 0.06f * Mathf.Sin(t * 6.28f)) * Flick(t, 10, 2, 0.12f) * (1f + 1.2f * sp);   // 1 Hz の呼吸＋跳ね
                 hit = Mathf.Clamp01((a - 2 * F) / 0.4f); zoomIn = 0.03f;
             }
@@ -2984,7 +2987,7 @@ public static class FxLab
             float dim = t < tHit ? 0.55f * pre : t < tOut2 ? 0.55f : 0.55f * (1 - Mathf.Clamp01((t - tOut2) / 0.4f));
             c.post.stageDim = Mathf.Max(c.post.stageDim, dim); c.post.darken = Mathf.Max(c.post.darken, dim * 0.7f);
             if (t >= tHit && t < tHit + 2 * F) c.post.flash = 1f;
-            float h = t - fr(21); if (h >= 0 && h < 8 * F) { c.post.trauma += 1.0f * (1 - h / (8 * F)); }
+            float h = t - fr(21); if (h >= 0 && h < 12 * F) { c.post.trauma += 0.5f * (1 - h / (12 * F)); }   // 余韻のざらつきだけ
             if (h >= 0) c.post.zoom *= 1f + 0.08f * Decay(h, 8f);
             if (t >= tOut1 && t < tOut1 + F) c.post.flash = 0.3f;
             foreach (var sf in new[] { 60f, 78f }) { float q = t - fr(sf); if (q >= 0 && q < F) c.post.flash = Mathf.Max(c.post.flash, 0.2f); if (q >= 0) c.post.trauma += 0.25f * Decay(q, 10f); }
@@ -3632,6 +3635,9 @@ public static class FxLab
         // ヒットストップ: 作る側の時刻（止めを含まない）＝ sim。描き出しの時刻＝ real。刃とキャラの動き（OnUpdate）は sim、
         // 粒子・揺れ・暗転（OnUpdateReal）は real で動くので、止めの間も火花と揺れは止まらない
         public List<(float t, float d)> freezes = new List<(float t, float d)>();
+        // 力の向きへの蹴り（バネの減衰振動。docs/FX_RESEARCH.md 7 節）: 開始（sim）・向きと大きさ（px）・周波数（Hz）・減衰
+        public List<(float t, Vector2 px, float hz, float decay)> impulses = new List<(float t, Vector2 px, float hz, float decay)>();
+        public void Impulse(float t, Vector2 px, float hz = 10f, float decay = 16f) => impulses.Add((t, px, hz, decay));
         public List<Action<float>> realUpdates = new List<Action<float>>();
         public void Freeze(float t, float d) => freezes.Add((t, d));
         public float Real(float sim) { float acc = 0; foreach (var f in freezes) if (sim > f.t) acc += f.d; return sim + acc; }
@@ -3699,11 +3705,23 @@ public static class FxLab
                     else if (tq > s.last) s.ps.Simulate(tq - s.last, true, false, false);
                     s.last = tq;
                 }
-                // 揺れ: trauma の 2 乗 × 滑らかなノイズ（平行移動＋回転）＋攻撃の向きへの押し
-                float tr = Mathf.Clamp01(c.post.trauma), k2 = tr * tr;
-                c.post.shake += new Vector2((Mathf.PerlinNoise(tq * 30f, 1.7f) - 0.5f) * 2f * ShakePx / W, (Mathf.PerlinNoise(3.1f, tq * 30f) - 0.5f) * 2f * ShakePx / H) * k2
+                // 揺れ（2026-10-01 作り直し。FX_RESEARCH 7 節）: 力の向きへの蹴り（バネの減衰振動。最初の 1 コマが最大）＋ 余韻のざらつき（trauma の 2 乗 × 高周波ノイズ、量は半分）
+                // 回転は x の蹴りに連動（独立のノイズは消した）。カメラの速度に比例して方向ブレ
+                float tr = Mathf.Clamp01(c.post.trauma), k2 = tr * tr * 0.5f;
+                Vector2 spring = Vector2.zero, springV = Vector2.zero;
+                foreach (var im in c.impulses)
+                {
+                    float a = tq - c.Real(im.t); if (a < 0) continue;
+                    float env = Mathf.Exp(-im.decay * a), w = 2 * Mathf.PI * im.hz;
+                    spring += im.px * env * Mathf.Cos(w * a);
+                    springV += im.px * env * (-im.decay * Mathf.Cos(w * a) - w * Mathf.Sin(w * a));
+                }
+                c.post.shake += new Vector2(spring.x / W, spring.y / H)
+                              + new Vector2((Mathf.PerlinNoise(tq * 30f, 1.7f) - 0.5f) * 2f * ShakePx / W, (Mathf.PerlinNoise(3.1f, tq * 30f) - 0.5f) * 2f * ShakePx / H) * k2
                               + new Vector2(c.post.kick.x / W, c.post.kick.y / H);
-                c.post.rot += (Mathf.PerlinNoise(tq * 24f, 7.3f) - 0.5f) * 2f * ShakeRot * k2;
+                c.post.rot += -springV.x * 0.00004f + (Mathf.PerlinNoise(tq * 24f, 7.3f) - 0.5f) * 2f * ShakeRot * k2 * 0.3f;
+                float camSpeed = springV.magnitude / 60f;                                                        // 1 コマで動く px
+                if (camSpeed > 2f) { float bl = Mathf.Clamp01((camSpeed - 2f) / 14f) * 0.8f; if (bl > c.post.blur) { c.post.blur = bl; c.post.blurDir = springV.normalized * Mathf.Min(camSpeed, 16f) / W; } }
                 Shader.SetGlobalFloat("_StageDim", c.post.stageDim); Shader.SetGlobalFloat("_StageDesat", c.post.stageDesat);
                 if (c.goblinT.gameObject.activeSelf) c.goblinT.position = GoblinHome + c.post.goblinOff;
                 lastTq = tq;

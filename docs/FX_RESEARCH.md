@@ -124,6 +124,34 @@
 ### 出典（6 節）
 [VA-T] vfxapprentice.com/blog/the-soul-of-effects-what-is-timing-in-vfx ・[LoL] vfxapprentice.com/blog/10-league-of-legends-vfx-design-tips（League of Legends VFX Style Guide 2017 の要約）・[LoL-T] deck.gallery/league-of-legends-2017/slide/32 ・[80lv] 80.lv/articles/vfx-staples-shape-color-and-motion ・[PX] gamineai.com/blog/pixel-art-combat-fx-hitstop-smear-frames-impact-timing-2026 ・[BV] brainvoyage.blog/impact-frames-meaning-animation-guide ・[CGW] cgworld.jp/feature/201805-yoshida.html（吉田徹）・[RTV] realtimevfx.com/t/how-do-i-make-my-timing-better/17547 ・[RTV-B] realtimevfx.com/t/block-ins-and-timing/29830 ・[JA] note.com/jumpaoki/n/n1defbc7ec3ea ・[GK] genkosha.pictures/movie/19091027609（小澤和則・炎）・[SJ] note.com/sonicjam/n/n32d42c283de4 ・[SS] sunstrikestudios.com/en/blog/timing_in_animation/ ・[PR] pachinko-road.com/column/34110/（佐々木真）・[GDC] gdcvault.com/play/1025417（Lyndon, Zip! Thwack! Ping!）・gdcvault.com/play/1024439（Keyser, Artistic Principles of VFX）
 
+## 7. 画面の揺れのリアリティ（2026-10-01。本人「画面の揺れに全然リアリティを感じない」）
+
+### 7.1 何が偽物に見えるか（自分の実装の診断）
+- 揺れが**対称なノイズ**（上下左右に同じだけ）で、力の向きが無い。本物は力の向きへまず押され、戻りながら減衰する
+- 常に同じ周波数（30 Hz のパーリン）で、最初の 1 コマが最大になっていない。エネルギーが前に寄っていない
+- 回転が平行移動と無関係なノイズ。本物はカメラが横に押されるとき少し傾く（連動）
+- 動いているのに**ブレ**が無い。速く動くカメラの絵は流れる
+
+### 7.2 原則（出典付き）
+- 揺れは「短く・速く・減衰し・主に平行移動」が心地よく、「長く・遅く・一定で・回転」は不快 [SP]
+- **バネの応答**: 鋭い初期の蹴り → 減衰しながら鳴って収まる。一定振幅で時間切れまで揺らすより、物理的に正しく快適。エネルギーは最初の数コマに前寄せ [SP]
+- 力の向きへ押す: 上からの打撃ならカメラはまず下へ、そこから戻る。指数で速く戻す [SP]
+- 長さ: 打撃・着地 0.15〜0.25 秒、爆発 0.3 秒。「0.15 秒は衝撃、1.5 秒は船酔い」 [SP]
+- 高周波・低振幅を好む。大きくゆっくり振るのは避ける。回転は控えめ（同じ量なら平行移動より酔う）。ロールを続けない [SP]
+- 揺れは急に切らず、入りと出を別々に滑らかに [SP]
+- trauma 方式: 一撃ごとに足し、時間で直線に減らし、量は 2 乗（0.3 → 9%、0.6 → 36%）。乱数でなくパーリン。2D では平行移動＋回転の併用が最良 [EIS]
+- 乱数振幅＋固定周波数＋直線減衰でも成立する（地震・鏡の振動のように、揺れは荒い）[JM]
+- 衝撃コマ・ヒットストップ・フラッシュ・揺れは同じコマに揃える（1 コマ以内）[PX]（6.2 節）
+
+### 7.3 設計（この見本に入れる形）
+- `Impulse(t, 向き px, Hz, 減衰)`: 減衰振動 `A·e^(−k t)·cos(2π f t)`。打撃 9〜12 Hz・減衰 14〜18（0.2 秒で収まる）。爆発 6〜8 Hz・減衰 10（0.3 秒）＋高周波の trauma
+- 回転は x の蹴りに連動（x の速度 × 小さい係数）。独立のノイズは消す
+- カメラの速度に比例した**方向ブレ**（`post.blur`・`blurDir`）。最初の 2〜3 コマだけ流れる
+- trauma の高周波ノイズは「余韻のざらつき」専用に残し、量を半分・時間を 0.2 秒に
+
+### 出典（7 節）
+[SP] strayspark.studio/blog/camera-shake-game-feel-without-motion-sickness ・[EIS] Eiserloh, GDC 2016 "Math for Game Programmers: Juicing Your Cameras With Math"（mathforgameprogrammers.com/gdc2016）・[JM] jonny.morrill.me/en/blog/gamedev-how-to-implement-a-camera-shake-effect/ ・[PX] 6 節の [PX]
+
 ## 出典
 [1] shoryuken.com/2016/06/07/hitstop-in-street-fighter-v-kens-not-so-little-secret/ ・[2] dustloop.com/w/GBVS/Mechanics ・[6] infovore.org/archives/2013/10/22/making-game-feel/ ・[10] 80.lv/articles/constructing-vfx-worthy-of-league-of-legends ・[11] effekseer.github.io/Help_Tool/ja/ToolTutorial/05.html ・[12] Riot VFX style guide（slideshare） ・[13] vfxapprentice.com/blog/10-league-of-legends-vfx-design-tips ・[14] brainvoyage.blog/impact-frames-meaning-animation-guide ・[15] blog.cg-wire.com/smear-frames/ ・[16] GGXrd GDC2015（arcsystemworks.com） ・[17] kyky.blog.jp/archives/41067430.html ・[18] unity-effect.com/368/ ・[19] optica.livedoor.blog/archives/11719287.html ・[20] torchinsky.me/stylized-vfx-unity-01/ ・[23] note.com/bbds_blog/n/n99e89912fafe ・[25] アニメ塗りの段数（bd_publishing） ・[26] learnopengl.com/Guest-Articles/2022/Phys.-Based-Bloom ・[27] Unity URP Bloom ・[28] 桜井政博「エフェクトを目立たせる」 ・[29] GDC2016 Eiserloh（archive.org） ・[30] davetech.co.uk/gamedevscreenshake
 [GEA] unity-effect.com/245/ ・[RIME] simonschreibt.de/gat/stylized-vfx-in-rime/ ・[CC2] gamemakers.jp/article/2023_12_19_57404/ ・Cyanilux sword slash breakdown
