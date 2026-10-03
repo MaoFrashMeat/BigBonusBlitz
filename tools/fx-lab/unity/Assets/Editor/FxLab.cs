@@ -3003,7 +3003,31 @@ public static class FxLab
         mHalo.SetVector("_Ring", new Vector4(0.72f, 0.07f, -0.25f, 0.5f)); mHalo.SetVector("_Spin", new Vector4(3.6f, 1f, 0, 0)); mHalo.renderQueue = 2989; Quad(c.root, "SgHalo", new Vector3(0, 0, -2.9f), new Vector2(14f, 8f), mHalo);
         var mLogo = ProcTex(c, new Material(Shader.Find("Lab/Logo"))); mLogo.SetFloat("_Mode", 0); mLogo.SetTexture("_MainTex", c.tx.logoSG); mLogo.SetTexture("_Face", c.tx.logoSGFace); mLogo.SetFloat("_Alpha", 1f); mLogo.renderQueue = 2990;
         Quad(c.root, "SgLogo", new Vector3(0, 0.45f, -3f), new Vector2(8.5f, 4.8f), mLogo);
-        c.OnUpdate(t => { mBg.SetFloat("_T", t); mDisc.SetFloat("_T", t); mDisc.SetFloat("_Intensity", 0.5f); mHalo.SetFloat("_T", t); mHalo.SetFloat("_Intensity", 1f); mLogo.SetFloat("_T", t); mLogo.SetFloat("_Shine", -1f); mLogo.SetFloat("_Glow", 0.15f + 0.1f * Mathf.Sin(t * 3.6f)); });
+        // 4 芒星のきらめき（星の絵 flare）: 頭の位置から出す。小さいものは色とりどりで多く、大きいものは白でまれ。瞬いて消える
+        const float HaloR = 0.72f * 4f, HaloSq = 0.5f, HaloTilt = -0.25f, HaloSpin = 3.6f; var haloC = new Vector3(0, 0.45f, 0);
+        Vector3 HeadPos(float t, float back) { float a = t * HaloSpin - back; var e = new Vector2(Mathf.Cos(a) * HaloR, Mathf.Sin(a) * HaloR * HaloSq); float ct = Mathf.Cos(-HaloTilt), st = Mathf.Sin(-HaloTilt); return haloC + new Vector3(e.x * ct - e.y * st, e.x * st + e.y * ct, 0); }
+        var stars = new List<(ParticleSystem ps, float back)>();
+        foreach (var (name, n, s0, s1, life, seed, back, col) in new[] { ("HaloStarS", 260f, 0.08f, 0.2f, 0.25f, 3401u, 0.6f, true), ("HaloStarM", 60f, 0.2f, 0.36f, 0.3f, 3402u, 0.3f, true), ("HaloStarL", 7f, 0.5f, 0.85f, 0.4f, 3403u, 0.05f, false) })
+        {
+            var ps = PS(c, name, HeadPos(0, back), AddMat(c.tx.star4, 3.5f), seed);
+            var m = ps.main; m.duration = 10f; m.loop = true; m.startLifetime = life; m.startSize = new MinMaxCurve(s0, s1); m.startSpeed = new MinMaxCurve(0f, 0.6f); m.startRotation = new MinMaxCurve(0, 0.5f);
+            m.startColor = col ? new MinMaxGradient(RainbowGrad()) : new MinMaxGradient(Color.white, new Color(1f, 0.92f, 0.7f));
+            var e = ps.emission; e.rateOverTime = n;
+            var sh = ps.shape; sh.enabled = true; sh.shapeType = ParticleSystemShapeType.Circle; sh.radius = name == "HaloStarS" ? 1.7f : 0.9f;
+            SizeLife(ps, Curve((0, 0f), (0.25f, 1f), (0.5f, 0.45f), (0.7f, 1f), (1, 0f)));
+            ColorLife(ps, Grad(new[] { (0f, Color.white), (1f, Color.white) }, new[] { (0f, 1f), (1f, 1f) }));
+            var r = ps.GetComponent<ParticleSystemRenderer>(); r.sharedMaterial.renderQueue = 2989;
+            c.Play(ps, 0f); stars.Add((ps, back));
+        }
+        c.OnUpdate(t =>
+        {
+            float a = t * HaloSpin; float headX01 = 0.5f + 0.5f * Mathf.Cos(a);                 // 頭の左右（0 左 … 1 右）
+            float behind = Mathf.Pow(Mathf.Max(0, Mathf.Sin(a)), 2);                            // 頭がロゴの奥（上側）を通るとき
+            mBg.SetFloat("_T", t); mDisc.SetFloat("_T", t); mDisc.SetFloat("_Intensity", 0.5f); mHalo.SetFloat("_T", t); mHalo.SetFloat("_Intensity", 1f);
+            mLogo.SetFloat("_T", t); mLogo.SetFloat("_Shine", -0.3f + 1.6f * headX01);          // 虹の帯は頭と一緒に横切る
+            mLogo.SetFloat("_Glow", 0.12f + 0.55f * behind);                                   // 奥を通るとき金の縁が光る
+            foreach (var (ps, back) in stars) ps.transform.position = HeadPos(t, back) + new Vector3(0, 0, -2.95f);
+        });
     }
     // ===== 手描き風の硬い形（Lab/Toon。本人 2026-10-01 のリファレンス「本当にそっくりに作れますか？」→ 1 本作って並べる）=====
     static Material ToonMat(Ctx c, int mode, Color core, Color rim, Color line, float seed)

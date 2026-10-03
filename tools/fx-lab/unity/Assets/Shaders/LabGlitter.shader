@@ -78,19 +78,29 @@ Shader "Lab/Glitter"
                         float3 hot = float3(1, 0.97, 0.9), gold = _Col.rgb;
                         // 頭の玉（半径方向にも広い）
                         float2 hp = float2(cos(_T * _Spin.x + H * 3.14159), sin(_T * _Spin.x + H * 3.14159)) * _Ring.x;
-                        float dh = length(q - hp);
-                        float blob = exp(-dh * dh / (_Ring.y * _Ring.y * 9)) * 1.6 + exp(-dh / (_Ring.y * 2.2)) * 0.5;
-                        c += lerp(gold, hot, saturate(blob)) * blob * (0.6 + 0.6 * depth);
+                        float2 dq = q - hp; float dh = length(dq);
+                        float sz = _Ring.y * (0.95 + 0.7 * depth);                             // 手前ほど大きい
+                        // 玉: 芯（白）→ 広いにじみ（金）。RGB で半径をずらして縁に色のにじみ
+                        float3 blob;
+                        [unroll] for (int ch = 0; ch < 3; ch++) { float s2 = sz * (1 + ch * 0.07); blob[ch] = exp(-dh * dh / (s2 * s2 * 4)) * 1.5 + exp(-dh / (s2 * 3.5)) * 0.45 + exp(-dh / (s2 * 9)) * 0.08; }
+                        float3 blobCol = lerp(gold, hot, saturate(blob.g * 0.8)) * blob;
+                        // 横のアナモルフィック（細く長い）と、角度ノイズの光条
+                        float ana = exp(-abs(dq.y) * 60 / (sz * 10)) * exp(-abs(dq.x) / (sz * 2.2)) * 0.45;   // 短く
+                        float angH = atan2(dq.y, dq.x);
+                        float spikes = pow(saturate(tex2D(_PNoise, float2(angH / 6.2831853 * 2 + H * 0.3, 0.6)).g * 1.5 - 0.3), 3) * exp(-dh / (sz * 4)) * 0.5;
+                        c += (blobCol + hot * (ana + spikes)) * (0.5 + 0.7 * depth);
                         // 軌道の芯（頭から尾へ）
                         c += lerp(gold, hot, head) * band * (head * 1.4 + tail * 0.5) * (0.5 + 0.7 * depth);
                         c += gold * bandWide * (head * 0.35 + tail * 0.12) * (0.5 + 0.7 * depth);
                         // 尾のきらめき: 点の板を軌道に沿って読み、毎コマ瞬く
-                        float2 tuv = float2(ang / 6.2831853 * 10.0, rr * 1.6 + H * 0.4);
-                        float3 sp = tex2D(_PSparks, tuv).rgb;
-                        float2 cell = floor(tuv * float2(30, 10) + 0.5); float hc = h2(cell + H * 5.1);
-                        float blink = step(0.45, h2(cell + floor(_T * 15 + hc * 9)));
-                        float dots = pow(saturate(sp.g * 2.6), 1.6) * 1.3 + pow(saturate(sp.b * 1.8), 2.0) * 1.5 + pow(saturate(sp.r * 3.0), 1.8) * 0.8;
-                        c += lerp(hot, hsv(hc, 0.6, 1), 0.5) * dots * bandWide * (head * 2.5 + tail * 4.0) * blink * (0.5 + 0.8 * depth);
+                        // 尾のきらめき: 頭の周りの広い雲（軌道の幅の 5 倍）に細かい点を散らす。縦横比を揃えて読む
+                        float cloud = exp(-pow((rr - _Ring.x) / (_Ring.y * 5.0), 2));
+                        float2 tuv = float2(ang / 6.2831853 * 6.2831853 * 3.0, rr * 3.0 + H * 0.4);
+                        float3 sp = tex2D(_PSparks, tuv).rgb, sp2 = tex2D(_PSparks, tuv * 1.9 + 0.23).rgb;
+                        float2 cell = floor(tuv * 7 + 0.5); float hc = h2(cell + H * 5.1);
+                        float blink = 0.2 + 0.8 * step(0.5, h2(cell + floor(_T * 15 + hc * 9)));
+                        float dots = pow(saturate(sp.g * 2.6), 1.8) * 1.2 + pow(saturate(sp.b * 1.8), 2.2) * 1.4 + pow(saturate(sp2.r * 3.0), 1.8) * 0.9 + pow(saturate(sp2.g * 2.6), 1.8) * 0.6;
+                        c += lerp(hot, hsv(hc, 0.75, 1), 0.55) * dots * cloud * (head * 3.5 + tail * 4.5) * blink * (0.5 + 0.8 * depth);
                     }
                     c *= _Intensity;
                 }
