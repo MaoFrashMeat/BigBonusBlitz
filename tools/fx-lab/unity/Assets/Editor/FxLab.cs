@@ -94,7 +94,8 @@ public static class FxLab
         yield return new Clip { name = "door_gold", dur = 4.7f, hold = 1, build = DoorGold };
         yield return new Clip { name = "proc_pillar", dur = 2.6f, hold = 1, build = ProcPillar };
         yield return new Clip { name = "toon_hit", dur = 0.9f, hold = 1, build = ToonHit };
-        yield return new Clip { name = "sg_shine", dur = 4.0f, hold = 1, build = SgShine };   // hold は 1 以上（0 だと 0 除算で全コマ黒）
+        yield return new Clip { name = "sg_shine", dur = 4.0f, hold = 1, build = SgShine };
+        yield return new Clip { name = "sg_ring", dur = 4.0f, hold = 1, build = SgRing };   // hold は 1 以上（0 だと 0 除算で全コマ黒）
         yield return new Clip { name = "proc_godrays", dur = 3.0f, hold = 1, build = ProcGodRays };
         yield return new Clip { name = "proc_lightning", dur = 2.6f, hold = 1, build = ProcLightning };
         yield return new Clip { name = "proc_firevortex", dur = 3.0f, hold = 1, build = ProcFireVortex };
@@ -2974,6 +2975,18 @@ public static class FxLab
             if (a >= 0.25f && a < 0.25f + 2 * F) c.post.flash = 0.5f;
             c.post.zoom *= 1f + 0.015f * Mathf.Sin(t * 0.8f);
         });
+    }
+    // L2 回るきらめきの輪だけ（本人「後ろでサークルに動いているキラキラ。あれだけ再現できれば良い」）。暗い星雲の上に輪 3 本。ロゴは大きさの参考に薄く置く
+    static void SgRing(Ctx c)
+    {
+        c.heroT.gameObject.SetActive(false); c.goblinT.gameObject.SetActive(false);
+        var mBg = ProcTex(c, new Material(Shader.Find("Lab/Logo"))); mBg.SetFloat("_Mode", 1); mBg.renderQueue = 2980; Quad(c.root, "SgNebula", new Vector3(0, 0, 5f), new Vector2(12.8f, 7.2f), mBg);
+        var mRing = ProcTex(c, new Material(Shader.Find("Lab/Glitter"))); mRing.SetFloat("_Mode", 2); mRing.SetFloat("_Aspect", 14f / 8f); mRing.SetVector("_Center", new Vector4(0.5f, 0.52f, 0, 0)); mRing.SetColor("_Col", new Color(1f, 0.9f, 0.7f));
+        mRing.SetVector("_Ring", new Vector4(1.0f, 0.2f, 0.22f, 0.4f)); mRing.SetVector("_Spin", new Vector4(0.5f, 0.45f, 15f, 0.08f)); mRing.renderQueue = 2986;
+        Quad(c.root, "SgRing", new Vector3(0, 0, 4.6f), new Vector2(14f, 8f), mRing);
+        var mLogo = ProcTex(c, new Material(Shader.Find("Lab/Logo"))); mLogo.SetFloat("_Mode", 0); mLogo.SetTexture("_MainTex", c.tx.logoSG); mLogo.SetTexture("_Face", c.tx.logoSGFace); mLogo.SetFloat("_Alpha", 0.55f); mLogo.renderQueue = 2990;
+        Quad(c.root, "SgLogo", new Vector3(0, 0.3f, -3f), new Vector2(8.5f, 4.8f), mLogo);
+        c.OnUpdate(t => { mBg.SetFloat("_T", t); mRing.SetFloat("_T", t); mRing.SetFloat("_Intensity", 1f); mLogo.SetFloat("_T", t); mLogo.SetFloat("_Shine", -1f); mLogo.SetFloat("_Glow", 0.1f); });
     }
     // ===== 手描き風の硬い形（Lab/Toon。本人 2026-10-01 のリファレンス「本当にそっくりに作れますか？」→ 1 本作って並べる）=====
     static Material ToonMat(Ctx c, int mode, Color core, Color rim, Color line, float seed)
