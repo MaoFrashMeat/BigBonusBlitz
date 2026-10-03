@@ -86,6 +86,15 @@ Shader "Lab/Glitter"
                         // 玉: 芯（白）→ 広いにじみ（金）。RGB で半径をずらして縁に色のにじみ
                         float3 blob;
                         [unroll] for (int ch = 0; ch < 3; ch++) { float s2 = sz * (1 + ch * 0.07); blob[ch] = exp(-dh * dh / (s2 * s2 * 4)) * 1.5 + exp(-dh / (s2 * 3.5)) * 0.45 + exp(-dh / (s2 * 9)) * 0.08; }
+                        // 玉を細かい光のマスクで崩す（本人 2026-10-04「黄色の主体の光が単調。グロウ付きの細かい光をマスクにして少し見づらく」）
+                        // 頭の座標で点の板をぼかして読み（粒ごとのグロウ）、歪みの板で大きなむらを掛ける。芯だけはマスクを弱く
+                        float2 mu = dq * 1.6 + float2(_T * 0.05, -_T * 0.03) + H * 0.4;
+                        float3 mb = tex2Dbias(_PSparks, float4(mu, 0, 1.5)).rgb, mb2 = tex2Dbias(_PSparks, float4(mu * 2.3 + 0.37, 0, 1.0)).rgb;
+                        float fine = saturate(mb.g * 2.2 + mb.b * 1.4 + mb2.r * 1.6 + mb2.g * 1.0);
+                        float coarse = tex2D(_PWarp, dq * 0.35 + float2(_T * 0.02, _T * 0.015) + H * 0.3).g;
+                        float coreK = exp(-dh * dh / (sz * sz * 0.5));                           // 芯
+                        float maskK = lerp(0.04 + 1.1 * fine * (0.35 + 1.0 * coarse), 0.75, coreK * 0.45);   // 芯も少し崩す
+                        blob *= maskK;
                         float3 blobCol = lerp(gold, hot, saturate(blob.g * 0.8)) * blob;
                         // 横のアナモルフィック（細く長い）と、角度ノイズの光条
                         float ana = exp(-abs(dq.y) * 60 / (sz * 10)) * exp(-abs(dq.x) / (sz * 2.2)) * 0.45;   // 短く
@@ -93,8 +102,11 @@ Shader "Lab/Glitter"
                         float spikes = pow(saturate(tex2D(_PNoise, float2(angH / 6.2831853 * 2 + H * 0.3, 0.6)).g * 1.5 - 0.3), 3) * exp(-dh / (sz * 4)) * 0.5;
                         c += (blobCol + hot * (ana + spikes)) * (0.5 + 0.7 * depth);
                         // 軌道の芯（頭から尾へ）
-                        c += lerp(gold, hot, head) * band * (head * 1.4 + tail * 0.5) * (0.5 + 0.7 * depth);
-                        c += gold * bandWide * (head * 0.35 + tail * 0.12) * (0.5 + 0.7 * depth);
+                        // 軌道の芯と広い帯も同じマスクで崩す（なめらかな金の筋は単調に見える）
+                        float3 mt = tex2Dbias(_PSparks, float4(float2(ang / 6.2831853 * 18.0, rr * 3.0 + H * 0.4), 0, 1.5)).rgb;
+                        float bandMask = 0.1 + 1.4 * saturate(mt.g * 2.0 + mt.b * 1.3);
+                        c += lerp(gold, hot, head) * band * (head * 1.4 + tail * 0.5) * (0.5 + 0.7 * depth) * bandMask;
+                        c += gold * bandWide * (head * 0.35 + tail * 0.12) * (0.5 + 0.7 * depth) * (0.3 + 0.9 * coarse);
                         // 尾のきらめき: 点の板を軌道に沿って読み、毎コマ瞬く
                         // 尾のきらめき: 頭の周りの広い雲（軌道の幅の 5 倍）に細かい点を散らす。縦横比を揃えて読む
                         float cloud = exp(-pow((rr - _Ring.x) / (_Ring.y * 5.0), 2));
