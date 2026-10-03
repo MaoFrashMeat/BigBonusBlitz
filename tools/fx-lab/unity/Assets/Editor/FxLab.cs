@@ -2976,17 +2976,20 @@ public static class FxLab
             c.post.zoom *= 1f + 0.015f * Mathf.Sin(t * 0.8f);
         });
     }
-    // L2 回るきらめきの輪だけ（本人「後ろでサークルに動いているキラキラ。あれだけ再現できれば良い」）。暗い星雲の上に輪 3 本。ロゴは大きさの参考に薄く置く
+    // L2 きらめきの円盤（本人「後ろでサークルに動いているキラキラ。あれだけ再現できれば良い」→「全然違くない？」で作り直し）
+    // 画面を覆う巨大な円盤。中心は画面の下（ロゴの奥）。密な帯が上半分を弧で横切る。青い空の上に。ロゴは大きさの参考に薄く
     static void SgRing(Ctx c)
     {
         c.heroT.gameObject.SetActive(false); c.goblinT.gameObject.SetActive(false);
-        var mBg = ProcTex(c, new Material(Shader.Find("Lab/Logo"))); mBg.SetFloat("_Mode", 1); mBg.renderQueue = 2980; Quad(c.root, "SgNebula", new Vector3(0, 0, 5f), new Vector2(12.8f, 7.2f), mBg);
-        var mRing = ProcTex(c, new Material(Shader.Find("Lab/Glitter"))); mRing.SetFloat("_Mode", 2); mRing.SetFloat("_Aspect", 14f / 8f); mRing.SetVector("_Center", new Vector4(0.5f, 0.52f, 0, 0)); mRing.SetColor("_Col", new Color(1f, 0.9f, 0.7f));
-        mRing.SetVector("_Ring", new Vector4(1.0f, 0.2f, 0.22f, 0.4f)); mRing.SetVector("_Spin", new Vector4(0.5f, 0.45f, 15f, 0.08f)); mRing.renderQueue = 2986;
-        Quad(c.root, "SgRing", new Vector3(0, 0, 4.6f), new Vector2(14f, 8f), mRing);
-        var mLogo = ProcTex(c, new Material(Shader.Find("Lab/Logo"))); mLogo.SetFloat("_Mode", 0); mLogo.SetTexture("_MainTex", c.tx.logoSG); mLogo.SetTexture("_Face", c.tx.logoSGFace); mLogo.SetFloat("_Alpha", 0.55f); mLogo.renderQueue = 2990;
-        Quad(c.root, "SgLogo", new Vector3(0, 0.3f, -3f), new Vector2(8.5f, 4.8f), mLogo);
-        c.OnUpdate(t => { mBg.SetFloat("_T", t); mRing.SetFloat("_T", t); mRing.SetFloat("_Intensity", 1f); mLogo.SetFloat("_T", t); mLogo.SetFloat("_Shine", -1f); mLogo.SetFloat("_Glow", 0.1f); });
+        var mBg = ProcTex(c, new Material(Shader.Find("Lab/Logo"))); mBg.SetFloat("_Mode", 1); mBg.SetFloat("_Sky", 1); mBg.renderQueue = 2980; Quad(c.root, "SgSky", new Vector3(0, 0, 5f), new Vector2(12.8f, 7.2f), mBg);
+        var mRing = ProcTex(c, new Material(Shader.Find("Lab/Glitter"))); mRing.SetFloat("_Mode", 2); mRing.SetFloat("_Aspect", 14f / 8f); mRing.SetVector("_Center", new Vector4(0.5f, -0.3f, 0, 0)); mRing.SetColor("_Col", new Color(1f, 0.92f, 0.7f));
+        mRing.SetVector("_Ring", new Vector4(3.8f, 0.45f, 0f, 0.5f)); mRing.SetVector("_Spin", new Vector4(0.12f, 0f, 12f, 0.06f)); mRing.renderQueue = 2986;
+        Quad(c.root, "SgDisc", new Vector3(0, 0, 4.6f), new Vector2(14f, 8f), mRing);
+        var mGl = ProcTex(c, new Material(Shader.Find("Lab/Glitter"))); mGl.SetFloat("_Mode", 1); mGl.SetFloat("_Aspect", 14f / 8f); mGl.SetVector("_Center", new Vector4(0.5f, 0.42f, 0, 0)); mGl.SetColor("_Col", new Color(1f, 0.85f, 0.5f)); mGl.renderQueue = 2987;
+        Quad(c.root, "SgGlow", new Vector3(0, 0, 4.5f), new Vector2(14f, 8f), mGl);   // ロゴの奥の白金の光
+        var mLogo = ProcTex(c, new Material(Shader.Find("Lab/Logo"))); mLogo.SetFloat("_Mode", 0); mLogo.SetTexture("_MainTex", c.tx.logoSG); mLogo.SetTexture("_Face", c.tx.logoSGFace); mLogo.SetFloat("_Alpha", 0.5f); mLogo.renderQueue = 2990;
+        Quad(c.root, "SgLogo", new Vector3(0, -0.6f, -3f), new Vector2(8.5f, 4.8f), mLogo);
+        c.OnUpdate(t => { mBg.SetFloat("_T", t); mRing.SetFloat("_T", t); mRing.SetFloat("_Intensity", 1f + 0.08f * Mathf.Sin(t * 3f)); mGl.SetFloat("_T", t); mGl.SetFloat("_Intensity", 0.11f + 0.03f * Mathf.Sin(t * 4.2f)); mLogo.SetFloat("_T", t); mLogo.SetFloat("_Shine", -1f); mLogo.SetFloat("_Glow", 0.1f); });
     }
     // ===== 手描き風の硬い形（Lab/Toon。本人 2026-10-01 のリファレンス「本当にそっくりに作れますか？」→ 1 本作って並べる）=====
     static Material ToonMat(Ctx c, int mode, Color core, Color rim, Color line, float seed)

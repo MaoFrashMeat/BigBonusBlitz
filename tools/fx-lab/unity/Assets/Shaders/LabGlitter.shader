@@ -18,6 +18,7 @@ Shader "Lab/Glitter"
         _PStreak ("ProcStreak", 2D) = "gray" {}
         _PSparks ("ProcSparks", 2D) = "black" {}
         _PNoise ("ProcNoise", 2D) = "gray" {}
+        _PWarp ("ProcWarp", 2D) = "gray" {}
     }
     SubShader
     {
@@ -30,7 +31,7 @@ Shader "Lab/Glitter"
             #pragma fragment frag
             #pragma target 3.5
             #include "UnityCG.cginc"
-            sampler2D _PStreak, _PSparks, _PNoise; float _Mode, _T, _Intensity, _Aspect; float4 _Center, _Col, _Ring, _Spin;
+            sampler2D _PStreak, _PSparks, _PNoise, _PWarp; float _Mode, _T, _Intensity, _Aspect; float4 _Center, _Col, _Ring, _Spin;
             struct appdata { float4 pos:POSITION; float2 uv:TEXCOORD0; };
             struct v2f { float4 pos:SV_POSITION; float2 uv:TEXCOORD0; };
             v2f vert(appdata i){ v2f o; o.pos=UnityObjectToClipPos(i.pos); o.uv=i.uv; return o; }
@@ -58,33 +59,45 @@ Shader "Lab/Glitter"
                 }
                 else if (_Mode < 2.5 && _Mode > 1.5)
                 {
-                    // 回るきらめきの輪 × 3。粒は点の板（G = 中・B = 大）を極座標で読む。粒の間は暗いまま（帯の光はごく薄く・単色）
-                    [unroll] for (int K = 0; K < 3; K++)
+                    // きらめきの円盤（本人 2026-10-03「全然違くない？」で作り直し。参考は画面を覆う巨大な円盤: 中心は画面の下（ロゴの奥の光）、
+                    // 密な帯が上半分を弧で横切り、帯の中で色が地域ごとに変わる（青緑 → 金 → 桃）。粒は霞と一緒に発光し、全体がゆっくり回る）
+                    // 円盤の座標: 中心 _Center（uv）、縦に _Ring.w で潰した楕円。_Ring.x = 帯の半径、_Ring.y = 帯の太さ
+                    float2 q = p; q.y /= _Ring.w; float rr = length(q); float ang = atan2(q.y, q.x);
+                    float rot = _T * _Spin.x;                                                   // 円盤の回転
+                    float a2 = ang + rot;
+                    float lr = log(max(rr, 1e-3));
+                    // 帯の密度: 主帯（ガウス）＋ 2 本の副帯 ＋ 渦の腕（対数螺旋）
+                    float band = exp(-pow((rr - _Ring.x) / _Ring.y, 2)) + 0.25 * exp(-pow((rr - _Ring.x * 1.22) / (_Ring.y * 0.8), 2)) + 0.18 * exp(-pow((rr - _Ring.x * 0.82) / (_Ring.y * 0.7), 2));   // 主帯＋細い副帯 2 本。帯の外は暗く
+                    float arms = 0.55 + 0.45 * cos(3.0 * a2 - 4.5 * lr);
+                    float arcN = tex2D(_PNoise, float2(a2 / 6.2831853 * 1.5, lr * 0.3 + 0.2)).r;   // 帯の濃淡（大きなむら）
+                    float dens = pow(band, 1.4) * (0.4 + 0.6 * arms) * (0.5 + 0.9 * arcN);   // 帯の外では粒を出さない（裾を締める）
+                    // 地域の色: 角度でゆっくり色相が変わる（青緑 → 金 → 桃）。密い所は白へ
+                    float hue = frac(a2 * 0.55 + lr * 0.35 + _T * 0.015 + tex2D(_PNoise, float2(a2 * 0.3, lr * 0.5)).g * 0.25);   // 弧に沿って青緑 → 金 → 桃
+                    float3 region = hsv(hue, 0.95, 1.0);
+                    // 霞（粒の間の光）: 歪みの板を極座標で読む。密度に従う
+                    float3 mist = tex2D(_PWarp, float2(a2 / 6.2831853 * 3.0 + _T * 0.01, lr * 0.9)).rgb;
+                    float haze = pow(saturate(mist.g * 1.3 - 0.2), 1.6) * dens;
+                    c += lerp(region, 1, saturate(haze * 0.6 - 0.3)) * haze * 1.0;
+                    // 粒: 4 段の点の板を（角度 × log 半径）で読む。縦横比を揃える（角度 1 タイル = 2πr/N、半径 1 タイル = r/k → N = 2πk）
+                    float dots = 0;
+                    [unroll] for (int L2 = 0; L2 < 4; L2++)
                     {
-                        float R = _Ring.x * (K == 0 ? 1.0 : (K == 1 ? 0.78 : 1.25)), W = _Ring.y * (K == 2 ? 1.6 : 1.0);
-                        float tilt = _Ring.z + (K - 1) * 0.18, sq = _Ring.w * (K == 1 ? 0.8 : 1.0);
-                        float spin = _Spin.x * (K == 0 ? 1.0 : (K == 1 ? -0.7 : 0.55));
-                        float ct = cos(tilt), st = sin(tilt); float2 q = float2(p.x * ct + p.y * st, -p.x * st + p.y * ct); q.y /= sq;
-                        float rr = length(q); float ang = atan2(q.y, q.x);
-                        float depth = 0.5 - 0.5 * sin(ang);                                 // 1 = 手前（下）、0 = 奥（上）
-                        float wN = tex2D(_PNoise, float2(ang / 6.2831853 * 2 + K * 0.3, 0.5 + K * 0.2)).g;
-                        float band = exp(-pow((rr - R) / (W * (0.7 + 1.0 * wN)), 2));
-                        float bandSoft = exp(-pow((rr - R) / (W * 2.2), 2));
-                        float arcA = ang - _T * _Spin.y * (K == 1 ? -1 : 1) - K * 2.1;
-                        float head = pow(0.5 + 0.5 * cos(arcA), 5) * 1.4 + pow(0.5 + 0.5 * cos(arcA + 0.6), 2) * 0.6 + 0.45;
-                        // 粒 2 段。手前ほど大きい粒（読みの倍率を depth で変える）。角度方向は 2.5 タイル
-                        float zs = lerp(1.7, 1.0, depth);
-                        float2 tuv = float2(ang / 6.2831853 * 14.0 + _T * spin * 0.45, rr * 2.3 - _T * _Spin.w + K * 0.37) * zs;   // 1 タイル ≒ 角度 0.78 × 半径 0.77（縦横比を揃える。ずれると粒が筋に伸びる）
-                        float3 sA = tex2D(_PSparks, tuv).rgb, sB = tex2D(_PSparks, tuv * 1.8 + 0.31).rgb;
-                        float dots = pow(saturate(sA.g * 2.6), 2.0) * 1.3 + pow(saturate(sA.b * 1.8), 2.5) * 2.0 * depth + pow(saturate(sB.g * 2.6), 2.0) * 1.0 + pow(saturate(sB.r * 3.0), 2.0) * 0.6;
-                        // 瞬き（セルごと・毎コマ）と色（セルごと。1/4 は白）
-                        float2 cell = floor(tuv * float2(40, 12) + 0.5); float hc = h2(cell + K * 7.7);
-                        float blink = 0.3 + 0.7 * step(0.5, h2(cell + floor(_T * _Spin.z + hc * 9)));
-                        float3 col = lerp(hsv(hc, 1.0, 1), 1, step(0.72, h2(cell + 3.3)));
-                        c += col * dots * band * head * blink * (0.35 + 0.95 * depth) * (K == 2 ? 0.6 : 1.0);
-                        c += _Col.rgb * bandSoft * head * 0.003 * (0.3 + depth);            // 粒の間を埋めるごく薄い光（単色）
+                        float k = (L2 == 0 ? 2.5 : (L2 == 1 ? 4.5 : (L2 == 2 ? 8.0 : 14.0)));
+                        float2 tuv = float2(a2 / 6.2831853 * 6.2831853 * k + _T * _Spin.w * (L2 + 1) * 0.3, lr * k + L2 * 0.37);
+                        float3 s_ = tex2D(_PSparks, tuv).rgb;
+                        float big = pow(saturate(s_.b * 1.8), 1.7), mid = pow(saturate(s_.g * 2.6), 1.6), fine = pow(saturate(s_.r * 3.2), 1.8);
+                        float2 cell = floor(tuv * 6 + 0.5); float hc = h2(cell + L2 * 7.7);
+                        float blink = 0.4 + 0.6 * step(0.45, h2(cell + floor(_T * _Spin.z + hc * 9)));
+                        dots += (big * 1.6 + mid * 1.1 + fine * 0.7) * blink * (L2 == 0 ? 1.0 : (L2 == 1 ? 0.9 : (L2 == 2 ? 0.7 : 0.5)));
                     }
-                    c *= 7.5;
+                    float2 cellC = floor(float2(a2 * 40, lr * 40) + 0.5); float hcol = h2(cellC);
+                    float3 dotCol = lerp(region, lerp(hsv(hcol, 0.9, 1), 1, step(0.6, h2(cellC + 2.2))), 0.3);   // 地域の色に、粒ごとの色を半分混ぜる
+                    c += dotCol * dots * dens * 5.5;
+                    // 帯の内側に白金の光（参考では帯の下、ロゴの周りが白く明るい）
+                    c += float3(1, 0.93, 0.75) * exp(-pow((rr - _Ring.x * 0.78) / (_Ring.x * 0.07), 2)) * 0.3 * (0.6 + 0.4 * arcN);   // 帯のすぐ下に暖かい光の筋
+                    // 中心の白金の光（円盤の中心 = ロゴの奥）
+                    c += _Col.rgb * (exp(-rr * rr * 9) * 1.0 + exp(-rr * 2.5) * 0.12);
+                    c *= _Intensity;
                 }
                 else
                 {

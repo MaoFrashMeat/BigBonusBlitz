@@ -12,6 +12,7 @@ Shader "Lab/Logo"
         _Shine ("Shine pos", Float) = -1
         _Glow ("Rim glow", Float) = 0
         _Alpha ("Alpha", Float) = 1
+        _Sky ("Sky (0 nebula, 1 blue sky)", Float) = 0
         _PWarp ("ProcWarp", 2D) = "gray" {}
         _PNoise ("ProcNoise", 2D) = "gray" {}
         _PSparks ("ProcSparks", 2D) = "black" {}
@@ -27,7 +28,7 @@ Shader "Lab/Logo"
             #pragma fragment frag
             #pragma target 3.5
             #include "UnityCG.cginc"
-            sampler2D _MainTex, _Face, _PWarp, _PNoise, _PSparks; float _Mode, _T, _Shine, _Glow, _Alpha;
+            sampler2D _MainTex, _Face, _PWarp, _PNoise, _PSparks; float _Mode, _T, _Shine, _Glow, _Alpha, _Sky;
             struct appdata { float4 pos:POSITION; float2 uv:TEXCOORD0; };
             struct v2f { float4 pos:SV_POSITION; float2 uv:TEXCOORD0; };
             v2f vert(appdata i){ v2f o; o.pos=UnityObjectToClipPos(i.pos); o.uv=i.uv; return o; }
@@ -70,6 +71,15 @@ Shader "Lab/Logo"
                     float3 sp = tex2D(_PSparks, uv * 2.2 + float2(_T * 0.002, 0)).rgb, sp2 = tex2D(_PSparks, uv * 0.9 + 0.5).rgb;
                     float tw = 0.6 + 0.4 * sin(_T * 7 + uv.x * 400 + uv.y * 230);
                     float3 stars = (saturate(sp.r * 2.5) * 1.4 * tw + sp.g * 0.6) * float3(1, 1, 1) + sp2.g * 0.25 * float3(0.8, 0.9, 1);   // 大きいぼんやりした点（b）は使わない
+                    if (_Sky > 0.5)
+                    {
+                        // 青い空: 上が濃い青、下へ白く。光条が下から差す
+                        float3 sky = lerp(float3(0.05, 0.12, 0.38), float3(0.01, 0.02, 0.1), saturate(uv.y * 1.3));
+                        float2 d = uv - float2(0.5, 0.15); float ang = atan2(d.y, d.x);
+                        float ray = pow(tex2D(_PNoise, float2(ang * 2.5 + _T * 0.01, 0.3)).g, 2.5) * exp(-length(d) * 1.2);
+                        colN = sky * (0.55 + 0.4 * neb) + float3(1, 0.95, 0.85) * ray * 0.05;
+                        stars *= 0.5;
+                    }
                     return float4(colN + stars, 1);
                 }
             }
