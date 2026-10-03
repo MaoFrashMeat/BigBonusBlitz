@@ -17,6 +17,8 @@ Shader "Lab/Glitter"
         _Col ("Col", Color) = (1,0.85,0.5,1)
         _Ring ("Ring (radius, width, tilt, squash)", Vector) = (0.6,0.08,0.3,0.45)
         _Spin ("Spin (ring, arc, blinkHz, drift)", Vector) = (0.5,0.35,15,0.1)
+        _HeadAng ("Head angle (mode 3)", Float) = 0
+        _HeadRad ("Head radius (mode 3)", Float) = 0
         _PStreak ("ProcStreak", 2D) = "gray" {}
         _PSparks ("ProcSparks", 2D) = "black" {}
         _PNoise ("ProcNoise", 2D) = "gray" {}
@@ -33,7 +35,7 @@ Shader "Lab/Glitter"
             #pragma fragment frag
             #pragma target 3.5
             #include "UnityCG.cginc"
-            sampler2D _PStreak, _PSparks, _PNoise, _PWarp; float _Mode, _T, _Intensity, _Aspect; float4 _Center, _Col, _Ring, _Spin;
+            sampler2D _PStreak, _PSparks, _PNoise, _PWarp; float _Mode, _T, _Intensity, _Aspect, _HeadAng, _HeadRad; float4 _Center, _Col, _Ring, _Spin;
             struct appdata { float4 pos:POSITION; float2 uv:TEXCOORD0; };
             struct v2f { float4 pos:SV_POSITION; float2 uv:TEXCOORD0; };
             v2f vert(appdata i){ v2f o; o.pos=UnityObjectToClipPos(i.pos); o.uv=i.uv; return o; }
@@ -70,14 +72,15 @@ Shader "Lab/Glitter"
                     for (int H = 0; H < 2; H++)
                     {
                         if (H >= (int)_Spin.y) break;
-                        float ha = ang - _T * _Spin.x - H * 3.14159;                          // 頭の角度
+                        float hA0 = _HeadRad > 0 ? _HeadAng : _T * _Spin.x; float Rh = _HeadRad > 0 ? _HeadRad : _Ring.x;
+                        float ha = ang - hA0 - H * 3.14159;                                   // 頭の角度
                         float da = atan2(sin(ha), cos(ha));                                   // -π..π
                         // 頭: 大きく柔らかい白金の玉（角度 ±0.5 rad）。尾: 後ろへ 2 rad ほど薄く伸びる
                         float head = exp(-da * da / (0.5 * 0.5));
                         float tail = (da < 0 ? exp(da * 1.0) : 0) * (1 - head);
                         float3 hot = float3(1, 0.97, 0.9), gold = _Col.rgb;
                         // 頭の玉（半径方向にも広い）
-                        float2 hp = float2(cos(_T * _Spin.x + H * 3.14159), sin(_T * _Spin.x + H * 3.14159)) * _Ring.x;
+                        float2 hp = float2(cos(hA0 + H * 3.14159), sin(hA0 + H * 3.14159)) * Rh;
                         float2 dq = q - hp; float dh = length(dq);
                         float sz = _Ring.y * (0.95 + 0.7 * depth);                             // 手前ほど大きい
                         // 玉: 芯（白）→ 広いにじみ（金）。RGB で半径をずらして縁に色のにじみ
@@ -98,7 +101,8 @@ Shader "Lab/Glitter"
                         float2 tuv = float2(ang / 6.2831853 * 6.2831853 * 3.0, rr * 3.0 + H * 0.4);
                         float3 sp = tex2D(_PSparks, tuv).rgb, sp2 = tex2D(_PSparks, tuv * 1.9 + 0.23).rgb;
                         float2 cell = floor(tuv * 7 + 0.5); float hc = h2(cell + H * 5.1);
-                        float blink = 0.2 + 0.8 * step(0.5, h2(cell + floor(_T * 15 + hc * 9)));
+                        float hz = 6 + 14 * h2(cell + 1.7); float duty = 0.3 + 0.5 * h2(cell + 2.9);      // セルごとに瞬きの速さと長さが違う
+                        float blink = 0.15 + 0.85 * step(duty, h2(cell + floor(_T * hz + hc * 9)));
                         float dots = pow(saturate(sp.g * 2.6), 1.8) * 1.2 + pow(saturate(sp.b * 1.8), 2.2) * 1.4 + pow(saturate(sp2.r * 3.0), 1.8) * 0.9 + pow(saturate(sp2.g * 2.6), 1.8) * 0.6;
                         float3 spB = tex2Dbias(_PSparks, float4(tuv, 0, 2.5)).rgb;                         // 一粒ごとのグロウ（ぼかしたミップ）
                         float glowD = (spB.g * 2.0 + spB.b * 1.2 + tex2Dbias(_PSparks, float4(tuv * 1.9 + 0.23, 0, 2.5)).r * 1.5) * 0.9;

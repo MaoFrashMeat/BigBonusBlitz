@@ -3005,7 +3005,9 @@ public static class FxLab
         Quad(c.root, "SgLogo", new Vector3(0, 0.45f, -3f), new Vector2(8.5f, 4.8f), mLogo);
         // 4 芒星のきらめき（星の絵 flare）: 頭の位置から出す。小さいものは色とりどりで多く、大きいものは白でまれ。瞬いて消える
         const float HaloR = 0.72f * 4f, HaloSq = 0.5f, HaloTilt = -0.25f, HaloSpin = 3.6f; var haloC = new Vector3(0, 0.45f, 0);
-        Vector3 HeadPos(float t, float back) { float a = t * HaloSpin - back; var e = new Vector2(Mathf.Cos(a) * HaloR, Mathf.Sin(a) * HaloR * HaloSq); float ct = Mathf.Cos(-HaloTilt), st = Mathf.Sin(-HaloTilt); return haloC + new Vector3(e.x * ct - e.y * st, e.x * st + e.y * ct, 0); }
+        float HeadAng(float t) => t * HaloSpin + 0.35f * Sway(t * 0.9f, 2) + 0.12f * Mathf.Sin(t * 7.3f);                  // 周回の速さがゆらぐ（速くなったり戻ったり）
+        float HeadRad(float t) => HaloR * (1f + 0.06f * Sway(t * 1.3f, 5));
+        Vector3 HeadPos(float t, float back) { float a = HeadAng(t) - back; float R = HeadRad(t); var e = new Vector2(Mathf.Cos(a) * R, Mathf.Sin(a) * R * HaloSq); float ct = Mathf.Cos(-HaloTilt), st = Mathf.Sin(-HaloTilt); return haloC + new Vector3(e.x * ct - e.y * st, e.x * st + e.y * ct, 0); }
         var stars = new List<(ParticleSystem ps, float back)>();
         foreach (var (name, n, s0, s1, life, seed, back, col) in new[] { ("HaloStarS", 260f, 0.08f, 0.2f, 0.25f, 3401u, 0.6f, true), ("HaloStarM", 60f, 0.2f, 0.36f, 0.3f, 3402u, 0.3f, true), ("HaloStarL", 7f, 0.5f, 0.85f, 0.4f, 3403u, 0.05f, false) })
         {
@@ -3013,12 +3015,15 @@ public static class FxLab
             foreach (var twin in new[] { 0, 1 })
             {
                 var ps = PS(c, name + (twin == 1 ? "Glow" : ""), HeadPos(0, back), twin == 1 ? AddMat(c.tx.glow, 0.16f) : AddMat(c.tx.star4, 3.5f), seed);
-                var m = ps.main; m.duration = 10f; m.loop = true; m.startLifetime = life; m.startSize = new MinMaxCurve(s0, s1); m.startSpeed = new MinMaxCurve(0f, 0.6f); m.startRotation = new MinMaxCurve(0, 0.5f);
-                m.startColor = col ? new MinMaxGradient(RainbowGrad()) : new MinMaxGradient(Color.white, new Color(1f, 0.92f, 0.7f));
-                var e = ps.emission; e.rateOverTime = n;
-                var sh = ps.shape; sh.enabled = true; sh.shapeType = ParticleSystemShapeType.Circle; sh.radius = name == "HaloStarS" ? 1.7f : 0.9f;
+                var m = ps.main; m.duration = 10f; m.loop = true; m.startLifetime = new MinMaxCurve(life * 0.5f, life * 1.9f); m.startSize = new MinMaxCurve(s0 * 0.6f, s1 * 1.5f); m.startSpeed = new MinMaxCurve(0f, 1.2f); m.startRotation = new MinMaxCurve(0, 6.28f);
+                m.startColor = col ? new MinMaxGradient(RainbowGrad(), Grad(new[] { (0f, Color.white), (1f, new Color(1f, 0.95f, 0.8f)) }, new[] { (0f, 1f), (1f, 1f) })) : new MinMaxGradient(Color.white, new Color(1f, 0.92f, 0.7f));   // 色は虹と白の間でばらす
+                var e = ps.emission; e.rateOverTime = new MinMaxCurve(n * 0.3f, n * 1.1f);                                       // 出る量もゆらぐ
+                e.SetBursts(new[] { new Burst(0.3f, (short)(n * 0.05f), (short)(n * 0.2f), 0, 0.37f), new Burst(0.8f, (short)(n * 0.04f), (short)(n * 0.15f), 0, 0.61f) });   // ときどきまとまって出る（周期が合わない 2 本）
+                var sh = ps.shape; sh.enabled = true; sh.shapeType = ParticleSystemShapeType.Circle; sh.radius = name == "HaloStarS" ? 1.7f : 0.9f; sh.radiusThickness = 1f;
                 float k = twin == 1 ? 2.6f : 1f;
-                SizeLife(ps, Curve((0, 0f), (0.25f, k), (0.5f, 0.45f * k), (0.7f, k), (1, 0f)));
+                // 瞬きの型を 2 種類の曲線からランダムに（1 回瞬く / 2 回瞬く）。回転もランダム
+                var sz = ps.sizeOverLifetime; sz.enabled = true; sz.size = new MinMaxCurve(1f, Curve((0, 0f), (0.25f, k), (0.5f, 0.45f * k), (0.7f, k), (1, 0f)), Curve((0, 0f), (0.15f, k * 0.8f), (0.4f, k * 0.15f), (0.55f, k * 1.1f), (0.8f, k * 0.3f), (1, 0f)));
+                var rot = ps.rotationOverLifetime; rot.enabled = true; rot.z = new MinMaxCurve(-2f, 2f);
                 ColorLife(ps, Grad(new[] { (0f, Color.white), (1f, Color.white) }, new[] { (0f, 1f), (1f, 1f) }));
                 var r = ps.GetComponent<ParticleSystemRenderer>(); r.sharedMaterial.renderQueue = twin == 1 ? 2988 : 2989;
                 c.Play(ps, 0f); stars.Add((ps, back));
@@ -3026,9 +3031,11 @@ public static class FxLab
         }
         c.OnUpdate(t =>
         {
-            float a = t * HaloSpin; float headX01 = 0.5f + 0.5f * Mathf.Cos(a);                 // 頭の左右（0 左 … 1 右）
+            float a = HeadAng(t); float headX01 = 0.5f + 0.5f * Mathf.Cos(a);                  // 頭の左右（0 左 … 1 右）
             float behind = Mathf.Pow(Mathf.Max(0, Mathf.Sin(a)), 2);                            // 頭がロゴの奥（上側）を通るとき
-            mBg.SetFloat("_T", t); mDisc.SetFloat("_T", t); mDisc.SetFloat("_Intensity", 0.5f); mHalo.SetFloat("_T", t); mHalo.SetFloat("_Intensity", 1f);
+            float flick = 0.85f + 0.15f * Sway(t * 3.1f, 4) + 0.12f * Spike(t, 0.31f, 6) + 0.25f * Spike(t, 0.73f, 9);   // 明るさ: ゆらぎ＋ときどき跳ねる
+            mBg.SetFloat("_T", t); mDisc.SetFloat("_T", t); mDisc.SetFloat("_Intensity", 0.5f + 0.06f * Sway(t * 0.7f, 1)); mHalo.SetFloat("_T", t); mHalo.SetFloat("_Intensity", flick);
+            mHalo.SetVector("_Spin", new Vector4(0, 1f, 0, 0)); mHalo.SetFloat("_HeadAng", a); mHalo.SetFloat("_HeadRad", HeadRad(t) / 4f);
             mLogo.SetFloat("_T", t); mLogo.SetFloat("_Shine", -0.3f + 1.6f * headX01);          // 虹の帯は頭と一緒に横切る
             mLogo.SetFloat("_Glow", 0.12f + 0.55f * behind);                                   // 奥を通るとき金の縁が光る
             foreach (var (ps, back) in stars) ps.transform.position = HeadPos(t, back) + new Vector3(0, 0, -2.95f);
