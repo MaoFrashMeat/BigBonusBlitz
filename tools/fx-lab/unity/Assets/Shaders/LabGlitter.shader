@@ -2,6 +2,8 @@
 // _Mode 0 = きらめき: 焼いた点の板を 3 段の大きさで読み、セルごとに別の位相で瞬く（15 Hz）。色相はセルのハッシュ（赤・緑・青・白が混ざる）。中心に近いほど密
 // _Mode 2 = 回るきらめきの輪（本人 2026-10-03「後ろでサークルに動いているキラキラ。あれだけ再現できれば良い」）: 傾いた楕円の輪に沿ってきらめきが回る。
 //            密な弧（彗星の頭）が一周し、手前（下）は大きく明るく、奥（上）は小さく暗い。輪は 3 本（傾き・速さ・半径が違う）。粒は色とりどりで毎コマ瞬く
+// _Mode 3 = 光の頭の周回（本人 2026-10-04「もう一個手前の、SG の後ろのやつ。背景ではない」。手ブレを止めた差分で見えた: ロゴの後ろを白金の大きく柔らかい光の頭が
+//            楕円の軌道で一周し、尾に小さなきらめきが散る）。_Ring = (半径, 太さ, 傾き, 潰し)、_Spin.x = 周回の速さ、_Spin.y = 頭の数
 // _Mode 1 = 後ろの光: 白金の放射状の光＋光芒 2 層（逆向きにゆっくり回る）＋横のアナモルフィック。_Intensity で脈動
 Shader "Lab/Glitter"
 {
@@ -56,6 +58,41 @@ Shader "Lab/Glitter"
                         c += col * dot_ * blink * (1.2 - 0.3 * L) * dens * (0.5 + h2(cell + 5.5));
                     }
                     c *= 9.0;
+                }
+                else if (_Mode > 2.5)
+                {
+                    // 楕円の軌道
+                    float ct = cos(_Ring.z), st = sin(_Ring.z); float2 q = float2(p.x * ct + p.y * st, -p.x * st + p.y * ct); q.y /= _Ring.w;
+                    float rr = length(q); float ang = atan2(q.y, q.x);
+                    float depth = 0.5 - 0.5 * sin(ang);                                     // 1 = 手前（下）
+                    float band = exp(-pow((rr - _Ring.x) / _Ring.y, 2));
+                    float bandWide = exp(-pow((rr - _Ring.x) / (_Ring.y * 3.0), 2));
+                    for (int H = 0; H < 2; H++)
+                    {
+                        if (H >= (int)_Spin.y) break;
+                        float ha = ang - _T * _Spin.x - H * 3.14159;                          // 頭の角度
+                        float da = atan2(sin(ha), cos(ha));                                   // -π..π
+                        // 頭: 大きく柔らかい白金の玉（角度 ±0.5 rad）。尾: 後ろへ 2 rad ほど薄く伸びる
+                        float head = exp(-da * da / (0.5 * 0.5));
+                        float tail = (da < 0 ? exp(da * 1.0) : 0) * (1 - head);
+                        float3 hot = float3(1, 0.97, 0.9), gold = _Col.rgb;
+                        // 頭の玉（半径方向にも広い）
+                        float2 hp = float2(cos(_T * _Spin.x + H * 3.14159), sin(_T * _Spin.x + H * 3.14159)) * _Ring.x;
+                        float dh = length(q - hp);
+                        float blob = exp(-dh * dh / (_Ring.y * _Ring.y * 9)) * 1.6 + exp(-dh / (_Ring.y * 2.2)) * 0.5;
+                        c += lerp(gold, hot, saturate(blob)) * blob * (0.6 + 0.6 * depth);
+                        // 軌道の芯（頭から尾へ）
+                        c += lerp(gold, hot, head) * band * (head * 1.4 + tail * 0.5) * (0.5 + 0.7 * depth);
+                        c += gold * bandWide * (head * 0.35 + tail * 0.12) * (0.5 + 0.7 * depth);
+                        // 尾のきらめき: 点の板を軌道に沿って読み、毎コマ瞬く
+                        float2 tuv = float2(ang / 6.2831853 * 10.0, rr * 1.6 + H * 0.4);
+                        float3 sp = tex2D(_PSparks, tuv).rgb;
+                        float2 cell = floor(tuv * float2(30, 10) + 0.5); float hc = h2(cell + H * 5.1);
+                        float blink = step(0.45, h2(cell + floor(_T * 15 + hc * 9)));
+                        float dots = pow(saturate(sp.g * 2.6), 1.6) * 1.3 + pow(saturate(sp.b * 1.8), 2.0) * 1.5 + pow(saturate(sp.r * 3.0), 1.8) * 0.8;
+                        c += lerp(hot, hsv(hc, 0.6, 1), 0.5) * dots * bandWide * (head * 2.5 + tail * 4.0) * blink * (0.5 + 0.8 * depth);
+                    }
+                    c *= _Intensity;
                 }
                 else if (_Mode < 2.5 && _Mode > 1.5)
                 {

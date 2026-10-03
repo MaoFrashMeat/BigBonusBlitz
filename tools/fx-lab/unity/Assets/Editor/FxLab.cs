@@ -95,7 +95,8 @@ public static class FxLab
         yield return new Clip { name = "proc_pillar", dur = 2.6f, hold = 1, build = ProcPillar };
         yield return new Clip { name = "toon_hit", dur = 0.9f, hold = 1, build = ToonHit };
         yield return new Clip { name = "sg_shine", dur = 4.0f, hold = 1, build = SgShine };
-        yield return new Clip { name = "sg_ring", dur = 4.0f, hold = 1, build = SgRing };   // hold は 1 以上（0 だと 0 除算で全コマ黒）
+        yield return new Clip { name = "sg_ring", dur = 4.0f, hold = 1, build = SgRing };
+        yield return new Clip { name = "sg_halo", dur = 4.0f, hold = 1, build = SgHalo };   // hold は 1 以上（0 だと 0 除算で全コマ黒）
         yield return new Clip { name = "proc_godrays", dur = 3.0f, hold = 1, build = ProcGodRays };
         yield return new Clip { name = "proc_lightning", dur = 2.6f, hold = 1, build = ProcLightning };
         yield return new Clip { name = "proc_firevortex", dur = 3.0f, hold = 1, build = ProcFireVortex };
@@ -2990,6 +2991,19 @@ public static class FxLab
         var mLogo = ProcTex(c, new Material(Shader.Find("Lab/Logo"))); mLogo.SetFloat("_Mode", 0); mLogo.SetTexture("_MainTex", c.tx.logoSG); mLogo.SetTexture("_Face", c.tx.logoSGFace); mLogo.SetFloat("_Alpha", 0.5f); mLogo.renderQueue = 2990;
         Quad(c.root, "SgLogo", new Vector3(0, -0.6f, -3f), new Vector2(8.5f, 4.8f), mLogo);
         c.OnUpdate(t => { mBg.SetFloat("_T", t); mRing.SetFloat("_T", t); mRing.SetFloat("_Intensity", 1f + 0.08f * Mathf.Sin(t * 3f)); mGl.SetFloat("_T", t); mGl.SetFloat("_Intensity", 0.11f + 0.03f * Mathf.Sin(t * 4.2f)); mLogo.SetFloat("_T", t); mLogo.SetFloat("_Shine", -1f); mLogo.SetFloat("_Glow", 0.1f); });
+    }
+    // L3 光の頭の周回（本人「もう一個手前の、SG の後ろのやつ。背景ではない」）。円盤の背景は暗めに置き、ロゴの後ろ（2989）で白金の頭が楕円を一周する
+    static void SgHalo(Ctx c)
+    {
+        c.heroT.gameObject.SetActive(false); c.goblinT.gameObject.SetActive(false);
+        var mBg = ProcTex(c, new Material(Shader.Find("Lab/Logo"))); mBg.SetFloat("_Mode", 1); mBg.SetFloat("_Sky", 1); mBg.renderQueue = 2980; Quad(c.root, "SgSky", new Vector3(0, 0, 5f), new Vector2(12.8f, 7.2f), mBg);
+        var mDisc = ProcTex(c, new Material(Shader.Find("Lab/Glitter"))); mDisc.SetFloat("_Mode", 2); mDisc.SetFloat("_Aspect", 14f / 8f); mDisc.SetVector("_Center", new Vector4(0.5f, -0.3f, 0, 0)); mDisc.SetColor("_Col", new Color(1f, 0.92f, 0.7f));
+        mDisc.SetVector("_Ring", new Vector4(3.8f, 0.45f, 0f, 0.5f)); mDisc.SetVector("_Spin", new Vector4(0.12f, 0f, 12f, 0.06f)); mDisc.renderQueue = 2986; Quad(c.root, "SgDisc", new Vector3(0, 0, 4.6f), new Vector2(14f, 8f), mDisc);
+        var mHalo = ProcTex(c, new Material(Shader.Find("Lab/Glitter"))); mHalo.SetFloat("_Mode", 3); mHalo.SetFloat("_Aspect", 14f / 8f); mHalo.SetVector("_Center", new Vector4(0.5f, 0.56f, 0, 0)); mHalo.SetColor("_Col", new Color(1f, 0.85f, 0.5f));
+        mHalo.SetVector("_Ring", new Vector4(0.72f, 0.07f, -0.25f, 0.5f)); mHalo.SetVector("_Spin", new Vector4(3.6f, 1f, 0, 0)); mHalo.renderQueue = 2989; Quad(c.root, "SgHalo", new Vector3(0, 0, -2.9f), new Vector2(14f, 8f), mHalo);
+        var mLogo = ProcTex(c, new Material(Shader.Find("Lab/Logo"))); mLogo.SetFloat("_Mode", 0); mLogo.SetTexture("_MainTex", c.tx.logoSG); mLogo.SetTexture("_Face", c.tx.logoSGFace); mLogo.SetFloat("_Alpha", 1f); mLogo.renderQueue = 2990;
+        Quad(c.root, "SgLogo", new Vector3(0, 0.45f, -3f), new Vector2(8.5f, 4.8f), mLogo);
+        c.OnUpdate(t => { mBg.SetFloat("_T", t); mDisc.SetFloat("_T", t); mDisc.SetFloat("_Intensity", 0.5f); mHalo.SetFloat("_T", t); mHalo.SetFloat("_Intensity", 1f); mLogo.SetFloat("_T", t); mLogo.SetFloat("_Shine", -1f); mLogo.SetFloat("_Glow", 0.15f + 0.1f * Mathf.Sin(t * 3.6f)); });
     }
     // ===== 手描き風の硬い形（Lab/Toon。本人 2026-10-01 のリファレンス「本当にそっくりに作れますか？」→ 1 本作って並べる）=====
     static Material ToonMat(Ctx c, int mode, Color core, Color rim, Color line, float seed)
