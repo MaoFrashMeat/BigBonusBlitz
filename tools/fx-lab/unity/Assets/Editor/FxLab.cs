@@ -94,6 +94,7 @@ public static class FxLab
         yield return new Clip { name = "door_gold", dur = 4.7f, hold = 1, build = DoorGold };
         yield return new Clip { name = "proc_pillar", dur = 2.6f, hold = 1, build = ProcPillar };
         yield return new Clip { name = "toon_hit", dur = 0.9f, hold = 1, build = ToonHit };
+        yield return new Clip { name = "sg_shine", dur = 4.0f, hold = 1, build = SgShine };   // hold は 1 以上（0 だと 0 除算で全コマ黒）
         yield return new Clip { name = "proc_godrays", dur = 3.0f, hold = 1, build = ProcGodRays };
         yield return new Clip { name = "proc_lightning", dur = 2.6f, hold = 1, build = ProcLightning };
         yield return new Clip { name = "proc_firevortex", dur = 3.0f, hold = 1, build = ProcFireVortex };
@@ -2925,6 +2926,55 @@ public static class FxLab
     }
     static void Punch(Ctx c, float a, float flash, float trauma, float zoom) { if (a >= 0 && a < 2 * F) c.post.flash = Mathf.Max(c.post.flash, flash); if (a >= 0) { c.post.trauma += trauma * 0.6f * Decay(a, 10f); c.post.zoom *= 1f + zoom * Decay(a, 6f); } }
 
+    // ===== ロゴの周りの輝き（本人 2026-10-03 の参考動画「SG Special Grade RUSH」。ロゴは Blender の代役 blender/render_logo.py）=====
+    // 層（奥から）: 星雲と星（不透明）→ 白金の光と光芒 2 層（逆回転・脈動）→ ロゴ（面に虹が流れ、斜めの光の帯が掃く、縁が脈動）→ 細かい色のきらめき（毎コマ瞬く）→ 4 芒星のきらめき（粒子・星の絵）
+    // 時間: 参考はループ（約 1.6 秒の動画で切れ目無し）。ここでは 0〜0.5 秒で立ち上がり（ロゴが寄って止まる・光が噴く）→ 以後ループ
+    static void SgShine(Ctx c)
+    {
+        c.heroT.gameObject.SetActive(false); c.goblinT.gameObject.SetActive(false);
+        var gold = new Color(1f, 0.82f, 0.45f);
+        // 星雲（画面全体・不透明）
+        var mBg = ProcTex(c, new Material(Shader.Find("Lab/Logo"))); mBg.SetFloat("_Mode", 1); mBg.renderQueue = 2980; Quad(c.root, "SgNebula", new Vector3(0, 0, 5f), new Vector2(12.8f, 7.2f), mBg);
+        // 後ろの光（加算）
+        var mGl = ProcTex(c, new Material(Shader.Find("Lab/Glitter"))); mGl.SetFloat("_Mode", 1); mGl.SetFloat("_Aspect", 14f / 8f); mGl.SetVector("_Center", new Vector4(0.5f, 0.55f, 0, 0)); mGl.SetColor("_Col", gold); mGl.renderQueue = 2985;
+        Quad(c.root, "SgGlow", new Vector3(0, 0, 4.5f), new Vector2(14f, 8f), mGl);
+        // ロゴ（半透明）
+        var mLogo = ProcTex(c, new Material(Shader.Find("Lab/Logo"))); mLogo.SetFloat("_Mode", 0); mLogo.SetTexture("_MainTex", c.tx.logoSG); mLogo.SetTexture("_Face", c.tx.logoSGFace); mLogo.renderQueue = 2990;
+        var qLogo = Quad(c.root, "SgLogo", new Vector3(0, 0.3f, -3f), new Vector2(10.5f, 5.9f), mLogo);
+        // 細かいきらめき（加算・前）
+        var mGt = ProcTex(c, new Material(Shader.Find("Lab/Glitter"))); mGt.SetFloat("_Mode", 0); mGt.SetFloat("_Aspect", 14f / 8f); mGt.SetVector("_Center", new Vector4(0.5f, 0.55f, 0, 0)); mGt.renderQueue = 3005;
+        Quad(c.root, "SgGlitter", new Vector3(0, 0, -3.2f), new Vector2(14f, 8f), mGt);
+        // 4 芒星のきらめき（星の絵 flare。瞬いて消える。大小 2 種）
+        foreach (var (name, n, s0, s1, life, seed) in new[] { ("SgStarS", 90f, 0.07f, 0.2f, 0.2f, 3301u), ("SgStarM", 18f, 0.22f, 0.4f, 0.3f, 3303u), ("SgStarL", 4f, 0.55f, 0.95f, 0.45f, 3302u) })
+        {
+            var ps = PS(c, name, new Vector3(0, 0.3f, -3.3f), AddMat(c.tx.star4, 3.5f), seed);
+            var m = ps.main; m.duration = 10f; m.loop = true; m.startLifetime = life; m.startSize = new MinMaxCurve(s0, s1); m.startSpeed = 0; m.startRotation = new MinMaxCurve(0, 0.6f);
+            m.startColor = name == "SgStarS" ? new MinMaxGradient(RainbowGrad()) : new MinMaxGradient(Color.white, new Color(1f, 0.9f, 0.6f));   // 小さい星は色とりどり
+            var e = ps.emission; e.rateOverTime = n;
+            var sh = ps.shape; sh.enabled = true; sh.shapeType = ParticleSystemShapeType.Box; sh.scale = new Vector3(9f, 5f, 0.1f);
+            SizeLife(ps, Curve((0, 0f), (0.3f, 1f), (0.5f, 0.55f), (0.7f, 1f), (1, 0f)));                            // 2 回瞬く
+            ColorLife(ps, Grad(new[] { (0f, Color.white), (1f, Color.white) }, new[] { (0f, 1f), (1f, 1f) }));
+            c.Play(ps, 0f);
+        }
+        float on = 0.2f;
+        c.Impulse(on + 0.25f, new Vector2(0, -8f), 10f, 16f);
+        c.OnUpdate(t =>
+        {
+            float a = t - on;
+            float enter = Mathf.Clamp01(a / 0.25f);                                            // 立ち上がり: 寄って止まる
+            float scale = a < 0 ? 1.6f : (1f + 0.6f * Mathf.Pow(1 - enter, 3)) * (1f + 0.012f * Mathf.Sin(t * 6.28f));   // 以後 1 Hz で呼吸
+            qLogo.localScale = new Vector3(10.5f * scale, 5.9f * scale, 1);
+            float pulse = 0.75f + 0.25f * Mathf.Sin(t * 4.2f) + 0.12f * Mathf.Sin(t * 11f);
+            float burst = a < 0 ? 0 : 1f + 2.5f * Decay(Mathf.Max(0, a - 0.25f), 4f);        // 止まった瞬間に光が噴く
+            mBg.SetFloat("_T", t);
+            mGl.SetFloat("_T", t); mGl.SetFloat("_Intensity", (a < 0 ? 0.12f : 0.42f * pulse * burst));
+            mGt.SetFloat("_T", t); mGt.SetFloat("_Intensity", a < 0.25f ? 0.3f : 0.8f + 0.3f * pulse);
+            mLogo.SetFloat("_T", t); mLogo.SetFloat("_Shine", a < 0.25f ? -1f : Mathf.Repeat((a - 0.25f) * 0.9f, 1.5f) * 1.6f - 0.3f);   // 1.1 秒ごとに帯が掃く
+            mLogo.SetFloat("_Glow", (a < 0.25f ? 0 : 0.25f * pulse) + (a >= 0.25f ? 0.8f * Decay(a - 0.25f, 6f) : 0));
+            if (a >= 0.25f && a < 0.25f + 2 * F) c.post.flash = 0.5f;
+            c.post.zoom *= 1f + 0.015f * Mathf.Sin(t * 0.8f);
+        });
+    }
     // ===== 手描き風の硬い形（Lab/Toon。本人 2026-10-01 のリファレンス「本当にそっくりに作れますか？」→ 1 本作って並べる）=====
     static Material ToonMat(Ctx c, int mode, Color core, Color rim, Color line, float seed)
     {
@@ -3650,7 +3700,7 @@ public static class FxLab
         public Vector4 shock;   // 空間の歪み: xy 中心（uv）、z 半径（画面の高さ比）、w 強さ
         public Vector4 split; public Color splitCol; public float black; public Vector4 slit;   // 真っ二つ / 暗転 / 暗転中の光の裂け目
     }
-    class Tx { public Texture2D dot, glow, ring, star4, diamond, plus, flame, flame2, streak, trail, noise, column, coinFace, burst, air, sparkle, magic, fbHitLines, fbBigHit, fbCharge, fbElecRing, fbFireRing, fbFlame, fbSmoke, fibers, square, fireFlame03, hexTile, arrowUp, fbStarExp, fbVortex, fbWavy, blCampfire, blWall, lightRing, bolt, ringDouble, twirl, starCross, smokePuff, sfxDon, sfxZuba, sfxBari, sfxGo, sfxKira, shieldCrest, doorGate, doorVault, doorLock, shutter, doorGateR, doorVaultR, doorGold, doorGoldR, pNoise, pRidge, pVoro, pStreak, pWarp, pSparks, vaultFrame, vaultLocked, vaultOpen, vaultWheel; }
+    class Tx { public Texture2D dot, glow, ring, star4, diamond, plus, flame, flame2, streak, trail, noise, column, coinFace, burst, air, sparkle, magic, fbHitLines, fbBigHit, fbCharge, fbElecRing, fbFireRing, fbFlame, fbSmoke, fibers, square, fireFlame03, hexTile, arrowUp, fbStarExp, fbVortex, fbWavy, blCampfire, blWall, lightRing, bolt, ringDouble, twirl, starCross, smokePuff, sfxDon, sfxZuba, sfxBari, sfxGo, sfxKira, shieldCrest, doorGate, doorVault, doorLock, shutter, doorGateR, doorVaultR, doorGold, doorGoldR, pNoise, pRidge, pVoro, pStreak, pWarp, pSparks, logoSG, logoSGFace, vaultFrame, vaultLocked, vaultOpen, vaultWheel; }
     class Ctx
     {
         public Transform root, heroT, goblinT; public Texture2D hero, goblin; public Tx tx;
@@ -4005,6 +4055,8 @@ public static class FxLab
             tx.pStreak = P("proc_streak");
             tx.pWarp = P("proc_warp");
             tx.pSparks = P("proc_sparks");
+            tx.logoSG = K("logo_sg");
+            tx.logoSGFace = K("logo_sg_face");
             tx.doorGoldR = K("door_gold_R");
             // 扉は落とした CC0 の 3D 素材を Blender で撮ったもの（blender/render_doors.py、LICENSE-doors.txt）
             if (File.Exists(Path.Combine(dir, "vault_frame.png"))) { tx.vaultFrame = K("vault_frame"); tx.vaultLocked = K("vault_door_locked"); tx.vaultOpen = K("vault_door_open"); tx.vaultWheel = K("vault_wheel"); }   // 作り込んだ金庫（blender/render_vault.py）

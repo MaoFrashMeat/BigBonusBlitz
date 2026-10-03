@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-03",
+  "tool": "built-in image_gen",
+  "originalPixelsUnmodified": true,
+  "mainAssetsChanged": false,
+  "generations": [
+    {
+      "file": "walk-contact-pair-v1-rejected.png",
+      "prompt": "walk-contact-pair-v1-prompt.txt",
+      "source": "C:\\Users\\ts081\\.codex\\generated_images\\01a0918e-f596-7aa0-b6a0-25dbb4e2f317\\exec-bcc5de67-822b-4270-b0cf-fd832b1fef85.png",
+      "sha256": "e9763f6b42c6cc726e8d727cc675fd05e182e6ecba5907acae8a2cf07cfa77c3",
+      "width": 1774,
+      "height": 887,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "status": "rejected",
+      "reason": "Same contact twice; near thigh leads screen-right in both cells"
+    },
+    {
+      "file": "walk-contact-pair-v2.png",
+      "prompt": "walk-contact-pair-v2-prompt.txt",
+      "source": "C:\\Users\\ts081\\.codex\\generated_images\\01a0918e-f596-7aa0-b6a0-25dbb4e2f317\\exec-61d5294c-fcdc-4999-b736-77f78374bcbe.png",
+      "sha256": "1fa85a05a2c1791e3f22ca2d84d1901a596ca04d279a76fab492f3ef765e6272",
+      "width": 1774,
+      "height": 887,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "status": "keypose-candidate",
+      "reason": "Near thigh switches screen-right to screen-left; only contact pair, not a walk cycle"
+    },
+    {
+      "file": "walk-v7-rejected.png",
+      "prompt": "walk-v7-prompt.txt",
+      "source": "C:\\Users\\ts081\\.codex\\generated_images\\01a0918e-f596-7aa0-b6a0-25dbb4e2f317\\exec-1f50d479-0d1f-4cd2-a033-cf70984b6b05.png",
+      "sha256": "3d9c0528ab689081b65b3c4b53c64147cbd3ac4bc585b53976a49d1f50df8eb0",
+      "width": 1536,
+      "height": 1024,
+      "alphaExtrema": [
+        0,
+        254
+      ],
+      "status": "rejected",
+      "reason": "8-frame expansion loses opposite support leg; passing/up silhouettes repeat"
+    },
+    {
+      "file": "walk-passing-pair-v1-review.png",
+      "prompt": "walk-passing-pair-v1-prompt.txt",
+      "source": "C:\\Users\\ts081\\.codex\\generated_images\\01a0918e-f596-7aa0-b6a0-25dbb4e2f317\\exec-903dc9be-41d7-44ab-8705-26ae91145326.png",
+      "sha256": "f490a4a694c5e76427b100cb0087a492391e1231c2fc5f78360dcf4b6569d1be",
+      "width": 1774,
+      "height": 887,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "status": "review-only",
+      "reason": "Bent swing knee/one planted foot visible, but support-side alternation is not reliable"
+    }
+  ]
+}

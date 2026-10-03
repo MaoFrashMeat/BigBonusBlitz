@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-03",
+  "tool": "built-in image_gen",
+  "originalPixelsUnmodified": true,
+  "generations": [
+    {
+      "file": "walk-passing-near-support-v1.png",
+      "prompt": "walk-passing-near-support-v1-prompt.txt",
+      "source": "C:\\Users\\ts081\\.codex\\generated_images\\01a0918e-f596-7aa0-b6a0-25dbb4e2f317\\exec-6b903a4d-e0e4-4dc9-8812-2887d7878d4f.png",
+      "sha256": "2b72eb7bab5bc433e28b092deb4a3a5f18b9caf15b6730de73d09c9175ac7266",
+      "status": "blocking-candidate-not-main"
+    },
+    {
+      "file": "walk-passing-far-support-v1.png",
+      "prompt": "walk-passing-far-support-v1-prompt.txt",
+      "source": "C:\\Users\\ts081\\.codex\\generated_images\\01a0918e-f596-7aa0-b6a0-25dbb4e2f317\\exec-35fa4363-5fa8-4457-bc15-1fb5b00556ee.png",
+      "sha256": "405baaf9f9f8c130a46d3e0edd5a3373576ea30c39720046618256dd1b8c16fa",
+      "status": "blocking-candidate-not-main"
+    }
+  ]
+}
