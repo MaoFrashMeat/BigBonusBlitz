@@ -3009,15 +3009,20 @@ public static class FxLab
         var stars = new List<(ParticleSystem ps, float back)>();
         foreach (var (name, n, s0, s1, life, seed, back, col) in new[] { ("HaloStarS", 260f, 0.08f, 0.2f, 0.25f, 3401u, 0.6f, true), ("HaloStarM", 60f, 0.2f, 0.36f, 0.3f, 3402u, 0.3f, true), ("HaloStarL", 7f, 0.5f, 0.85f, 0.4f, 3403u, 0.05f, false) })
         {
-            var ps = PS(c, name, HeadPos(0, back), AddMat(c.tx.star4, 3.5f), seed);
-            var m = ps.main; m.duration = 10f; m.loop = true; m.startLifetime = life; m.startSize = new MinMaxCurve(s0, s1); m.startSpeed = new MinMaxCurve(0f, 0.6f); m.startRotation = new MinMaxCurve(0, 0.5f);
-            m.startColor = col ? new MinMaxGradient(RainbowGrad()) : new MinMaxGradient(Color.white, new Color(1f, 0.92f, 0.7f));
-            var e = ps.emission; e.rateOverTime = n;
-            var sh = ps.shape; sh.enabled = true; sh.shapeType = ParticleSystemShapeType.Circle; sh.radius = name == "HaloStarS" ? 1.7f : 0.9f;
-            SizeLife(ps, Curve((0, 0f), (0.25f, 1f), (0.5f, 0.45f), (0.7f, 1f), (1, 0f)));
-            ColorLife(ps, Grad(new[] { (0f, Color.white), (1f, Color.white) }, new[] { (0f, 1f), (1f, 1f) }));
-            var r = ps.GetComponent<ParticleSystemRenderer>(); r.sharedMaterial.renderQueue = 2989;
-            c.Play(ps, 0f); stars.Add((ps, back));
+            // 星と、その双子のグロウ（同じ種・同じ設定なので同じ場所に出る。グロウは柔らかい光の絵を 4 倍の大きさで）
+            foreach (var twin in new[] { 0, 1 })
+            {
+                var ps = PS(c, name + (twin == 1 ? "Glow" : ""), HeadPos(0, back), twin == 1 ? AddMat(c.tx.glow, 0.16f) : AddMat(c.tx.star4, 3.5f), seed);
+                var m = ps.main; m.duration = 10f; m.loop = true; m.startLifetime = life; m.startSize = new MinMaxCurve(s0, s1); m.startSpeed = new MinMaxCurve(0f, 0.6f); m.startRotation = new MinMaxCurve(0, 0.5f);
+                m.startColor = col ? new MinMaxGradient(RainbowGrad()) : new MinMaxGradient(Color.white, new Color(1f, 0.92f, 0.7f));
+                var e = ps.emission; e.rateOverTime = n;
+                var sh = ps.shape; sh.enabled = true; sh.shapeType = ParticleSystemShapeType.Circle; sh.radius = name == "HaloStarS" ? 1.7f : 0.9f;
+                float k = twin == 1 ? 2.6f : 1f;
+                SizeLife(ps, Curve((0, 0f), (0.25f, k), (0.5f, 0.45f * k), (0.7f, k), (1, 0f)));
+                ColorLife(ps, Grad(new[] { (0f, Color.white), (1f, Color.white) }, new[] { (0f, 1f), (1f, 1f) }));
+                var r = ps.GetComponent<ParticleSystemRenderer>(); r.sharedMaterial.renderQueue = twin == 1 ? 2988 : 2989;
+                c.Play(ps, 0f); stars.Add((ps, back));
+            }
         }
         c.OnUpdate(t =>
         {

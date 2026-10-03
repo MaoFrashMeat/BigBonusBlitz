@@ -100,7 +100,9 @@ Shader "Lab/Glitter"
                         float2 cell = floor(tuv * 7 + 0.5); float hc = h2(cell + H * 5.1);
                         float blink = 0.2 + 0.8 * step(0.5, h2(cell + floor(_T * 15 + hc * 9)));
                         float dots = pow(saturate(sp.g * 2.6), 1.8) * 1.2 + pow(saturate(sp.b * 1.8), 2.2) * 1.4 + pow(saturate(sp2.r * 3.0), 1.8) * 0.9 + pow(saturate(sp2.g * 2.6), 1.8) * 0.6;
-                        c += lerp(hot, hsv(hc, 0.75, 1), 0.55) * dots * cloud * (head * 3.5 + tail * 4.5) * blink * (0.5 + 0.8 * depth);
+                        float3 spB = tex2Dbias(_PSparks, float4(tuv, 0, 2.5)).rgb;                         // 一粒ごとのグロウ（ぼかしたミップ）
+                        float glowD = (spB.g * 2.0 + spB.b * 1.2 + tex2Dbias(_PSparks, float4(tuv * 1.9 + 0.23, 0, 2.5)).r * 1.5) * 0.9;
+                        c += lerp(hot, hsv(hc, 0.75, 1), 0.55) * (dots + glowD) * cloud * (head * 3.5 + tail * 4.5) * blink * (0.5 + 0.8 * depth);
                     }
                     c *= _Intensity;
                 }
