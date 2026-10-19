@@ -1,0 +1,55 @@
+{
+  "generatedAt": "2026-10-20T02:15:10+09:00",
+  "isolatedProductName": "shop-qa",
+  "files": [
+    {
+      "path": "Assets/Editor/AdventureHeroValidation.cs",
+      "sourceSha256": "1830a6ebefa64cc3dcf27b79d42ed1d6c47abc34f87f8d549dad4c0d8dea4098",
+      "isolatedSha256": "1830a6ebefa64cc3dcf27b79d42ed1d6c47abc34f87f8d549dad4c0d8dea4098",
+      "identical": true
+    },
+    {
+      "path": "Assets/Scripts/BBB.Runtime/MarqueeBand.cs",
+      "sourceSha256": "5f0d4ebf2d416573ae182ee14119d116bd07cbec306e3c16631e9e6288c03c32",
+      "isolatedSha256": "5f0d4ebf2d416573ae182ee14119d116bd07cbec306e3c16631e9e6288c03c32",
+      "identical": true
+    },
+    {
+      "path": "Assets/Scripts/BBB.Runtime/AdventureHeroPresenter.cs",
+      "sourceSha256": "758600cbda2dfb8bc0cf0fdf6a11d9265a1020e2ada8deade3e7e17acdc7cc13",
+      "isolatedSha256": "758600cbda2dfb8bc0cf0fdf6a11d9265a1020e2ada8deade3e7e17acdc7cc13",
+      "identical": true
+    },
+    {
+      "path": "Assets/Scripts/BBB.Runtime/AdventurePresentation.cs",
+      "sourceSha256": "b5f24a57cc87e5f0af9140ba256bb86f0a75b08735d66c4506e705dbd4d02637",
+      "isolatedSha256": "b5f24a57cc87e5f0af9140ba256bb86f0a75b08735d66c4506e705dbd4d02637",
+      "identical": true
+    },
+    {
+      "path": "Assets/Scripts/BBB.Runtime/GameController.cs",
+      "sourceSha256": "fa3068d20998890cb1400314f382e7a7bef8a3cfbdd5486bb6506c758a9e0553",
+      "isolatedSha256": "fa3068d20998890cb1400314f382e7a7bef8a3cfbdd5486bb6506c758a9e0553",
+      "identical": true
+    },
+    {
+      "path": "Assets/Tests/EditMode/AdventureEnemyReelTests.cs",
+      "sourceSha256": "88a1536eb051fac9a608f61b5dc1f2897284dc5a88180d9dbebf5ac8b6c436e6",
+      "isolatedSha256": "88a1536eb051fac9a608f61b5dc1f2897284dc5a88180d9dbebf5ac8b6c436e6",
+      "identical": true
+    },
+    {
+      "path": "Assets/Resources/Data/hero_presentation_prototype.json",
+      "sourceSha256": "71952bf0905dfee8cc8d074ffba5d90c2a25271f424c699a6b70ae8675fc4449",
+      "isolatedSha256": "71952bf0905dfee8cc8d074ffba5d90c2a25271f424c699a6b70ae8675fc4449",
+      "identical": true
+    },
+    {
+      "path": "Assets/Resources/Data/enemy_presentation_prototype.json",
+      "sourceSha256": "d771e7f5dfa4d29154475e803066f7aa22e400b5122704992776f4fadf813b06",
+      "isolatedSha256": "d771e7f5dfa4d29154475e803066f7aa22e400b5122704992776f4fadf813b06",
+      "identical": true
+    }
+  ],
+  "passed": true
+}

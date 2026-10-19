@@ -1,5 +1,227 @@
 # BigBonusBlitz 制作ログ
 
+### 2026-10-19 敵HPカードを3段表示へ整える（dev 399）
+
+敵名/HP/SET・残りGを一行へ詰める表示から3段へ分けた。230×70不透明紺面に拡張し、HPゲージを下段へ移動。11pxラベルを横折り返し/縦truncateにし、表示値は変更しない。
+
+attempt04のshop-qa隔離Unityで7状態×2解像度14枚、3行非空/実際の敵名・HP/SETまたはJUDGE値/推奨寸法、帯との前後、実BET regression 1 scenarioをPassed。実敵リール17 sample・2解像度も描き、敵HP65/100と緑ゲージが一致した。接近158枚/剣槍攻撃系列/source manifest一致、py verifyの100万G harness112.2%、docs/check_layout、diff-checkもPassed。セーブは隔離で未コピー・`saveDataTouched=false`。
+
+attempt03はJUDGE画面にもSET文字を期待する回帰assertの誤りで失敗。JUDGE状態だけはJUDGEを期待する分岐に修正しattempt04で通した。製品ロジックの失敗ではない。実機/聴感/配布build、長い全敵名、最終美術は未確認。抽選/HP/報酬/遭遇/セーブ/原画不変。詳細は[dev399レビュー](art/2026-10-19/COMBAT_HP_CARD_TEXT_FIT_REVIEW.md)。
+
+### 2026-10-18 戦闘帯の半透明面を不透明な紺へ（dev 397）
+
+目視で半透明の状態色が森の細部を透かし、HP/札にも重なるため、濃紺面・細い金線・左端色アクセントへ。スクロール/色/文/タイミング/戦闘ロジックは保持した。
+
+attempt11の専用画像は描けたが、実BET回帰は古いテストがBgを色状態と想定して失敗。これはfixtureの設計追従漏れで、StateAccent参照へ修正し、attempt12で隔離Unity全工程をPass。check_layout、Core/Runtime/Tests compile、100万G 112.2%、diff checkもPass。`saveDataTouched=false`。
+
+全体画面の重なり/実機/聴感/配布build/最終美術は未承認。P2の歩行・攻撃handoff/支持足/槍二段目姿勢も未完。新規画像なし、抽選/HP/報酬/遭遇/saveに変更なし。詳細は[dev397レビュー](art/2026-10-18/COMBAT_BAND_OPAQUE_SURFACE_REVIEW.md)。
+
+### 2026-10-18 戦闘ピークの下段マーキーを退避（dev 396）
+
+dev386では文字・札・HPの機械可読性を直しつつ、上下帯を全状態に残していた。隔離7状態の再実描画で、下段が英雄の足元を横切るのはsetup以外では不要と判断し、build-upは上下、敵攻撃/確定攻撃/Potion/Judgeは上段のみとする候補を入れた。確率/HP/報酬/攻撃時間は不変。
+
+attempt09ではC#の参照を見たassertionはPassedしたが、同期レンダリング時に`Destroy`がframe-endまで遅延し、前状態の帯が重なる画像を撮ってしまった。失敗を隠さず保持し、`HideEngageBanners`の旧帯を非表示にしてから破棄するよう修正。QA側もactive `MarqueeBand`の実数を1/2本とassertするよう変更した。attempt10で7状態/14静止画、2解像度、色/文、active帯数、source hash一致がPassed。実BET1 scenario、接近158枚、17-state timeline、`py -3 tools/verify/run.py` compile/1M harnessもPassed。`docs/check_layout.py`は重なり・はみ出しなし。
+
+Hero/enemy attack captureでは下段が消えたが、上段は長い文字列が画面内容を横切る。今回の局所候補は全体レイアウト/最終美術承認ではない。attempt09を視覚テスト不合格として残す。実機/タッチ/聴感/URP配布buildは未確認。本番セーブ/抽選/HP/報酬/遭遇/原画不変、画像生成素材なし。[レビュー](art/2026-10-18/COMBAT_INTENSITY_PEAK_STRIP_REVIEW.md)
+
+### 2026-10-18 BETの停止区間を全sample検査（dev 395）
+
+通常攻撃の隔離120Hzテストを更新し、BETのf1と第一停止後のf2が、それぞれ次の停止要求まで毎sample保持されることを確認する。各停止終端だけを見ると途中で状態が抜ける回帰を拾えないため。anticipation cueはf1、swing/contactは第二停止後のf3/4から出ることを剣/槍で確認し、各1回の件数もJSONに保存する。
+
+attempt07はassert追加後にPassedしたが、未使用ローカルの除去後にsource hashが変わったのでattempt08をやり直した。attempt08は攻撃135枚/接近158枚、EditMode実BET1 scenario、source/isolated manifest一致をPassed。`py -3 tools/verify/run.py`もCore/Runtime/Tests compileと100万G/20万G harness Passed（112.2%、不変条件違反なし）。補助JSON確認では標準 `json.tool` がnoticesのUTF-8 BOMを扱えず停止したが、utf-8-sig parser/PowerShell parserとUnity importはPassed。これはツールの文字コード条件で、JSONの構文やゲームの失敗ではない。機械検査であり槍f1/f2同pose32の原画判断/最終美術/実入力/実機/聴感/配布buildを承認しない。抽選/HP/報酬/セーブ/原画/本編動作は変更なし。[レビュー](art/2026-10-18/HERO_ATTACK_SEQUENCE_PHASE_GUARD_REVIEW.md)
+
+### 2026-10-18 通常BET攻撃3段を連番計測（dev 394）
+
+隔離Unity QAへ120HzのBET→f1/第一停止→f2/第二停止→f3-4→contact→walk復帰の全段トレースを追加し、剣/槍の原画全姿勢、cue一度、復帰先をassertした。attempt06でcapture135枚、approach再実行158枚、実BET EditMode 1 test Passed、source/isolation manifest一致。contact-sheetを目視し、槍のf1終端とf2が同じpose32で第一停止の見た目が変わらないことを記録。Attempt04のfixtureだけ剣のf1 pose24を両武器に期待して失敗したため、槍pose32へ修正しattempt06 Passed。ゲーム本編/美術素材/抽選/HP/報酬/セーブは変更せず、アートの修正判断もしていない。[レビュー](art/2026-10-18/HERO_ATTACK_SEQUENCE_REVIEW.md)
+
+### 2026-10-18 接近→攻撃切替の時間窓を測る（dev 393）
+
+`AdventureHeroValidation.RunApproachComparison`へ120Hzのhandoff traceを追加し、剣/槍各16枚の実描画を保存。0.36秒接近の末尾0.3583秒は歩行pose18、次の0.3667秒で剣pose26/槍pose33へ移り、攻撃NormalizedTimeは0.026/0.039。advance位置はその間ほぼ不変。contactは攻撃原画の予定時刻から一回発火し、BET/照準/復帰/通常ハーネスもPassed。最初のQAは「lead+70ms全体でcontactなし」の誤assertで失敗したため、原画イベント時刻より前だけ抑止確認するよう修正。これは計測/機械ゲートで、一段のpose切替・支持足/中割り/最終美術を承認しない。実入力/実機/配布ビルドは未確認。抽選/戦闘数値/HP/報酬/セーブ不変。[レビュー](art/2026-10-18/HERO_APPROACH_WALK_CADENCE_REVIEW.md)
+
+### 2026-10-18 接近中の歩行テンポを原画へ合わせる（dev 392）
+
+接近は0.36秒で終わる一方、歩行原画は8コマ×0.11秒。以前は `leadElapsed/leadSeconds` をフレーム数へ均等割りしていたため、接近中だけ0.36秒で1周期を再生する。コマの `seconds` を累積して該当poseを選ぶ方式に変更し、攻撃前の歩行が約2.44倍になる圧縮を解消した。接近の移動量、時間、combat clock/contact gateはそのまま。
+
+attempt22は隔離Unityで126枚の姿勢比較とEditMode実BET1 scenarioをPassed。本編/隔離SHA256一致、fixture 17spin summaryも生成成功。固定時間ゲートで剣/槍とも0.06秒でpose15、0.12秒で16、0.24秒で17、0.35秒で18を実描画確認。接近中のcontactは抑止し、実BET contact1回、照準横誤差0px、recover後に元の位置へ戻る。代表連番の目視では歩行中のコマ送り速度は整った。walk→attackの最終移行、支持足/足滑り、実時間/実機/聴感/配布ビルド/最終美術は未確認。今回の変更を機能確認とし、最終美術承認にしない。抽選/戦闘数値/HP/報酬/セーブは不変。[レビュー](art/2026-10-18/HERO_APPROACH_WALK_CADENCE_REVIEW.md)
+
+### 2026-10-16 結果表示の前で戦闘帯を片づける（dev 391）
+
+隔離実BET画像で報酬/結果へ移った後も戦闘マーキーが重なる状態を確認した。各`r.engage`のBET結果は、action/contactを見せる間だけ帯を表示し、`EngageStepRoutine`が終わると隠す。次のBET結果で帯をその場の文/色で作り直す。`StartCoroutine`が初回yieldまで同期実行するため、帯の生成をcoroutine開始より先に行う。さらに敵表示世代だけでは同じ敵の旧結果が次BETの帯を隠せるため、結果coroutine用の独立世代番号を追加し、最新BETの結果だけが帯を片づけるようにした。
+
+attempt16でactive strike中に帯が欠ける問題を捕捉。修正中attempt17〜20は、テスト末尾のtimelineを伴わない単独`EngageStepRoutine`キャンセル試験にも実BET帯assertionが走って失敗した。失敗の原因を切り分け、BET timeline scenarioが存在する場合のみassertするようにしたattempt21で、隔離実BET回帰1 scenario、126接近画像、17spin summary、本編/隔離manifestをPassed。`py -3 tools/verify/run.py`はcompileと100万GハーネスPassed（投入448,164/払い出し502,697/機械割112.2%/不変条件違反なし）。
+
+`attack-resolved-1280.png`ではマーキー帯がなく、`combat-reward-resumed-1280.png`で報酬表示が続くことを確認した。見えるGETと結果/説明文の重なりは残るため、画面全体の読みやすさ/最終美術の合格にはしていない。実マウス/タッチ、聴感、実機、配布ビルドも未確認。抽選/HP/敵/報酬/セーブ形式は変更せず、`saveDataTouched=false`。P2/P3/P4/P5は未完了であり、全体完了前のpushはしない。[レビュー](art/2026-10-16/COMBAT_BAND_RESULT_HANDOFF_REVIEW.md)
+
+### 2026-10-16 実BETの状態遷移をspinごとに記録（dev 390）
+
+P3へ進む前段として、実BETの回帰試験を状態/時刻の測定元にできるよう改修した。`AdventureEnemyReelTests`は各スピンを一意IDにし、BET/3停止/Evaluate後も次の敵へ切り替わるまで、主人公・敵の状態、contact、HP/払い出し、時刻をCSVへ記録する。最初の試行ではタイムライン保存をUnityTearDownへ置いたため、Enter/ExitPlayModeのドメイン切替後にファイルが残らなかった。試験本体の終わりで保存するよう直し、さらにSpin終了時に記録を止めてcontact/recoverを落としたため、次の敵初期化まで計測区間を維持するよう修正した。
+
+`summarize_battle_timing.py`で17spinのCSVを集計、isolated `shop-qa`のEditMode 1件、126枚の接近比較、本編/隔離6対象SHA256をattempt15で確認。runnerにも集計JSONの生成検査を入れた。ゲーム本編/設定、抽選、HP/報酬、セーブ形式は変更なし。StopReelはfixtureが直接呼び、複数例でcaptureFramerate固定のため実入力のペーシングや聴感の評価値ではない。P3の完成ではなく、測定形式の検証段階。失敗版attempt11〜13を保持。[レビュー](art/2026-10-16/COMBAT_TIMING_REEL_REVIEW.md)
+
+### 2026-10-16 剣攻撃の踏み込み照準を実BETで確認（dev 389）
+
+剣のみ機能検証が不足していたため、隔離 `AdventureEnemyReelTests` に剣のとどめを通す実BET検査を追加。敵の準備/攻撃/Stop/Evaluateから攻撃前に正の距離を進み、contactコマンド時の先端Xが敵表示Rect中心Xへ2px以内に来ることを測る。剣と槍はともに0px。contactは武器ごとに1回で、剣敵撃破はcontactより後。各recover後のAdvance=0も確認。仕様/戦闘処理は変更せず検査だけを追加した。
+
+`run_runtime_approach_qa.ps1` は本編と隔離コピーの対象ソース6ファイルSHA256一覧を保存し、不一致時は停止する。attempt10で126枚source-pose描画のゲートとEditMode 1シナリオがPassed。`py -3 tools/verify/run.py` はCore/Runtime/Testsコンパイル、100万GハーネスPassed。隔離専用productName=shop-qa、saveDataTouched=false。計測は横方向だけで、縦の命中/食い込み/最終美術/実機/聴感/配布ビルドを承認しない。画像原本、敵表、抽選/報酬/保存は変更なし。[レビュー](art/2026-10-16/HERO_SWORD_APPROACH_REEL_REVIEW.md)
+
+### 2026-10-16 攻撃前の踏み込みを本編で有効化（dev 388）
+
+本編 `hero_presentation_prototype.json` の接近設定を有効化し、最大600px/0.36秒を指定した。GameControllerは既に現在の敵Transformを渡していたため、接続コード/敵の高さ/敵配置は変更なし。候補ポーズ由来の高さ補正をsource poseに適用すると接点が崩れるため採用しなかった。
+
+`py -3 tools/verify/run.py --compile` Passed。本番を使わない隔離Unityで126枚の比較を行い、水平接触、足元、低FPS単一contact、取消/割込みをPassed。実敵リールの槍攻撃前接近を含むEditModeシナリオ1件Passed。本編境界ガードも実施し、`saveDataTouched=false`。詳細と未承認事項は[レビュー](art/2026-10-16/HERO_ATTACK_APPROACH_INTEGRATION_REVIEW.md)。
+
+これは限定した動作接続で、20敵/全7武器/最終美術の実装完了ではない。slime/goblinのみruntime、森狼preview-only、`productionIntegrated=false`。槍でスライムへcontactする絵が頭上寄りのため未承認。ダメージ/乱数/遭遇/報酬/セーブに変更なし。実機/URP/配布ビルド/音の聴感は未検証。コミット/push/公開なし。
+
+### 2026-10-16 森狼の槍接触後復帰を低姿勢/標準姿勢で比較（dev 387）
+
+`run_height_rule_comparison.py`を同じ候補・隔離Unityで2回実行し、`HERO_WOLF_RECOVERY=low/standard`を比較。各126枚、接触/foot-plane/低FPS/取消・割込み/アンカーのvalidationはPassed、敵別高さルールは同一だった。接触後の低姿勢画像は四足の胸帯へ向く槍の軸を保ち、標準画像は直立へ早く戻るため、QAの視覚候補は低姿勢を優先する。静止画像は歩行復帰の足滑りや支持足連続性を証明しない。fallbackのArt not found警告があったが、validation失敗はない。本編候補・接近・敵表・遭遇/抽選/報酬/セーブは変更せず、`approach.enabled=false`と`finalArtApproved=false`を維持。[比較レビュー](art/2026-10-16/WOLF_RECOVERY_STANDARD_LOW_COMPARE_REVIEW.md)
+
+### 2026-10-14 戦闘強弱帯の可読性調整（dev 386）
+
+dev 368の機械検査は通っていたが、隔離画像では長い反復文字が上のステージ札・敵HP表示と重なり、帯の主張が強かった。`ShowEngageBanners`を高さ28/文字13/幅0.98倍/傾き2度/速度36に調整し、上段をステージ内へ90px入れた。敵HPカードの下地alphaを0.85から0.97へ変更。下段の帯はキャラクターの背面を通し、元の流れる表現を維持した。
+
+隔離コピーは本編`GameController.cs`とSHA256一致。`run_combat_intensity.py`が7状態・14枚・2解像度でPassed。上段のステージ札干渉とHPラベルの透過を目視修正したが、下段帯が足元を横切る演出は残す。コピー/色/上下一致、`saveDataTouched=false`。戦闘ロジック/抽選/報酬/保存は変更せず、最終美術/実機/聴感/配布ビルドも未承認。[レビュー](art/2026-10-14/COMBAT_INTENSITY_READABILITY_REVIEW.md)
+
+### 2026-10-14 敵20種ロスター再検査（dev 385）
+
+`run_catalog_guard.py`を読み取り専用で再実行。20一意ID、通常16/ボス4、既存6遭遇ID、`enemy_tables.json`整合SHA256、ランタイム遭遇表不変を確認した。artStatusはexisting 3 / preview-only 1 / planned 16で、`allTwentyPlayable=false`、`finalArtApproved=false`。これはロスター境界の検査で、敵の制作/本編遭遇接続ではない。セーブ/抽選/報酬/遭遇は不変。[レビュー](art/2026-10-14/ENEMY_ROSTER_REVALIDATION_REVIEW.md)
+
+### 2026-10-14 敵3種・剣槍動作見本の隔離再描画（dev 384）
+
+隔離`shop-qa`で`HeroPrototypeValidation.Run`を再実行。85静止画、主人公補助192/リール144/敵288フレーム、敵24ポーズ/12クリップ、主人公43ポーズ/20クリップ、剣槍と敵見本3を確認。低FPS接触、割込み取消、決着保持、停止、槍両手軸、武器別復帰、歩行位相をPassed。`productionIntegrated=false`、`audioListeningVerified=false`、`finalArtApproved=false`。森狼はpreview-only。本編遭遇/抽選/報酬/セーブ、実BET/実機/URP/配布ビルド/聴感は未確認。[レビュー](art/2026-10-14/ENEMY_THREE_MOTION_REFRESH_REVIEW.md)
+
+### 2026-10-14 P2本編境界の再確認（dev 383）
+
+`run_guard.py`の読み取り専用ゲートを再実行。主人公接近無効、runtime敵slime/goblinのみ、forest_wolf preview-only、既存6遭遇ID、20敵（通常16/ボス4）、剣/槍既存・他5武器planned、カタログruntime参照なしを再確認した。全11チェックPassed、`saveDataTouched=false`。本編データ/原画/runtimeは変更していない。本編統合・20敵/7武器の実装完了・最終美術の承認ではない。[レビュー](art/2026-10-14/PRODUCTION_BOUNDARY_REFRESH_REVIEW.md)
+
+### 2026-10-10 P2本編境界再監査（dev 382）
+
+`run_guard.py`を読み取り専用で再実行し、主人公接近無効、敵runtimeはslime/goblinのみ、森狼preview-only、武器7系統のexisting/planned境界、20敵normal16/boss4、既存6遭遇ID、武器カタログruntime参照なしを再確認。`saveDataTouched=false`、`productionIntegrated=false`、`allTwentyPlayable=false`、`allSevenPlayable=false`、`finalArtApproved=false`。本編データ・原画・runtimeは変更していない。[レビュー](art/2026-10-10/PRODUCTION_BOUNDARY_RERUN_REVIEW.md)
+
+### 2026-10-10 EditMode隔離再検証（dev 381）
+
+`tools/environment-qa/run.ps1 -Tests`を本番とは別の`%TEMP%/bbb-environment-c1-qa`で完走。EditModeは129件中123件Passed、失敗0、保留6（既知のIgnore）、`result="Skipped:Ignored"`。`editmode.xml`/`tests.log`を`tools/environment-qa/2026-10-11/v10-editmode-refresh/`へ保存した。回帰検証であり、`productionIntegrated=false`、`finalArtApproved=false`、実機/URP/配布ビルド/聴感/本編統合は未承認。セーブ/抽選/報酬/遭遇は不変。[レビュー](art/2026-10-10/EDITMODE_REFRESH_REVIEW.md)
+
+### 2026-10-10 背景ソース・光影の隔離再実描画（dev 380）
+
+本番Unityと分離した`%TEMP%/bbb-environment-c1-qa`で`AdventureEnvironmentValidation.Run`を再実行し、30地点/各3層、時間帯4、天候9、森12条件、両解像度、屋内天候ガードをPassed。森昼晴れ/夜雨、C-1ゲーム画面、継ぎ目前後を新しい出力へ保存し、夜雨の青い逆光と雨線、遺跡アーチ、手前植生の奥行きを目視した。ホスト日付跨ぎのため`tools/environment-qa/2026-10-11/v9-background-refresh/`に保存。これはソース/実描画の再確認で、`productionIntegrated=false`、`finalArtApproved=false`、URP/実機/配布ビルド/負荷/サウンド/原画承認は未完了。本編セーブ/抽選/報酬/遭遇は不変。[レビュー](art/2026-10-10/BACKGROUND_REFRESH_REVIEW.md)
+
+### 2026-10-10 P2本編境界ガード（dev 379）
+
+読み取り専用ガードで、主人公の本編接近無効、敵runtimeはslime/goblinのみ、森狼preview-only、武器7系統のexisting/planned境界、20敵のnormal16/boss4とartStatus、既存6遭遇ID、武器カタログのC#参照なしを再照合。`productionIntegrated=false`、`allTwentyPlayable=false`、`allSevenPlayable=false`、`finalArtApproved=false`を維持し、セーブ/抽選/報酬/遭遇は不変。原画やruntimeを追加していない。[レビュー](art/2026-10-10/PRODUCTION_BOUNDARY_GUARD_REVIEW.md)
+
+### 2026-10-10 敵3種動作見本・剣槍の隔離再実描画（dev 378）
+
+現行 `shop-qa` を隔離Unityで再実行し、85静止画、サリア補助192、リール144、敵288、24敵ポーズ/12クリップをPassed。低FPS接触、割込み取消、決着保持、槍両手軸、武器別復帰、歩行位相を再確認した。森狼接触とスライムへの槍攻撃を1280×720で目視し、C-1背景と紺金UIの可読性を確認。ホスト日付が翌日に跨いだため出力は`2026-10-11/v9-enemy-motion-refresh`へ保存した。見本の再描画であり、本編統合/聴感/URP/実機/配布ビルド/最終美術は未承認。[レビュー](art/2026-10-10/ENEMY_THREE_MOTION_REFRESH_REVIEW.md)
+
+### 2026-10-10 敵・背景同場面証拠マトリクスガード（dev 377）
+
+既存の隔離Unity結果だけを読み取り、敵3種×剣/槍の接触候補126枚、敵3種動作85枚、C-1背景30地点/森12条件、昼晴れ/夜雨の光影プローブを同じ証拠行列へ揃えた。両ゲーム解像度と1280×426の背景レイヤー源画像も検査し、各validation/接触/天候/セーブ不変をPassed。`productionIntegrated=false`、`finalArtApproved=false`の境界は維持し、原画・遭遇・本編設定は変更していない。コンパイル/配置/差分検査はPassed。`tools/verify/run.py --tests` は今回の再試行で結果を返さず停止したため、EditModeの正本は先行dev373の123/129を維持する。[レビュー](art/2026-10-10/SCENE_MATRIX_GUARD_REVIEW.md)
+
+### 2026-10-10 背景・光影プローブ差分ガード（dev 376）
+
+dev371の隔離Unity実画像からC-1/森昼晴れ/夜雨を読み取り、30地点・森12条件・屋内天候・セーブ不変を再照合。平均RGB差56.128で光影退化なしを確認した。これは機械差分ゲートで、URP/端末/GPU/配布ビルド/最終美術は未承認。[レビュー](art/2026-10-10/BACKGROUND_LIGHT_SHADOW_GUARD_REVIEW.md)。
+
+### 2026-10-10 敵3種ソース/本編境界ガード（dev 375）
+
+`enemy_presentation_prototype.json` のスライム/ゴブリン/森狼に各6モーションが揃うことを機械照合し、ランタイムは既存slime/goblinのみ、森狼preview-onlyを維持した。全3体の専用美術と本編統合は未承認。遭遇表・抽選・セーブは不変。[レビュー](art/2026-10-10/ENEMY_THREE_SOURCE_GUARD_REVIEW.md)。
+
+### 2026-10-10 敵3種動作見本・剣槍接続再検証（dev 374）
+
+現行隔離Unityを再実行し、リーフスライム/森のゴブリン/森狼の予兆・攻撃・被弾・決着を288連番・24ポーズ・12クリップで確認。接触1回、割込み取消、決着保持、停止、低FPS、槍両手軸、装備変更後の歩行位相をPassedとした。本編遭遇/抽選/セーブと最終美術は未承認。[レビュー](art/2026-10-10/ENEMY_THREE_MOTION_RERUN_REVIEW.md)。
+
+### 2026-10-10 森狼・剣槍同一identity支持足/握りゲート（dev 373）
+
+既存v1低槍候補を編集せず、重要ポーズと意図したループ重複、槍支持アンカー、接地値29〜36、握り座標、剣/槍カタログを読み取り専用で検査した。機械Passedだが、見た目のidentity/肩手接続、実機/URP/配布ビルド、最終美術は未承認。[レビュー](art/2026-10-10/WOLF_IDENTITY_SUPPORT_GUARD_REVIEW.md)。
+
+### 2026-10-10 森狼・背景・剣槍同場面比較ゲート（dev 372）
+
+本編JSONを直接候補にしたv9はQA専用アトラス不足で停止したため、失敗ログを残し、既存v1低槍候補でv10を再実行した。C-1背景上で森狼の剣ベースラインと槍の低い接近/接触/復帰を126枚・2解像度描画し、接触/復帰/キャンセル/割り込み/支持足/セーブ不変を機械Passedとした。本編接近は無効、最終美術は未承認。[レビュー](art/2026-10-10/WOLF_BACKGROUND_WEAPON_REVIEW.md)。
+
+### 2026-10-10 背景30地点・光影ソース境界ゲート（dev 371）
+
+`run.ps1`のUnityパスを現行Hubへ解決できるようにし、隔離Unityで30地点、C-1遠/中/近3層、森12条件（時間4/天候9）を再描画。屋内天候/継ぎ目/セーブ不変がPassedだった。光影のソースと統合境界を固定したが、URP/端末/GPU/配布ビルド/最終美術は未承認。背景アセット・セーブは不変。[レビュー](art/2026-10-10/BACKGROUND_SOURCE_GUARD_REVIEW.md)。
+
+### 2026-10-10 装備外見7系統の設計ゲート（dev 370）
+
+`weapon_visuals.json` を追加し、`game_config.json` の武器7種と主人公見本の剣/槍外見を対応づけた。既存剣/槍はアトラス範囲・握り座標・高さ一致、plannedの大槌/短剣/弓/杖/聖剣は専用美術未承認。`run_weapon_visual_guard.py`のC#参照0件、`allSevenPlayable=false`、`finalArtApproved=false`を確認。装備効果、抽選、セーブ、途中切替、本編表示は不変。[レビュー](art/2026-10-10/WEAPON_VISUAL_CATALOG_GUARD_REVIEW.md)。
+
+### 2026-10-10 20敵カタログ/遭遇表の境界ゲート（dev 369）
+
+`enemy_roster_p2.json` を企画の通常16/ボス4、既存6遭遇ID、順序とともに再検査し、`enemy_tables.json` のSHA256が整合記録から変わっていないことを確認した。`run_catalog_guard.py` は設計カタログの境界を固定する機械ゲートで、20体の描画・動作・遭遇・美術承認ではない。artStatusはexisting3 / preview-only1 / planned16、`allTwentyPlayable=false`を維持。本編抽選、報酬、セーブ、敵表示は不変。[レビュー](art/2026-10-10/ENEMY_ROSTER_CATALOG_GUARD_REVIEW.md)。
+
+検証の初回EditModeは結果XMLが生成されない一時失敗だったが、起動したUnityプロセスを整理して再実行し、`123/129`でPassed。失敗を完了扱いにせず、最終結果のみ正本へ記録した。
+
+### 2026-10-10 戦闘の強弱を帯の色と文で隔離検証（dev 368）
+
+`EngageBandText` と `EngageBandColor` の既存対応を、抽選を回さない隔離UnityのPresentation QAで固定した。turn1、敵の攻撃、力を貯める、攻撃確定、次は大攻撃、ポーション、JUDGEの7状態を、同じ敵表示・同じseed・2解像度で14枚描画。`intensity.csv` にコピーとRGBAを、`validation.json` に7色一意・上下帯一致・セーブ不変を保存し、すべてPassed。スクリーンショットは戦闘の波が読める候補であり、敵/主人公の新原画や最終美術の承認ではない。実機の更新率・聴感・配布ビルド・20敵は未確認。本編の抽選/ダメージ/報酬/接近無効/セーブは変更なし。[レビュー](art/2026-10-10/COMBAT_INTENSITY_REVIEW.md)。
+
+### 2026-10-10 森狼の透明復帰原画候補を却下（dev 367）
+
+透明背景で復帰姿勢を再生成し、低姿勢・両手軸・支持足は得た。しかしbody-v2の長いツインテール/白リボンと画風からずれたためidentity不一致として却下。原本・全文プロンプト・SHA256・理由を保存しQAへは未配置。単発生成を重ねず、v4〜v7の機械候補を正本として保持し、次は既存アトラスの足運び比較と戦闘強弱へ進む。本編43ポーズ・接近無効・セーブ不変。
+
+### 2026-10-10 森狼復帰候補の支持足アルファ計測（dev 366）
+
+低い戻り候補と標準戻りの透明境界を読み取り専用で計測し、最下位アルファ行1166/1172（差6px）を保存した。画像境界はUnityの足接地や足滑りを直接証明しないため、美術採用と本編接続は保留。v6/v7の126描画検査、本編43ポーズ・接近無効・セーブは維持する。[計測](art/2026-10-08/WOLF_FOOTPLANE_MEASUREMENT.md)。
+
+### 2026-10-10 森狼の標準/低い復帰を同画面比較（dev 365）
+
+`HERO_WOLF_RECOVERY=low/standard` を同じQA候補・同じ場面で切替し、v7標準復帰も126描画の機械検査を通した。低い復帰は四足の高さ帯に連続し、標準は立ち上がりが強いという暫定目視判断を保存。RGB差分平均・アルファ同一性は読み取り専用測定で、画像編集なし。本編43ポーズ・接近無効・セーブは不変、支持足と最終美術は未合格。次は低い復帰の支持足を別原画化する。
+
+### 2026-10-10 森狼の歩行復帰静止画を連番化（dev 364）
+
+接触後0.18秒の復帰静止画をQA連番へ追加し、森狼の槍先が胸から外れて戻る場面を目視確認した。v6の126描画で横/縦接触・足元・低FPS・取消/割込み/contact1回passed。既存の低い戻り候補による比較で、支持足・実機/聴感・最終美術は未合格。本編43ポーズ・接近無効・セーブは不変。次は標準復帰と低い復帰を同画面で比較する。本番セーブ保持、コミット/push/公開なし。
+
+### 2026-10-08 森狼の低い予備原画候補を却下（dev 363）
+
+pose33用の新規透明スプライトを生成したが、低い構えと支持足は使える一方、両手が二手槍軸にならずbody-v2との画風もずれたため採用しなかった。原本・全文プロンプト・SHA256・理由を保存し、QAへは未配置。生成枚数を進捗に数えず、v4/v5の機械候補と本編43ポーズを維持する。次は既存body-v2縦帯の足運び比較か、両手軸を明示した別原画を再制作する。本番セーブ保持、コミット/push/公開なし。
+
+### 2026-10-08 森狼の低い復帰ルートをQA比較（dev 362）
+
+新原画を増やさず、既存の低い戻り候補を `HERO_WOLF_RECOVERY=low` で森狼へ割り当てるQA-only分岐を追加した。v5の隔離Unityで3敵×剣/槍114描画、接触/足元/低FPS/取消・割込み/contact1回を確認。環境変数を含むsource-manifestと連番を保存。本編43ポーズ・接近無効・セーブは不変。既存候補の機械接続であり、森狼の実画像歩行復帰・支持足・最終美術は未合格。次はpose33/34/35の実画像縦帯を別制作する。本番セーブ保持、コミット/push/公開なし。
+
+### 2026-10-08 森狼の歩行復帰原画編集を却下（dev 361）
+
+森狼の低い接触候補を基準に腕だけを戻す内蔵 image_gen 編集を試したが、胴体と脚まで立ち姿へ変わり低い復帰シルエットを保持できなかった。原本・全文プロンプト・却下理由を保存し、QA Resourceへは未コピー。v4接触候補と本編43ポーズ・接近無効は維持する。次はpose33/34/35の実画像縦帯を別々に制作し、支持足と歩行復帰が連続する候補だけを比較する。本番セーブ保持、コミット/push/公開なし。
+
+### 2026-10-08 森狼専用の低い槍接触原画候補（dev 360）
+
+森狼の上胸/肩へ向く低い槍接触原画を内蔵 image_gen で制作し、透明背景・足位置・髪と胴体を保持して候補化した。v4の隔離Unityで3敵×剣/槍の114描画へ接続し、横差/縦差0、足元、低FPS、取消・割込み、contact1回を確認。原本、全文プロンプト、台帳、候補設定、source-manifest、連番を保存。本編43ポーズ・接近無効は維持し、支持足・歩行復帰・最終美術は未合格。次は実画像の縦帯と歩行復帰を比較する。本番セーブ保持、コミット/push/公開なし。
+
+### 2026-10-08 敵の高さ別姿勢ルールを隔離比較（dev 359）
+
+低い槍の前後キーを敵の見かけ高さへ割り当てる候補を作った。スライムは低い3キー、ゴブリンは標準3キー、森狼は低い接触から標準復帰へ切り替え、隔離Unityで114描画とcontact1回・低FPS・取消/割込みを確認した。中心点の生値（スライム+42.552、ゴブリン-26.070、森狼+75.031）を保存し、下胴/胸/中心の接触アンカー後は3敵とも縦差0。アンカーはQA測定であり標準仕様ではない。Editorメモリ上のみの候補で、本編43ポーズ・接近無効を維持。生成原画、ルール台帳、連番、失敗、判断を[高さ別ルールレビュー](art/2026-10-08/ENEMY_HEIGHT_RULE_REVIEW.md)へ保存した。次は実画像の縦帯と歩行へ戻す足を調整する。本番セーブ保持、コミット/push/公開なし。
+
+### 2026-10-08 攻防の後にGETを表示（dev 357、実装/Unity検証10-07）
+
+- `IMPLEMENTED`: 報酬表示を攻撃・被弾・復帰中は待機し、終了後に再開。本編のrewardWaitForCombat=true。表示済み帯の時計も止め、BETの記憶と報酬計算を維持。
+- `VERIFIED`: 隔離Unityで候補3件、本編設定2件Passed。各58 PNG、接触時のGET非表示と復帰後の8 GETを目視。4件の同時表示/停止/再開、非表示中BET、二重加算なし。コンパイル・配置・差分・FX構文成功。初回テスト引数不足を修正し失敗ログ保存。
+- `ART NOT APPROVED`: 本編43ポーズ・接近無効を保持。新原画44ポーズ/低い槍は見本。支持足・低い突きの前後姿勢・敵別の選択・後退速度・画面全体の美術は未完了。[表示順の検証正本](art/2026-10-07/COMBAT_REWARD_ORDER_REVIEW.md)。本番セーブ保持、コミット/push/公開なし。次は低い槍の予備/戻りと敵別選択を進める。
+
+### 2026-10-07 接近時間と低い槍突きの候補（dev 356）
+
+- `CANDIDATE`: 0.36秒の予備移動中は歩行キーを表示し攻撃時計を停止、その後f3-4を再生。内蔵画像生成で低い接触原画1枚を追加し、槍がスライム本体へ届く描画を確認。本編はapproach無効、44ポーズ候補/低い接触とも未採用。
+- `VERIFIED`: v4/v5各114描画、各1.5秒動画2本。接近中のcontact抑制/歩行キー/装備予約/動く敵/低FPS刻み/取消・復帰passed。v6実BET2件Passed、隔離設定復元/本編不変。コンパイル・配置・差分・FX構文検査成功。
+- `ART NOT APPROVED`: 低い突きの前後姿勢、支持足、敵別の選択、戻り速度が未完成。実BETではGETと接触が重なる場面も残り、演出時間の調整が必要。原本/プロンプト/判断/再現は[予備移動と低い槍突き](art/2026-10-07/TIMED_APPROACH_LOW_THRUST_REVIEW.md)。本番セーブ保持、コミット/push/公開なし。
+
+### 2026-10-07 剣・槍と敵3種の横方向の接触を検証（dev 355）
+
+- `CANDIDATE`: 武器先端と敵の現在位置から踏み込み量を計算し、recover/取消/割込み/敵交替で戻す処理を追加。本編は `approach.enabled=false`。新原画44ポーズと森狼はQA見本のまま。抽選/ダメージ/報酬は変更なし。
+- `VERIFIED`: v2で3敵×2武器の既存/候補を2解像度24枚。横差は剣362.641→0、槍350.684→0。足元y、動く標的、60/15/5fps刻み、contact1回、取消/復帰passed。v3実BET2件Passed、隔離設定復元/本編不変。コンパイル・配置・差分・FX viewer構文検査成功。
+- `ART NOT APPROVED`: スライムに対して槍が高く、接触まで0.075秒の長距離移動も自然な足運びとは未判定。本編有効化は保留。v1の敵ID/透明度ミスと修正を含む正本は[接触距離レビュー](art/2026-10-07/APPROACH_REVIEW.md)。次は低い敵向け接触姿勢と予備移動、表示の優先度を調整。本番セーブ保持、コミット/push/公開なし。
+
+### 2026-10-04 歩行と槍の体格・両手接続を整える（dev 354）
+
+- `CANDIDATE`: 内蔵画像生成6原本を保存し、槍7姿勢へ。最新候補は44ポーズ/20クリップ、本編は43のまま。突きに中割りを追加し、contact時刻を変えず最大隣接握り距離59.789→39.340。本編未採用、支持足の美術は未合格。[槍レビューと再現手順](art/2026-10-04/SPEAR_CYCLE_REVIEW.md)。
+- `VERIFIED`: 修正版v11で200描画・2.4秒動画2本、柄の範囲内の両手接続/固定長/歩行位相/接触後の装備変更passed。v12の実BET回帰2件Passed、候補設定を復元し本編SHA256不変。Core/Runtime/Testsコンパイル・配置検算成功。
+- 次は剣/槍と敵3種を同場面で比較し、支持足・予兆・接触・決着をまとめて調整。低FPS/全武器/実機/聴感/最終美術/全20敵は未完了。本番セーブ保持、コミット/push/公開なし。全体の継続設定は維持。
+
+### 2026-10-04 剣の復帰と敵20種の制作台帳を整備（dev 353）
+
+- `CANDIDATE`: 剣の戻り原画1枚を修正し、28→29の握り移動85.264→66.239。次区間は17.967→26.988へ分散。前回候補との直接比較200描画・2秒動画2本、8姿勢/contact1回/復帰passed。本編未採用、支持足と槍接続は未完了。[戻りレビュー](art/2026-10-04/SWORD_RETURN_REVIEW.md)。
+- `DESIGN`: 敵台帳を企画の通常16＋ボス4・既存6遭遇IDへ整合。旧案保存、共有ボス画像と専用美術を区別。ID/区分/企画対応検査passed。遭遇表SHA256不変、20敵完成ではない。[台帳整合](art/2026-10-04/ENEMY_ROSTER_RECONCILIATION.md)。
+- Core/Runtime/Testsコンパイル・配置検算成功。実BET再試験は今回未実施（前回v2は2件Passed）。実機/聴感/最終美術未確認。本番セーブ保持、コミット/push/公開なし。次は剣の支持足、歩行→槍構えと敵3体見本をまとめて確認する。
+
 ### 2026-10-04 剣の構えから斬撃・復帰まで8姿勢を同系列へ（dev 352）
 
 - `CANDIDATE`: 新規7原本＋前回readyで剣8姿勢を統一。原本・プロンプト・SHA256保存。入口/出口だけでは残る中盤の体格差へ対応し、振り抜きの剣先見切れも角度修正。本編未採用。
@@ -943,3 +1165,33 @@ ColorBlock の highlightedColor は絵の枠に効かない（白より明るく
 - 決定: 動作の順序だけでなく、contact直後の剣/槍ポーズを別画像で残す。
 - 理由: 低負荷の検証ではcontactを観測していても、書出し時点には復帰姿勢へ進み、見た目の確認ができないことがあった。試験区間の60fps固定撮影で補い、本編の速度は変更しない。
 - `v3-impact-visual`で槍pose34、剣pose27、contact=1から敵hit/defeatを確認。実機/聴感/最終美術の承認ではない。
+# 2026-10-08 / dev 358
+
+低い槍突きの接触前と戻り始めを候補へ追加した。原本/プロンプト/SHA256を保存し、隔離Unityで44ポーズ候補へ接続。3敵×2武器114描画、contact1回、足元、低FPS、取消・割込み、実BET回帰3件を確認。v2〜v5の起動指定/終了方法の失敗は成功数へ混ぜず、候補と本編を分離。本編43ポーズ・approach無効、支持足と敵高さ別の姿勢選択は未完了。
+### 2026-10-19 戦闘帯が敵HPカードに透ける問題を修正（dev 398）
+
+attempt12の描画を拡大すると、半透明HPカード越しにスクロール文字が見えた。カード面をalpha1へ変更し、QAで7状態/2解像度の各カードalphaと帯より上の表示順を検査する。結果と未確認範囲は[レビュー](art/2026-10-19/COMBAT_HP_OPAQUE_SURFACE_REVIEW.md)に記録する。
+
+画像生成・原画編集なし。抽選/HP値/報酬/遭遇/saveは不変。本番外の隔離Unity検査が合格しても、全体美術/実機/聴感/配布buildの承認とは区別する。コミット/push/公開なし。
+
+
+### 2026-10-20 / P2既存経路の回帰確認
+
+隔離Unity runtime-approachを再実行し、接近158 capture・攻撃135 capture・7状態×2解像度・実BET 1 scenario・17 sample・本編/隔離source manifest一致を確認。Core/Runtime/Tests compileと100万G harnessも通過。コード・原画・数値は無変更。機械検査と美術承認を分離し、支持足/中割りやP2〜P5全体は未完了と記録する。[詳細](art/2026-10-20/P2_RUNTIME_REGRESSION_REVIEW.md)。
+
+### 2026-10-20 / 歩行から攻撃への一段handoffを確認
+
+隔離Unityで隣接captureを目視し、歩行pose18→攻撃pose26の直接切替を確認。root接近差0.023でcontact前のため、姿勢差は歩行速度では解消しない。素材の採否や中間poseは決めず、機械検査と美術承認を分けて記録した。[画像と判断範囲](art/2026-10-20/HERO_WALK_ATTACK_HANDOFF_VISUAL_REVIEW.md)。内蔵画像生成が利用可能になっていないので、画像生成を含む実装は未実施。
+### 2026-10-20 / dev 400: frame indexとcapture画像を対応付ける
+
+- 判断: QA CSVに0始まりのcapture frameを記録し、隣接pose切替で実PNG内容が変わることをassertする。trace elapsedはStep後なので、elapsed sample Nの画像ファイル番号はN-1。
+- 修正: 視覚記録のリンクを042 (walk pose18) /043 (attack pose26)に直す。過去の043/044は両方pose26だった。QA出力にGUIDを加えて同時実行時のTemp衝突も回避。
+- 検証: 隔離Unity attempt04で接近158 capture/攻撃135 capture、7状態×2解像度、EditMode BET 1 test、17 sample、source manifestをPASS。Core/Runtime/Tests compileと100万G検証PASS。
+- 制約: 一段handoffは画像上で観察したが支持足連続/中割り/最終美術は未承認。新原画・本編コード・JSON・セーブは未変更。内蔵画像生成は利用不可。実機/聴感/配布buildは未確認。
+### 2026-10-20 / dev 401: 攻撃予備姿勢を接近末尾へ接続
+
+- 決定: 接近leadの最後0.08秒は、武器に応じた既存 `attack-f2` 最終pose（剣25/槍32）を表示する。lead終了後は既存strike f3-4（剣26/槍33）。新原画/新cueなし。
+- 理由: 既存approachはwalk pose18からstrike開始絵へ直接切り替わり、画像記録上0.0084秒内の姿勢差が大きかった。攻撃予備姿勢を一段見せて動作の準備を読めるようにする。接近時間・距離と本編のcontact時計は保持。
+- 失敗: attempt05は `lead=.35秒の時点はpose18` という古いfixture期待値。attempt06はcontact追跡時間が旧capture位置に依存。どちらもQA側の想定が新handoffと合わないため、製品不具合と分けて修正。attempt07 Passed。
+- 検証: attempt07で接近170/攻撃135、7状態×2解像度、実BET EditMode1件、17 sample、source manifest一致。CSVでwalk→wind-up→strike、contact時刻/一回性、接近位置不変を確認。Core/Runtime/Tests compile、100万G harness Passed。画像上の支持足/中割り/最終美術承認は未取得。
+- 範囲: GameController/抽選/HP/報酬/save/SE発火元不変。実機/実入力/聴感/配布build未確認。[レビュー](art/2026-10-20/HERO_WALK_ATTACK_HANDOFF_VISUAL_REVIEW.md)

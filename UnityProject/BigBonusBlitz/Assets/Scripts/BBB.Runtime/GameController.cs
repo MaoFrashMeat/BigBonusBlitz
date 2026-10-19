@@ -53,6 +53,7 @@ namespace BBB.Runtime
         private Image _enemyImg;
         private AdventureEnemyPresenter _adventureEnemy;
         private int _enemyPresentationVersion;
+        private int _engageResultPresentationVersion;
         private Coroutine _enemySpawn;
         private CanvasGroup _enemyCg;
         private Coroutine _enemyIdle;
@@ -613,11 +614,15 @@ namespace BBB.Runtime
             UiSkin.Vignette(_area, "VigBottom", new Vector2(0, -AreaH * 0.5f + 18), new Vector2(AreaW, 36), 0.25f, false);
 
             // バトル（狩猟）: モンスター名 + HP バー + 残りG。敵の頭上に出す
-            var hp = UiSkin.Rect(_area, "BattleHp", new Vector2(EnemyX, EnemyY + 106), new Vector2(230, 46));
-            UiSkin.Img(hp, "Bg", Vector2.zero, new Vector2(230, 46), UiSkin.Rounded(10), new Color(0.03f, 0.04f, 0.08f, 0.85f));
-            _hpLabel = UiFactory.Label(hp, "Name", new Vector2(0, 12), new Vector2(214, 18), "", 12, TextAnchor.MiddleLeft, ColText);
+            var hp = UiSkin.Rect(_area, "BattleHp", new Vector2(EnemyX, EnemyY + 106), new Vector2(230, 70));
+            // This information card can overlap the scrolling combat band. Keep its
+            // panel fully opaque so moving copy cannot ghost through the HP label.
+            UiSkin.Img(hp, "Bg", Vector2.zero, new Vector2(230, 70), UiSkin.Rounded(10), new Color(0.03f, 0.04f, 0.08f, 1f));
+            _hpLabel = UiFactory.Label(hp, "Name", new Vector2(0, 12), new Vector2(214, 44), "", 11, TextAnchor.MiddleLeft, ColText);
+            _hpLabel.horizontalOverflow = HorizontalWrapMode.Wrap;
+            _hpLabel.verticalOverflow = VerticalWrapMode.Truncate;
             _hpLabel.fontStyle = FontStyle.Bold;
-            _hpFill = UiSkin.Gauge(hp, "Hp", new Vector2(0, -10), new Vector2(206, 10), ColAccent, out _hpTrack);
+            _hpFill = UiSkin.Gauge(hp, "Hp", new Vector2(0, -23), new Vector2(206, 10), ColAccent, out _hpTrack);
             _hpBox = hp.gameObject;
             _hpBox.SetActive(false);
 
@@ -1427,14 +1432,14 @@ namespace BBB.Runtime
             _hpBox.SetActive((_m.InBattle && _m.BattleMonster != null) || bossBar || _bossBarAnim != null);
             if (_m.InBattle && _m.BattleMonster != null)
             {
-                _hpLabel.text = $"{_m.BattleMonster.name}    残り {_m.BattleSpinsRemaining} G";
+                _hpLabel.text = $"{_m.BattleMonster.name}\nHP {_m.BattleHp}/{_m.BattleHpMax}\n残り {_m.BattleSpinsRemaining} G";
                 float ratio = _m.BattleHpMax > 0 ? Mathf.Clamp01((float)_m.BattleHp / _m.BattleHpMax) : 0f;
                 _hpFill.rectTransform.sizeDelta = new Vector2(_hpTrack.sizeDelta.x * ratio, _hpTrack.sizeDelta.y);
                 _hpFill.color = ratio > 0.5f ? ColGreen : ratio > 0.25f ? ColGold : ColAccent;
             }
             else if (bossBar)
             {
-                _hpLabel.text = $"{(_engagedBoss ? "中ボス " : "")}{_engagedName}  HP {_m.EngageHp}/{_m.EngageHpMax}    {EngageStatusText()}";
+                _hpLabel.text = $"{(_engagedBoss ? "中ボス " : "")}{_engagedName}\nHP {_m.EngageHp}/{_m.EngageHpMax}\n{EngageStatusText()}";
                 _bossHp = _m.EngageHpMax > 0 ? (float)_m.EngageHp / _m.EngageHpMax : 0f;
                 SetBossBar(_bossHp);
             }
@@ -2250,6 +2255,7 @@ namespace BBB.Runtime
 
         private void BeginEnemyPresentation(string type,EnemyTable table)
         {
+            _adventureHero?.ClearAttackTarget();
             _enemyPresentationVersion++;
             HideEngageBanners();
             if(_bossBarAnim!=null){StopCoroutine(_bossBarAnim);_bossBarAnim=null;}
@@ -2395,18 +2401,29 @@ namespace BBB.Runtime
             HideEngageBanners();
             string unit = EngageBandText();
             var bg = EngageBandColor();
-            const float bandW = AreaW * 1.3f, bandH = 44f, speed = 45f;
-            _engageBandTop = MarqueeBand.Create(_area, "EngageBandTop", new Vector2(0, AreaH * 0.5f - 8), bandW, bandH, -7f, unit, 22, bg, Color.white, speed, 0f);
-            _engageBandBottom = MarqueeBand.Create(_area, "EngageBandBottom", new Vector2(0, -AreaH * 0.5f + 14), bandW, bandH, -7f, unit, 22, bg, Color.white, speed, 0.53f);
+            const float bandW = AreaW * 0.98f, bandH = 28f, speed = 36f;
+            _engageBandTop = MarqueeBand.Create(_area, "EngageBandTop", new Vector2(0, AreaH * 0.5f - 90), bandW, bandH, -2f, unit, 13, bg, Color.white, speed, 0f);
             int idx = _charRt.GetSiblingIndex();
             _engageBandTop.transform.SetSiblingIndex(idx);
-            _engageBandBottom.transform.SetSiblingIndex(idx);
+            // Keep the paired Web-style bands during a build-up. At an active strike,
+            // incoming attack, Judge, or potion result, remove the lower strip so the
+            // character's feet and the central result cue have room to read as the peak.
+            bool peak = _m.EngageStance == EngageStance.EnemyAttack ||
+                        (_m.EngageStance == EngageStance.HeroAttack && !_m.EngageNextLarge) ||
+                        _m.EngageJudgeSpin || _m.EngagePotionSpin;
+            if (!peak)
+            {
+                _engageBandBottom = MarqueeBand.Create(_area, "EngageBandBottom", new Vector2(0, -AreaH * 0.5f + 18), bandW, bandH, -2f, unit, 13, bg, Color.white, speed, 0.53f);
+                _engageBandBottom.transform.SetSiblingIndex(idx);
+            }
         }
 
         private void HideEngageBanners()
         {
-            if (_engageBandTop != null) { Destroy(_engageBandTop.gameObject); _engageBandTop = null; }
-            if (_engageBandBottom != null) { Destroy(_engageBandBottom.gameObject); _engageBandBottom = null; }
+            // Destroy is deferred until the end of the frame. Hide first so an immediate
+            // stance refresh cannot render the previous band's copy over the new state.
+            if (_engageBandTop != null) { _engageBandTop.gameObject.SetActive(false); Destroy(_engageBandTop.gameObject); _engageBandTop = null; }
+            if (_engageBandBottom != null) { _engageBandBottom.gameObject.SetActive(false); Destroy(_engageBandBottom.gameObject); _engageBandBottom = null; }
         }
 
         /// <summary>
@@ -2484,6 +2501,7 @@ namespace BBB.Runtime
 
         private void HideEnemy()
         {
+            _adventureHero?.ClearAttackTarget();
             _enemyPresentationVersion++;
             if(_enemySpawn!=null){StopCoroutine(_enemySpawn);_enemySpawn=null;}
             _adventureEnemy?.Hide();
@@ -2504,7 +2522,7 @@ namespace BBB.Runtime
         {
             AnimateNavi();
             bool presentationBlocked=AtelierModalOpen()||_curseBox!=null||OpeningPlayer.IsShowing;
-            if(_gainVisibility!=null)_gainVisibility.alpha=presentationBlocked?0:1;
+            if(_gainVisibility!=null)_gainVisibility.alpha=RewardPresentationBlocked()?0:1;
             if(_curseHud!=null)_curseHud.Refresh(presentationBlocked);
             // Play 中にスクリプトが再コンパイルされると非シリアライズ参照が消える。その状態で回さない（NRE の連打防止）
             if (_m == null || _creditNum == null) return;
@@ -2518,6 +2536,7 @@ namespace BBB.Runtime
                 _bg.IsWalking=_adventureHero.View.Player.State=="walk";_bgOuter.IsWalking=_bg.IsWalking;
             }
             RefreshExplanationVisibility();
+            if(_gainVisibility!=null)_gainVisibility.alpha=RewardPresentationBlocked()?0:1;
             var kb = Keyboard.current;
             // 呪いの申し出: Space で受ける、Shift で断る（2026-09-14 本人）。窓が出ている間は他のキーを取らない
             if (kb != null && _curseBox != null)
@@ -2982,8 +3001,11 @@ namespace BBB.Runtime
             // エンゲージのターン: 構え / 被弾 / 防御 / 回避 / 攻撃 / ルーレット / ジャッジ。帯の文も次のターンのものに
             if (r.engage != null)
             {
-                StartCoroutine(PresentEngageResult(r));
-                if (!r.enemyResolved.HasValue && _engageBandTop != null) ShowEngageBanners();
+                // Build the current band before starting the coroutine: StartCoroutine
+                // advances synchronously to its first yield, and a contact cue may fire
+                // on that first advance (including a lethal final exchange).
+                ShowEngageBanners();
+                StartCoroutine(PresentEngageResult(r, ++_engageResultPresentationVersion));
             }
             // Engage resolves its visuals only after its authored impact. Core rewards are already settled.
             if (r.enemyResolved.HasValue && r.engage == null)
@@ -3732,6 +3754,7 @@ namespace BBB.Runtime
         // Give moving combat silhouettes the foreground. Story dialogue keeps its own priority.
         private bool BattleMotionCoversExplanation()
         {
+            if(_m==null)return false;
             bool enemyVisible=_adventureEnemy!=null&&_adventureEnemy.Active;
             if(!enemyVisible&&!_m.InBattle)return false;
             string enemy=enemyVisible?_adventureEnemy.View.Player.State:"idle";
@@ -4660,13 +4683,16 @@ namespace BBB.Runtime
             if (!_gainPlaying) StartCoroutine(GainQueueRoutine());
         }
 
+        private bool RewardPresentationBlocked()=>AtelierModalOpen()||_curseBox!=null||OpeningPlayer.IsShowing||
+            (AdventurePresentation.Config.rewardWaitForCombat&&BattleMotionCoversExplanation());
+
         private IEnumerator GainQueueRoutine()
         {
             _gainPlaying = true;
             var fx = _m.Config.reelFx?.emberGain ?? new EmberGainFxConfig();
             while (_gainQueue.Count > 0)
             {
-                while(AtelierModalOpen()||_curseBox!=null||OpeningPlayer.IsShowing)yield return null;
+                while(RewardPresentationBlocked())yield return null;
                 var group = _gainQueue.Dequeue();
                 int n = group.Count;
                 // 上から順に並べる（2 本以上のときの中心は stackY、大きさは stackScale。1 本は y のまま等倍）。行ごとに少し遅らせて出す
@@ -4704,6 +4730,7 @@ namespace BBB.Runtime
         private IEnumerator GainSlide(string icon, int amount, string unit = null, float yOffset = 0f, float delay = 0f, float scale = 1f, float groupBottom = float.NaN, int groupIndex = 0, int groupCount = 1)
         {
             if (delay > 0f) yield return new WaitForSeconds(delay);
+            while(RewardPresentationBlocked())yield return null;
             var fx = _m.Config.reelFx?.emberGain ?? new EmberGainFxConfig();
             string iconName = string.IsNullOrEmpty(icon) ? "ember" : icon;
             float bandW = fx.bandW, bandH = fx.bandH, y0 = fx.y + yOffset;
@@ -4836,7 +4863,11 @@ namespace BBB.Runtime
             int betSerial0 = _gainBetSerial; float tRelease = -1f, tInS = Mathf.Max(0.01f, fx.inSeconds);
             while (true)
             {
-                if(AtelierModalOpen()||_curseBox!=null||OpeningPlayer.IsShowing){yield return null;continue;}
+                if(RewardPresentationBlocked())
+                {
+                    if(_gainVisibility!=null)_gainVisibility.alpha=0;
+                    yield return null;continue;
+                }
                 t += Time.deltaTime;
                 // BET まで止まる: BET（Lever）が来たら betWaitSeconds 後に抜け始める。betHoldMax > 0 なら BET が無くてもその秒で打ち切る
                 float hold = -1f;
@@ -5218,6 +5249,7 @@ namespace BBB.Runtime
             if(outgoing)
             {
                 if(st.outcome==EngageOutcome.Counter)StartCoroutine(Effects.Shake(_charRt,0.2f,8f));
+                _adventureHero?.PrepareAttackTarget(_adventureEnemy.Active?_adventureEnemy.View.Body.rectTransform:_enemyRt);
                 PlayCharacter("attack-f3-4");
                 if(_adventureHero!=null)
                 {
@@ -5365,11 +5397,15 @@ namespace BBB.Runtime
             Destroy(host.gameObject);
         }
 
-        private IEnumerator PresentEngageResult(GameResult r)
+        private IEnumerator PresentEngageResult(GameResult r, int engageVersion)
         {
             int version=_enemyPresentationVersion;
             yield return EngageStepRoutine(r.engage);
-            if(version==_enemyPresentationVersion&&r.enemyResolved.HasValue)ResolveEnemyVisuals(r);
+            if(version!=_enemyPresentationVersion||engageVersion!=_engageResultPresentationVersion)yield break;
+            // The band describes an active exchange. Once its authored motion finishes,
+            // give the result/reward phase a quiet frame; the next evaluated spin rebuilds it.
+            HideEngageBanners();
+            if(r.enemyResolved.HasValue)ResolveEnemyVisuals(r);
         }
 
         /// <summary>討伐 / 逃走の見せ方（HP バーの決着、音、帯、揺れ）。</summary>

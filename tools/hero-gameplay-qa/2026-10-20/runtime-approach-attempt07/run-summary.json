@@ -1,0 +1,15 @@
+{
+  "sourceManifestPassed": true,
+  "editModeResults": "D:\\Mao-PC\\Github\\BigBonusBlitz\\tools\\hero-gameplay-qa\\2026-10-20\\runtime-approach-attempt07\\editmode-results.xml",
+  "approachExit": 0,
+  "passed": true,
+  "attackSequenceValidation": true,
+  "battleTimingSummary": true,
+  "isolatedProject": "C:\\Users\\ts081\\AppData\\Local\\Temp\\bbb-runtime-approach-19336-b95cfea051e347f2917225dfc1ac5dad\\work\\shop-qa",
+  "combatIntensityExit": 0,
+  "editModeExit": 0,
+  "attackSequenceExit": 0,
+  "battleTimeline": true,
+  "approachValidation": true,
+  "combatIntensityValidation": true
+}
