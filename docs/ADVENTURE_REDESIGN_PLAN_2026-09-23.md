@@ -1,5 +1,7 @@
 # 冒険画面・戦闘・会話の改良企画とAI実装手順
 
+2026-11-03: [未登録敵アートの誤流用を止める（dev 404）](art/2026-11-03/ENEMY_UNMAPPED_ART_FALLBACK_REVIEW.md)。3既存IDだけを解決し、未知/nullは警告付きnull。隔離EditMode 131/137・失敗0・既知Ignored6。20種専用素材/本編遭遇/美術/実機は未完了。
+
 2026-10-20: [歩行→攻撃を既存準備poseで3段へ（dev 401）](art/2026-10-20/HERO_WALK_ATTACK_HANDOFF_VISUAL_REVIEW.md)。接近最後0.08秒で剣25/槍32を表示、f3-4のstrikeは元の時刻/接触を維持。attempt07の実描画/実BET回帰Passed。支持足と最終美術は未承認。
 
 2026-10-20: [接近→攻撃の隔離QA evidence index修正（dev 400）](art/2026-10-20/HERO_WALK_ATTACK_HANDOFF_VISUAL_REVIEW.md)。walk pose18=042、attack pose26=043を明示し、frame/capture CSV・実PNG変化assert・GUID隔離先を追加。attempt04の接近/攻撃/表示/実BET回帰PASS。支持足と美術は未承認。

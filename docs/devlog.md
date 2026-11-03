@@ -7,6 +7,12 @@
 
 # BigBonusBlitz 制作ログ
 
+### 2026-11-03 未登録敵アートの暗黙フォールバックを止める（dev 404）
+
+20種敵を本編へ展開する前に、`ArtLoader.EnemySprite` のdefaultが未知IDをゴブリンへ流用する挙動を除いた。既存3種だけを明示解決し、未登録IDはnullとして素材未整備を露出させる。Coreの遭遇・抽選・HP/報酬・セーブ・接触判定は変更しない。確認は現行共有ソースを同期した専用cloneの `tools/verify/run.py --tests` で実施。初回clone不足/LogAssert参照失敗を修正し、compile/harness/EditMode 131/137・失敗0・Ignored6で通過。結果は[dev404レビュー](art/2026-11-03/ENEMY_UNMAPPED_ART_FALLBACK_REVIEW.md)。
+
+画像生成CLI/APIの利用は本人が許可したが、`OPENAI_API_KEY`は未設定。環境変数をチャットへ出さずに設定できるまで新規原画は作成しない。既存画像のID流用で20種完成とは扱わない。
+
 ### 2026-10-19 敵HPカードを3段表示へ整える（dev 399）
 
 敵名/HP/SET・残りGを一行へ詰める表示から3段へ分けた。230×70不透明紺面に拡張し、HPゲージを下段へ移動。11pxラベルを横折り返し/縦truncateにし、表示値は変更しない。

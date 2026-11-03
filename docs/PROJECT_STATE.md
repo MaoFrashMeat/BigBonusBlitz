@@ -1,3 +1,9 @@
+### 2026-11-03 未登録敵アートの誤流用を遮断（dev 404）
+
+- `IMPLEMENTED`: `ArtLoader.EnemySprite` の未知ID→ゴブリン既定画像を削除。既存3種だけを明示マップし、未登録IDはnull。
+- `VERIFIED`: 現行共有ソースを同期した専用cloneでCore/Runtime/Tests compile、100万Gハーネス、不変条件違反0、EditMode 131/137・失敗0・Ignored6。未知ID/nullの公開API null返却を確認（警告文一致assertはなし）。詳細は[dev404レビュー](art/2026-11-03/ENEMY_UNMAPPED_ART_FALLBACK_REVIEW.md)。
+- `LIMIT`: これは表示の安全境界のみ。20種・専用アート・各モーション・本編遭遇表は未完了。画像生成APIの利用は本人許可済みだが `OPENAI_API_KEY` 未設定で新規原画は未作成。
+
 ### 2026-10-20 歩行→攻撃を既存予備poseで3段接続（dev 401）
 
 - `IMPLEMENTED`: 接近の最後0.08秒を、装備に応じたattack-f2最終pose（剣25/槍32）の表示へ。攻撃strikeは剣26/槍33へ続く。接近の長さ/距離、contact cue、抽選/HP/報酬/音の所有者は変更しない。

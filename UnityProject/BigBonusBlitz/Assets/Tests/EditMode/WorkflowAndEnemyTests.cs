@@ -66,6 +66,26 @@ namespace BBB.Tests
             Assert.AreEqual(25, slime.defeatProbabilities["BELL"]);
         }
 
+        [TestCase("slime", "Art/Enemies/slime")]
+        [TestCase("goblin", "Art/Enemies/goblin")]
+        [TestCase("bat", "Art/Enemies/bat")]
+        public void 敵アートは登録されたIDだけに明示解決する(string enemyType, string expectedPath)
+        {
+            Assert.IsTrue(ArtLoader.TryEnemySpritePath(enemyType, out var path));
+            Assert.AreEqual(expectedPath, path);
+        }
+
+        [TestCase("forest_wolf")]
+        [TestCase("table_wolf_1")]
+        [TestCase("unregistered")]
+        [TestCase(null)]
+        public void 未登録敵はゴブリン画像へ流用しない(string enemyType)
+        {
+            Assert.IsNull(ArtLoader.EnemySprite(enemyType));
+            Assert.IsFalse(ArtLoader.TryEnemySpritePath(enemyType, out var path));
+            Assert.IsNull(path);
+        }
+
         [Test]
         public void 敵Tier2テーブルの合計は65536()
         {

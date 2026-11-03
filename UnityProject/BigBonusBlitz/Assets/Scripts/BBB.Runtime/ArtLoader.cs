@@ -63,11 +63,23 @@ namespace BBB.Runtime
 
         public static Sprite EnemySprite(string enemyType)
         {
+            if (!TryEnemySpritePath(enemyType, out var path))
+            {
+                Debug.LogWarning($"Enemy art is not registered for type '{enemyType ?? "<null>"}'.");
+                return null;
+            }
+            return Sprite(path);
+        }
+
+        /// <summary>Resolves only authored enemy art. Unknown roster IDs never borrow the goblin sprite.</summary>
+        public static bool TryEnemySpritePath(string enemyType, out string resourcePath)
+        {
             switch (enemyType)
             {
-                case "slime": return Sprite("Art/Enemies/slime");
-                case "bat": return Sprite("Art/Enemies/bat");
-                default: return Sprite("Art/Enemies/goblin");
+                case "slime": resourcePath = "Art/Enemies/slime"; return true;
+                case "goblin": resourcePath = "Art/Enemies/goblin"; return true;
+                case "bat": resourcePath = "Art/Enemies/bat"; return true;
+                default: resourcePath = null; return false;
             }
         }
     }

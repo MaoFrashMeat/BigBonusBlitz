@@ -1,0 +1,33 @@
+{
+  "date": "2026-11-03",
+  "sourceRevision": "f375b3f5c5ed604468db1e05e0a178009f2a0fd7",
+  "unityVersion": "6000.3.15f1",
+  "command": "py -3 tools/verify/run.py --tests",
+  "workspace": "isolated clone; current shared Assets/Scripts, Assets/Tests, Assets/Editor, and Assets/Resources/Data synchronized into clone; patch applied only in clone",
+  "results": {
+    "coreCompile": "passed",
+    "runtimeCompile": "passed",
+    "testsCompile": "passed",
+    "harness": {
+      "simulations": "1000000G",
+      "replayDraws": 200000,
+      "normalG": 149388,
+      "replayG": 50612,
+      "payoutRatePercent": 112.2,
+      "invariantViolations": 0
+    },
+    "editMode": {
+      "total": 137,
+      "passed": 131,
+      "failed": 0,
+      "skipped": 6
+    }
+  },
+  "visualRenderReviewed": false,
+  "saveDataTouched": false,
+  "notes": [
+    "The first stale clone test stopped at compilation because three uncommitted shared presenter files were absent; current source was then synchronized into the isolated clone.",
+    "A temporary LogAssert usage was incompatible with the repository dotnet test project; it was removed while retaining public API null-return coverage. Final compile and EditMode passed.",
+    "The warning text is implemented but not string-asserted; EditMode asserts unknown IDs return null."
+  ]
+}

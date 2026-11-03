@@ -7,6 +7,12 @@
 
 # BigBonusBlitz AI 引き継ぎ履歴
 
+### 2026-11-03 / dev 404: 未登録敵アートを既存ゴブリンで隠さない
+
+- `ArtLoader` は既存slime/goblin/batだけを解決し、未登録IDをnullとして返す。敵カタログを20種へ拡張する際の誤素材表示を防ぐ。
+- `WorkflowAndEnemyTests` に既存3種のパス、wolf/未登録/nullの非解決を追加。隔離cloneの不足ソースによる初回起動失敗と、dotnet側にないLogAssert参照を除いて再通過した経緯を[レビュー](art/2026-11-03/ENEMY_UNMAPPED_ART_FALLBACK_REVIEW.md)へ記録。最終EditModeは131/137、失敗0、Ignored6。
+- Coreの遭遇/抽選、HP/報酬、セーブ、実素材、生成プロンプトは変更なし。CLI生成の使用は本人許可済みだが、`OPENAI_API_KEY`未設定で新規画像なし。
+
 ### 2026-10-19 HPカードの3行テキストとカード境界を検証（dev 399）
 
 - 狩猟/エンゲージ中の敵名・HP・残りG/SET状態を3行へ分割し、カードを縦へ拡張。状態値・ダメージ・報酬には触れない。
