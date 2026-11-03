@@ -458,6 +458,55 @@
       }
     }
     ,{
+      id: "engageAttackFx", name: "戦闘の強弱（斬撃・震え・表示文字）", key: "engage.attackFx",
+      note: "小/中/大攻撃、反撃、JUDGE決着の視覚強度を調整する。抽選、役の重み、ダメージ、HP、報酬には使わない。game_config.json の engage.attackFx へ保存する。",
+      params: [
+        { group: "例", key: "mode", label: "強さ", type: "select", def: "small", options: [["small", "小攻撃"], ["medium", "中攻撃"], ["large", "大攻撃"], ["counter", "反撃"], ["judge", "JUDGE決着"]], local: true },
+        { group: "例", key: "win", label: "JUDGE勝利", type: "bool", def: true, local: true },
+        { group: "小攻撃", key: "smallSlashLength", label: "斬撃幅", min: 80, max: 420, step: 1, def: 202 },
+        { group: "小攻撃", key: "smallShakeSeconds", label: "震え秒", min: 0, max: 1.5, step: 0.01, def: 0.31 },
+        { group: "小攻撃", key: "smallShake", label: "震え幅", min: 0, max: 24, step: 0.1, def: 5.4 },
+        { group: "中攻撃", key: "mediumSlashLength", label: "斬撃幅", min: 80, max: 420, step: 1, def: 244 },
+        { group: "中攻撃", key: "mediumShakeSeconds", label: "震え秒", min: 0, max: 1.5, step: 0.01, def: 0.37 },
+        { group: "中攻撃", key: "mediumShake", label: "震え幅", min: 0, max: 24, step: 0.1, def: 7.8 },
+        { group: "大攻撃", key: "largeSlashLength", label: "斬撃幅", min: 80, max: 420, step: 1, def: 300 },
+        { group: "大攻撃", key: "largeShakeSeconds", label: "震え秒", min: 0, max: 1.5, step: 0.01, def: 0.45 },
+        { group: "大攻撃", key: "largeShake", label: "震え幅", min: 0, max: 24, step: 0.1, def: 11 },
+        { group: "反撃", key: "counterSlashLength", label: "斬撃幅", min: 80, max: 420, step: 1, def: 244 },
+        { group: "反撃", key: "counterShakeSeconds", label: "震え秒", min: 0, max: 1.5, step: 0.01, def: 0.37 },
+        { group: "反撃", key: "counterShake", label: "震え幅", min: 0, max: 24, step: 0.1, def: 7.8 },
+        { group: "JUDGE決着", key: "judgeSlashLength", label: "斬撃幅", min: 80, max: 500, step: 1, def: 320 },
+        { group: "JUDGE決着", key: "judgeShakeSeconds", label: "震え秒", min: 0, max: 1.5, step: 0.01, def: 0.5 },
+        { group: "JUDGE決着", key: "judgeShake", label: "震え幅", min: 0, max: 24, step: 0.1, def: 12 },
+        { group: "小攻撃", key: "smallTextSize", label: "表示文字", min: 12, max: 48, step: 1, def: 24 },
+        { group: "中攻撃", key: "mediumTextSize", label: "表示文字", min: 12, max: 48, step: 1, def: 24 },
+        { group: "大攻撃", key: "largeTextSize", label: "表示文字", min: 12, max: 48, step: 1, def: 30 },
+        { group: "反撃", key: "counterTextSize", label: "表示文字", min: 12, max: 48, step: 1, def: 24 },
+        { group: "JUDGE決着", key: "judgeWinTextSize", label: "勝利文字", min: 12, max: 56, step: 1, def: 32 },
+        { group: "JUDGE決着", key: "judgeLoseTextSize", label: "逃走文字", min: 12, max: 48, step: 1, def: 24 },
+      ],
+      total: () => 2,
+      draw(t, p) {
+        const mode = p.mode || "small";
+        const D = (window.BBB_FX_DEFAULTS || {})["engage.attackFx"] || {};
+        const judgeWin = mode !== "judge" || p.win !== false;
+        const textKey = mode === "judge" ? (judgeWin ? "judgeWinTextSize" : "judgeLoseTextSize") : mode + "TextSize";
+        const slash = judgeWin ? Math.max(0, +(p[mode + "SlashLength"] ?? D[mode + "SlashLength"] ?? 202)) : 0;
+        const seconds = judgeWin ? Math.max(0, +(p[mode + "ShakeSeconds"] ?? D[mode + "ShakeSeconds"] ?? 0.3)) : 0;
+        const shake = judgeWin ? Math.max(0, +(p[mode + "Shake"] ?? D[mode + "Shake"] ?? 5)) : 0;
+        const textSize = Math.max(12, +(p[textKey] ?? D[textKey] ?? 24));
+        const cx = 585, cy = 270, active = Math.min(1, Math.max(0, 1 - t / 2));
+        const motion = t < seconds && seconds > 0 ? Math.sin(t * 52) * shake : 0;
+        g.save(); g.globalAlpha = active; g.translate(motion, 0);
+        g.fillStyle = "#163957"; g.beginPath(); g.ellipse(cx, cy + 35, 42, 56, 0, 0, Math.PI * 2); g.fill();
+        g.fillStyle = "#f0cb76"; g.beginPath(); g.arc(cx, cy - 35, 23, 0, Math.PI * 2); g.fill();
+        g.strokeStyle = "#ffe39a"; g.lineWidth = mode === "judge" ? 9 : mode === "large" ? 7 : 5;
+        g.lineCap = "round"; g.beginPath(); g.moveTo(cx - slash / 2, cy + 16); g.lineTo(cx + slash / 2, cy - 16); g.stroke();
+        g.fillStyle = "#f0cb76"; g.font = "bold " + textSize + "px sans-serif"; g.textAlign = "center"; g.fillText(mode === "judge" ? (judgeWin ? "JUDGE 決着" : "敵は逃げた") : mode === "counter" ? "カウンター" : mode === "large" ? "大攻撃" : mode === "medium" ? "中攻撃" : "小攻撃", cx, cy + 130);
+        g.restore(); return t < 2;
+      }
+    }
+    ,{
       id: "judgeFx", name: "ジャッジの演出（BET カットイン → 第一〜第三停止）", key: "engage.judgeFx",
       note: "3 セットで倒しきれなかったときの 1 G。BET で「JUDGE」が叩きつけられ、第一停止で前触れ、第二停止で熱さの帯（青 / 黄 / 赤 / 虹）、第三停止で決着。熱さは結果で重みを変える（heatWeightsWin / Lose、文と色は heatTexts / heatColors / stop1Texts。game_config.json で直す）。",
       params: [

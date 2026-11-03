@@ -1,4 +1,5 @@
 using BBB.Core;
+using BBB.Runtime;
 using NUnit.Framework;
 
 namespace BBB.Tests
@@ -7,6 +8,34 @@ namespace BBB.Tests
     public class EngageBattleTests
     {
         private static readonly EngageConfig Cfg = new EngageConfig();
+
+        [Test]
+        public void 強弱演出の調整値は既定の表示を保ちゲーム結果に関与しない()
+        {
+            var loaded = GameDataLoader.CreateMachine(new SystemRandom(81), 1).Config.engage.attackFx;
+            Assert.IsNotNull(loaded);
+            Assert.AreEqual(202f, loaded.smallSlashLength);
+            Assert.AreEqual(244f, loaded.mediumSlashLength);
+            Assert.AreEqual(300f, loaded.largeSlashLength);
+            Assert.AreEqual(0.31f, loaded.smallShakeSeconds);
+            Assert.AreEqual(0.37f, loaded.mediumShakeSeconds);
+            Assert.AreEqual(0.45f, loaded.largeShakeSeconds);
+            Assert.AreEqual(0.37f, loaded.counterShakeSeconds);
+            Assert.AreEqual(7.8f, loaded.counterShake);
+
+            var tuned = new EngageConfig { attackFx = new EngageAttackFxConfig { smallSlashLength = 1, largeShake = 24, judgeShakeSeconds = 1.4f } };
+            foreach (var stance in new[] { EngageStance.EnemyAttack, EngageStance.HeroCharge, EngageStance.HeroAttack })
+            foreach (var role in new[] { EngageRole.Lose, EngageRole.Small, EngageRole.Rare })
+            {
+                var baselineRng = new SystemRandom(2026);
+                var tunedRng = new SystemRandom(2026);
+                var baseline = EngageBattle.Resolve(stance, role, Cfg, baselineRng, out var baselineSize);
+                var presentationOnly = EngageBattle.Resolve(stance, role, tuned, tunedRng, out var tunedSize);
+                Assert.AreEqual(baseline, presentationOnly, $"Outcome changed: {stance}/{role}");
+                Assert.AreEqual(baselineSize, tunedSize, $"Attack size changed: {stance}/{role}");
+                Assert.AreEqual(EngageBattle.Damage(baselineSize, Cfg), EngageBattle.Damage(tunedSize, tuned), $"Damage changed: {stance}/{role}");
+            }
+        }
 
         [Test]
         public void 役の分類_ハズレ小役レア役()

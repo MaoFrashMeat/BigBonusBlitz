@@ -1,3 +1,10 @@
+### 2026-11-03 戦闘の強弱パラメータを独立調整（dev 403）
+
+- `IMPLEMENTED`: `engage.attackFx` に小/中/大攻撃、反撃、JUDGE勝利/逃走の斬撃幅・揺れ時間/幅・文字サイズを追加。FX viewerに状態選択のプレビュー/調整を追加し、同期ツールから既定値を出す。
+- `DECISION`: 旧表示を維持する初期値を採用。Counterは既定の中攻撃 (0.37秒/7.8) と一致させる。表示設定だけを使い、抽選/役/攻撃サイズ/ダメージ/HP/報酬/save/音を変更しない。
+- `VERIFIED`: `py -3 tools/verify/run.py --tests` で Core/Runtime/Tests compile、100万G (112.2%、不変条件違反なし)、Unity EditMode 124/130 passed・failed 0・ignored 6。回帰テストは設定値と9組の戦闘結果/攻撃サイズ/ダメージ同一性を確認。JSON/Viewer JS/layout/diff-checkも確認。
+- `LIMIT`: Unity EditModeは隔離検証。実機/実入力/聴感/配布build/全体美術とFX viewerの全状態目視は未確認。敵20種/装備/背景/P4-P5は未完了。画像生成素材は未使用。詳細は[dev403レビュー](art/2026-11-03/COMBAT_INTENSITY_TUNABLES_REVIEW.md)。
+
 # BigBonusBlitz 制作ログ
 
 ### 2026-10-19 敵HPカードを3段表示へ整える（dev 399）

@@ -5323,16 +5323,20 @@ namespace BBB.Runtime
                 case EngageOutcome.Attack:
                 {
                     bool counter = st.outcome == EngageOutcome.Counter;
-                    float k = st.attackSize == AttackSize.Large ? 1f : st.attackSize == AttackSize.Medium || st.attackSize == AttackSize.Counter ? 0.6f : 0.3f;
+                    var attackFx = _m.Config.engage?.attackFx ?? new EngageAttackFxConfig();
+                    float slashLength = counter ? attackFx.counterSlashLength : st.attackSize == AttackSize.Large ? attackFx.largeSlashLength : st.attackSize == AttackSize.Medium ? attackFx.mediumSlashLength : attackFx.smallSlashLength;
+                    float shakeSeconds = counter ? attackFx.counterShakeSeconds : st.attackSize == AttackSize.Large ? attackFx.largeShakeSeconds : st.attackSize == AttackSize.Medium ? attackFx.mediumShakeSeconds : attackFx.smallShakeSeconds;
+                    float shake = counter ? attackFx.counterShake : st.attackSize == AttackSize.Large ? attackFx.largeShake : st.attackSize == AttackSize.Medium ? attackFx.mediumShake : attackFx.smallShake;
+                    int textSize = counter ? attackFx.counterTextSize : st.attackSize == AttackSize.Large ? attackFx.largeTextSize : st.attackSize == AttackSize.Medium ? attackFx.mediumTextSize : attackFx.smallTextSize;
                     string atkKey = counter ? "engage_counter" : st.attackSize == AttackSize.Large ? "engage_attack_large" : st.attackSize == AttackSize.Medium ? "engage_attack_medium" : "engage_attack_small";
                     if (!_audio.TryPlay(atkKey)) _audio.Attack();
                     _audio.Voice("attack");
                     if(_adventureEnemy.Active)_adventureEnemy.Request("hit");
-                    UiFx.Slash(_enemyRt, -30f, 160f + 140f * k, ColGold);
+                    UiFx.Slash(_enemyRt, -30f, slashLength, ColGold);
                     UiFx.Burst(_enemyRt, UiFx.Preset.Sparks, new Vector2(0, 20));
-                    StartCoroutine(Effects.Shake(_stage, 0.25f + 0.2f * k, 3f + 8f * k));
+                    StartCoroutine(Effects.Shake(_stage, shakeSeconds, shake));
                     string label = counter ? tx.counter : st.attackSize == AttackSize.Large ? tx.attackLarge : st.attackSize == AttackSize.Medium ? tx.attackMedium : tx.attackSmall;
-                    UiFx.PopText(_enemyRt, label, ColGold, st.attackSize == AttackSize.Large ? 30 : 24, new Vector2(0, 80));
+                    UiFx.PopText(_enemyRt, label, ColGold, textSize, new Vector2(0, 80));
                     UiFx.PopText(_enemyRt, $"−{st.dealt}", Hex("#ff9a3c"), 22, new Vector2(0, 105));
                     if (!st.defeated) UiFx.PopText(_enemyRt, $"HP {st.hpLeft}/{st.hpMax}", ColTextSub, 14, new Vector2(0, 128));
                     _hint.text = label; _hint.color = ColGold;
@@ -5346,16 +5350,16 @@ namespace BBB.Runtime
                     {
                         if (!_audio.TryPlay("engage_judge_win")) _audio.Attack();
                         _audio.Voice("attack");
-                        UiFx.Slash(_enemyRt, -30f, 320f, ColGold);
+                        UiFx.Slash(_enemyRt, -30f, attackFx.judgeSlashLength, ColGold);
                         UiFx.Burst(_enemyRt, UiFx.Preset.Explode, new Vector2(0, 20));
-                        StartCoroutine(Effects.Shake(_stage, 0.5f, 12f));
-                        UiFx.PopText(_enemyRt, tx.judgeWin, ColGold, 32, new Vector2(0, 90));
+                        StartCoroutine(Effects.Shake(_stage, attackFx.judgeShakeSeconds, attackFx.judgeShake));
+                        UiFx.PopText(_enemyRt, tx.judgeWin, ColGold, attackFx.judgeWinTextSize, new Vector2(0, 90));
                         _hint.text = tx.judgeWin; _hint.color = ColGold;
                     }
                     else
                     {
                         _audio.TryPlay("engage_judge_lose");
-                        UiFx.PopText(_enemyRt, tx.judgeLose, ColTextSub, 24, new Vector2(0, 90));
+                        UiFx.PopText(_enemyRt, tx.judgeLose, ColTextSub, (_m.Config.engage?.attackFx ?? new EngageAttackFxConfig()).judgeLoseTextSize, new Vector2(0, 90));
                         _hint.text = tx.judgeLose; _hint.color = ColTextSub;
                     }
                     break;

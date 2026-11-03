@@ -56,10 +56,21 @@ namespace BBB.Core
         public bool judgeEnabled = true;
         public float judgeRatioScale = 1f;
         public int judgeSmallBonus = 10, judgeRareBonus = 40, judgeMin = 0, judgeMax = 95;
+        /// <summary>戦闘の強弱表示だけを調整する。抽選・ダメージ・報酬には使わない。</summary>
+        public EngageAttackFxConfig attackFx = new EngageAttackFxConfig();
         /// <summary>帯の文（{set} {sets} {turn} が入る）。</summary>
         public EngageTexts texts = new EngageTexts();
         /// <summary>ジャッジの G の演出（BET でカットイン → 第一〜第三停止で段階的に。本人 2026-09-23）。</summary>
         public JudgeFxConfig judgeFx = new JudgeFxConfig();
+    }
+
+    /// <summary>通常攻撃、反撃、JUDGE決着の表示強度。game_config.json の engage.attackFx。</summary>
+    public sealed class EngageAttackFxConfig
+    {
+        public float smallSlashLength = 202f, mediumSlashLength = 244f, largeSlashLength = 300f, counterSlashLength = 244f, judgeSlashLength = 320f;
+        public float smallShakeSeconds = 0.31f, mediumShakeSeconds = 0.37f, largeShakeSeconds = 0.45f, counterShakeSeconds = 0.37f, judgeShakeSeconds = 0.5f;
+        public float smallShake = 5.4f, mediumShake = 7.8f, largeShake = 11f, counterShake = 7.8f, judgeShake = 12f;
+        public int smallTextSize = 24, mediumTextSize = 24, largeTextSize = 30, counterTextSize = 24, judgeWinTextSize = 32, judgeLoseTextSize = 24;
     }
 
     /// <summary>
