@@ -1,0 +1,12 @@
+{
+  "date": "2026-11-03",
+  "generator": "built-in image_gen",
+  "source": "source.png",
+  "prompt": "prompt.txt",
+  "sha256": "5739a8cda0ad4e7841718ad17ddef8474cf1964d236bf00fba624a8fc7126310",
+  "unityResource": "Art/HeroPrototype/enemy-bat-v1",
+  "status": "runtime-connected",
+  "finalArtApproved": false,
+  "productionIntegrated": true,
+  "gameControllerRegressionPassed": true
+}

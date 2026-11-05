@@ -1,0 +1,214 @@
+{
+  "date": "2026-11-04",
+  "generator": "built-in image_gen",
+  "source": "source.png",
+  "prompt": "prompt.txt",
+  "sha256": "0536346a34e21e8abe31eb3e58c6de67f43c751eb74b997848e2d2a40a837713",
+  "size": [
+    1536,
+    1024
+  ],
+  "alphaRange": [
+    0,
+    254
+  ],
+  "cells": [
+    {
+      "cell": 0,
+      "rect": [
+        0,
+        0,
+        384,
+        512
+      ],
+      "alpha32Bounds": [
+        87,
+        162,
+        310,
+        414
+      ]
+    },
+    {
+      "cell": 1,
+      "rect": [
+        384,
+        0,
+        768,
+        512
+      ],
+      "alpha32Bounds": [
+        91,
+        144,
+        310,
+        415
+      ]
+    },
+    {
+      "cell": 2,
+      "rect": [
+        768,
+        0,
+        1152,
+        512
+      ],
+      "alpha32Bounds": [
+        91,
+        113,
+        329,
+        385
+      ]
+    },
+    {
+      "cell": 3,
+      "rect": [
+        1152,
+        0,
+        1536,
+        512
+      ],
+      "alpha32Bounds": [
+        39,
+        129,
+        342,
+        390
+      ]
+    },
+    {
+      "cell": 4,
+      "rect": [
+        0,
+        512,
+        384,
+        1024
+      ],
+      "alpha32Bounds": [
+        18,
+        144,
+        349,
+        381
+      ]
+    },
+    {
+      "cell": 5,
+      "rect": [
+        384,
+        512,
+        768,
+        1024
+      ],
+      "alpha32Bounds": [
+        92,
+        154,
+        308,
+        412
+      ]
+    },
+    {
+      "cell": 6,
+      "rect": [
+        768,
+        512,
+        1152,
+        1024
+      ],
+      "alpha32Bounds": [
+        69,
+        127,
+        342,
+        395
+      ]
+    },
+    {
+      "cell": 7,
+      "rect": [
+        1152,
+        512,
+        1536,
+        1024
+      ],
+      "alpha32Bounds": [
+        57,
+        292,
+        349,
+        417
+      ]
+    }
+  ],
+  "status": "integrated-pending-qa",
+  "finalArtApproved": false,
+  "unityResource": "Art/HeroPrototype/enemy-book-v1",
+  "rectangles": [
+    {
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 100,
+      "offsetX": 0.0,
+      "offsetY": 45
+    },
+    {
+      "x": 384,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 100,
+      "offsetX": 0.0,
+      "offsetY": 45
+    },
+    {
+      "x": 768,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 100,
+      "offsetX": 0.0,
+      "offsetY": 45
+    },
+    {
+      "x": 1152,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 100,
+      "offsetX": 0.0,
+      "offsetY": 45
+    },
+    {
+      "x": 0,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 100,
+      "offsetX": -220.0,
+      "offsetY": 45
+    },
+    {
+      "x": 384,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 100,
+      "offsetX": 0.0,
+      "offsetY": 45
+    },
+    {
+      "x": 768,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 100,
+      "offsetX": 12.0,
+      "offsetY": 45
+    },
+    {
+      "x": 1152,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 95,
+      "offsetX": 0.0,
+      "offsetY": 0
+    }
+  ]
+}

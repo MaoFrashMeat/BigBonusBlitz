@@ -55,11 +55,11 @@ namespace BBB.Tests
         }
 
         [Test]
-        public void 敵テーブルは通常3種とボス3種_スライムはVariantA()
+        public void 敵テーブルは通常16種とボス4種_スライムはVariantA()
         {
-            Assert.AreEqual(6, _enemies.Count, "通常 3 種 + ボス 3 種");
-            Assert.AreEqual(3, _enemies.FindAll(t => !t.IsBoss).Count, "通常の敵は 3 種");
-            Assert.AreEqual(3, _enemies.FindAll(t => t.IsBoss).Count, "ボスは 3 種");
+            Assert.AreEqual(20, _enemies.Count, "通常 16 種 + ボス 4 種");
+            Assert.AreEqual(16, _enemies.FindAll(t => !t.IsBoss).Count, "通常の敵は 16 種");
+            Assert.AreEqual(4, _enemies.FindAll(t => t.IsBoss).Count, "ボスは 4 種");
             var slime = _enemies.Find(t => t.enemyType == "slime");
             Assert.IsNotNull(slime);
             Assert.AreEqual("A", slime.variant);
@@ -75,7 +75,7 @@ namespace BBB.Tests
             Assert.AreEqual(expectedPath, path);
         }
 
-        [TestCase("forest_wolf")]
+        // forest_wolf is now an authored roster entry; RegionalEnemyTests covers it.
         [TestCase("table_wolf_1")]
         [TestCase("unregistered")]
         [TestCase(null)]

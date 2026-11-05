@@ -1,0 +1,438 @@
+{
+  "date": "2026-11-06",
+  "releaseBase": "065d3434b8f8e8d284e96009f2c545f715dbe5d6",
+  "allMatched": true,
+  "files": [
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Editor/AdventureDialogueTextureImporter.cs",
+      "sha256": "495c928c0eefd1c6f203acc19066d195315b2d9625d1b1b4180a16e52f589eff",
+      "isolatedSha256": "495c928c0eefd1c6f203acc19066d195315b2d9625d1b1b4180a16e52f589eff"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Editor/AdventureHeroValidation.cs",
+      "sha256": "1830a6ebefa64cc3dcf27b79d42ed1d6c47abc34f87f8d549dad4c0d8dea4098",
+      "isolatedSha256": "1830a6ebefa64cc3dcf27b79d42ed1d6c47abc34f87f8d549dad4c0d8dea4098"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Editor/AdventurePresentationValidation.cs",
+      "sha256": "e33471c59069eeb9553c35eda68074d40b5cb90abcd9a047c8ebe40cbf049c4f",
+      "isolatedSha256": "e33471c59069eeb9553c35eda68074d40b5cb90abcd9a047c8ebe40cbf049c4f"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Editor/HeroPrototypeImporter.cs",
+      "sha256": "3db98b2b68c929c0b68ef220d0ed2871576cbd8099c2b89b08913f9382e832d1",
+      "isolatedSha256": "3db98b2b68c929c0b68ef220d0ed2871576cbd8099c2b89b08913f9382e832d1"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Editor/HeroPrototypeMenu.cs",
+      "sha256": "503b4da9c3000e2e4a63c532d1663e284b48821b9b0609caed6f306873dd6d2f",
+      "isolatedSha256": "503b4da9c3000e2e4a63c532d1663e284b48821b9b0609caed6f306873dd6d2f"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Editor/HeroPrototypeValidation.cs",
+      "sha256": "08cd704ed7286ba494d5d525d2d2dd2173ee7b1a055307517deb619bd596bdfb",
+      "isolatedSha256": "08cd704ed7286ba494d5d525d2d2dd2173ee7b1a055307517deb619bd596bdfb"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Editor/ProbabilityEditorWindow.cs",
+      "sha256": "0074ce762a470262a6eabf9415d636a455414b38cdd767e1712d6fd581f4015d",
+      "isolatedSha256": "0074ce762a470262a6eabf9415d636a455414b38cdd767e1712d6fd581f4015d"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/AdventureSeamless.shader",
+      "sha256": "d37a26508fbcc9511683581ae6b61dec17d4d373e3d9bc2ce76b9c5ce404fc33",
+      "isolatedSha256": "d37a26508fbcc9511683581ae6b61dec17d4d373e3d9bc2ce76b9c5ce404fc33"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/A-1/layers-v1.png",
+      "sha256": "eb6d2d2c10151ccf74be3ca728a350719b008152d8510dc3a75203823cd163a8",
+      "isolatedSha256": "eb6d2d2c10151ccf74be3ca728a350719b008152d8510dc3a75203823cd163a8"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/A-1/layers-v2.png",
+      "sha256": "b7ba4dd9e5af5eb8e3a324a274c19b451c628619cd77db837a2fc8f0791e4e85",
+      "isolatedSha256": "b7ba4dd9e5af5eb8e3a324a274c19b451c628619cd77db837a2fc8f0791e4e85"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/B-1/layers-v1.png",
+      "sha256": "d964be040dfb5968476f746f7dfde865c1867f32b57e6b25588903378ad8e5f1",
+      "isolatedSha256": "d964be040dfb5968476f746f7dfde865c1867f32b57e6b25588903378ad8e5f1"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/B-2/layers-v1.png",
+      "sha256": "a4c074cc63fd3a07a4a3b226d9bfa02d4a5d6988a44d0b899a8ababe951a2e9f",
+      "isolatedSha256": "a4c074cc63fd3a07a4a3b226d9bfa02d4a5d6988a44d0b899a8ababe951a2e9f"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/C-2/layers-v1.png",
+      "sha256": "3af76651641e56b4e8170652a6423b819df486884b5aa870790c1e5e3d027d75",
+      "isolatedSha256": "3af76651641e56b4e8170652a6423b819df486884b5aa870790c1e5e3d027d75"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/E-2/layers-v1.png",
+      "sha256": "24e6a7f22f3110cc56d0cd554548a955179784973d1a73932b1d188a18b7fcfa",
+      "isolatedSha256": "24e6a7f22f3110cc56d0cd554548a955179784973d1a73932b1d188a18b7fcfa"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/H-1/layers-v1.png",
+      "sha256": "da6de920b89d1184eb830b3bd1985946248e9d8c1a1328bb573e1af47114f1e7",
+      "isolatedSha256": "da6de920b89d1184eb830b3bd1985946248e9d8c1a1328bb573e1af47114f1e7"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/H-1/layers-v2.png",
+      "sha256": "bb5041083e3d49579096bffca6e859358d15bcc9c66fe64e3841697adf8626b6",
+      "isolatedSha256": "bb5041083e3d49579096bffca6e859358d15bcc9c66fe64e3841697adf8626b6"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/H-1/layers-v3.png",
+      "sha256": "bac61387f1bc9f4c29e5301180549a007ee7fa156241b090d127194ef5f6ab8e",
+      "isolatedSha256": "bac61387f1bc9f4c29e5301180549a007ee7fa156241b090d127194ef5f6ab8e"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/body-v2.png",
+      "sha256": "a844d30a5d05afed3a72d05ffb0955c23ae8bebc49b195ae3672e1055bf59961",
+      "isolatedSha256": "a844d30a5d05afed3a72d05ffb0955c23ae8bebc49b195ae3672e1055bf59961"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/bow-components-v1.png",
+      "sha256": "77775e575243fe95061b6eb184da9c5bc12fcfd78fdcd486d63c9a2a9074fc03",
+      "isolatedSha256": "77775e575243fe95061b6eb184da9c5bc12fcfd78fdcd486d63c9a2a9074fc03"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemies-v1.png",
+      "sha256": "bf240a3a828c797ef3644dcd9843053f8f9afcf21d9ea51e180cc5d57948d883",
+      "isolatedSha256": "bf240a3a828c797ef3644dcd9843053f8f9afcf21d9ea51e180cc5d57948d883"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-bat-v1.png",
+      "sha256": "5739a8cda0ad4e7841718ad17ddef8474cf1964d236bf00fba624a8fc7126310",
+      "isolatedSha256": "5739a8cda0ad4e7841718ad17ddef8474cf1964d236bf00fba624a8fc7126310"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-beetle-v1.png",
+      "sha256": "a6bebdfb1b5d507883b09b9c8e23718fcfe9beb0de55d5d0e71fc6e14a4bd313",
+      "isolatedSha256": "a6bebdfb1b5d507883b09b9c8e23718fcfe9beb0de55d5d0e71fc6e14a4bd313"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-boar-v1.png",
+      "sha256": "505cce43cc7908b15a3218eb92c5d16e85035f677922b918762aa17a0821e215",
+      "isolatedSha256": "505cce43cc7908b15a3218eb92c5d16e85035f677922b918762aa17a0821e215"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-bone-v1.png",
+      "sha256": "745bfc1d2b1af1707f1d0675a75606496f3e0a829336f16a2049de80bab61945",
+      "isolatedSha256": "745bfc1d2b1af1707f1d0675a75606496f3e0a829336f16a2049de80bab61945"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-book-v1.png",
+      "sha256": "0536346a34e21e8abe31eb3e58c6de67f43c751eb74b997848e2d2a40a837713",
+      "isolatedSha256": "0536346a34e21e8abe31eb3e58c6de67f43c751eb74b997848e2d2a40a837713"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-crystal-v1.png",
+      "sha256": "7954b216890a406d33f79ae444103f73d2950e48efac0f624c64efc92843e3fd",
+      "isolatedSha256": "7954b216890a406d33f79ae444103f73d2950e48efac0f624c64efc92843e3fd"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-gargoyle-v1.png",
+      "sha256": "9b1824ed02b88cd81429f6842cd56eba85762639083598dce73e252fddf0ee70",
+      "isolatedSha256": "9b1824ed02b88cd81429f6842cd56eba85762639083598dce73e252fddf0ee70"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-goblin-v2.png",
+      "sha256": "806910222358a5585647d077edabbe96b0bbe592afd239a4b8138104b120b83d",
+      "isolatedSha256": "806910222358a5585647d077edabbe96b0bbe592afd239a4b8138104b120b83d"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-miner-v1.png",
+      "sha256": "032946165c52dab44ad0c63d0985002a701501b6088d17139f5f5a7f205a3aae",
+      "isolatedSha256": "032946165c52dab44ad0c63d0985002a701501b6088d17139f5f5a7f205a3aae"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-mirrorwarden-v1.png",
+      "sha256": "dfebb62b63cc6addb949a757a69176f0910830889ff4f64160ec2abb62e7dd19",
+      "isolatedSha256": "dfebb62b63cc6addb949a757a69176f0910830889ff4f64160ec2abb62e7dd19"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-moth-v1.png",
+      "sha256": "6a595b5940c535bfa76e88307d82b39c47d78cfb166be7e80a0e5642cce9afb9",
+      "isolatedSha256": "6a595b5940c535bfa76e88307d82b39c47d78cfb166be7e80a0e5642cce9afb9"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-ogre-v1.png",
+      "sha256": "e229878b5253cc8737d82d3a63342d0590dd7d34ea110dad18b9fa81ce788ccd",
+      "isolatedSha256": "e229878b5253cc8737d82d3a63342d0590dd7d34ea110dad18b9fa81ce788ccd"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-salamander-v1.png",
+      "sha256": "78282992f31f68a2a81f04b164dbae68c5d66bf22c66204a4c6c1e0174d05e24",
+      "isolatedSha256": "78282992f31f68a2a81f04b164dbae68c5d66bf22c66204a4c6c1e0174d05e24"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-sentinel-v1.png",
+      "sha256": "5d50d0b3045ab72043f2762526bf4ae46d5a6e07e677cc74556011ad3a225881",
+      "isolatedSha256": "5d50d0b3045ab72043f2762526bf4ae46d5a6e07e677cc74556011ad3a225881"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-slime-v1.png",
+      "sha256": "e8ea07de117ccaa28ba4ce89754b5e0befc55552bd3286bc349c881a985e74e6",
+      "isolatedSha256": "e8ea07de117ccaa28ba4ce89754b5e0befc55552bd3286bc349c881a985e74e6"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-slimeking-v1.png",
+      "sha256": "2ceed6498927cd508fbb4170c40b529879785a9be2b353e095fdfa8c39920222",
+      "isolatedSha256": "2ceed6498927cd508fbb4170c40b529879785a9be2b353e095fdfa8c39920222"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-vine-v1.png",
+      "sha256": "ffb8a89273340f051e6e1b9bde908d33d5675fe3fdb0c5c12993089b0550046d",
+      "isolatedSha256": "ffb8a89273340f051e6e1b9bde908d33d5675fe3fdb0c5c12993089b0550046d"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-wisp-v1.png",
+      "sha256": "170b37fc43faa40f75b21908f4f4409b40b37dbd58320ec40fcd606c9dc66c02",
+      "isolatedSha256": "170b37fc43faa40f75b21908f4f4409b40b37dbd58320ec40fcd606c9dc66c02"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-wolf-v1.png",
+      "sha256": "825a3e96175baa7460044907836553232ed6c95b8a503a76f2decaf0b7611106",
+      "isolatedSha256": "825a3e96175baa7460044907836553232ed6c95b8a503a76f2decaf0b7611106"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-wyvern-v1.png",
+      "sha256": "a51ed1660eda30f050ff3ff8d168af3595d8305820450feb493e139143dfac8f",
+      "isolatedSha256": "a51ed1660eda30f050ff3ff8d168af3595d8305820450feb493e139143dfac8f"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/hero-bow-v1.png",
+      "sha256": "ce5dd2bee424f21a9a47621bb4b695fb3515ad0baef625ef3d1ec989faf27f4b",
+      "isolatedSha256": "ce5dd2bee424f21a9a47621bb4b695fb3515ad0baef625ef3d1ec989faf27f4b"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/hero-heavy-v1.png",
+      "sha256": "98c42c2ed7ffca47bcb9fac124aec6ca2cfed95b792b7e5a3dd68278e7b2ec6e",
+      "isolatedSha256": "98c42c2ed7ffca47bcb9fac124aec6ca2cfed95b792b7e5a3dd68278e7b2ec6e"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/hero-staff-v1.png",
+      "sha256": "9a91e9a798aebfc7e39a7da9591a2871e8cc7a988b9bbd3add29aa153b7617a2",
+      "isolatedSha256": "9a91e9a798aebfc7e39a7da9591a2871e8cc7a988b9bbd3add29aa153b7617a2"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/spear-v2.png",
+      "sha256": "b8ae424170f3dcfd672874d273a166b673e62be55d326c6d6d9891a3c8cdce9e",
+      "isolatedSha256": "b8ae424170f3dcfd672874d273a166b673e62be55d326c6d6d9891a3c8cdce9e"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/support-v1.png",
+      "sha256": "a35142c94a7580508d9a07dca342a791155ab73e22ae960cd18c88ea57e5c6b2",
+      "isolatedSha256": "a35142c94a7580508d9a07dca342a791155ab73e22ae960cd18c88ea57e5c6b2"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/sword-v2.png",
+      "sha256": "f91ec9af810721a19bb51b6746952c56191d07107b363471dbcdeca4c6541d6f",
+      "isolatedSha256": "f91ec9af810721a19bb51b6746952c56191d07107b363471dbcdeca4c6541d6f"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/walk-v2.png",
+      "sha256": "b25e04d5bd4606dcfb76508d719010bfdbc6cab7f6708f058701dbbf06b99ee7",
+      "isolatedSha256": "b25e04d5bd4606dcfb76508d719010bfdbc6cab7f6708f058701dbbf06b99ee7"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/walk-v3.png",
+      "sha256": "e1d0be763058f7185214257b9b8a7cf7960e0d4ce789dacab9cab00abcd679d4",
+      "isolatedSha256": "e1d0be763058f7185214257b9b8a7cf7960e0d4ce789dacab9cab00abcd679d4"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/weapons-five-v1.png",
+      "sha256": "3fe84ab3fd2ff293debb2958437de6a554c9df256e851053c612ce206c9fc10d",
+      "isolatedSha256": "3fe84ab3fd2ff293debb2958437de6a554c9df256e851053c612ce206c9fc10d"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/weapons-v1.png",
+      "sha256": "9d392ebcd60cd3e8fc1dde546251cdbda4702a604878a586ede6ee2133a6f541",
+      "isolatedSha256": "9d392ebcd60cd3e8fc1dde546251cdbda4702a604878a586ede6ee2133a6f541"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/UI/AdventureDialogue/curses.png",
+      "sha256": "59669ca58308785a9902c6c9996f6286981c73f9d2e1b5e4fd159f73cadcb07c",
+      "isolatedSha256": "59669ca58308785a9902c6c9996f6286981c73f9d2e1b5e4fd159f73cadcb07c"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/UI/AdventureDialogue/salia.png",
+      "sha256": "c7c3313ef57f108a7c77a027e8d9ac1309086b7852cbc8c6854b63b28c5ee5ea",
+      "isolatedSha256": "c7c3313ef57f108a7c77a027e8d9ac1309086b7852cbc8c6854b63b28c5ee5ea"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/UI/AdventureDialogue/town.png",
+      "sha256": "2232fe4f6e3499f05db6c3cbc68ff4d46557bf0dc32d6f062c51e12d05c12532",
+      "isolatedSha256": "2232fe4f6e3499f05db6c3cbc68ff4d46557bf0dc32d6f062c51e12d05c12532"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/UI/AdventureDialogue/travelers.png",
+      "sha256": "dfed30b79e0988147b8abdae9804284ca53108b1a57272c2276d8f6b0a4804da",
+      "isolatedSha256": "dfed30b79e0988147b8abdae9804284ca53108b1a57272c2276d8f6b0a4804da"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Data/adventure_environments.json",
+      "sha256": "98c8e88603b7f578a407030f70041d66fb2e0e8dacd9b5ed9ccd097ff68f9940",
+      "isolatedSha256": "98c8e88603b7f578a407030f70041d66fb2e0e8dacd9b5ed9ccd097ff68f9940"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Data/adventure_presentation.json",
+      "sha256": "a0af2ef39f5d846bc792a1e6e5357b1ed07263aec337b431692302867d3c8a2a",
+      "isolatedSha256": "a0af2ef39f5d846bc792a1e6e5357b1ed07263aec337b431692302867d3c8a2a"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Data/enemy_presentation_prototype.json",
+      "sha256": "e69ac4162bd2f21adbeb024188e1fdb8bcb24627e493167279d0f7d34000d83b",
+      "isolatedSha256": "e69ac4162bd2f21adbeb024188e1fdb8bcb24627e493167279d0f7d34000d83b"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Data/enemy_roster_p2.json",
+      "sha256": "e853908f34743080f239246391b9a61f34743907866c6e3717905b434cf570cf",
+      "isolatedSha256": "e853908f34743080f239246391b9a61f34743907866c6e3717905b434cf570cf"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Data/enemy_tables.json",
+      "sha256": "e6664f48449f35f4c7c833311dab5b19e10bd786cfa10a8e89792caafecec038",
+      "isolatedSha256": "e6664f48449f35f4c7c833311dab5b19e10bd786cfa10a8e89792caafecec038"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Data/hero_presentation_prototype.json",
+      "sha256": "247c738550ce73aaac711f675e4fdc8aebad7f73f0a6646b8dd983b1bcb1d01d",
+      "isolatedSha256": "247c738550ce73aaac711f675e4fdc8aebad7f73f0a6646b8dd983b1bcb1d01d"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Data/weapon_visuals.json",
+      "sha256": "dc609c86533e28f4af2fa988694d997465f843d3d0f00dd78c42dc65ab50d099",
+      "isolatedSha256": "dc609c86533e28f4af2fa988694d997465f843d3d0f00dd78c42dc65ab50d099"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/EnemyEngage.cs",
+      "sha256": "f13a235f4821a6f09f13c85d0b266b57be937b7324182ba3378caef4f244d96c",
+      "isolatedSha256": "f13a235f4821a6f09f13c85d0b266b57be937b7324182ba3378caef4f244d96c"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/GameConfig.cs",
+      "sha256": "aa15b83aa89e48f6e841efbeb5ab0a22cf7d3ebba5360749b8501ed235c1152a",
+      "isolatedSha256": "aa15b83aa89e48f6e841efbeb5ab0a22cf7d3ebba5360749b8501ed235c1152a"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/SlotMachine.cs",
+      "sha256": "1c4bd00dde7016a35fe598613c0825eca60a72597c8f283410b27458feacae72",
+      "isolatedSha256": "1c4bd00dde7016a35fe598613c0825eca60a72597c8f283410b27458feacae72"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AdventureEnemyPresenter.cs",
+      "sha256": "4db48893bff72c5dfceda5ae365ea908b20197cc25f2dfb638cf8154c6c9add3",
+      "isolatedSha256": "4db48893bff72c5dfceda5ae365ea908b20197cc25f2dfb638cf8154c6c9add3"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AdventureEnvironmentCatalog.cs",
+      "sha256": "4b73a4867581af889b11863d314077421b56d550af84b99180b7c68a9bd52815",
+      "isolatedSha256": "4b73a4867581af889b11863d314077421b56d550af84b99180b7c68a9bd52815"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AdventureHeroPresenter.cs",
+      "sha256": "c3ccf29c4c7719229724fdf39bb6ccc269e1d8aeee4758ece62e6e84301eec5c",
+      "isolatedSha256": "c3ccf29c4c7719229724fdf39bb6ccc269e1d8aeee4758ece62e6e84301eec5c"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AdventurePresentation.cs",
+      "sha256": "b5f24a57cc87e5f0af9140ba256bb86f0a75b08735d66c4506e705dbd4d02637",
+      "isolatedSha256": "b5f24a57cc87e5f0af9140ba256bb86f0a75b08735d66c4506e705dbd4d02637"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/ArtLoader.cs",
+      "sha256": "ca5c53476b2258db89e4535a7fb7d03dfd4e49d930801aa236008560a7ae4467",
+      "isolatedSha256": "ca5c53476b2258db89e4535a7fb7d03dfd4e49d930801aa236008560a7ae4467"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AudioManager.Dialogue.cs",
+      "sha256": "18095129e1e3f0004e781272a96905f6a18c07a763e2d7aae220e065c510c763",
+      "isolatedSha256": "18095129e1e3f0004e781272a96905f6a18c07a763e2d7aae220e065c510c763"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/CurseHudPresenter.cs",
+      "sha256": "418a3ae7ac0a67bf1e6a2be63d71b55c4a7376eb75a555920653c0fff0d6efc7",
+      "isolatedSha256": "418a3ae7ac0a67bf1e6a2be63d71b55c4a7376eb75a555920653c0fff0d6efc7"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/EnemyPresentation.cs",
+      "sha256": "3a09b07738151dc50f44bc4d397fe325d940730150701e6b36e1cd910bfcc964",
+      "isolatedSha256": "3a09b07738151dc50f44bc4d397fe325d940730150701e6b36e1cd910bfcc964"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/GameController.cs",
+      "sha256": "25eddd89c3f02270131205e7bc86ad9d0570e04b40cd0fc28fc971b691a150ec",
+      "isolatedSha256": "25eddd89c3f02270131205e7bc86ad9d0570e04b40cd0fc28fc971b691a150ec"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/HeroPresentation.cs",
+      "sha256": "37698e801b2caf71036da9bf763f02d6eaf792643629e7c02b978aca9e345c87",
+      "isolatedSha256": "37698e801b2caf71036da9bf763f02d6eaf792643629e7c02b978aca9e345c87"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/HeroPresentationLab.cs",
+      "sha256": "91b39ba9fe27474a6857dd2b5c21874d732fcdd600ba54c783049916366b9f33",
+      "isolatedSha256": "91b39ba9fe27474a6857dd2b5c21874d732fcdd600ba54c783049916366b9f33"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/HeroReelPreview.cs",
+      "sha256": "6f442ebcf605ae23f5f9845d405536639ef4c907c53b1530ffc85266ab408385",
+      "isolatedSha256": "6f442ebcf605ae23f5f9845d405536639ef4c907c53b1530ffc85266ab408385"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/MarqueeBand.cs",
+      "sha256": "5f0d4ebf2d416573ae182ee14119d116bd07cbec306e3c16631e9e6288c03c32",
+      "isolatedSha256": "5f0d4ebf2d416573ae182ee14119d116bd07cbec306e3c16631e9e6288c03c32"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/ParallaxBackground.cs",
+      "sha256": "c234104cac62385e609f0fc1bbe8de59d5a89e26b1daa4932a1bb0777ed67890",
+      "isolatedSha256": "c234104cac62385e609f0fc1bbe8de59d5a89e26b1daa4932a1bb0777ed67890"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/AdventureEnemyPlayTests.cs",
+      "sha256": "cc59797f4a2080c5c85e597c44e28654df55bcd564482c165c503a9742160b05",
+      "isolatedSha256": "cc59797f4a2080c5c85e597c44e28654df55bcd564482c165c503a9742160b05"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/AdventureEnemyReelTests.cs",
+      "sha256": "88a1536eb051fac9a608f61b5dc1f2897284dc5a88180d9dbebf5ac8b6c436e6",
+      "isolatedSha256": "88a1536eb051fac9a608f61b5dc1f2897284dc5a88180d9dbebf5ac8b6c436e6"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/AdventureHeroJourneyTests.cs",
+      "sha256": "fddb4e9d61c3589efeb8a27bd0fd107723809b4732bb303ebc57128a614de049",
+      "isolatedSha256": "fddb4e9d61c3589efeb8a27bd0fd107723809b4732bb303ebc57128a614de049"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/AdventureHeroPlayTests.cs",
+      "sha256": "f0095eaa992bd36cb1a7701c354e836da9f8e6a79162eafd60fb2d43be40ca4a",
+      "isolatedSha256": "f0095eaa992bd36cb1a7701c354e836da9f8e6a79162eafd60fb2d43be40ca4a"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/AdventurePresentationPlayTests.cs",
+      "sha256": "e505606eb0fb721bef5c29663482e3a190747c2739cd32a16f42badecbe59014",
+      "isolatedSha256": "e505606eb0fb721bef5c29663482e3a190747c2739cd32a16f42badecbe59014"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/HeroPresentationPlayTests.cs",
+      "sha256": "e23f74d961326d47f9ab2cf160e3eef43fd17ef6078d28bf6c228da21c851d25",
+      "isolatedSha256": "e23f74d961326d47f9ab2cf160e3eef43fd17ef6078d28bf6c228da21c851d25"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/RegionalEnemyTests.cs",
+      "sha256": "b58d1143f5ad6b198fbc9b3fa6fc87de6a040b09dd37f505d959a640447270b1",
+      "isolatedSha256": "b58d1143f5ad6b198fbc9b3fa6fc87de6a040b09dd37f505d959a640447270b1"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/WorkflowAndEnemyTests.cs",
+      "sha256": "12cae8b1bbfe62901cdc3d3938ada6816354c6018ed6590ad9d7c922268c634f",
+      "isolatedSha256": "12cae8b1bbfe62901cdc3d3938ada6816354c6018ed6590ad9d7c922268c634f"
+    }
+  ],
+  "productionSaveTouched": false
+}

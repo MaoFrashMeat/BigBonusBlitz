@@ -1,5 +1,21 @@
 # 霧の森の実描画と引き継ぎ
 
+## 2026-10-10 dev381: EditMode隔離再検証
+
+`run.ps1 -Tests`を本番とは別の`%TEMP%/bbb-environment-c1-qa`へ実行。EditMode 129件中123件Passed、失敗0、既知のIgnore 6件（`Skipped:Ignored`）を確認し、`2026-10-11/v10-editmode-refresh/`へXML/ログを保存した。回帰ゲートであり、実機/URP/配布ビルド/聴感/最終美術/本編統合は未承認。[レビュー](../../docs/art/2026-10-10/EDITMODE_REFRESH_REVIEW.md)
+
+## 2026-10-10 dev380: 背景ソース・光影の隔離再実描画
+
+`run.ps1`を本番とは別の`%TEMP%/bbb-environment-c1-qa`へ再実行し、30地点/3層、時間帯4、天候9、森12条件、両解像度、屋内天候、セーブ不変を再照合。新しい取得物はホスト日付跨ぎのため`2026-10-11/v9-background-refresh/`に保存。夜雨の青い逆光、雨線、遺跡アーチ、手前植生とC-1ゲーム画面を目視した。これはソース/実描画ゲートで、URP/実機GPU/配布ビルド/負荷/サウンド/最終美術は未承認。[レビュー](../../docs/art/2026-10-10/BACKGROUND_REFRESH_REVIEW.md)
+
+## 2026-10-10 dev376: 光影プローブ差分ガード
+
+`run_light_shadow_guard.py` でdev371の実画像を読み取り、C-1/森昼晴れ/夜雨、30地点・森12条件・屋内天候・セーブ不変を再照合。平均RGB差56.128を確認した。光影差分は機械Passedだが、URP/端末/GPU/配布ビルド/最終美術は未承認。[レビュー](../../docs/art/2026-10-10/BACKGROUND_LIGHT_SHADOW_GUARD_REVIEW.md)
+
+## 2026-10-10 dev371: 30地点/光影ソース境界ゲート
+
+`py -3 tools/environment-qa/run_source_guard.py --output tools/environment-qa/2026-10-10/dev371-background-source-guard/validation.json`。30地点の一意ID、C-1遠/中/近3層、隔離Unityで再描画した森12条件・時間4/天候9、屋内天候/継ぎ目/セーブ不変結果を再照合する読み取り専用ゲート。URP Play Mode、実機GPU負荷、配布ビルド、最終美術は承認しない。`run.ps1`はこのPCのHubパスを優先し、旧D:パスへフォールバックする。
+
 2026-09-14。`C-1` の新画風を3層に分け、Unityへ接続した確認資料。
 
 ## 見る

@@ -1,0 +1,214 @@
+{
+  "date": "2026-11-04",
+  "generator": "built-in image_gen",
+  "source": "source.png",
+  "prompt": "prompt.txt",
+  "sha256": "ffb8a89273340f051e6e1b9bde908d33d5675fe3fdb0c5c12993089b0550046d",
+  "size": [
+    1536,
+    1024
+  ],
+  "alphaRange": [
+    0,
+    254
+  ],
+  "cells": [
+    {
+      "cell": 0,
+      "rect": [
+        0,
+        0,
+        384,
+        512
+      ],
+      "alpha32Bounds": [
+        95,
+        155,
+        322,
+        431
+      ]
+    },
+    {
+      "cell": 1,
+      "rect": [
+        384,
+        0,
+        768,
+        512
+      ],
+      "alpha32Bounds": [
+        83,
+        155,
+        320,
+        430
+      ]
+    },
+    {
+      "cell": 2,
+      "rect": [
+        768,
+        0,
+        1152,
+        512
+      ],
+      "alpha32Bounds": [
+        42,
+        132,
+        337,
+        430
+      ]
+    },
+    {
+      "cell": 3,
+      "rect": [
+        1152,
+        0,
+        1536,
+        512
+      ],
+      "alpha32Bounds": [
+        36,
+        84,
+        346,
+        430
+      ]
+    },
+    {
+      "cell": 4,
+      "rect": [
+        0,
+        512,
+        384,
+        1024
+      ],
+      "alpha32Bounds": [
+        17,
+        139,
+        371,
+        426
+      ]
+    },
+    {
+      "cell": 5,
+      "rect": [
+        384,
+        512,
+        768,
+        1024
+      ],
+      "alpha32Bounds": [
+        92,
+        144,
+        337,
+        427
+      ]
+    },
+    {
+      "cell": 6,
+      "rect": [
+        768,
+        512,
+        1152,
+        1024
+      ],
+      "alpha32Bounds": [
+        77,
+        90,
+        329,
+        427
+      ]
+    },
+    {
+      "cell": 7,
+      "rect": [
+        1152,
+        512,
+        1536,
+        1024
+      ],
+      "alpha32Bounds": [
+        34,
+        194,
+        358,
+        424
+      ]
+    }
+  ],
+  "status": "integrated-pending-qa",
+  "finalArtApproved": false,
+  "unityResource": "Art/HeroPrototype/enemy-vine-v1",
+  "rectangles": [
+    {
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 81,
+      "offsetX": 0.0,
+      "offsetY": 0
+    },
+    {
+      "x": 384,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 82,
+      "offsetX": 0.0,
+      "offsetY": 0
+    },
+    {
+      "x": 768,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 82,
+      "offsetX": 0.0,
+      "offsetY": 0
+    },
+    {
+      "x": 1152,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 82,
+      "offsetX": 0.0,
+      "offsetY": 0
+    },
+    {
+      "x": 0,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 86,
+      "offsetX": -220.0,
+      "offsetY": 0
+    },
+    {
+      "x": 384,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 85,
+      "offsetX": 0.0,
+      "offsetY": 0
+    },
+    {
+      "x": 768,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 85,
+      "offsetX": 12.0,
+      "offsetY": 0
+    },
+    {
+      "x": 1152,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 88,
+      "offsetX": 0.0,
+      "offsetY": 0
+    }
+  ]
+}

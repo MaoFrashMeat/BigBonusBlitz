@@ -11,6 +11,9 @@ namespace BBB.Runtime
     {
         public string texture;
         public float speed=.02f, phase, height=1, bottom;
+        // Source UV window in an unchanged atlas, measured from the top.
+        public float top, rowHeight=1;
+        public bool nativeAlpha;
     }
 
     [Serializable] public sealed class AdventureEnvironmentProfile

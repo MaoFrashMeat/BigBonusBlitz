@@ -1,0 +1,172 @@
+{
+  "version": "p2-weapon-visuals-v1",
+  "status": "design-catalogue",
+  "integrationRule": "Seven runtime weapon families; hammer uses authored two-hand poses, bow has separate animated string and arrow, staff casts from a fixed position. Final art approval remains separate.",
+  "entries": [
+    {
+      "id": "w_blade",
+      "name": "刃",
+      "artStatus": "existing",
+      "dedicatedArtApproved": true,
+      "atlas": "weapons-v1",
+      "x": 276,
+      "y": 34,
+      "w": 300,
+      "h": 944,
+      "gripX": 149,
+      "gripY": 805,
+      "height": 190,
+      "palette": [
+        "silver",
+        "gold",
+        "navy"
+      ],
+      "motionFamily": "sword"
+    },
+    {
+      "id": "w_spear",
+      "name": "槍",
+      "artStatus": "existing",
+      "dedicatedArtApproved": true,
+      "atlas": "weapons-v1",
+      "x": 1086,
+      "y": 20,
+      "w": 86,
+      "h": 975,
+      "gripX": 43,
+      "gripY": 630,
+      "height": 310,
+      "palette": [
+        "silver",
+        "gold",
+        "navy"
+      ],
+      "motionFamily": "spear"
+    },
+    {
+      "id": "w_hammer",
+      "name": "大槌",
+      "artStatus": "runtime-integrated-pending-qa",
+      "dedicatedArtApproved": false,
+      "atlas": "weapons-five-v1",
+      "x": 60,
+      "y": 65,
+      "w": 286,
+      "h": 880,
+      "gripX": 143,
+      "gripY": 575,
+      "height": 230,
+      "palette": [
+        "iron",
+        "leather",
+        "ember"
+      ],
+      "motionFamily": "heavy",
+      "foregroundGrip": true,
+      "alignToSupport": true,
+      "ranged": false
+    },
+    {
+      "id": "w_dagger",
+      "name": "短剣",
+      "artStatus": "integrated",
+      "dedicatedArtApproved": false,
+      "atlas": "weapons-five-v1",
+      "x": 425,
+      "y": 300,
+      "w": 124,
+      "h": 455,
+      "gripX": 62,
+      "gripY": 345,
+      "height": 110,
+      "palette": [
+        "silver",
+        "leather",
+        "blue"
+      ],
+      "motionFamily": "fast",
+      "foregroundGrip": true
+    },
+    {
+      "id": "w_bow",
+      "name": "弓",
+      "artStatus": "runtime-integrated-pending-qa",
+      "dedicatedArtApproved": false,
+      "atlas": "bow-components-v1",
+      "x": 380,
+      "y": 16,
+      "w": 250,
+      "h": 992,
+      "gripX": 169,
+      "gripY": 490,
+      "height": 230,
+      "palette": [
+        "wood",
+        "leather",
+        "gold"
+      ],
+      "motionFamily": "ranged",
+      "foregroundGrip": true,
+      "alignToSupport": false,
+      "ranged": true,
+      "bowString": true,
+      "stringTopX": 32,
+      "stringTopY": 60,
+      "stringBottomX": 32,
+      "stringBottomY": 930,
+      "projectileAtlas": "bow-components-v1",
+      "projectileX": 800,
+      "projectileY": 460,
+      "projectileW": 670,
+      "projectileH": 100,
+      "projectileWidth": 115,
+      "flightSeconds": 0.28
+    },
+    {
+      "id": "w_staff",
+      "name": "杖",
+      "artStatus": "runtime-integrated-pending-qa",
+      "dedicatedArtApproved": false,
+      "atlas": "weapons-five-v1",
+      "x": 992,
+      "y": 16,
+      "w": 180,
+      "h": 984,
+      "gripX": 83,
+      "gripY": 634,
+      "height": 260,
+      "palette": [
+        "wood",
+        "crystal",
+        "violet"
+      ],
+      "motionFamily": "spell",
+      "foregroundGrip": true,
+      "alignToSupport": false,
+      "ranged": true,
+      "projectileWidth": 32,
+      "flightSeconds": 0.34
+    },
+    {
+      "id": "w_holy",
+      "name": "聖剣",
+      "artStatus": "integrated",
+      "dedicatedArtApproved": false,
+      "atlas": "weapons-five-v1",
+      "x": 1255,
+      "y": 75,
+      "w": 248,
+      "h": 860,
+      "gripX": 124,
+      "gripY": 685,
+      "height": 205,
+      "palette": [
+        "silver",
+        "gold",
+        "azure"
+      ],
+      "motionFamily": "sword",
+      "foregroundGrip": true
+    }
+  ]
+}

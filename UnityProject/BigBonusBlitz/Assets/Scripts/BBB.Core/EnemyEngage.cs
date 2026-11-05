@@ -12,16 +12,27 @@ namespace BBB.Core
         /// evaluateWin の ENEMY 当選時テーブル選択。
         /// boss=true ならボーナス中の中ボスから選ぶ（居なければ通常の敵にフォールバック）。
         /// </summary>
-        public static EnemyTable SelectTable(IList<EnemyTable> tables, string variant, IRandom rng, bool boss = false)
+        public static EnemyTable SelectTable(IList<EnemyTable> tables, string variant, IRandom rng, bool boss = false, string stageId = null)
         {
             if (tables == null || tables.Count == 0) return null;
-            var pool = Filter(tables, t => t.IsBoss == boss);
-            if (pool.Count == 0) pool = new List<EnemyTable>(tables);
+            var eligible = Filter(tables, t => t != null && t.selectionWeight > 0 &&
+                (t.stageIds == null || t.stageIds.Length == 0 ||
+                 (!string.IsNullOrEmpty(stageId) && Array.IndexOf(t.stageIds, stageId) >= 0)));
+            if (eligible.Count == 0) return null;
+            var pool = Filter(eligible, t => t.IsBoss == boss);
+            if (pool.Count == 0) pool = eligible;
             var v = variant ?? "ANY";
             var match = Filter(pool, t => t.variant == v);
             if (match.Count == 0) match = Filter(pool, t => string.IsNullOrEmpty(t.variant) || t.variant == "ANY");
             if (match.Count == 0) match = pool;
-            return match[rng.Next(match.Count)];
+            var local = Filter(match, t => t.stageIds != null && t.stageIds.Length > 0);
+            if (local.Count > 0) match = local;
+            long total = 0;
+            foreach (var table in match) total += table.selectionWeight;
+            // Legacy unit weights retain the original RNG call and seed behaviour.
+            long roll = total <= int.MaxValue ? rng.Next((int)total) : (long)(rng.NextDouble() * total);
+            foreach (var table in match) { roll -= table.selectionWeight; if (roll < 0) return table; }
+            return match[match.Count - 1];
         }
 
         private static List<EnemyTable> Filter(IList<EnemyTable> src, Func<EnemyTable, bool> pred)

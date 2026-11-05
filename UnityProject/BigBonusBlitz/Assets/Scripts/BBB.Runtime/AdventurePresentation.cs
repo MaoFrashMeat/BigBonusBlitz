@@ -16,6 +16,7 @@ namespace BBB.Runtime
         public float typingSoundGap = .085f, typingSoundGain = .12f, tooltipDelay = .2f;
         /// <summary>セリフ枠の大きさ（1 = 元の大きさ）。枠・顔・文字をまとめて縮める。下端の位置はそのまま（本人 2026-09-24「一回り小さく、30% 減」）。</summary>
         public float dialogueScale = 0.7f;
+        public bool rewardWaitForCombat = true;
         public DialoguePortraitEntry[] portraits = Array.Empty<DialoguePortraitEntry>();
     }
     /// <summary>Presentation-only data. Never consumes the game's random generator or modifies rewards.</summary>

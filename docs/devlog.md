@@ -1,10 +1,3 @@
-### 2026-11-03 戦闘の強弱パラメータを独立調整（dev 403）
-
-- `IMPLEMENTED`: `engage.attackFx` に小/中/大攻撃、反撃、JUDGE勝利/逃走の斬撃幅・揺れ時間/幅・文字サイズを追加。FX viewerに状態選択のプレビュー/調整を追加し、同期ツールから既定値を出す。
-- `DECISION`: 旧表示を維持する初期値を採用。Counterは既定の中攻撃 (0.37秒/7.8) と一致させる。表示設定だけを使い、抽選/役/攻撃サイズ/ダメージ/HP/報酬/save/音を変更しない。
-- `VERIFIED`: `py -3 tools/verify/run.py --tests` で Core/Runtime/Tests compile、100万G (112.2%、不変条件違反なし)、Unity EditMode 124/130 passed・failed 0・ignored 6。回帰テストは設定値と9組の戦闘結果/攻撃サイズ/ダメージ同一性を確認。JSON/Viewer JS/layout/diff-checkも確認。
-- `LIMIT`: Unity EditModeは隔離検証。実機/実入力/聴感/配布build/全体美術とFX viewerの全状態目視は未確認。敵20種/装備/背景/P4-P5は未完了。画像生成素材は未使用。詳細は[dev403レビュー](art/2026-11-03/COMBAT_INTENSITY_TUNABLES_REVIEW.md)。
-
 # BigBonusBlitz 制作ログ
 
 ### 2026-11-03 未登録敵アートの暗黙フォールバックを止める（dev 404）
@@ -1208,3 +1201,26 @@ attempt12の描画を拡大すると、半透明HPカード越しにスクロー
 - 失敗: attempt05は `lead=.35秒の時点はpose18` という古いfixture期待値。attempt06はcontact追跡時間が旧capture位置に依存。どちらもQA側の想定が新handoffと合わないため、製品不具合と分けて修正。attempt07 Passed。
 - 検証: attempt07で接近170/攻撃135、7状態×2解像度、実BET EditMode1件、17 sample、source manifest一致。CSVでwalk→wind-up→strike、contact時刻/一回性、接近位置不変を確認。Core/Runtime/Tests compile、100万G harness Passed。画像上の支持足/中割り/最終美術承認は未取得。
 - 範囲: GameController/抽選/HP/報酬/save/SE発火元不変。実機/実入力/聴感/配布build未確認。[レビュー](art/2026-10-20/HERO_WALK_ATTACK_HANDOFF_VISUAL_REVIEW.md)
+
+
+### 2026-11-03 内蔵画像生成を再開、コウモリ8姿勢を本編接続（dev 405）
+
+コウモリ6動作を既存遭遇へ接続し、隔離Unityの96連番・本編回帰1件/0失敗・2解像度を確認。灯蛾と5武器は生成候補まで。全20敵/7武器/背景/P2〜P5は未完了、最終美術未承認。[制作・検証記録](art/2026-11-03/BAT_RUNTIME_AND_ASSET_PRODUCTION_REVIEW.md)。
+
+### 2026-11-05 敵20種・7武器・新背景3地点を展開（検証継続）
+
+20敵の本編回帰22件/0失敗と206枚を確認。大槌・弓・杖の専用姿勢と飛び道具着弾待ちを実装し、7武器の単体描画238枚と取消/装備変更検査は成功。目視で大槌の握り前後とワイバーンの上端切れを修正し、本編再検証中。草原・結晶洞・竜の巣の3層素材を生成・接続。背景実描画、残り26地点、最終美術、実機、全計画完了とpushは未完了。[正本](art/2026-11-05/ROSTER_WEAPONS_ENVIRONMENT_REVIEW.md)。
+
+
+### 2026-11-06 統合回帰と背景展開を継続
+
+20敵と7武器の本編検査23件/0失敗、武器7系統の単体描画238枚を確認。隔離releaseの全EditModeは136件中135件成功・戦闘帯1件失敗。未取り込みだった既存MarqueeBand改修を関連テストと揃え、release-v2の該当1件は成功した。未知敵IDのnull返却と既存TryEnemySpritePath APIもpush先から保持。コンパイル3種/100万G/配置検査成功。
+
+新画風の背景は既存C-1に加え、A-1/B-1/B-2/C-2/E-2/H-1の実アルファ3層を接続。H-1の端の垂直切れを原画v3で修正。追加分の時間・天候・周期・本編2解像度をnative-v3で検証中。残り23地点、敵の遠隔攻撃、支持足などは継続。機械検査の成功と最終美術・実機・配布ビルドの承認は別。共有index/本番セーブは保護。コミット/pushは隔離checkoutで準備中。
+
+詳細: [制作・失敗・検証の正本](art/2026-11-05/ROSTER_WEAPONS_ENVIRONMENT_REVIEW.md)。
+
+
+### 2026-11-06 push前の検証確定
+
+戦闘帯回帰1件、未知ID/ロスター等27件は失敗0。背景native-v4は84条件/126周期/30地点読込/2解像度、264枚を成功。空色の下端帯を配置で除去し、B-1/B-2/C-2/H-1を目視確認。隔離releaseでcompile3種/100万Gも成功。新画風7/30地点、C-3候補のみ制作。残り23地点等は継続。詳細は[統合レビュー](art/2026-11-06/RELEASE_INTEGRATION_REVIEW.md)。

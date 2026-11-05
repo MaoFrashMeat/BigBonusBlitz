@@ -112,13 +112,13 @@ namespace BBB.Runtime
                 im.rectTransform.offsetMin=im.rectTransform.offsetMax=Vector2.zero;
                 float padding=tex!=null?4f/tex.height:0;
                 im.uvRect=new Rect(offset*speeds[i],1-cuts[i+1]+padding,1,Mathf.Max(.01f,cuts[i+1]-cuts[i]-2*padding));
-                if(layer!=null)im.uvRect=new Rect(layer.phase,0,1,1);
+                if(layer!=null)im.uvRect=new Rect(layer.phase,1-layer.top-layer.rowHeight,1,layer.rowHeight);
                 if(layerMaterials[activeBank][i]!=null)
                 {
                     // MaskableGraphic caches stencil material copies. Use a new base when atlas rows change.
                     var old=layerMaterials[activeBank][i];var material=new Material(old.shader);
                     material.SetVector("_Row",new Vector4(im.uvRect.y,im.uvRect.height,.07f,i==2?0:.035f));
-                    material.SetFloat("_Module",layer!=null?1:0);
+                    material.SetFloat("_Module",layer!=null?(layer.nativeAlpha?2:1):0);
                     if(layer==null&&seam!=null)
                     {
                         material.SetTexture("_SeamTex",seam);material.SetFloat("_UseSeam",1);
@@ -192,7 +192,7 @@ namespace BBB.Runtime
                     {
                         var layer=p.layers[i];uv.x=Mathf.Repeat(offset*layer.speed+layer.phase,1);
                         var rect=im.rectTransform.rect;
-                        uv.width=im.texture!=null&&rect.height>0?Mathf.Max(.25f,rect.width/rect.height/(im.texture.width/(float)im.texture.height)):1;
+                        uv.width=im.texture!=null&&rect.height>0?Mathf.Max(.25f,rect.width/rect.height/(im.texture.width/(im.texture.height*layer.rowHeight))):1;
                     }
                     else uv.x=Mathf.Repeat(offset*speeds[i],2);
                     im.uvRect=uv;

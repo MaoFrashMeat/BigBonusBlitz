@@ -1,4 +1,4 @@
-﻿{
+{
   "tables": [
     {
       "id": "table_slime_1",
@@ -120,7 +120,7 @@
     {
       "id": "boss_ogre",
       "name": "鬼将 ガロウ",
-      "enemyType": "goblin",
+      "enemyType": "boss_ogre",
       "group": "boss",
       "variant": "ANY",
       "scale": 1.45,
@@ -157,12 +157,13 @@
         "CHANCE_B": 500,
         "CHANCE_C": 500,
         "CHANCE_D": 500
-      }
+      },
+      "selectionWeight": 1
     },
     {
       "id": "boss_wyvern",
       "name": "飛竜 ヴァルガ",
-      "enemyType": "bat",
+      "enemyType": "boss_wyvern",
       "group": "boss",
       "variant": "ANY",
       "scale": 1.6,
@@ -199,12 +200,13 @@
         "CHANCE_B": 500,
         "CHANCE_C": 500,
         "CHANCE_D": 500
-      }
+      },
+      "selectionWeight": 1
     },
     {
       "id": "boss_slimeking",
       "name": "粘王 ゼラ",
-      "enemyType": "slime",
+      "enemyType": "boss_slimeking",
       "group": "boss",
       "variant": "ANY",
       "scale": 1.5,
@@ -241,7 +243,628 @@
         "CHANCE_B": 500,
         "CHANCE_C": 500,
         "CHANCE_D": 500
-      }
+      },
+      "selectionWeight": 1
+    },
+    {
+      "id": "table_boar_1",
+      "name": "岩牙の猪",
+      "enemyType": "boar",
+      "defeatProbabilities": {
+        "BELL": 15,
+        "CHERRY": 10,
+        "WATERMELON": 25,
+        "CHANCE": 100,
+        "REPLAY": 5
+      },
+      "tier2Probabilities": {
+        "HAZE": 18536,
+        "BB_A": 0,
+        "BB_B": 0,
+        "BB_C": 0,
+        "BB_D": 0,
+        "RB_A": 0,
+        "RB_B": 0,
+        "REPLAY_A": 2000,
+        "REPLAY_B": 2000,
+        "REPLAY_C": 1000,
+        "BELL_A": 20000,
+        "BELL_B": 5000,
+        "BELL_C": 5000,
+        "CHERRY_A": 2000,
+        "CHERRY_B": 2000,
+        "CHERRY_C": 1000,
+        "SUICA_A": 2000,
+        "SUICA_B": 2000,
+        "SUICA_C": 1000,
+        "CHANCE_A": 500,
+        "CHANCE_B": 500,
+        "CHANCE_C": 500,
+        "CHANCE_D": 500
+      },
+      "variant": "B",
+      "group": "normal",
+      "selectionWeight": 1,
+      "stageIds": [
+        "B-1",
+        "C-4"
+      ]
+    },
+    {
+      "id": "table_vine_1",
+      "name": "眠り蔓",
+      "enemyType": "vine",
+      "defeatProbabilities": {
+        "BELL": 25,
+        "CHERRY": 20,
+        "WATERMELON": 40,
+        "CHANCE": 100,
+        "REPLAY": 10
+      },
+      "tier2Probabilities": {
+        "HAZE": 18536,
+        "BB_A": 0,
+        "BB_B": 0,
+        "BB_C": 0,
+        "BB_D": 0,
+        "RB_A": 0,
+        "RB_B": 0,
+        "REPLAY_A": 2000,
+        "REPLAY_B": 2000,
+        "REPLAY_C": 1000,
+        "BELL_A": 20000,
+        "BELL_B": 5000,
+        "BELL_C": 5000,
+        "CHERRY_A": 2000,
+        "CHERRY_B": 2000,
+        "CHERRY_C": 1000,
+        "SUICA_A": 2000,
+        "SUICA_B": 2000,
+        "SUICA_C": 1000,
+        "CHANCE_A": 500,
+        "CHANCE_B": 500,
+        "CHANCE_C": 500,
+        "CHANCE_D": 500
+      },
+      "variant": "A",
+      "group": "normal",
+      "selectionWeight": 1,
+      "stageIds": [
+        "C-4",
+        "E-8"
+      ]
+    },
+    {
+      "id": "table_beetle_1",
+      "name": "鉄殻甲虫",
+      "enemyType": "beetle",
+      "defeatProbabilities": {
+        "BELL": 15,
+        "CHERRY": 10,
+        "WATERMELON": 25,
+        "CHANCE": 100,
+        "REPLAY": 5
+      },
+      "tier2Probabilities": {
+        "HAZE": 18536,
+        "BB_A": 0,
+        "BB_B": 0,
+        "BB_C": 0,
+        "BB_D": 0,
+        "RB_A": 0,
+        "RB_B": 0,
+        "REPLAY_A": 2000,
+        "REPLAY_B": 2000,
+        "REPLAY_C": 1000,
+        "BELL_A": 20000,
+        "BELL_B": 5000,
+        "BELL_C": 5000,
+        "CHERRY_A": 2000,
+        "CHERRY_B": 2000,
+        "CHERRY_C": 1000,
+        "SUICA_A": 2000,
+        "SUICA_B": 2000,
+        "SUICA_C": 1000,
+        "CHANCE_A": 500,
+        "CHANCE_B": 500,
+        "CHANCE_C": 500,
+        "CHANCE_D": 500
+      },
+      "variant": "B",
+      "group": "normal",
+      "selectionWeight": 1,
+      "stageIds": [
+        "D-2",
+        "E-7"
+      ]
+    },
+    {
+      "id": "table_wisp_1",
+      "name": "迷い灯",
+      "enemyType": "wisp",
+      "defeatProbabilities": {
+        "BELL": 40,
+        "CHERRY": 30,
+        "WATERMELON": 50,
+        "CHANCE": 100,
+        "REPLAY": 15
+      },
+      "tier2Probabilities": {
+        "HAZE": 18536,
+        "BB_A": 0,
+        "BB_B": 0,
+        "BB_C": 0,
+        "BB_D": 0,
+        "RB_A": 0,
+        "RB_B": 0,
+        "REPLAY_A": 2000,
+        "REPLAY_B": 2000,
+        "REPLAY_C": 1000,
+        "BELL_A": 20000,
+        "BELL_B": 5000,
+        "BELL_C": 5000,
+        "CHERRY_A": 2000,
+        "CHERRY_B": 2000,
+        "CHERRY_C": 1000,
+        "SUICA_A": 2000,
+        "SUICA_B": 2000,
+        "SUICA_C": 1000,
+        "CHANCE_A": 500,
+        "CHANCE_B": 500,
+        "CHANCE_C": 500,
+        "CHANCE_D": 500
+      },
+      "variant": "C",
+      "group": "normal",
+      "selectionWeight": 1,
+      "stageIds": [
+        "D-3",
+        "E-3"
+      ]
+    },
+    {
+      "id": "table_miner_1",
+      "name": "亡霊坑夫",
+      "enemyType": "miner",
+      "defeatProbabilities": {
+        "BELL": 15,
+        "CHERRY": 10,
+        "WATERMELON": 25,
+        "CHANCE": 100,
+        "REPLAY": 5
+      },
+      "tier2Probabilities": {
+        "HAZE": 18536,
+        "BB_A": 0,
+        "BB_B": 0,
+        "BB_C": 0,
+        "BB_D": 0,
+        "RB_A": 0,
+        "RB_B": 0,
+        "REPLAY_A": 2000,
+        "REPLAY_B": 2000,
+        "REPLAY_C": 1000,
+        "BELL_A": 20000,
+        "BELL_B": 5000,
+        "BELL_C": 5000,
+        "CHERRY_A": 2000,
+        "CHERRY_B": 2000,
+        "CHERRY_C": 1000,
+        "SUICA_A": 2000,
+        "SUICA_B": 2000,
+        "SUICA_C": 1000,
+        "CHANCE_A": 500,
+        "CHANCE_B": 500,
+        "CHANCE_C": 500,
+        "CHANCE_D": 500
+      },
+      "variant": "B",
+      "group": "normal",
+      "selectionWeight": 1,
+      "stageIds": [
+        "D-1",
+        "E-1"
+      ]
+    },
+    {
+      "id": "table_crystal_1",
+      "name": "結晶歩兵",
+      "enemyType": "crystal",
+      "defeatProbabilities": {
+        "BELL": 25,
+        "CHERRY": 20,
+        "WATERMELON": 40,
+        "CHANCE": 100,
+        "REPLAY": 10
+      },
+      "tier2Probabilities": {
+        "HAZE": 18536,
+        "BB_A": 0,
+        "BB_B": 0,
+        "BB_C": 0,
+        "BB_D": 0,
+        "RB_A": 0,
+        "RB_B": 0,
+        "REPLAY_A": 2000,
+        "REPLAY_B": 2000,
+        "REPLAY_C": 1000,
+        "BELL_A": 20000,
+        "BELL_B": 5000,
+        "BELL_C": 5000,
+        "CHERRY_A": 2000,
+        "CHERRY_B": 2000,
+        "CHERRY_C": 1000,
+        "SUICA_A": 2000,
+        "SUICA_B": 2000,
+        "SUICA_C": 1000,
+        "CHANCE_A": 500,
+        "CHANCE_B": 500,
+        "CHANCE_C": 500,
+        "CHANCE_D": 500
+      },
+      "variant": "A",
+      "group": "normal",
+      "selectionWeight": 1,
+      "stageIds": [
+        "E-2",
+        "E-4"
+      ]
+    },
+    {
+      "id": "table_book_1",
+      "name": "呪われた魔導書",
+      "enemyType": "book",
+      "defeatProbabilities": {
+        "BELL": 40,
+        "CHERRY": 30,
+        "WATERMELON": 50,
+        "CHANCE": 100,
+        "REPLAY": 15
+      },
+      "tier2Probabilities": {
+        "HAZE": 18536,
+        "BB_A": 0,
+        "BB_B": 0,
+        "BB_C": 0,
+        "BB_D": 0,
+        "RB_A": 0,
+        "RB_B": 0,
+        "REPLAY_A": 2000,
+        "REPLAY_B": 2000,
+        "REPLAY_C": 1000,
+        "BELL_A": 20000,
+        "BELL_B": 5000,
+        "BELL_C": 5000,
+        "CHERRY_A": 2000,
+        "CHERRY_B": 2000,
+        "CHERRY_C": 1000,
+        "SUICA_A": 2000,
+        "SUICA_B": 2000,
+        "SUICA_C": 1000,
+        "CHANCE_A": 500,
+        "CHANCE_B": 500,
+        "CHANCE_C": 500,
+        "CHANCE_D": 500
+      },
+      "variant": "C",
+      "group": "normal",
+      "selectionWeight": 1,
+      "stageIds": [
+        "E-3",
+        "F-2"
+      ]
+    },
+    {
+      "id": "table_gargoyle_1",
+      "name": "鐘楼の石翼",
+      "enemyType": "gargoyle",
+      "defeatProbabilities": {
+        "BELL": 15,
+        "CHERRY": 10,
+        "WATERMELON": 25,
+        "CHANCE": 100,
+        "REPLAY": 5
+      },
+      "tier2Probabilities": {
+        "HAZE": 18536,
+        "BB_A": 0,
+        "BB_B": 0,
+        "BB_C": 0,
+        "BB_D": 0,
+        "RB_A": 0,
+        "RB_B": 0,
+        "REPLAY_A": 2000,
+        "REPLAY_B": 2000,
+        "REPLAY_C": 1000,
+        "BELL_A": 20000,
+        "BELL_B": 5000,
+        "BELL_C": 5000,
+        "CHERRY_A": 2000,
+        "CHERRY_B": 2000,
+        "CHERRY_C": 1000,
+        "SUICA_A": 2000,
+        "SUICA_B": 2000,
+        "SUICA_C": 1000,
+        "CHANCE_A": 500,
+        "CHANCE_B": 500,
+        "CHANCE_C": 500,
+        "CHANCE_D": 500
+      },
+      "variant": "B",
+      "group": "normal",
+      "selectionWeight": 1,
+      "stageIds": [
+        "E-5",
+        "F-1"
+      ]
+    },
+    {
+      "id": "table_sentinel_1",
+      "name": "遺跡の番兵",
+      "enemyType": "sentinel",
+      "defeatProbabilities": {
+        "BELL": 25,
+        "CHERRY": 20,
+        "WATERMELON": 40,
+        "CHANCE": 100,
+        "REPLAY": 10
+      },
+      "tier2Probabilities": {
+        "HAZE": 18536,
+        "BB_A": 0,
+        "BB_B": 0,
+        "BB_C": 0,
+        "BB_D": 0,
+        "RB_A": 0,
+        "RB_B": 0,
+        "REPLAY_A": 2000,
+        "REPLAY_B": 2000,
+        "REPLAY_C": 1000,
+        "BELL_A": 20000,
+        "BELL_B": 5000,
+        "BELL_C": 5000,
+        "CHERRY_A": 2000,
+        "CHERRY_B": 2000,
+        "CHERRY_C": 1000,
+        "SUICA_A": 2000,
+        "SUICA_B": 2000,
+        "SUICA_C": 1000,
+        "CHANCE_A": 500,
+        "CHANCE_B": 500,
+        "CHANCE_C": 500,
+        "CHANCE_D": 500
+      },
+      "variant": "A",
+      "group": "normal",
+      "selectionWeight": 1,
+      "stageIds": [
+        "F-1",
+        "F-3"
+      ]
+    },
+    {
+      "id": "table_salamander_1",
+      "name": "熾火トカゲ",
+      "enemyType": "salamander",
+      "defeatProbabilities": {
+        "BELL": 25,
+        "CHERRY": 20,
+        "WATERMELON": 40,
+        "CHANCE": 100,
+        "REPLAY": 10
+      },
+      "tier2Probabilities": {
+        "HAZE": 18536,
+        "BB_A": 0,
+        "BB_B": 0,
+        "BB_C": 0,
+        "BB_D": 0,
+        "RB_A": 0,
+        "RB_B": 0,
+        "REPLAY_A": 2000,
+        "REPLAY_B": 2000,
+        "REPLAY_C": 1000,
+        "BELL_A": 20000,
+        "BELL_B": 5000,
+        "BELL_C": 5000,
+        "CHERRY_A": 2000,
+        "CHERRY_B": 2000,
+        "CHERRY_C": 1000,
+        "SUICA_A": 2000,
+        "SUICA_B": 2000,
+        "SUICA_C": 1000,
+        "CHANCE_A": 500,
+        "CHANCE_B": 500,
+        "CHANCE_C": 500,
+        "CHANCE_D": 500
+      },
+      "variant": "A",
+      "group": "normal",
+      "selectionWeight": 1,
+      "stageIds": [
+        "E-6",
+        "G-2"
+      ]
+    },
+    {
+      "id": "table_bone_1",
+      "name": "骨尾の飛竜",
+      "enemyType": "bone",
+      "defeatProbabilities": {
+        "BELL": 40,
+        "CHERRY": 30,
+        "WATERMELON": 50,
+        "CHANCE": 100,
+        "REPLAY": 15
+      },
+      "tier2Probabilities": {
+        "HAZE": 18536,
+        "BB_A": 0,
+        "BB_B": 0,
+        "BB_C": 0,
+        "BB_D": 0,
+        "RB_A": 0,
+        "RB_B": 0,
+        "REPLAY_A": 2000,
+        "REPLAY_B": 2000,
+        "REPLAY_C": 1000,
+        "BELL_A": 20000,
+        "BELL_B": 5000,
+        "BELL_C": 5000,
+        "CHERRY_A": 2000,
+        "CHERRY_B": 2000,
+        "CHERRY_C": 1000,
+        "SUICA_A": 2000,
+        "SUICA_B": 2000,
+        "SUICA_C": 1000,
+        "CHANCE_A": 500,
+        "CHANCE_B": 500,
+        "CHANCE_C": 500,
+        "CHANCE_D": 500
+      },
+      "variant": "C",
+      "group": "normal",
+      "selectionWeight": 1,
+      "stageIds": [
+        "G-1",
+        "G-3"
+      ]
+    },
+    {
+      "id": "boss_mirrorwarden",
+      "name": "鏡晶の守護者",
+      "enemyType": "boss_mirrorwarden",
+      "group": "boss",
+      "variant": "ANY",
+      "scale": 1.25,
+      "color": "#a98bff",
+      "expOnDefeat": 300,
+      "defeatProbabilities": {
+        "BELL": 8,
+        "CHERRY": 18,
+        "WATERMELON": 28,
+        "CHANCE": 100,
+        "REPLAY": 2
+      },
+      "tier2Probabilities": {
+        "HAZE": 18536,
+        "BB_A": 0,
+        "BB_B": 0,
+        "BB_C": 0,
+        "BB_D": 0,
+        "RB_A": 0,
+        "RB_B": 0,
+        "REPLAY_A": 2000,
+        "REPLAY_B": 2000,
+        "REPLAY_C": 1000,
+        "BELL_A": 20000,
+        "BELL_B": 5000,
+        "BELL_C": 5000,
+        "CHERRY_A": 2000,
+        "CHERRY_B": 2000,
+        "CHERRY_C": 1000,
+        "SUICA_A": 2000,
+        "SUICA_B": 2000,
+        "SUICA_C": 1000,
+        "CHANCE_A": 500,
+        "CHANCE_B": 500,
+        "CHANCE_C": 500,
+        "CHANCE_D": 500
+      },
+      "selectionWeight": 1,
+      "stageIds": [
+        "E-4",
+        "F-2",
+        "F-3"
+      ]
+    },
+    {
+      "id": "table_wolf_1",
+      "name": "霧追いの森狼",
+      "enemyType": "forest_wolf",
+      "defeatProbabilities": {
+        "BELL": 15,
+        "CHERRY": 10,
+        "WATERMELON": 25,
+        "CHANCE": 100,
+        "REPLAY": 5
+      },
+      "tier2Probabilities": {
+        "HAZE": 18536,
+        "BB_A": 0,
+        "BB_B": 0,
+        "BB_C": 0,
+        "BB_D": 0,
+        "RB_A": 0,
+        "RB_B": 0,
+        "REPLAY_A": 2000,
+        "REPLAY_B": 2000,
+        "REPLAY_C": 1000,
+        "BELL_A": 20000,
+        "BELL_B": 5000,
+        "BELL_C": 5000,
+        "CHERRY_A": 2000,
+        "CHERRY_B": 2000,
+        "CHERRY_C": 1000,
+        "SUICA_A": 2000,
+        "SUICA_B": 2000,
+        "SUICA_C": 1000,
+        "CHANCE_A": 500,
+        "CHANCE_B": 500,
+        "CHANCE_C": 500,
+        "CHANCE_D": 500
+      },
+      "variant": "B",
+      "group": "normal",
+      "stageIds": [
+        "B-2",
+        "C-1"
+      ],
+      "selectionWeight": 1
+    },
+    {
+      "id": "table_moth_1",
+      "name": "灯蛾",
+      "enemyType": "lantern_moth",
+      "defeatProbabilities": {
+        "BELL": 40,
+        "CHERRY": 30,
+        "WATERMELON": 50,
+        "CHANCE": 100,
+        "REPLAY": 15
+      },
+      "tier2Probabilities": {
+        "HAZE": 18536,
+        "BB_A": 0,
+        "BB_B": 0,
+        "BB_C": 0,
+        "BB_D": 0,
+        "RB_A": 0,
+        "RB_B": 0,
+        "REPLAY_A": 2000,
+        "REPLAY_B": 2000,
+        "REPLAY_C": 1000,
+        "BELL_A": 20000,
+        "BELL_B": 5000,
+        "BELL_C": 5000,
+        "CHERRY_A": 2000,
+        "CHERRY_B": 2000,
+        "CHERRY_C": 1000,
+        "SUICA_A": 2000,
+        "SUICA_B": 2000,
+        "SUICA_C": 1000,
+        "CHANCE_A": 500,
+        "CHANCE_B": 500,
+        "CHANCE_C": 500,
+        "CHANCE_D": 500
+      },
+      "variant": "C",
+      "group": "normal",
+      "stageIds": [
+        "C-1",
+        "D-3"
+      ],
+      "selectionWeight": 1
     }
   ]
 }

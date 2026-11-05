@@ -63,15 +63,18 @@ namespace BBB.Runtime
 
         public static Sprite EnemySprite(string enemyType)
         {
-            if (!TryEnemySpritePath(enemyType, out var path))
+            if (TryEnemySpritePath(enemyType, out var path)) return Sprite(path);
+            var look = System.Array.Find(EnemyPresentation.Config.enemies, e => e.id == enemyType);
+            if (look == null || look.poses == null || look.poses.Length == 0)
             {
                 Debug.LogWarning($"Enemy art is not registered for type '{enemyType ?? "<null>"}'.");
                 return null;
             }
-            return Sprite(path);
+            var pose = look.poses[0];
+            return HeroPresentation.Sprite(look.atlas, pose.x, pose.y, pose.w, pose.h);
         }
 
-        /// <summary>Resolves only authored enemy art. Unknown roster IDs never borrow the goblin sprite.</summary>
+        /// <summary>Resolves legacy standalone art; roster atlases are resolved by EnemySprite.</summary>
         public static bool TryEnemySpritePath(string enemyType, out string resourcePath)
         {
             switch (enemyType)

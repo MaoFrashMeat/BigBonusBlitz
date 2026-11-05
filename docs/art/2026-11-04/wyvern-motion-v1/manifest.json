@@ -1,0 +1,214 @@
+{
+  "date": "2026-11-04",
+  "generator": "built-in image_gen",
+  "source": "source.png",
+  "prompt": "prompt.txt",
+  "sha256": "a51ed1660eda30f050ff3ff8d168af3595d8305820450feb493e139143dfac8f",
+  "size": [
+    1536,
+    1024
+  ],
+  "alphaRange": [
+    0,
+    254
+  ],
+  "cells": [
+    {
+      "cell": 0,
+      "rect": [
+        0,
+        0,
+        384,
+        512
+      ],
+      "alpha32Bounds": [
+        49,
+        117,
+        344,
+        414
+      ]
+    },
+    {
+      "cell": 1,
+      "rect": [
+        384,
+        0,
+        768,
+        512
+      ],
+      "alpha32Bounds": [
+        45,
+        116,
+        343,
+        415
+      ]
+    },
+    {
+      "cell": 2,
+      "rect": [
+        768,
+        0,
+        1152,
+        512
+      ],
+      "alpha32Bounds": [
+        12,
+        122,
+        371,
+        415
+      ]
+    },
+    {
+      "cell": 3,
+      "rect": [
+        1152,
+        0,
+        1536,
+        512
+      ],
+      "alpha32Bounds": [
+        17,
+        47,
+        366,
+        417
+      ]
+    },
+    {
+      "cell": 4,
+      "rect": [
+        0,
+        512,
+        384,
+        1024
+      ],
+      "alpha32Bounds": [
+        15,
+        117,
+        384,
+        380
+      ]
+    },
+    {
+      "cell": 5,
+      "rect": [
+        384,
+        512,
+        768,
+        1024
+      ],
+      "alpha32Bounds": [
+        0,
+        138,
+        374,
+        391
+      ]
+    },
+    {
+      "cell": 6,
+      "rect": [
+        768,
+        512,
+        1152,
+        1024
+      ],
+      "alpha32Bounds": [
+        26,
+        131,
+        354,
+        391
+      ]
+    },
+    {
+      "cell": 7,
+      "rect": [
+        1152,
+        512,
+        1536,
+        1024
+      ],
+      "alpha32Bounds": [
+        20,
+        213,
+        370,
+        385
+      ]
+    }
+  ],
+  "status": "integrated-pending-qa",
+  "finalArtApproved": false,
+  "unityResource": "Art/HeroPrototype/enemy-wyvern-v1",
+  "rectangles": [
+    {
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 98,
+      "offsetX": 0.0,
+      "offsetY": 0
+    },
+    {
+      "x": 384,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 97,
+      "offsetX": 0.0,
+      "offsetY": 0
+    },
+    {
+      "x": 768,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 97,
+      "offsetX": 0.0,
+      "offsetY": 0
+    },
+    {
+      "x": 1152,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 95,
+      "offsetX": 0.0,
+      "offsetY": 20
+    },
+    {
+      "x": 0,
+      "y": 512,
+      "w": 396,
+      "h": 512,
+      "foot": 132,
+      "offsetX": -217.07070707070707,
+      "offsetY": 0
+    },
+    {
+      "x": 396,
+      "y": 512,
+      "w": 372,
+      "h": 512,
+      "foot": 121,
+      "offsetX": 2.9292929292929295,
+      "offsetY": 0
+    },
+    {
+      "x": 768,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 121,
+      "offsetX": 12.0,
+      "offsetY": 0
+    },
+    {
+      "x": 1152,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 127,
+      "offsetX": 0.0,
+      "offsetY": 0
+    }
+  ]
+}

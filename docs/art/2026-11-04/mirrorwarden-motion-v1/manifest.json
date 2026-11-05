@@ -1,0 +1,214 @@
+{
+  "date": "2026-11-04",
+  "generator": "built-in image_gen",
+  "source": "source.png",
+  "prompt": "prompt.txt",
+  "sha256": "dfebb62b63cc6addb949a757a69176f0910830889ff4f64160ec2abb62e7dd19",
+  "size": [
+    1536,
+    1024
+  ],
+  "alphaRange": [
+    0,
+    252
+  ],
+  "cells": [
+    {
+      "cell": 0,
+      "rect": [
+        0,
+        0,
+        384,
+        512
+      ],
+      "alpha32Bounds": [
+        33,
+        67,
+        359,
+        431
+      ]
+    },
+    {
+      "cell": 1,
+      "rect": [
+        384,
+        0,
+        768,
+        512
+      ],
+      "alpha32Bounds": [
+        34,
+        66,
+        365,
+        431
+      ]
+    },
+    {
+      "cell": 2,
+      "rect": [
+        768,
+        0,
+        1152,
+        512
+      ],
+      "alpha32Bounds": [
+        32,
+        66,
+        339,
+        423
+      ]
+    },
+    {
+      "cell": 3,
+      "rect": [
+        1152,
+        0,
+        1536,
+        512
+      ],
+      "alpha32Bounds": [
+        8,
+        71,
+        374,
+        420
+      ]
+    },
+    {
+      "cell": 4,
+      "rect": [
+        0,
+        512,
+        384,
+        1024
+      ],
+      "alpha32Bounds": [
+        13,
+        71,
+        373,
+        406
+      ]
+    },
+    {
+      "cell": 5,
+      "rect": [
+        384,
+        512,
+        768,
+        1024
+      ],
+      "alpha32Bounds": [
+        36,
+        64,
+        363,
+        430
+      ]
+    },
+    {
+      "cell": 6,
+      "rect": [
+        768,
+        512,
+        1152,
+        1024
+      ],
+      "alpha32Bounds": [
+        33,
+        77,
+        341,
+        429
+      ]
+    },
+    {
+      "cell": 7,
+      "rect": [
+        1152,
+        512,
+        1536,
+        1024
+      ],
+      "alpha32Bounds": [
+        23,
+        255,
+        362,
+        418
+      ]
+    }
+  ],
+  "status": "integrated-pending-qa",
+  "finalArtApproved": false,
+  "unityResource": "Art/HeroPrototype/enemy-mirrorwarden-v1",
+  "rectangles": [
+    {
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 100,
+      "offsetX": 0.0,
+      "offsetY": 35
+    },
+    {
+      "x": 384,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 100,
+      "offsetX": 0.0,
+      "offsetY": 35
+    },
+    {
+      "x": 768,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 100,
+      "offsetX": 0.0,
+      "offsetY": 35
+    },
+    {
+      "x": 1152,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 100,
+      "offsetX": 0.0,
+      "offsetY": 35
+    },
+    {
+      "x": 0,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 100,
+      "offsetX": -220.0,
+      "offsetY": 35
+    },
+    {
+      "x": 384,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 100,
+      "offsetX": 0.0,
+      "offsetY": 35
+    },
+    {
+      "x": 768,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 100,
+      "offsetX": 12.0,
+      "offsetY": 35
+    },
+    {
+      "x": 1152,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 94,
+      "offsetX": 0.0,
+      "offsetY": 0
+    }
+  ]
+}

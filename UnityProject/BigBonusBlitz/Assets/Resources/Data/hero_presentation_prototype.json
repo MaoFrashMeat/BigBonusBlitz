@@ -1,0 +1,2595 @@
+{
+  "status": "Seven weapon families integrated; isolated Unity verification and final art review pending",
+  "height": 220,
+  "walkSeconds": 0.88,
+  "approach": {
+    "enabled": true,
+    "maxDistance": 600,
+    "leadSeconds": 0.36,
+    "handoffSeconds": 0.08
+  },
+  "poses": [
+    {
+      "atlas": "body-v2",
+      "x": 0,
+      "y": 0,
+      "w": 418,
+      "h": 418,
+      "foot": 2,
+      "height": 356,
+      "gripX": 159,
+      "gripY": 205,
+      "swordAngle": 25,
+      "spearAngle": -55
+    },
+    {
+      "atlas": "body-v2",
+      "x": 418,
+      "y": 0,
+      "w": 418,
+      "h": 418,
+      "foot": 2,
+      "height": 353,
+      "gripX": 225,
+      "gripY": 217,
+      "swordAngle": 25,
+      "spearAngle": -55
+    },
+    {
+      "atlas": "body-v2",
+      "x": 836,
+      "y": 0,
+      "w": 418,
+      "h": 418,
+      "foot": 1,
+      "height": 356,
+      "gripX": 206,
+      "gripY": 235,
+      "swordAngle": 25,
+      "spearAngle": -55
+    },
+    {
+      "atlas": "body-v2",
+      "x": 0,
+      "y": 418,
+      "w": 418,
+      "h": 418,
+      "foot": 17,
+      "height": 358,
+      "gripX": 169,
+      "gripY": 89,
+      "swordAngle": 45,
+      "spearAngle": -55
+    },
+    {
+      "atlas": "body-v2",
+      "x": 418,
+      "y": 418,
+      "w": 418,
+      "h": 418,
+      "foot": 16,
+      "height": 356,
+      "gripX": 312,
+      "gripY": 152,
+      "swordAngle": -85,
+      "spearAngle": -88
+    },
+    {
+      "atlas": "body-v2",
+      "x": 836,
+      "y": 418,
+      "w": 418,
+      "h": 418,
+      "foot": 15,
+      "height": 355,
+      "gripX": 300,
+      "gripY": 229,
+      "swordAngle": -140,
+      "spearAngle": -88
+    },
+    {
+      "atlas": "body-v2",
+      "x": 0,
+      "y": 836,
+      "w": 418,
+      "h": 418,
+      "foot": 40,
+      "height": 346,
+      "gripX": 217,
+      "gripY": 164,
+      "swordAngle": -15,
+      "spearAngle": -55
+    },
+    {
+      "atlas": "body-v2",
+      "x": 418,
+      "y": 836,
+      "w": 418,
+      "h": 418,
+      "foot": 41,
+      "height": 351,
+      "gripX": 156,
+      "gripY": 169,
+      "swordAngle": 25,
+      "spearAngle": -55
+    },
+    {
+      "atlas": "body-v2",
+      "x": 836,
+      "y": 836,
+      "w": 418,
+      "h": 418,
+      "foot": 39,
+      "height": 357,
+      "gripX": 162,
+      "gripY": 34,
+      "swordAngle": -20,
+      "spearAngle": -55
+    },
+    {
+      "atlas": "walk-v2",
+      "x": 0,
+      "y": 0,
+      "w": 512,
+      "h": 512,
+      "foot": 3,
+      "height": 496,
+      "gripX": 216,
+      "gripY": 260,
+      "swordAngle": 25,
+      "spearAngle": -55
+    },
+    {
+      "atlas": "walk-v2",
+      "x": 512,
+      "y": 0,
+      "w": 512,
+      "h": 512,
+      "foot": 1,
+      "height": 498,
+      "gripX": 196,
+      "gripY": 267,
+      "swordAngle": 25,
+      "spearAngle": -55
+    },
+    {
+      "atlas": "walk-v2",
+      "x": 1024,
+      "y": 0,
+      "w": 512,
+      "h": 512,
+      "foot": 3,
+      "height": 496,
+      "gripX": 332,
+      "gripY": 225,
+      "swordAngle": 25,
+      "spearAngle": -55
+    },
+    {
+      "atlas": "walk-v2",
+      "x": 0,
+      "y": 512,
+      "w": 512,
+      "h": 512,
+      "foot": 16,
+      "height": 484,
+      "gripX": 351,
+      "gripY": 216,
+      "swordAngle": 25,
+      "spearAngle": -55
+    },
+    {
+      "atlas": "walk-v2",
+      "x": 512,
+      "y": 512,
+      "w": 512,
+      "h": 512,
+      "foot": 15,
+      "height": 487,
+      "gripX": 317,
+      "gripY": 218,
+      "swordAngle": 25,
+      "spearAngle": -55
+    },
+    {
+      "atlas": "walk-v2",
+      "x": 1024,
+      "y": 512,
+      "w": 512,
+      "h": 512,
+      "foot": 15,
+      "height": 487,
+      "gripX": 338,
+      "gripY": 217,
+      "swordAngle": 25,
+      "spearAngle": -55
+    },
+    {
+      "atlas": "walk-v3",
+      "x": 0,
+      "y": 0,
+      "w": 444,
+      "h": 444,
+      "foot": 18,
+      "height": 420,
+      "gripX": 300,
+      "gripY": 190,
+      "swordAngle": -15,
+      "spearAngle": -80
+    },
+    {
+      "atlas": "walk-v3",
+      "x": 444,
+      "y": 0,
+      "w": 443,
+      "h": 444,
+      "foot": 14,
+      "height": 420,
+      "gripX": 308,
+      "gripY": 190,
+      "swordAngle": -15,
+      "spearAngle": -80
+    },
+    {
+      "atlas": "walk-v3",
+      "x": 887,
+      "y": 0,
+      "w": 443,
+      "h": 444,
+      "foot": 14,
+      "height": 420,
+      "gripX": 307,
+      "gripY": 190,
+      "swordAngle": -15,
+      "spearAngle": -80
+    },
+    {
+      "atlas": "walk-v3",
+      "x": 1330,
+      "y": 0,
+      "w": 444,
+      "h": 444,
+      "foot": 17,
+      "height": 420,
+      "gripX": 306,
+      "gripY": 190,
+      "swordAngle": -15,
+      "spearAngle": -80
+    },
+    {
+      "atlas": "walk-v3",
+      "x": 0,
+      "y": 444,
+      "w": 444,
+      "h": 443,
+      "foot": 22,
+      "height": 420,
+      "gripX": 327,
+      "gripY": 188,
+      "swordAngle": -15,
+      "spearAngle": -80
+    },
+    {
+      "atlas": "walk-v3",
+      "x": 444,
+      "y": 444,
+      "w": 443,
+      "h": 443,
+      "foot": 22,
+      "height": 420,
+      "gripX": 307,
+      "gripY": 186,
+      "swordAngle": -15,
+      "spearAngle": -80
+    },
+    {
+      "atlas": "walk-v3",
+      "x": 887,
+      "y": 444,
+      "w": 443,
+      "h": 443,
+      "foot": 20,
+      "height": 420,
+      "gripX": 305,
+      "gripY": 188,
+      "swordAngle": -15,
+      "spearAngle": -80
+    },
+    {
+      "atlas": "walk-v3",
+      "x": 1330,
+      "y": 444,
+      "w": 444,
+      "h": 443,
+      "foot": 20,
+      "height": 420,
+      "gripX": 305,
+      "gripY": 188,
+      "swordAngle": -15,
+      "spearAngle": -80
+    },
+    {
+      "atlas": "sword-v2",
+      "x": 14,
+      "y": 12,
+      "w": 416,
+      "h": 430,
+      "foot": 1,
+      "height": 350,
+      "gripX": 217,
+      "gripY": 237,
+      "swordAngle": -55,
+      "spearAngle": -80,
+      "swordHand": {
+        "x": 199,
+        "y": 221,
+        "w": 36,
+        "h": 32
+      }
+    },
+    {
+      "atlas": "sword-v2",
+      "x": 458,
+      "y": 12,
+      "w": 415,
+      "h": 430,
+      "foot": 1,
+      "height": 350,
+      "gripX": 179,
+      "gripY": 183,
+      "swordAngle": 30,
+      "spearAngle": -80
+    },
+    {
+      "atlas": "sword-v2",
+      "x": 901,
+      "y": 12,
+      "w": 415,
+      "h": 430,
+      "foot": 4,
+      "height": 350,
+      "gripX": 218,
+      "gripY": 87,
+      "swordAngle": 55,
+      "spearAngle": -80
+    },
+    {
+      "atlas": "sword-v2",
+      "x": 1344,
+      "y": 12,
+      "w": 416,
+      "h": 430,
+      "foot": 3,
+      "height": 350,
+      "gripX": 263,
+      "gripY": 216,
+      "swordAngle": -45,
+      "spearAngle": -80
+    },
+    {
+      "atlas": "sword-v2",
+      "x": 14,
+      "y": 456,
+      "w": 416,
+      "h": 429,
+      "foot": 46,
+      "height": 350,
+      "gripX": 366,
+      "gripY": 173,
+      "swordAngle": -90,
+      "spearAngle": -80
+    },
+    {
+      "atlas": "sword-v2",
+      "x": 458,
+      "y": 456,
+      "w": 415,
+      "h": 429,
+      "foot": 45,
+      "height": 350,
+      "gripX": 328,
+      "gripY": 262,
+      "swordAngle": -145,
+      "spearAngle": -80
+    },
+    {
+      "atlas": "sword-v2",
+      "x": 901,
+      "y": 456,
+      "w": 415,
+      "h": 429,
+      "foot": 44,
+      "height": 350,
+      "gripX": 212,
+      "gripY": 214,
+      "swordAngle": -55,
+      "spearAngle": -80,
+      "swordHand": {
+        "x": 195,
+        "y": 198,
+        "w": 36,
+        "h": 32
+      }
+    },
+    {
+      "atlas": "sword-v2",
+      "x": 1344,
+      "y": 456,
+      "w": 416,
+      "h": 429,
+      "foot": 42,
+      "height": 350,
+      "gripX": 223,
+      "gripY": 214,
+      "swordAngle": -55,
+      "spearAngle": -80,
+      "swordHand": {
+        "x": 205,
+        "y": 198,
+        "w": 36,
+        "h": 32
+      }
+    },
+    {
+      "atlas": "spear-v2",
+      "x": 0,
+      "y": 0,
+      "w": 512,
+      "h": 512,
+      "foot": 19,
+      "height": 440,
+      "gripX": 267,
+      "gripY": 237,
+      "swordAngle": -90,
+      "spearAngle": -80,
+      "twoHanded": true,
+      "supportX": 390,
+      "supportY": 237
+    },
+    {
+      "atlas": "spear-v2",
+      "x": 512,
+      "y": 0,
+      "w": 512,
+      "h": 512,
+      "foot": 19,
+      "height": 440,
+      "gripX": 238,
+      "gripY": 245,
+      "swordAngle": -90,
+      "spearAngle": -80,
+      "twoHanded": true,
+      "supportX": 325,
+      "supportY": 260
+    },
+    {
+      "atlas": "spear-v2",
+      "x": 1024,
+      "y": 0,
+      "w": 512,
+      "h": 512,
+      "foot": 19,
+      "height": 440,
+      "gripX": 272,
+      "gripY": 243,
+      "swordAngle": -90,
+      "spearAngle": -80,
+      "twoHanded": true,
+      "supportX": 446,
+      "supportY": 235
+    },
+    {
+      "atlas": "spear-v2",
+      "x": 0,
+      "y": 512,
+      "w": 512,
+      "h": 512,
+      "foot": 51,
+      "height": 440,
+      "gripX": 310,
+      "gripY": 226,
+      "swordAngle": -90,
+      "spearAngle": -80,
+      "twoHanded": true,
+      "supportX": 484,
+      "supportY": 213
+    },
+    {
+      "atlas": "spear-v2",
+      "x": 512,
+      "y": 512,
+      "w": 512,
+      "h": 512,
+      "foot": 33,
+      "height": 440,
+      "gripX": 258,
+      "gripY": 225,
+      "swordAngle": -90,
+      "spearAngle": -80,
+      "twoHanded": true,
+      "supportX": 388,
+      "supportY": 226
+    },
+    {
+      "atlas": "spear-v2",
+      "x": 1024,
+      "y": 512,
+      "w": 512,
+      "h": 512,
+      "foot": 31,
+      "height": 440,
+      "gripX": 271,
+      "gripY": 230,
+      "swordAngle": -90,
+      "spearAngle": -80,
+      "twoHanded": true,
+      "supportX": 404,
+      "supportY": 232
+    },
+    {
+      "atlas": "support-v1",
+      "x": 0,
+      "y": 0,
+      "w": 512,
+      "h": 512,
+      "foot": 16,
+      "height": 450,
+      "gripX": 238,
+      "gripY": 290,
+      "swordAngle": 105,
+      "spearAngle": 105
+    },
+    {
+      "atlas": "support-v1",
+      "x": 512,
+      "y": 0,
+      "w": 512,
+      "h": 512,
+      "foot": 17,
+      "height": 450,
+      "gripX": 257,
+      "gripY": 316,
+      "swordAngle": 105,
+      "spearAngle": 105
+    },
+    {
+      "atlas": "support-v1",
+      "x": 1024,
+      "y": 0,
+      "w": 512,
+      "h": 512,
+      "foot": 15,
+      "height": 450,
+      "gripX": 375,
+      "gripY": 186,
+      "swordAngle": -35,
+      "spearAngle": -65
+    },
+    {
+      "atlas": "support-v1",
+      "x": 0,
+      "y": 512,
+      "w": 512,
+      "h": 512,
+      "foot": 29,
+      "height": 450,
+      "gripX": 388,
+      "gripY": 221,
+      "swordAngle": -35,
+      "spearAngle": -65
+    },
+    {
+      "atlas": "support-v1",
+      "x": 512,
+      "y": 512,
+      "w": 512,
+      "h": 512,
+      "foot": 28,
+      "height": 450,
+      "gripX": 229,
+      "gripY": 287,
+      "swordAngle": 105,
+      "spearAngle": 105
+    },
+    {
+      "atlas": "support-v1",
+      "x": 1024,
+      "y": 512,
+      "w": 512,
+      "h": 512,
+      "foot": 28,
+      "height": 450,
+      "gripX": 218,
+      "gripY": 298,
+      "swordAngle": 105,
+      "spearAngle": 105
+    },
+    {
+      "atlas": "hero-heavy-v1",
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 32,
+      "height": 380,
+      "gripX": 192,
+      "gripY": 275,
+      "swordAngle": -20,
+      "spearAngle": -20,
+      "twoHanded": false,
+      "supportX": 0,
+      "supportY": 0,
+      "swordHand": {
+        "x": 171,
+        "y": 255,
+        "w": 42,
+        "h": 40
+      },
+      "bowDraw": false
+    },
+    {
+      "atlas": "hero-heavy-v1",
+      "x": 384,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 32,
+      "height": 380,
+      "gripX": 160,
+      "gripY": 210,
+      "swordAngle": 0,
+      "spearAngle": 0,
+      "twoHanded": true,
+      "supportX": 165,
+      "supportY": 180,
+      "swordHand": {
+        "x": 139,
+        "y": 190,
+        "w": 42,
+        "h": 40
+      },
+      "bowDraw": false,
+      "supportHand": {
+        "x": 144,
+        "y": 160,
+        "w": 42,
+        "h": 40
+      }
+    },
+    {
+      "atlas": "hero-heavy-v1",
+      "x": 768,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 32,
+      "height": 380,
+      "gripX": 165,
+      "gripY": 143,
+      "swordAngle": 0,
+      "spearAngle": 0,
+      "twoHanded": true,
+      "supportX": 212,
+      "supportY": 95,
+      "swordHand": {
+        "x": 144,
+        "y": 123,
+        "w": 42,
+        "h": 40
+      },
+      "bowDraw": false,
+      "supportHand": {
+        "x": 191,
+        "y": 75,
+        "w": 42,
+        "h": 40
+      }
+    },
+    {
+      "atlas": "hero-heavy-v1",
+      "x": 1152,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 32,
+      "height": 380,
+      "gripX": 260,
+      "gripY": 273,
+      "swordAngle": 0,
+      "spearAngle": 0,
+      "twoHanded": true,
+      "supportX": 294,
+      "supportY": 300,
+      "swordHand": {
+        "x": 239,
+        "y": 253,
+        "w": 42,
+        "h": 40
+      },
+      "bowDraw": false,
+      "supportHand": {
+        "x": 273,
+        "y": 280,
+        "w": 42,
+        "h": 40
+      }
+    },
+    {
+      "atlas": "hero-heavy-v1",
+      "x": 0,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 41,
+      "height": 380,
+      "gripX": 281,
+      "gripY": 287,
+      "swordAngle": 0,
+      "spearAngle": 0,
+      "twoHanded": true,
+      "supportX": 313,
+      "supportY": 313,
+      "swordHand": {
+        "x": 260,
+        "y": 267,
+        "w": 42,
+        "h": 40
+      },
+      "bowDraw": false,
+      "supportHand": {
+        "x": 292,
+        "y": 293,
+        "w": 42,
+        "h": 40
+      }
+    },
+    {
+      "atlas": "hero-heavy-v1",
+      "x": 384,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 41,
+      "height": 380,
+      "gripX": 265,
+      "gripY": 326,
+      "swordAngle": 0,
+      "spearAngle": 0,
+      "twoHanded": true,
+      "supportX": 280,
+      "supportY": 300,
+      "swordHand": {
+        "x": 244,
+        "y": 306,
+        "w": 42,
+        "h": 40
+      },
+      "bowDraw": false,
+      "supportHand": {
+        "x": 259,
+        "y": 280,
+        "w": 42,
+        "h": 40
+      }
+    },
+    {
+      "atlas": "hero-heavy-v1",
+      "x": 768,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 40,
+      "height": 380,
+      "gripX": 192,
+      "gripY": 278,
+      "swordAngle": -20,
+      "spearAngle": -20,
+      "twoHanded": false,
+      "supportX": 0,
+      "supportY": 0,
+      "swordHand": {
+        "x": 171,
+        "y": 258,
+        "w": 42,
+        "h": 40
+      },
+      "bowDraw": false
+    },
+    {
+      "atlas": "hero-heavy-v1",
+      "x": 1152,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 41,
+      "height": 380,
+      "gripX": 195,
+      "gripY": 267,
+      "swordAngle": 15,
+      "spearAngle": 15,
+      "twoHanded": false,
+      "supportX": 0,
+      "supportY": 0,
+      "swordHand": {
+        "x": 174,
+        "y": 247,
+        "w": 42,
+        "h": 40
+      },
+      "bowDraw": false
+    },
+    {
+      "atlas": "hero-bow-v1",
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 35,
+      "height": 380,
+      "gripX": 300,
+      "gripY": 265,
+      "swordAngle": 0,
+      "spearAngle": 0,
+      "twoHanded": false,
+      "supportX": 190,
+      "supportY": 270,
+      "swordHand": {
+        "x": 279,
+        "y": 245,
+        "w": 42,
+        "h": 40
+      },
+      "bowDraw": false
+    },
+    {
+      "atlas": "hero-bow-v1",
+      "x": 384,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 35,
+      "height": 380,
+      "gripX": 310,
+      "gripY": 200,
+      "swordAngle": 0,
+      "spearAngle": 0,
+      "twoHanded": false,
+      "supportX": 185,
+      "supportY": 230,
+      "swordHand": {
+        "x": 289,
+        "y": 180,
+        "w": 42,
+        "h": 40
+      },
+      "bowDraw": true
+    },
+    {
+      "atlas": "hero-bow-v1",
+      "x": 768,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 35,
+      "height": 380,
+      "gripX": 334,
+      "gripY": 201,
+      "swordAngle": 0,
+      "spearAngle": 0,
+      "twoHanded": false,
+      "supportX": 183,
+      "supportY": 196,
+      "swordHand": {
+        "x": 313,
+        "y": 181,
+        "w": 42,
+        "h": 40
+      },
+      "bowDraw": true
+    },
+    {
+      "atlas": "hero-bow-v1",
+      "x": 1152,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 35,
+      "height": 380,
+      "gripX": 335,
+      "gripY": 201,
+      "swordAngle": 0,
+      "spearAngle": 0,
+      "twoHanded": false,
+      "supportX": 140,
+      "supportY": 187,
+      "swordHand": {
+        "x": 314,
+        "y": 181,
+        "w": 42,
+        "h": 40
+      },
+      "bowDraw": false
+    },
+    {
+      "atlas": "hero-bow-v1",
+      "x": 0,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 35,
+      "height": 380,
+      "gripX": 334,
+      "gripY": 201,
+      "swordAngle": 0,
+      "spearAngle": 0,
+      "twoHanded": false,
+      "supportX": 110,
+      "supportY": 268,
+      "swordHand": {
+        "x": 313,
+        "y": 181,
+        "w": 42,
+        "h": 40
+      },
+      "bowDraw": false
+    },
+    {
+      "atlas": "hero-bow-v1",
+      "x": 384,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 35,
+      "height": 380,
+      "gripX": 286,
+      "gripY": 236,
+      "swordAngle": 0,
+      "spearAngle": 0,
+      "twoHanded": false,
+      "supportX": 190,
+      "supportY": 236,
+      "swordHand": {
+        "x": 265,
+        "y": 216,
+        "w": 42,
+        "h": 40
+      },
+      "bowDraw": false
+    },
+    {
+      "atlas": "hero-bow-v1",
+      "x": 768,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 35,
+      "height": 380,
+      "gripX": 300,
+      "gripY": 260,
+      "swordAngle": 0,
+      "spearAngle": 0,
+      "twoHanded": false,
+      "supportX": 192,
+      "supportY": 270,
+      "swordHand": {
+        "x": 279,
+        "y": 240,
+        "w": 42,
+        "h": 40
+      },
+      "bowDraw": false
+    },
+    {
+      "atlas": "hero-bow-v1",
+      "x": 1152,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 35,
+      "height": 380,
+      "gripX": 276,
+      "gripY": 252,
+      "swordAngle": 0,
+      "spearAngle": 0,
+      "twoHanded": false,
+      "supportX": 195,
+      "supportY": 240,
+      "swordHand": {
+        "x": 255,
+        "y": 232,
+        "w": 42,
+        "h": 40
+      },
+      "bowDraw": false
+    },
+    {
+      "atlas": "hero-staff-v1",
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 37,
+      "height": 380,
+      "gripX": 210,
+      "gripY": 251,
+      "swordAngle": -12,
+      "spearAngle": -12,
+      "twoHanded": false,
+      "supportX": 0,
+      "supportY": 0,
+      "swordHand": {
+        "x": 189,
+        "y": 231,
+        "w": 42,
+        "h": 40
+      },
+      "bowDraw": false
+    },
+    {
+      "atlas": "hero-staff-v1",
+      "x": 384,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 38,
+      "height": 380,
+      "gripX": 195,
+      "gripY": 198,
+      "swordAngle": -30,
+      "spearAngle": -30,
+      "twoHanded": false,
+      "supportX": 0,
+      "supportY": 0,
+      "swordHand": {
+        "x": 174,
+        "y": 178,
+        "w": 42,
+        "h": 40
+      },
+      "bowDraw": false
+    },
+    {
+      "atlas": "hero-staff-v1",
+      "x": 768,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 37,
+      "height": 380,
+      "gripX": 184,
+      "gripY": 113,
+      "swordAngle": -65,
+      "spearAngle": -65,
+      "twoHanded": false,
+      "supportX": 0,
+      "supportY": 0,
+      "swordHand": {
+        "x": 163,
+        "y": 93,
+        "w": 42,
+        "h": 40
+      },
+      "bowDraw": false
+    },
+    {
+      "atlas": "hero-staff-v1",
+      "x": 1152,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 38,
+      "height": 380,
+      "gripX": 199,
+      "gripY": 72,
+      "swordAngle": -70,
+      "spearAngle": -70,
+      "twoHanded": false,
+      "supportX": 0,
+      "supportY": 0,
+      "swordHand": {
+        "x": 178,
+        "y": 52,
+        "w": 42,
+        "h": 40
+      },
+      "bowDraw": false
+    },
+    {
+      "atlas": "hero-staff-v1",
+      "x": 0,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 38,
+      "height": 380,
+      "gripX": 202,
+      "gripY": 72,
+      "swordAngle": -70,
+      "spearAngle": -70,
+      "twoHanded": false,
+      "supportX": 0,
+      "supportY": 0,
+      "swordHand": {
+        "x": 181,
+        "y": 52,
+        "w": 42,
+        "h": 40
+      },
+      "bowDraw": false
+    },
+    {
+      "atlas": "hero-staff-v1",
+      "x": 384,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 38,
+      "height": 380,
+      "gripX": 185,
+      "gripY": 104,
+      "swordAngle": -45,
+      "spearAngle": -45,
+      "twoHanded": false,
+      "supportX": 0,
+      "supportY": 0,
+      "swordHand": {
+        "x": 164,
+        "y": 84,
+        "w": 42,
+        "h": 40
+      },
+      "bowDraw": false
+    },
+    {
+      "atlas": "hero-staff-v1",
+      "x": 768,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 38,
+      "height": 380,
+      "gripX": 215,
+      "gripY": 248,
+      "swordAngle": -12,
+      "spearAngle": -12,
+      "twoHanded": false,
+      "supportX": 0,
+      "supportY": 0,
+      "swordHand": {
+        "x": 194,
+        "y": 228,
+        "w": 42,
+        "h": 40
+      },
+      "bowDraw": false
+    },
+    {
+      "atlas": "hero-staff-v1",
+      "x": 1152,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 39,
+      "height": 380,
+      "gripX": 185,
+      "gripY": 181,
+      "swordAngle": 10,
+      "spearAngle": 10,
+      "twoHanded": false,
+      "supportX": 0,
+      "supportY": 0,
+      "swordHand": {
+        "x": 164,
+        "y": 161,
+        "w": 42,
+        "h": 40
+      },
+      "bowDraw": false
+    }
+  ],
+  "motions": [
+    {
+      "id": "idle",
+      "frames": [
+        23
+      ],
+      "seconds": [
+        1.6
+      ],
+      "loop": true,
+      "events": [
+        ""
+      ]
+    },
+    {
+      "id": "walk",
+      "frames": [
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22
+      ],
+      "seconds": [
+        0.11,
+        0.11,
+        0.11,
+        0.11,
+        0.11,
+        0.11,
+        0.11,
+        0.11
+      ],
+      "loop": true,
+      "events": [
+        "footstep",
+        "",
+        "",
+        "",
+        "footstep",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "id": "attack",
+      "frames": [
+        23,
+        24,
+        25,
+        26,
+        27,
+        28
+      ],
+      "seconds": [
+        0.06,
+        0.09,
+        0.15,
+        0.07,
+        0.085,
+        0.1
+      ],
+      "loop": false,
+      "events": [
+        "",
+        "",
+        "anticipation",
+        "swing",
+        "contact",
+        ""
+      ],
+      "next": "recover"
+    },
+    {
+      "id": "recover",
+      "frames": [
+        29,
+        30
+      ],
+      "seconds": [
+        0.13,
+        0.1
+      ],
+      "loop": false,
+      "events": [
+        "",
+        ""
+      ]
+    },
+    {
+      "id": "hit",
+      "frames": [
+        6,
+        7
+      ],
+      "seconds": [
+        0.16,
+        0.16
+      ],
+      "loop": false,
+      "events": [
+        "hurt",
+        ""
+      ],
+      "next": "recover"
+    },
+    {
+      "id": "victory",
+      "frames": [
+        8,
+        7
+      ],
+      "seconds": [
+        0.65,
+        0.2
+      ],
+      "loop": false,
+      "events": [
+        "victory",
+        ""
+      ],
+      "next": "recover"
+    },
+    {
+      "id": "idle",
+      "frames": [
+        31
+      ],
+      "seconds": [
+        1.6
+      ],
+      "loop": true,
+      "events": [
+        ""
+      ],
+      "weaponId": "w_spear"
+    },
+    {
+      "id": "attack",
+      "frames": [
+        31,
+        32,
+        33,
+        34
+      ],
+      "seconds": [
+        0.06,
+        0.17,
+        0.075,
+        0.095
+      ],
+      "loop": false,
+      "events": [
+        "",
+        "anticipation",
+        "swing",
+        "contact"
+      ],
+      "next": "recover",
+      "weaponId": "w_spear"
+    },
+    {
+      "id": "recover",
+      "frames": [
+        35,
+        36
+      ],
+      "seconds": [
+        0.14,
+        0.1
+      ],
+      "loop": false,
+      "events": [
+        "",
+        ""
+      ],
+      "weaponId": "w_spear"
+    },
+    {
+      "id": "attack-f1",
+      "frames": [
+        23,
+        24
+      ],
+      "seconds": [
+        0.06,
+        0.09
+      ],
+      "loop": false,
+      "hold": true,
+      "events": [
+        "",
+        "anticipation"
+      ]
+    },
+    {
+      "id": "attack-f2",
+      "frames": [
+        25
+      ],
+      "seconds": [
+        0.15
+      ],
+      "loop": false,
+      "hold": true,
+      "events": [
+        ""
+      ]
+    },
+    {
+      "id": "attack-f3-4",
+      "frames": [
+        26,
+        27,
+        28
+      ],
+      "seconds": [
+        0.07,
+        0.085,
+        0.1
+      ],
+      "loop": false,
+      "hold": false,
+      "events": [
+        "swing",
+        "contact",
+        ""
+      ],
+      "next": "recover"
+    },
+    {
+      "id": "attack-f1",
+      "frames": [
+        31,
+        32
+      ],
+      "seconds": [
+        0.06,
+        0.17
+      ],
+      "loop": false,
+      "hold": true,
+      "events": [
+        "",
+        "anticipation"
+      ],
+      "weaponId": "w_spear"
+    },
+    {
+      "id": "attack-f2",
+      "frames": [
+        32
+      ],
+      "seconds": [
+        0.17
+      ],
+      "loop": false,
+      "hold": true,
+      "events": [
+        ""
+      ],
+      "weaponId": "w_spear"
+    },
+    {
+      "id": "attack-f3-4",
+      "frames": [
+        33,
+        34
+      ],
+      "seconds": [
+        0.075,
+        0.095
+      ],
+      "loop": false,
+      "hold": false,
+      "events": [
+        "swing",
+        "contact"
+      ],
+      "weaponId": "w_spear",
+      "next": "recover"
+    },
+    {
+      "id": "focus",
+      "frames": [
+        37,
+        38
+      ],
+      "seconds": [
+        0.65,
+        0.65
+      ],
+      "events": [
+        "",
+        ""
+      ],
+      "loop": true
+    },
+    {
+      "id": "guard",
+      "next": "recover",
+      "frames": [
+        39,
+        40
+      ],
+      "seconds": [
+        0.18,
+        0.22
+      ],
+      "events": [
+        "guard",
+        ""
+      ]
+    },
+    {
+      "id": "cast",
+      "next": "recover",
+      "frames": [
+        41,
+        42
+      ],
+      "seconds": [
+        0.25,
+        0.28
+      ],
+      "events": [
+        "anticipation",
+        "magic"
+      ]
+    },
+    {
+      "id": "slash",
+      "weaponId": "",
+      "next": "recover",
+      "frames": [
+        26,
+        27,
+        28
+      ],
+      "seconds": [
+        0.07,
+        0.085,
+        0.1
+      ],
+      "events": [
+        "swing",
+        "contact",
+        ""
+      ]
+    },
+    {
+      "id": "slash",
+      "weaponId": "w_spear",
+      "next": "recover",
+      "frames": [
+        33,
+        34
+      ],
+      "seconds": [
+        0.075,
+        0.095
+      ],
+      "events": [
+        "swing",
+        "contact"
+      ]
+    },
+    {
+      "id": "attack",
+      "frames": [
+        23,
+        24,
+        25,
+        26,
+        27,
+        28
+      ],
+      "seconds": [
+        0.0432,
+        0.0648,
+        0.108,
+        0.0504,
+        0.0612,
+        0.072
+      ],
+      "loop": false,
+      "events": [
+        "",
+        "",
+        "anticipation",
+        "swing",
+        "contact",
+        ""
+      ],
+      "next": "recover",
+      "weaponId": "w_dagger"
+    },
+    {
+      "id": "recover",
+      "frames": [
+        29,
+        30
+      ],
+      "seconds": [
+        0.0936,
+        0.072
+      ],
+      "loop": false,
+      "events": [
+        "",
+        ""
+      ],
+      "weaponId": "w_dagger"
+    },
+    {
+      "id": "attack-f1",
+      "frames": [
+        23,
+        24
+      ],
+      "seconds": [
+        0.0432,
+        0.0648
+      ],
+      "loop": false,
+      "hold": true,
+      "events": [
+        "",
+        "anticipation"
+      ],
+      "weaponId": "w_dagger"
+    },
+    {
+      "id": "attack-f2",
+      "frames": [
+        25
+      ],
+      "seconds": [
+        0.108
+      ],
+      "loop": false,
+      "hold": true,
+      "events": [
+        ""
+      ],
+      "weaponId": "w_dagger"
+    },
+    {
+      "id": "attack-f3-4",
+      "frames": [
+        26,
+        27,
+        28
+      ],
+      "seconds": [
+        0.0504,
+        0.0612,
+        0.072
+      ],
+      "loop": false,
+      "hold": false,
+      "events": [
+        "swing",
+        "contact",
+        ""
+      ],
+      "next": "recover",
+      "weaponId": "w_dagger"
+    },
+    {
+      "id": "idle",
+      "weaponId": "w_hammer",
+      "frames": [
+        43
+      ],
+      "seconds": [
+        1.6
+      ],
+      "events": [
+        ""
+      ],
+      "loop": true
+    },
+    {
+      "id": "attack-f1",
+      "weaponId": "w_hammer",
+      "frames": [
+        43,
+        44
+      ],
+      "seconds": [
+        0.12,
+        0.22
+      ],
+      "events": [
+        "",
+        "anticipation"
+      ],
+      "hold": true
+    },
+    {
+      "id": "attack-f2",
+      "weaponId": "w_hammer",
+      "frames": [
+        45
+      ],
+      "seconds": [
+        0.3
+      ],
+      "events": [
+        ""
+      ],
+      "hold": true
+    },
+    {
+      "id": "attack-f3-4",
+      "weaponId": "w_hammer",
+      "frames": [
+        46,
+        47
+      ],
+      "seconds": [
+        0.1,
+        0.22
+      ],
+      "events": [
+        "swing",
+        "contact"
+      ],
+      "next": "recover"
+    },
+    {
+      "id": "attack",
+      "weaponId": "w_hammer",
+      "frames": [
+        43,
+        44,
+        45,
+        46,
+        47
+      ],
+      "seconds": [
+        0.12,
+        0.22,
+        0.3,
+        0.1,
+        0.22
+      ],
+      "events": [
+        "",
+        "anticipation",
+        "",
+        "swing",
+        "contact"
+      ],
+      "next": "recover"
+    },
+    {
+      "id": "recover",
+      "weaponId": "w_hammer",
+      "frames": [
+        48,
+        49
+      ],
+      "seconds": [
+        0.24,
+        0.18
+      ],
+      "events": [
+        "",
+        ""
+      ]
+    },
+    {
+      "id": "hit",
+      "weaponId": "w_hammer",
+      "frames": [
+        50
+      ],
+      "seconds": [
+        0.26
+      ],
+      "events": [
+        "hurt"
+      ],
+      "next": "recover"
+    },
+    {
+      "id": "focus",
+      "weaponId": "w_hammer",
+      "frames": [
+        44
+      ],
+      "seconds": [
+        1.2
+      ],
+      "events": [
+        ""
+      ],
+      "loop": true
+    },
+    {
+      "id": "guard",
+      "weaponId": "w_hammer",
+      "frames": [
+        50,
+        43
+      ],
+      "seconds": [
+        0.2,
+        0.16
+      ],
+      "events": [
+        "guard",
+        ""
+      ],
+      "next": "recover"
+    },
+    {
+      "id": "victory",
+      "weaponId": "w_hammer",
+      "frames": [
+        45,
+        49
+      ],
+      "seconds": [
+        0.6,
+        0.2
+      ],
+      "events": [
+        "victory",
+        ""
+      ],
+      "next": "recover"
+    },
+    {
+      "id": "cast",
+      "weaponId": "w_hammer",
+      "frames": [
+        45,
+        46,
+        47
+      ],
+      "seconds": [
+        0.25,
+        0.16,
+        0.18
+      ],
+      "events": [
+        "anticipation",
+        "magic",
+        ""
+      ],
+      "next": "recover"
+    },
+    {
+      "id": "idle",
+      "weaponId": "w_bow",
+      "frames": [
+        51
+      ],
+      "seconds": [
+        1.6
+      ],
+      "events": [
+        ""
+      ],
+      "loop": true
+    },
+    {
+      "id": "attack-f1",
+      "weaponId": "w_bow",
+      "frames": [
+        51,
+        52
+      ],
+      "seconds": [
+        0.1,
+        0.16
+      ],
+      "events": [
+        "",
+        "anticipation"
+      ],
+      "hold": true
+    },
+    {
+      "id": "attack-f2",
+      "weaponId": "w_bow",
+      "frames": [
+        53
+      ],
+      "seconds": [
+        0.22
+      ],
+      "events": [
+        ""
+      ],
+      "hold": true
+    },
+    {
+      "id": "attack-f3-4",
+      "weaponId": "w_bow",
+      "frames": [
+        54,
+        55
+      ],
+      "seconds": [
+        0.14,
+        0.22
+      ],
+      "events": [
+        "contact",
+        ""
+      ],
+      "next": "recover"
+    },
+    {
+      "id": "attack",
+      "weaponId": "w_bow",
+      "frames": [
+        51,
+        52,
+        53,
+        54,
+        55
+      ],
+      "seconds": [
+        0.1,
+        0.16,
+        0.22,
+        0.14,
+        0.22
+      ],
+      "events": [
+        "",
+        "anticipation",
+        "",
+        "contact",
+        ""
+      ],
+      "next": "recover"
+    },
+    {
+      "id": "recover",
+      "weaponId": "w_bow",
+      "frames": [
+        56,
+        57
+      ],
+      "seconds": [
+        0.16,
+        0.12
+      ],
+      "events": [
+        "",
+        ""
+      ]
+    },
+    {
+      "id": "hit",
+      "weaponId": "w_bow",
+      "frames": [
+        58
+      ],
+      "seconds": [
+        0.26
+      ],
+      "events": [
+        "hurt"
+      ],
+      "next": "recover"
+    },
+    {
+      "id": "focus",
+      "weaponId": "w_bow",
+      "frames": [
+        52
+      ],
+      "seconds": [
+        1.2
+      ],
+      "events": [
+        ""
+      ],
+      "loop": true
+    },
+    {
+      "id": "guard",
+      "weaponId": "w_bow",
+      "frames": [
+        58,
+        51
+      ],
+      "seconds": [
+        0.2,
+        0.16
+      ],
+      "events": [
+        "guard",
+        ""
+      ],
+      "next": "recover"
+    },
+    {
+      "id": "victory",
+      "weaponId": "w_bow",
+      "frames": [
+        53,
+        57
+      ],
+      "seconds": [
+        0.6,
+        0.2
+      ],
+      "events": [
+        "victory",
+        ""
+      ],
+      "next": "recover"
+    },
+    {
+      "id": "cast",
+      "weaponId": "w_bow",
+      "frames": [
+        53,
+        54,
+        55
+      ],
+      "seconds": [
+        0.25,
+        0.16,
+        0.18
+      ],
+      "events": [
+        "anticipation",
+        "magic",
+        ""
+      ],
+      "next": "recover"
+    },
+    {
+      "id": "idle",
+      "weaponId": "w_staff",
+      "frames": [
+        59
+      ],
+      "seconds": [
+        1.6
+      ],
+      "events": [
+        ""
+      ],
+      "loop": true
+    },
+    {
+      "id": "attack-f1",
+      "weaponId": "w_staff",
+      "frames": [
+        59,
+        60
+      ],
+      "seconds": [
+        0.1,
+        0.16
+      ],
+      "events": [
+        "",
+        "anticipation"
+      ],
+      "hold": true
+    },
+    {
+      "id": "attack-f2",
+      "weaponId": "w_staff",
+      "frames": [
+        61
+      ],
+      "seconds": [
+        0.22
+      ],
+      "events": [
+        ""
+      ],
+      "hold": true
+    },
+    {
+      "id": "attack-f3-4",
+      "weaponId": "w_staff",
+      "frames": [
+        62,
+        63
+      ],
+      "seconds": [
+        0.14,
+        0.22
+      ],
+      "events": [
+        "contact",
+        ""
+      ],
+      "next": "recover"
+    },
+    {
+      "id": "attack",
+      "weaponId": "w_staff",
+      "frames": [
+        59,
+        60,
+        61,
+        62,
+        63
+      ],
+      "seconds": [
+        0.1,
+        0.16,
+        0.22,
+        0.14,
+        0.22
+      ],
+      "events": [
+        "",
+        "anticipation",
+        "",
+        "contact",
+        ""
+      ],
+      "next": "recover"
+    },
+    {
+      "id": "recover",
+      "weaponId": "w_staff",
+      "frames": [
+        64,
+        65
+      ],
+      "seconds": [
+        0.16,
+        0.12
+      ],
+      "events": [
+        "",
+        ""
+      ]
+    },
+    {
+      "id": "hit",
+      "weaponId": "w_staff",
+      "frames": [
+        66
+      ],
+      "seconds": [
+        0.26
+      ],
+      "events": [
+        "hurt"
+      ],
+      "next": "recover"
+    },
+    {
+      "id": "focus",
+      "weaponId": "w_staff",
+      "frames": [
+        60
+      ],
+      "seconds": [
+        1.2
+      ],
+      "events": [
+        ""
+      ],
+      "loop": true
+    },
+    {
+      "id": "guard",
+      "weaponId": "w_staff",
+      "frames": [
+        66,
+        59
+      ],
+      "seconds": [
+        0.2,
+        0.16
+      ],
+      "events": [
+        "guard",
+        ""
+      ],
+      "next": "recover"
+    },
+    {
+      "id": "victory",
+      "weaponId": "w_staff",
+      "frames": [
+        61,
+        65
+      ],
+      "seconds": [
+        0.6,
+        0.2
+      ],
+      "events": [
+        "victory",
+        ""
+      ],
+      "next": "recover"
+    },
+    {
+      "id": "cast",
+      "weaponId": "w_staff",
+      "frames": [
+        61,
+        62,
+        63
+      ],
+      "seconds": [
+        0.25,
+        0.16,
+        0.18
+      ],
+      "events": [
+        "anticipation",
+        "magic",
+        ""
+      ],
+      "next": "recover"
+    }
+  ],
+  "weapons": [
+    {
+      "id": "w_blade",
+      "atlas": "weapons-v1",
+      "x": 276,
+      "y": 34,
+      "w": 300,
+      "h": 944,
+      "gripX": 149,
+      "gripY": 805,
+      "height": 190
+    },
+    {
+      "id": "w_spear",
+      "atlas": "weapons-v1",
+      "x": 1086,
+      "y": 20,
+      "w": 86,
+      "h": 975,
+      "gripX": 43,
+      "gripY": 630,
+      "height": 310
+    },
+    {
+      "id": "w_dagger",
+      "x": 425,
+      "y": 300,
+      "w": 124,
+      "h": 455,
+      "gripX": 62,
+      "gripY": 345,
+      "height": 110,
+      "atlas": "weapons-five-v1",
+      "foregroundGrip": true
+    },
+    {
+      "id": "w_holy",
+      "x": 1255,
+      "y": 75,
+      "w": 248,
+      "h": 860,
+      "gripX": 124,
+      "gripY": 685,
+      "height": 205,
+      "atlas": "weapons-five-v1",
+      "foregroundGrip": true
+    },
+    {
+      "id": "w_hammer",
+      "atlas": "weapons-five-v1",
+      "x": 60,
+      "y": 65,
+      "w": 286,
+      "h": 880,
+      "gripX": 143,
+      "gripY": 575,
+      "height": 230,
+      "foregroundGrip": true,
+      "alignToSupport": true,
+      "ranged": false
+    },
+    {
+      "id": "w_bow",
+      "atlas": "bow-components-v1",
+      "x": 380,
+      "y": 16,
+      "w": 250,
+      "h": 992,
+      "gripX": 169,
+      "gripY": 490,
+      "height": 230,
+      "foregroundGrip": true,
+      "alignToSupport": false,
+      "ranged": true,
+      "bowString": true,
+      "stringTopX": 32,
+      "stringTopY": 60,
+      "stringBottomX": 32,
+      "stringBottomY": 930,
+      "projectileAtlas": "bow-components-v1",
+      "projectileX": 800,
+      "projectileY": 460,
+      "projectileW": 670,
+      "projectileH": 100,
+      "projectileWidth": 115,
+      "flightSeconds": 0.28
+    },
+    {
+      "id": "w_staff",
+      "atlas": "weapons-five-v1",
+      "x": 992,
+      "y": 16,
+      "w": 180,
+      "h": 984,
+      "gripX": 83,
+      "gripY": 634,
+      "height": 260,
+      "foregroundGrip": true,
+      "alignToSupport": false,
+      "ranged": true,
+      "projectileWidth": 32,
+      "flightSeconds": 0.34
+    }
+  ],
+  "enemies": [
+    {
+      "id": "slime",
+      "name": "リーフスライム",
+      "atlas": "enemies-v1",
+      "x": 24,
+      "y": 240,
+      "w": 510,
+      "h": 420,
+      "height": 85
+    },
+    {
+      "id": "goblin",
+      "name": "森のゴブリン",
+      "atlas": "enemies-v1",
+      "x": 532,
+      "y": 52,
+      "w": 660,
+      "h": 610,
+      "height": 145
+    },
+    {
+      "id": "forest_wolf",
+      "name": "森狼",
+      "atlas": "enemies-v1",
+      "x": 1260,
+      "y": 76,
+      "w": 902,
+      "h": 600,
+      "height": 150
+    },
+    {
+      "id": "bat",
+      "name": "洞窟コウモリ",
+      "atlas": "enemy-bat-v1",
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "height": 120
+    },
+    {
+      "id": "lantern_moth",
+      "name": "灯蛾",
+      "atlas": "enemy-moth-v1",
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "height": 150
+    },
+    {
+      "id": "boar",
+      "name": "岩牙の猪",
+      "atlas": "enemy-boar-v1",
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "height": 145
+    },
+    {
+      "id": "vine",
+      "name": "眠り蔓",
+      "atlas": "enemy-vine-v1",
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "height": 175
+    },
+    {
+      "id": "beetle",
+      "name": "鉄殻甲虫",
+      "atlas": "enemy-beetle-v1",
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "height": 120
+    },
+    {
+      "id": "wisp",
+      "name": "迷い灯",
+      "atlas": "enemy-wisp-v1",
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "height": 155
+    },
+    {
+      "id": "miner",
+      "name": "亡霊坑夫",
+      "atlas": "enemy-miner-v1",
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "height": 180
+    },
+    {
+      "id": "crystal",
+      "name": "結晶歩兵",
+      "atlas": "enemy-crystal-v1",
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "height": 195
+    },
+    {
+      "id": "book",
+      "name": "呪われた魔導書",
+      "atlas": "enemy-book-v1",
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "height": 140
+    },
+    {
+      "id": "gargoyle",
+      "name": "鐘楼の石翼",
+      "atlas": "enemy-gargoyle-v1",
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "height": 165
+    },
+    {
+      "id": "sentinel",
+      "name": "遺跡の番兵",
+      "atlas": "enemy-sentinel-v1",
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "height": 205
+    },
+    {
+      "id": "salamander",
+      "name": "熾火トカゲ",
+      "atlas": "enemy-salamander-v1",
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "height": 100
+    },
+    {
+      "id": "bone",
+      "name": "骨尾の飛竜",
+      "atlas": "enemy-bone-v1",
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "height": 175
+    },
+    {
+      "id": "boss_ogre",
+      "name": "鬼将 ガロウ",
+      "atlas": "enemy-ogre-v1",
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "height": 175
+    },
+    {
+      "id": "boss_wyvern",
+      "name": "飛竜 ヴァルガ",
+      "atlas": "enemy-wyvern-v1",
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "height": 145
+    },
+    {
+      "id": "boss_slimeking",
+      "name": "粘王 ゼラ",
+      "atlas": "enemy-slimeking-v1",
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "height": 155
+    },
+    {
+      "id": "boss_mirrorwarden",
+      "name": "鏡晶の守護者",
+      "atlas": "enemy-mirrorwarden-v1",
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "height": 190
+    }
+  ],
+  "sounds": [
+    {
+      "source": "hero",
+      "cue": "anticipation",
+      "key": "engage_charge",
+      "fallback": "Reveal",
+      "gain": 0.5
+    },
+    {
+      "source": "hero",
+      "cue": "swing",
+      "key": "attack",
+      "fallback": "Sword",
+      "gain": 0.7
+    },
+    {
+      "source": "hero",
+      "cue": "contact",
+      "key": "engage_attack_small",
+      "fallback": "Impact",
+      "gain": 0.65
+    },
+    {
+      "source": "hero",
+      "cue": "guard",
+      "key": "engage_guard",
+      "fallback": "Guard",
+      "gain": 0.8
+    },
+    {
+      "source": "hero",
+      "cue": "magic",
+      "key": "engage_attack_medium",
+      "fallback": "Reveal",
+      "gain": 0.7
+    },
+    {
+      "source": "hero",
+      "cue": "hurt",
+      "key": "engage_hit",
+      "fallback": "Impact",
+      "gain": 0.65
+    },
+    {
+      "source": "hero",
+      "cue": "victory",
+      "key": "",
+      "fallback": "Victory",
+      "gain": 0.55
+    },
+    {
+      "source": "enemy",
+      "cue": "windup",
+      "key": "engage_stance_enemy",
+      "fallback": "Reveal",
+      "gain": 0.5
+    },
+    {
+      "source": "enemy",
+      "cue": "defeat",
+      "key": "enemy_death",
+      "fallback": "Victory",
+      "gain": 0.7
+    }
+  ],
+  "gameplayEnabled": true,
+  "gameplayHeight": 170
+}

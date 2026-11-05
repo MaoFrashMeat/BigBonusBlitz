@@ -227,6 +227,10 @@ namespace BBB.Core
         public string id;
         public string name;
         public string enemyType;
+        /// <summary>地域限定の遭遇候補。未指定は従来の全地域フォールバック。</summary>
+        public string[] stageIds;
+        /// <summary>同地域・同バリアント内の選択重み。0以下は抽選対象外。</summary>
+        public int selectionWeight = 1;
         /// <summary>役名(BELL/CHERRY/WATERMELON/CHANCE/REPLAY) → 討伐率 %。</summary>
         public Dictionary<string, int> defeatProbabilities = new Dictionary<string, int>();
         public Dictionary<string, int> tier2Probabilities;

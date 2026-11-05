@@ -1,0 +1,214 @@
+{
+  "date": "2026-11-04",
+  "generator": "built-in image_gen",
+  "source": "source.png",
+  "prompt": "prompt.txt",
+  "sha256": "9b1824ed02b88cd81429f6842cd56eba85762639083598dce73e252fddf0ee70",
+  "size": [
+    1536,
+    1024
+  ],
+  "alphaRange": [
+    0,
+    254
+  ],
+  "cells": [
+    {
+      "cell": 0,
+      "rect": [
+        0,
+        0,
+        384,
+        512
+      ],
+      "alpha32Bounds": [
+        48,
+        194,
+        339,
+        414
+      ]
+    },
+    {
+      "cell": 1,
+      "rect": [
+        384,
+        0,
+        768,
+        512
+      ],
+      "alpha32Bounds": [
+        50,
+        183,
+        332,
+        416
+      ]
+    },
+    {
+      "cell": 2,
+      "rect": [
+        768,
+        0,
+        1152,
+        512
+      ],
+      "alpha32Bounds": [
+        39,
+        153,
+        348,
+        416
+      ]
+    },
+    {
+      "cell": 3,
+      "rect": [
+        1152,
+        0,
+        1536,
+        512
+      ],
+      "alpha32Bounds": [
+        29,
+        89,
+        368,
+        416
+      ]
+    },
+    {
+      "cell": 4,
+      "rect": [
+        0,
+        512,
+        384,
+        1024
+      ],
+      "alpha32Bounds": [
+        14,
+        117,
+        379,
+        409
+      ]
+    },
+    {
+      "cell": 5,
+      "rect": [
+        384,
+        512,
+        768,
+        1024
+      ],
+      "alpha32Bounds": [
+        48,
+        177,
+        342,
+        412
+      ]
+    },
+    {
+      "cell": 6,
+      "rect": [
+        768,
+        512,
+        1152,
+        1024
+      ],
+      "alpha32Bounds": [
+        32,
+        151,
+        362,
+        410
+      ]
+    },
+    {
+      "cell": 7,
+      "rect": [
+        1152,
+        512,
+        1536,
+        1024
+      ],
+      "alpha32Bounds": [
+        46,
+        207,
+        341,
+        415
+      ]
+    }
+  ],
+  "status": "integrated-pending-qa",
+  "finalArtApproved": false,
+  "unityResource": "Art/HeroPrototype/enemy-gargoyle-v1",
+  "rectangles": [
+    {
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 98,
+      "offsetX": 0.0,
+      "offsetY": 0
+    },
+    {
+      "x": 384,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 96,
+      "offsetX": 0.0,
+      "offsetY": 0
+    },
+    {
+      "x": 768,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 96,
+      "offsetX": 0.0,
+      "offsetY": 0
+    },
+    {
+      "x": 1152,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 96,
+      "offsetX": 0.0,
+      "offsetY": 0
+    },
+    {
+      "x": 0,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 103,
+      "offsetX": -220.0,
+      "offsetY": 0
+    },
+    {
+      "x": 384,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 100,
+      "offsetX": 0.0,
+      "offsetY": 0
+    },
+    {
+      "x": 768,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 102,
+      "offsetX": 12.0,
+      "offsetY": 0
+    },
+    {
+      "x": 1152,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 97,
+      "offsetX": 0.0,
+      "offsetY": 0
+    }
+  ]
+}

@@ -5255,7 +5255,7 @@ namespace BBB.Runtime
                 {
                     int motionVersion=_adventureHero.MotionVersion;
                     while(version==_enemyPresentationVersion&&motionVersion==_adventureHero.MotionVersion&&
-                          ((!_adventureHero.ImpactReady&&_adventureHero.View.Player.State=="attack-f3-4")||
+                          ((!_adventureHero.ImpactReady&&(_adventureHero.View.Player.State=="attack-f3-4"||_adventureHero.IsProjectileFlying))||
                            AtelierModalOpen()||_curseBox!=null||OpeningPlayer.IsDialogueVisible))yield return null;
                     if(version!=_enemyPresentationVersion||motionVersion!=_adventureHero.MotionVersion||!_adventureHero.ImpactReady)yield break;
                 }
@@ -5348,6 +5348,7 @@ namespace BBB.Runtime
                     _audio.NaviChoice(false);
                     if (st.defeated)
                     {
+                        var attackFx = _m.Config.engage?.attackFx ?? new EngageAttackFxConfig();
                         if (!_audio.TryPlay("engage_judge_win")) _audio.Attack();
                         _audio.Voice("attack");
                         UiFx.Slash(_enemyRt, -30f, attackFx.judgeSlashLength, ColGold);

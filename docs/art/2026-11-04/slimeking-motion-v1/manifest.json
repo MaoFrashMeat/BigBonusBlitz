@@ -1,0 +1,214 @@
+{
+  "date": "2026-11-04",
+  "generator": "built-in image_gen",
+  "source": "source.png",
+  "prompt": "prompt.txt",
+  "sha256": "2ceed6498927cd508fbb4170c40b529879785a9be2b353e095fdfa8c39920222",
+  "size": [
+    1536,
+    1024
+  ],
+  "alphaRange": [
+    0,
+    254
+  ],
+  "cells": [
+    {
+      "cell": 0,
+      "rect": [
+        0,
+        0,
+        384,
+        512
+      ],
+      "alpha32Bounds": [
+        16,
+        173,
+        375,
+        403
+      ]
+    },
+    {
+      "cell": 1,
+      "rect": [
+        384,
+        0,
+        768,
+        512
+      ],
+      "alpha32Bounds": [
+        12,
+        135,
+        374,
+        406
+      ]
+    },
+    {
+      "cell": 2,
+      "rect": [
+        768,
+        0,
+        1152,
+        512
+      ],
+      "alpha32Bounds": [
+        52,
+        175,
+        344,
+        407
+      ]
+    },
+    {
+      "cell": 3,
+      "rect": [
+        1152,
+        0,
+        1536,
+        512
+      ],
+      "alpha32Bounds": [
+        63,
+        104,
+        325,
+        405
+      ]
+    },
+    {
+      "cell": 4,
+      "rect": [
+        0,
+        512,
+        384,
+        1024
+      ],
+      "alpha32Bounds": [
+        6,
+        140,
+        379,
+        385
+      ]
+    },
+    {
+      "cell": 5,
+      "rect": [
+        384,
+        512,
+        768,
+        1024
+      ],
+      "alpha32Bounds": [
+        16,
+        149,
+        370,
+        386
+      ]
+    },
+    {
+      "cell": 6,
+      "rect": [
+        768,
+        512,
+        1152,
+        1024
+      ],
+      "alpha32Bounds": [
+        31,
+        152,
+        361,
+        385
+      ]
+    },
+    {
+      "cell": 7,
+      "rect": [
+        1152,
+        512,
+        1536,
+        1024
+      ],
+      "alpha32Bounds": [
+        20,
+        272,
+        374,
+        385
+      ]
+    }
+  ],
+  "status": "integrated-pending-qa",
+  "finalArtApproved": false,
+  "unityResource": "Art/HeroPrototype/enemy-slimeking-v1",
+  "rectangles": [
+    {
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 109,
+      "offsetX": 0.0,
+      "offsetY": 0
+    },
+    {
+      "x": 384,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 106,
+      "offsetX": 0.0,
+      "offsetY": 0
+    },
+    {
+      "x": 768,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 105,
+      "offsetX": 0.0,
+      "offsetY": 0
+    },
+    {
+      "x": 1152,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 107,
+      "offsetX": 0.0,
+      "offsetY": 0
+    },
+    {
+      "x": 0,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 127,
+      "offsetX": -220.0,
+      "offsetY": 0
+    },
+    {
+      "x": 384,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 126,
+      "offsetX": 0.0,
+      "offsetY": 0
+    },
+    {
+      "x": 768,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 127,
+      "offsetX": 12.0,
+      "offsetY": 0
+    },
+    {
+      "x": 1152,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 127,
+      "offsetX": 0.0,
+      "offsetY": 0
+    }
+  ]
+}

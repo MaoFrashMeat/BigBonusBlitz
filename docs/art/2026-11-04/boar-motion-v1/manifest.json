@@ -1,0 +1,214 @@
+{
+  "date": "2026-11-04",
+  "generator": "built-in image_gen",
+  "source": "source.png",
+  "prompt": "prompt.txt",
+  "sha256": "505cce43cc7908b15a3218eb92c5d16e85035f677922b918762aa17a0821e215",
+  "size": [
+    1536,
+    1024
+  ],
+  "alphaRange": [
+    0,
+    254
+  ],
+  "cells": [
+    {
+      "cell": 0,
+      "rect": [
+        0,
+        0,
+        384,
+        512
+      ],
+      "alpha32Bounds": [
+        20,
+        137,
+        366,
+        401
+      ]
+    },
+    {
+      "cell": 1,
+      "rect": [
+        384,
+        0,
+        768,
+        512
+      ],
+      "alpha32Bounds": [
+        24,
+        150,
+        367,
+        401
+      ]
+    },
+    {
+      "cell": 2,
+      "rect": [
+        768,
+        0,
+        1152,
+        512
+      ],
+      "alpha32Bounds": [
+        19,
+        150,
+        367,
+        400
+      ]
+    },
+    {
+      "cell": 3,
+      "rect": [
+        1152,
+        0,
+        1536,
+        512
+      ],
+      "alpha32Bounds": [
+        23,
+        184,
+        368,
+        401
+      ]
+    },
+    {
+      "cell": 4,
+      "rect": [
+        0,
+        512,
+        384,
+        1024
+      ],
+      "alpha32Bounds": [
+        8,
+        149,
+        384,
+        380
+      ]
+    },
+    {
+      "cell": 5,
+      "rect": [
+        384,
+        512,
+        768,
+        1024
+      ],
+      "alpha32Bounds": [
+        0,
+        144,
+        370,
+        389
+      ]
+    },
+    {
+      "cell": 6,
+      "rect": [
+        768,
+        512,
+        1152,
+        1024
+      ],
+      "alpha32Bounds": [
+        37,
+        117,
+        351,
+        389
+      ]
+    },
+    {
+      "cell": 7,
+      "rect": [
+        1152,
+        512,
+        1536,
+        1024
+      ],
+      "alpha32Bounds": [
+        1,
+        237,
+        378,
+        395
+      ]
+    }
+  ],
+  "status": "integrated-pending-qa",
+  "finalArtApproved": false,
+  "unityResource": "Art/HeroPrototype/enemy-boar-v1",
+  "rectangles": [
+    {
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 111,
+      "offsetX": 0.0,
+      "offsetY": 0
+    },
+    {
+      "x": 384,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 111,
+      "offsetX": 0.0,
+      "offsetY": 0
+    },
+    {
+      "x": 768,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 112,
+      "offsetX": 0.0,
+      "offsetY": 0
+    },
+    {
+      "x": 1152,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 111,
+      "offsetX": 0.0,
+      "offsetY": 0
+    },
+    {
+      "x": 0,
+      "y": 512,
+      "w": 397,
+      "h": 512,
+      "foot": 132,
+      "offsetX": -216.42992424242425,
+      "offsetY": 0
+    },
+    {
+      "x": 397,
+      "y": 512,
+      "w": 371,
+      "h": 512,
+      "foot": 123,
+      "offsetX": 3.570075757575758,
+      "offsetY": 0
+    },
+    {
+      "x": 768,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 123,
+      "offsetX": 12.0,
+      "offsetY": 0
+    },
+    {
+      "x": 1152,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 117,
+      "offsetX": 0.0,
+      "offsetY": 0
+    }
+  ]
+}

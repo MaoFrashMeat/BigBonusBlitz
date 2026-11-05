@@ -1,0 +1,10 @@
+{
+  "date": "2026-11-03",
+  "generator": "built-in image_gen",
+  "source": "source.png",
+  "prompt": "prompt.txt",
+  "sha256": "3fe84ab3fd2ff293debb2958437de6a554c9df256e851053c612ce206c9fc10d",
+  "status": "generated-candidate",
+  "productionIntegrated": false,
+  "finalArtApproved": false
+}

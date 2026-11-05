@@ -541,9 +541,14 @@ public sealed class ProbabilityEditorWindow : EditorWindow
                 string nid = EditorGUILayout.TextField("id", id);
                 if (nid != id) { t["id"] = nid; _dirty = true; }
                 string et = (string)t["enemyType"] ?? "slime";
-                int ei = Array.IndexOf(new[] { "slime", "goblin", "bat" }, et); if (ei < 0) ei = 0;
-                int nei = EditorGUILayout.Popup("見た目", ei, new[] { "slime", "goblin", "bat" });
-                if (nei != ei) { t["enemyType"] = new[] { "slime", "goblin", "bat" }[nei]; _dirty = true; }
+                string nextType = EditorGUILayout.TextField("見た目ID", et);
+                if (nextType != et) { t["enemyType"] = nextType.Trim(); _dirty = true; }
+                string stages = string.Join(", ", (t["stageIds"] as JArray ?? new JArray()).Values<string>());
+                string nextStages = EditorGUILayout.TextField(new GUIContent("出現地域", "カンマ区切り。空欄は全地域フォールバック"), stages);
+                if (nextStages != stages) { t["stageIds"] = new JArray(nextStages.Split(',').Select(s => s.Trim()).Where(s => s.Length > 0).Distinct()); _dirty = true; }
+                int weight = t["selectionWeight"]?.Value<int>() ?? 1;
+                int nextWeight = Mathf.Max(0, EditorGUILayout.IntField(new GUIContent("地域内の重み", "0は選択対象外。同地域・同バリアント内の比率"), weight));
+                if (nextWeight != weight) { t["selectionWeight"] = nextWeight; _dirty = true; }
                 string variant = (string)t["variant"] ?? "ANY";
                 int vi = Array.IndexOf(new[] { "ANY", "A", "B", "C", "D", "E", "F" }, variant); if (vi < 0) vi = 0;
                 int nvi = EditorGUILayout.Popup("出現バリアント", vi, new[] { "ANY", "A", "B", "C", "D", "E", "F" });

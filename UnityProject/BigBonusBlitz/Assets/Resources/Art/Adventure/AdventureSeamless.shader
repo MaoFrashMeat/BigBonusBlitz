@@ -66,6 +66,13 @@ Shader "BBB/UI/AdventureSeamless"
                     c=i.color*fixed4(shade,shade,shade,1);
                     c.rgb=lerp(c.rgb,c.rgb*float3(.50,.67,.55),band);
                 }
+                else if(_Module>1.5)
+                {
+                    // Native alpha must not be unpremultiplied as a black matte.
+                    float x=frac(i.uv.x);
+                    c=tex2D(_MainTex,float2(x,i.uv.y))*i.color;
+                    c.a*=smoothstep(0,.02,min(x,1-x));
+                }
                 else if(_Module>.5)
                 {
                     // Modules end naturally in black empty space. Decode matte before tinting.

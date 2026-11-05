@@ -19,10 +19,17 @@ namespace BBB.Runtime
         {
             var root = UiSkin.Rect(parent, name, pos, new Vector2(width, height));
             root.localRotation = Quaternion.Euler(0, 0, angleDeg);
-            UiSkin.Img(root, "Bg", Vector2.zero, new Vector2(width, height), null, bg);
-            // 上下の細い縁（box-shadow の代わり。帯の輪郭をはっきりさせる）
-            UiSkin.Img(root, "EdgeTop", new Vector2(0, height * 0.5f - 1), new Vector2(width, 2), null, new Color(bg.r, bg.g, bg.b, 0.9f));
-            UiSkin.Img(root, "EdgeBottom", new Vector2(0, -height * 0.5f + 1), new Vector2(width, 2), null, new Color(bg.r, bg.g, bg.b, 0.9f));
+            // Use the requested state color as an accent, not as a translucent wash
+            // over the detailed battle artwork. The dark surface keeps the sentence
+            // legible regardless of the forest/background luminance; slim gold rules
+            // retain the adopted frame language and the left jewel carries intensity.
+            var navy = new Color(0.045f, 0.065f, 0.125f, 1f);
+            UiSkin.Img(root, "Bg", Vector2.zero, new Vector2(width, height), null, navy);
+            var gold = new Color(0.88f, 0.68f, 0.30f, 0.96f);
+            UiSkin.Img(root, "EdgeTop", new Vector2(0, height * 0.5f - 1), new Vector2(width, 1), null, gold);
+            UiSkin.Img(root, "EdgeBottom", new Vector2(0, -height * 0.5f + 1), new Vector2(width, 1), null, gold);
+            UiSkin.Img(root, "StateAccent", new Vector2(-width * 0.5f + 3, 0), new Vector2(5, height - 4), null,
+                new Color(bg.r, bg.g, bg.b, 1f));
             // 帯自体は切り抜かない（親の表示域のマスクで切れる。回転した RectMask2D は中身ごと消えてしまう）
             var mb = root.gameObject.AddComponent<MarqueeBand>();
             mb._speed = speed;

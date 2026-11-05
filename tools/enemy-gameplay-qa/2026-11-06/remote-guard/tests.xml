@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="27" result="Passed" total="27" passed="27" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-05 15:52:09Z" end-time="2026-11-05 15:52:10Z" duration="0.7421827">
+  <test-suite type="TestSuite" id="1000" name="shop-qa" fullname="shop-qa" runstate="Runnable" testcasecount="142" result="Passed" start-time="2026-11-05 15:52:09Z" end-time="2026-11-05 15:52:10Z" duration="0.742183" total="27" passed="27" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1168" name="BBB.Tests.EditMode.dll" fullname="C:/Users/ts081/Documents/Codex/2026-09-12/new-chat/work/shop-qa/Library/ScriptAssemblies/BBB.Tests.EditMode.dll" runstate="Runnable" testcasecount="142" result="Passed" start-time="2026-11-05 15:52:09Z" end-time="2026-11-05 15:52:10Z" duration="0.734736" total="27" passed="27" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="37044" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1169" name="BBB" fullname="BBB" runstate="Runnable" testcasecount="142" result="Passed" start-time="2026-11-05 15:52:09Z" end-time="2026-11-05 15:52:10Z" duration="0.730749" total="27" passed="27" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1170" name="Tests" fullname="BBB.Tests" runstate="Runnable" testcasecount="142" result="Passed" start-time="2026-11-05 15:52:09Z" end-time="2026-11-05 15:52:10Z" duration="0.727171" total="27" passed="27" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1083" name="RegionalEnemyTests" fullname="BBB.Tests.RegionalEnemyTests" classname="BBB.Tests.RegionalEnemyTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-11-05 15:52:09Z" end-time="2026-11-05 15:52:09Z" duration="0.321066" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1084" name="AllTwentyProductionIdentitiesHaveMotionArtAndReachableEncounters" fullname="BBB.Tests.RegionalEnemyTests.AllTwentyProductionIdentitiesHaveMotionArtAndReachableEncounters" methodname="AllTwentyProductionIdentitiesHaveMotionArtAndReachableEncounters" classname="BBB.Tests.RegionalEnemyTests" runstate="Runnable" seed="691333821" result="Passed" start-time="2026-11-05 15:52:09Z" end-time="2026-11-05 15:52:09Z" duration="0.305032" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Enemy art is not registered for type 'unknown-unmapped-type'.
+]]></output>
+            </test-case>
+            <test-case id="1087" name="BossFilteringAndLegacyFallbackRemainAvailable" fullname="BBB.Tests.RegionalEnemyTests.BossFilteringAndLegacyFallbackRemainAvailable" methodname="BossFilteringAndLegacyFallbackRemainAvailable" classname="BBB.Tests.RegionalEnemyTests" runstate="Runnable" seed="990370285" result="Passed" start-time="2026-11-05 15:52:09Z" end-time="2026-11-05 15:52:09Z" duration="0.002296" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1088" name="LegacyUniformSelectionRetainsSeedSequence" fullname="BBB.Tests.RegionalEnemyTests.LegacyUniformSelectionRetainsSeedSequence" methodname="LegacyUniformSelectionRetainsSeedSequence" classname="BBB.Tests.RegionalEnemyTests" runstate="Runnable" seed="434114741" result="Passed" start-time="2026-11-05 15:52:09Z" end-time="2026-11-05 15:52:09Z" duration="0.000385" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1085" name="RegionOverridesOnlyMatchingVariantAndFallsBackOutsideRegion" fullname="BBB.Tests.RegionalEnemyTests.RegionOverridesOnlyMatchingVariantAndFallsBackOutsideRegion" methodname="RegionOverridesOnlyMatchingVariantAndFallsBackOutsideRegion" classname="BBB.Tests.RegionalEnemyTests" runstate="Runnable" seed="1262813776" result="Passed" start-time="2026-11-05 15:52:09Z" end-time="2026-11-05 15:52:09Z" duration="0.000321" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1086" name="WeightsRespectBoundariesAndDisabledEntriesCannotWin" fullname="BBB.Tests.RegionalEnemyTests.WeightsRespectBoundariesAndDisabledEntriesCannotWin" methodname="WeightsRespectBoundariesAndDisabledEntriesCannotWin" classname="BBB.Tests.RegionalEnemyTests" runstate="Runnable" seed="1618484053" result="Passed" start-time="2026-11-05 15:52:09Z" end-time="2026-11-05 15:52:09Z" duration="0.000253" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1143" name="WorkflowAndEnemyTests" fullname="BBB.Tests.WorkflowAndEnemyTests" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" testcasecount="22" result="Passed" start-time="2026-11-05 15:52:09Z" end-time="2026-11-05 15:52:10Z" duration="0.396165" total="22" passed="22" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1162" name="AT_ナビに従うと得_外すと損_バトルは討伐で上乗せ" fullname="BBB.Tests.WorkflowAndEnemyTests.AT_ナビに従うと得_外すと損_バトルは討伐で上乗せ" methodname="AT_ナビに従うと得_外すと損_バトルは討伐で上乗せ" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="776544860" result="Passed" start-time="2026-11-05 15:52:09Z" end-time="2026-11-05 15:52:10Z" duration="0.133044" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1161" name="JSONのリストが既定値に追記されず置き換えになる" fullname="BBB.Tests.WorkflowAndEnemyTests.JSONのリストが既定値に追記されず置き換えになる" methodname="JSONのリストが既定値に追記されず置き換えになる" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="549442408" result="Passed" start-time="2026-11-05 15:52:10Z" end-time="2026-11-05 15:52:10Z" duration="0.005126" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1145" name="rateが0でないカテゴリのバリアント合計は100か0" fullname="BBB.Tests.WorkflowAndEnemyTests.rateが0でないカテゴリのバリアント合計は100か0" methodname="rateが0でないカテゴリのバリアント合計は100か0" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="642265299" result="Passed" start-time="2026-11-05 15:52:10Z" end-time="2026-11-05 15:52:10Z" duration="0.001072" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1146" name="REPLAYはENEMY当選率50pct" fullname="BBB.Tests.WorkflowAndEnemyTests.REPLAYはENEMY当選率50pct" methodname="REPLAYはENEMY当選率50pct" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="88513828" result="Passed" start-time="2026-11-05 15:52:10Z" end-time="2026-11-05 15:52:10Z" duration="0.031700" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1157" name="VariantAならスライム_未指定ならANYかランダム" fullname="BBB.Tests.WorkflowAndEnemyTests.VariantAならスライム_未指定ならANYかランダム" methodname="VariantAならスライム_未指定ならANYかランダム" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="1961281138" result="Passed" start-time="2026-11-05 15:52:10Z" end-time="2026-11-05 15:52:10Z" duration="0.001140" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1163" name="ショップ_買うとレベルが上がり効果が乗る_ソウル不足は弾かれる" fullname="BBB.Tests.WorkflowAndEnemyTests.ショップ_買うとレベルが上がり効果が乗る_ソウル不足は弾かれる" methodname="ショップ_買うとレベルが上がり効果が乗る_ソウル不足は弾かれる" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="1047740340" result="Passed" start-time="2026-11-05 15:52:10Z" end-time="2026-11-05 15:52:10Z" duration="0.004568" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1164" name="ソウル_討伐で貯まり取得量アップが効く" fullname="BBB.Tests.WorkflowAndEnemyTests.ソウル_討伐で貯まり取得量アップが効く" methodname="ソウル_討伐で貯まり取得量アップが効く" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="567921191" result="Passed" start-time="2026-11-05 15:52:10Z" end-time="2026-11-05 15:52:10Z" duration="0.109939" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1144" name="各役のNONEとカテゴリrateの合計が100" fullname="BBB.Tests.WorkflowAndEnemyTests.各役のNONEとカテゴリrateの合計が100" methodname="各役のNONEとカテゴリrateの合計が100" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="2126564936" result="Passed" start-time="2026-11-05 15:52:10Z" end-time="2026-11-05 15:52:10Z" duration="0.000805" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1165" name="主人公のひとりごと_確率どおりに出て文脈に沿う" fullname="BBB.Tests.WorkflowAndEnemyTests.主人公のひとりごと_確率どおりに出て文脈に沿う" methodname="主人公のひとりごと_確率どおりに出て文脈に沿う" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="244987033" result="Passed" start-time="2026-11-05 15:52:10Z" end-time="2026-11-05 15:52:10Z" duration="0.004253" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1160" name="揃ったラインが記録される_上段_下段_斜め_チェリー段" fullname="BBB.Tests.WorkflowAndEnemyTests.揃ったラインが記録される_上段_下段_斜め_チェリー段" methodname="揃ったラインが記録される_上段_下段_斜め_チェリー段" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="720793566" result="Passed" start-time="2026-11-05 15:52:10Z" end-time="2026-11-05 15:52:10Z" duration="0.001414" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1156" name="敵Tier2テーブルの合計は65536" fullname="BBB.Tests.WorkflowAndEnemyTests.敵Tier2テーブルの合計は65536" methodname="敵Tier2テーブルの合計は65536" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="32552079" result="Passed" start-time="2026-11-05 15:52:10Z" end-time="2026-11-05 15:52:10Z" duration="0.003604" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-suite type="ParameterizedMethod" id="1151" name="敵アートは登録されたIDだけに明示解決する" fullname="BBB.Tests.WorkflowAndEnemyTests.敵アートは登録されたIDだけに明示解決する" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-11-05 15:52:10Z" end-time="2026-11-05 15:52:10Z" duration="0.003721" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1148" name="敵アートは登録されたIDだけに明示解決する(&quot;slime&quot;,&quot;Art/Enemies/slime&quot;)" fullname="BBB.Tests.WorkflowAndEnemyTests.敵アートは登録されたIDだけに明示解決する(&quot;slime&quot;,&quot;Art/Enemies/slime&quot;)" methodname="敵アートは登録されたIDだけに明示解決する" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="1438635942" result="Passed" start-time="2026-11-05 15:52:10Z" end-time="2026-11-05 15:52:10Z" duration="0.000668" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1149" name="敵アートは登録されたIDだけに明示解決する(&quot;goblin&quot;,&quot;Art/Enemies/goblin&quot;)" fullname="BBB.Tests.WorkflowAndEnemyTests.敵アートは登録されたIDだけに明示解決する(&quot;goblin&quot;,&quot;Art/Enemies/goblin&quot;)" methodname="敵アートは登録されたIDだけに明示解決する" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="866896711" result="Passed" start-time="2026-11-05 15:52:10Z" end-time="2026-11-05 15:52:10Z" duration="0.000464" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1150" name="敵アートは登録されたIDだけに明示解決する(&quot;bat&quot;,&quot;Art/Enemies/bat&quot;)" fullname="BBB.Tests.WorkflowAndEnemyTests.敵アートは登録されたIDだけに明示解決する(&quot;bat&quot;,&quot;Art/Enemies/bat&quot;)" methodname="敵アートは登録されたIDだけに明示解決する" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="1736545122" result="Passed" start-time="2026-11-05 15:52:10Z" end-time="2026-11-05 15:52:10Z" duration="0.000437" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-case id="1147" name="敵テーブルは通常16種とボス4種_スライムはVariantA" fullname="BBB.Tests.WorkflowAndEnemyTests.敵テーブルは通常16種とボス4種_スライムはVariantA" methodname="敵テーブルは通常16種とボス4種_スライムはVariantA" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="618167157" result="Passed" start-time="2026-11-05 15:52:10Z" end-time="2026-11-05 15:52:10Z" duration="0.000935" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1158" name="討伐率_CHANCEは100pct_REPLAYは10pct" fullname="BBB.Tests.WorkflowAndEnemyTests.討伐率_CHANCEは100pct_REPLAYは10pct" methodname="討伐率_CHANCEは100pct_REPLAYは10pct" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="468148314" result="Passed" start-time="2026-11-05 15:52:10Z" end-time="2026-11-05 15:52:10Z" duration="0.028277" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1166" name="討伐率_連続小役でストリークボーナス加算" fullname="BBB.Tests.WorkflowAndEnemyTests.討伐率_連続小役でストリークボーナス加算" methodname="討伐率_連続小役でストリークボーナス加算" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="2104370303" result="Passed" start-time="2026-11-05 15:52:10Z" end-time="2026-11-05 15:52:10Z" duration="0.026738" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1167" name="討伐率は基本に連続ボーナスと装備の上乗せを足し_表にない役は0" fullname="BBB.Tests.WorkflowAndEnemyTests.討伐率は基本に連続ボーナスと装備の上乗せを足し_表にない役は0" methodname="討伐率は基本に連続ボーナスと装備の上乗せを足し_表にない役は0" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="110489245" result="Passed" start-time="2026-11-05 15:52:10Z" end-time="2026-11-05 15:52:10Z" duration="0.000917" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-suite type="ParameterizedMethod" id="1155" name="未登録敵はゴブリン画像へ流用しない" fullname="BBB.Tests.WorkflowAndEnemyTests.未登録敵はゴブリン画像へ流用しない" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-11-05 15:52:10Z" end-time="2026-11-05 15:52:10Z" duration="0.003454" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1152" name="未登録敵はゴブリン画像へ流用しない(&quot;table_wolf_1&quot;)" fullname="BBB.Tests.WorkflowAndEnemyTests.未登録敵はゴブリン画像へ流用しない(&quot;table_wolf_1&quot;)" methodname="未登録敵はゴブリン画像へ流用しない" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="1303253181" result="Passed" start-time="2026-11-05 15:52:10Z" end-time="2026-11-05 15:52:10Z" duration="0.001189" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Enemy art is not registered for type 'table_wolf_1'.
+]]></output>
+              </test-case>
+              <test-case id="1153" name="未登録敵はゴブリン画像へ流用しない(&quot;unregistered&quot;)" fullname="BBB.Tests.WorkflowAndEnemyTests.未登録敵はゴブリン画像へ流用しない(&quot;unregistered&quot;)" methodname="未登録敵はゴブリン画像へ流用しない" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="249058950" result="Passed" start-time="2026-11-05 15:52:10Z" end-time="2026-11-05 15:52:10Z" duration="0.000858" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Enemy art is not registered for type 'unregistered'.
+]]></output>
+              </test-case>
+              <test-case id="1154" name="未登録敵はゴブリン画像へ流用しない(null)" fullname="BBB.Tests.WorkflowAndEnemyTests.未登録敵はゴブリン画像へ流用しない(null)" methodname="未登録敵はゴブリン画像へ流用しない" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="1176509096" result="Passed" start-time="2026-11-05 15:52:10Z" end-time="2026-11-05 15:52:10Z" duration="0.000785" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Enemy art is not registered for type '<null>'.
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-case id="1159" name="予告_ハズレのガセは低確率_チャンス目は高確率" fullname="BBB.Tests.WorkflowAndEnemyTests.予告_ハズレのガセは低確率_チャンス目は高確率" methodname="予告_ハズレのガセは低確率_チャンス目は高確率" classname="BBB.Tests.WorkflowAndEnemyTests" runstate="Runnable" seed="715625686" result="Passed" start-time="2026-11-05 15:52:10Z" end-time="2026-11-05 15:52:10Z" duration="0.024983" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Saving results to: C:/Users/ts081/AppData/LocalLow/DefaultCompany/shop-qa\TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

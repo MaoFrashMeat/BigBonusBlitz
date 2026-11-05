@@ -26,8 +26,12 @@ $manifestText = @{dependencies=$dependencies} | ConvertTo-Json -Depth 10
 [IO.File]::WriteAllText((Join-Path $qaProject 'Packages/manifest.json'),$manifestText,(New-Object Text.UTF8Encoding($false)))
 Set-Content -LiteralPath (Join-Path $qaProject '.bbb-environment-qa') -Value 'isolated environment validation copy'
 $env:ENVIRONMENT_OUTPUT=$outputDir
-$unityExecutable = 'D:/Unity/Hub/Editor/6000.3.15f1/Editor/Unity.exe'
-if(-not (Test-Path $unityExecutable)) { throw 'Unity 6000.3.15f1 is required. Update this local executable path.' }
+$unityCandidates = @(
+    'C:/Program Files/Unity/Hub/Editor/6000.3.15f1/Editor/Unity.exe',
+    'D:/Unity/Hub/Editor/6000.3.15f1/Editor/Unity.exe'
+)
+$unityExecutable = $unityCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+if(-not $unityExecutable) { throw 'Unity 6000.3.15f1 is required on this machine.' }
 $unityArgs = @('-batchmode','-quit','-projectPath',('"'+$qaProject+'"'),'-executeMethod','AdventureEnvironmentValidation.Run','-logFile',('"'+(Join-Path $outputDir 'unity.log')+'"'))
 if($Tests) {
     $unityArgs = @('-batchmode','-projectPath',('"'+$qaProject+'"'),'-runTests','-testPlatform','EditMode','-testResults',('"'+(Join-Path $outputDir 'editmode.xml')+'"'),'-logFile',('"'+(Join-Path $outputDir 'tests.log')+'"'))

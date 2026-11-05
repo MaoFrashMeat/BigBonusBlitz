@@ -1,0 +1,4968 @@
+{
+  "enemies": [
+    {
+      "id": "slime",
+      "atlas": "enemy-slime-v1",
+      "referenceHeight": 280,
+      "displayHeight": 85,
+      "shadowWidth": 80,
+      "poses": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 54,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        {
+          "x": 384,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 49,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        {
+          "x": 768,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 47,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        {
+          "x": 1152,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 38,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        {
+          "x": 0,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 128,
+          "offsetX": -285,
+          "offsetY": 28
+        },
+        {
+          "x": 384,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 96,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        {
+          "x": 768,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 96,
+          "offsetX": 12,
+          "offsetY": 0
+        },
+        {
+          "x": 1152,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 92,
+          "offsetX": 0,
+          "offsetY": 0
+        }
+      ],
+      "motions": [
+        {
+          "id": "idle",
+          "frames": [
+            0,
+            1
+          ],
+          "seconds": [
+            0.65,
+            0.65
+          ],
+          "phases": [
+            "待機",
+            "待機"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": true,
+          "hold": false,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "attack",
+          "frames": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "seconds": [
+            0.2,
+            0.22,
+            0.14,
+            0.22
+          ],
+          "phases": [
+            "予兆",
+            "予兆",
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "",
+            "windup",
+            "contact",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0,
+            0.85,
+            0
+          ]
+        },
+        {
+          "id": "hit",
+          "frames": [
+            6,
+            5
+          ],
+          "seconds": [
+            0.18,
+            0.2
+          ],
+          "phases": [
+            "被弾",
+            "復帰"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "defeat",
+          "frames": [
+            6,
+            7
+          ],
+          "seconds": [
+            0.12,
+            0.55
+          ],
+          "phases": [
+            "被弾",
+            "決着"
+          ],
+          "events": [
+            "",
+            "defeat"
+          ],
+          "loop": false,
+          "hold": true,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "frames": [
+            2,
+            3
+          ],
+          "seconds": [
+            0.2,
+            0.22
+          ],
+          "phases": [
+            "予兆",
+            "予兆"
+          ],
+          "events": [
+            "",
+            "windup"
+          ],
+          "eventAt": [
+            0,
+            0
+          ],
+          "id": "ready",
+          "loop": false,
+          "hold": true
+        },
+        {
+          "frames": [
+            4,
+            5
+          ],
+          "seconds": [
+            0.14,
+            0.22
+          ],
+          "phases": [
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "contact",
+            ""
+          ],
+          "eventAt": [
+            0.85,
+            0
+          ],
+          "id": "strike",
+          "loop": false,
+          "hold": false,
+          "next": "idle"
+        }
+      ],
+      "gameplayHeight": 85
+    },
+    {
+      "id": "goblin",
+      "atlas": "enemy-goblin-v2",
+      "referenceHeight": 280,
+      "displayHeight": 145,
+      "shadowWidth": 105,
+      "poses": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 58,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        {
+          "x": 384,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 59,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        {
+          "x": 768,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 57,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        {
+          "x": 1152,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 57,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        {
+          "x": 0,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 125,
+          "offsetX": -260,
+          "offsetY": 0
+        },
+        {
+          "x": 384,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 118,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        {
+          "x": 768,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 114,
+          "offsetX": 12,
+          "offsetY": 0
+        },
+        {
+          "x": 1152,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 114,
+          "offsetX": 0,
+          "offsetY": 0
+        }
+      ],
+      "motions": [
+        {
+          "id": "idle",
+          "frames": [
+            0,
+            1
+          ],
+          "seconds": [
+            0.65,
+            0.65
+          ],
+          "phases": [
+            "待機",
+            "待機"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": true,
+          "hold": false,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "attack",
+          "frames": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "seconds": [
+            0.27,
+            0.3,
+            0.13,
+            0.28
+          ],
+          "phases": [
+            "予兆",
+            "予兆",
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "",
+            "windup",
+            "contact",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0,
+            0.85,
+            0
+          ]
+        },
+        {
+          "id": "hit",
+          "frames": [
+            6,
+            5
+          ],
+          "seconds": [
+            0.18,
+            0.2
+          ],
+          "phases": [
+            "被弾",
+            "復帰"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "defeat",
+          "frames": [
+            6,
+            7
+          ],
+          "seconds": [
+            0.12,
+            0.55
+          ],
+          "phases": [
+            "被弾",
+            "決着"
+          ],
+          "events": [
+            "",
+            "defeat"
+          ],
+          "loop": false,
+          "hold": true,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "frames": [
+            2,
+            3
+          ],
+          "seconds": [
+            0.27,
+            0.3
+          ],
+          "phases": [
+            "予兆",
+            "予兆"
+          ],
+          "events": [
+            "",
+            "windup"
+          ],
+          "eventAt": [
+            0,
+            0
+          ],
+          "id": "ready",
+          "loop": false,
+          "hold": true
+        },
+        {
+          "frames": [
+            4,
+            5
+          ],
+          "seconds": [
+            0.13,
+            0.28
+          ],
+          "phases": [
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "contact",
+            ""
+          ],
+          "eventAt": [
+            0.85,
+            0
+          ],
+          "id": "strike",
+          "loop": false,
+          "hold": false,
+          "next": "idle"
+        }
+      ],
+      "gameplayHeight": 135
+    },
+    {
+      "id": "forest_wolf",
+      "atlas": "enemy-wolf-v1",
+      "referenceHeight": 300,
+      "displayHeight": 150,
+      "shadowWidth": 140,
+      "poses": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 408,
+          "h": 512,
+          "foot": 55,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        {
+          "x": 408,
+          "y": 0,
+          "w": 378,
+          "h": 512,
+          "foot": 55,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        {
+          "x": 786,
+          "y": 0,
+          "w": 371,
+          "h": 512,
+          "foot": 64,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        {
+          "x": 1157,
+          "y": 0,
+          "w": 379,
+          "h": 512,
+          "foot": 64,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        {
+          "x": 0,
+          "y": 512,
+          "w": 408,
+          "h": 512,
+          "foot": 191,
+          "offsetX": -245,
+          "offsetY": 24
+        },
+        {
+          "x": 408,
+          "y": 512,
+          "w": 378,
+          "h": 512,
+          "foot": 105,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        {
+          "x": 786,
+          "y": 512,
+          "w": 371,
+          "h": 512,
+          "foot": 127,
+          "offsetX": 12,
+          "offsetY": 0
+        },
+        {
+          "x": 1157,
+          "y": 512,
+          "w": 379,
+          "h": 512,
+          "foot": 114,
+          "offsetX": 0,
+          "offsetY": 0
+        }
+      ],
+      "motions": [
+        {
+          "id": "idle",
+          "frames": [
+            0,
+            1
+          ],
+          "seconds": [
+            0.65,
+            0.65
+          ],
+          "phases": [
+            "待機",
+            "待機"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": true,
+          "hold": false,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "attack",
+          "frames": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "seconds": [
+            0.14,
+            0.16,
+            0.1,
+            0.23
+          ],
+          "phases": [
+            "予兆",
+            "予兆",
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "",
+            "windup",
+            "contact",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0,
+            0.85,
+            0
+          ]
+        },
+        {
+          "id": "hit",
+          "frames": [
+            6,
+            5
+          ],
+          "seconds": [
+            0.18,
+            0.2
+          ],
+          "phases": [
+            "被弾",
+            "復帰"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "defeat",
+          "frames": [
+            6,
+            7
+          ],
+          "seconds": [
+            0.12,
+            0.55
+          ],
+          "phases": [
+            "被弾",
+            "決着"
+          ],
+          "events": [
+            "",
+            "defeat"
+          ],
+          "loop": false,
+          "hold": true,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "frames": [
+            2,
+            3
+          ],
+          "seconds": [
+            0.14,
+            0.16
+          ],
+          "phases": [
+            "予兆",
+            "予兆"
+          ],
+          "events": [
+            "",
+            "windup"
+          ],
+          "eventAt": [
+            0,
+            0
+          ],
+          "id": "ready",
+          "loop": false,
+          "hold": true
+        },
+        {
+          "frames": [
+            4,
+            5
+          ],
+          "seconds": [
+            0.1,
+            0.23
+          ],
+          "phases": [
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "contact",
+            ""
+          ],
+          "eventAt": [
+            0.85,
+            0
+          ],
+          "id": "strike",
+          "loop": false,
+          "hold": false,
+          "next": "idle"
+        }
+      ],
+      "gameplayHeight": 140
+    },
+    {
+      "id": "bat",
+      "atlas": "enemy-bat-v1",
+      "referenceHeight": 284,
+      "displayHeight": 120,
+      "shadowWidth": 65,
+      "poses": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 112,
+          "offsetX": 0,
+          "offsetY": 60
+        },
+        {
+          "x": 384,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 112,
+          "offsetX": 0,
+          "offsetY": 60
+        },
+        {
+          "x": 768,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 112,
+          "offsetX": 0,
+          "offsetY": 60
+        },
+        {
+          "x": 1152,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 112,
+          "offsetX": 0,
+          "offsetY": 60
+        },
+        {
+          "x": 0,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 112,
+          "offsetX": -245,
+          "offsetY": 24
+        },
+        {
+          "x": 384,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 112,
+          "offsetX": 0,
+          "offsetY": 60
+        },
+        {
+          "x": 768,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 112,
+          "offsetX": 12,
+          "offsetY": 60
+        },
+        {
+          "x": 1152,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 103,
+          "offsetX": 0,
+          "offsetY": 0
+        }
+      ],
+      "motions": [
+        {
+          "id": "idle",
+          "frames": [
+            0,
+            1
+          ],
+          "seconds": [
+            0.18,
+            0.18
+          ],
+          "phases": [
+            "待機",
+            "待機"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": true,
+          "hold": false,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "attack",
+          "frames": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "seconds": [
+            0.2,
+            0.22,
+            0.14,
+            0.26
+          ],
+          "phases": [
+            "予兆",
+            "予兆",
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "",
+            "windup",
+            "contact",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0,
+            0.85,
+            0
+          ]
+        },
+        {
+          "id": "hit",
+          "frames": [
+            6,
+            5
+          ],
+          "seconds": [
+            0.18,
+            0.2
+          ],
+          "phases": [
+            "被弾",
+            "復帰"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "defeat",
+          "frames": [
+            6,
+            7
+          ],
+          "seconds": [
+            0.12,
+            0.55
+          ],
+          "phases": [
+            "被弾",
+            "決着"
+          ],
+          "events": [
+            "",
+            "defeat"
+          ],
+          "loop": false,
+          "hold": true,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "frames": [
+            2,
+            3
+          ],
+          "seconds": [
+            0.2,
+            0.22
+          ],
+          "phases": [
+            "予兆",
+            "予兆"
+          ],
+          "events": [
+            "",
+            "windup"
+          ],
+          "eventAt": [
+            0,
+            0
+          ],
+          "id": "ready",
+          "loop": false,
+          "hold": true
+        },
+        {
+          "frames": [
+            4,
+            5
+          ],
+          "seconds": [
+            0.14,
+            0.26
+          ],
+          "phases": [
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "contact",
+            ""
+          ],
+          "eventAt": [
+            0.85,
+            0
+          ],
+          "id": "strike",
+          "loop": false,
+          "hold": false,
+          "next": "idle"
+        }
+      ],
+      "gameplayHeight": 120
+    },
+    {
+      "id": "lantern_moth",
+      "atlas": "enemy-moth-v1",
+      "referenceHeight": 380,
+      "displayHeight": 150,
+      "shadowWidth": 65,
+      "poses": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 82,
+          "offsetX": 0,
+          "offsetY": 45
+        },
+        {
+          "x": 384,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 82,
+          "offsetX": 0,
+          "offsetY": 45
+        },
+        {
+          "x": 768,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 82,
+          "offsetX": 0,
+          "offsetY": 45
+        },
+        {
+          "x": 1152,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 82,
+          "offsetX": 0,
+          "offsetY": 45
+        },
+        {
+          "x": 0,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 82,
+          "offsetX": -210,
+          "offsetY": 45
+        },
+        {
+          "x": 384,
+          "y": 512,
+          "w": 398,
+          "h": 512,
+          "foot": 82,
+          "offsetX": 2.763157894736842,
+          "offsetY": 45
+        },
+        {
+          "x": 782,
+          "y": 512,
+          "w": 370,
+          "h": 512,
+          "foot": 82,
+          "offsetX": 9.236842105263158,
+          "offsetY": 45
+        },
+        {
+          "x": 1152,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 66,
+          "offsetX": 0,
+          "offsetY": 0
+        }
+      ],
+      "motions": [
+        {
+          "id": "idle",
+          "frames": [
+            0,
+            1
+          ],
+          "seconds": [
+            0.24,
+            0.24
+          ],
+          "phases": [
+            "待機",
+            "待機"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": true,
+          "hold": false,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "attack",
+          "frames": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "seconds": [
+            0.32,
+            0.38,
+            0.18,
+            0.3
+          ],
+          "phases": [
+            "予兆",
+            "予兆",
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "",
+            "windup",
+            "contact",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0,
+            0.85,
+            0
+          ]
+        },
+        {
+          "id": "hit",
+          "frames": [
+            6,
+            5
+          ],
+          "seconds": [
+            0.18,
+            0.2
+          ],
+          "phases": [
+            "被弾",
+            "復帰"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "defeat",
+          "frames": [
+            6,
+            7
+          ],
+          "seconds": [
+            0.12,
+            0.55
+          ],
+          "phases": [
+            "被弾",
+            "決着"
+          ],
+          "events": [
+            "",
+            "defeat"
+          ],
+          "loop": false,
+          "hold": true,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "frames": [
+            2,
+            3
+          ],
+          "seconds": [
+            0.32,
+            0.38
+          ],
+          "phases": [
+            "予兆",
+            "予兆"
+          ],
+          "events": [
+            "",
+            "windup"
+          ],
+          "eventAt": [
+            0,
+            0
+          ],
+          "id": "ready",
+          "loop": false,
+          "hold": true
+        },
+        {
+          "frames": [
+            4,
+            5
+          ],
+          "seconds": [
+            0.18,
+            0.3
+          ],
+          "phases": [
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "contact",
+            ""
+          ],
+          "eventAt": [
+            0.85,
+            0
+          ],
+          "id": "strike",
+          "loop": false,
+          "hold": false,
+          "next": "idle"
+        }
+      ],
+      "gameplayHeight": 150
+    },
+    {
+      "id": "boar",
+      "atlas": "enemy-boar-v1",
+      "referenceHeight": 264,
+      "displayHeight": 145,
+      "shadowWidth": 90,
+      "poses": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 111,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 384,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 111,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 768,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 112,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 1152,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 111,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 0,
+          "y": 512,
+          "w": 397,
+          "h": 512,
+          "foot": 132,
+          "offsetX": -216.42992424242425,
+          "offsetY": 0
+        },
+        {
+          "x": 397,
+          "y": 512,
+          "w": 371,
+          "h": 512,
+          "foot": 123,
+          "offsetX": 3.570075757575758,
+          "offsetY": 0
+        },
+        {
+          "x": 768,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 123,
+          "offsetX": 12.0,
+          "offsetY": 0
+        },
+        {
+          "x": 1152,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 117,
+          "offsetX": 0.0,
+          "offsetY": 0
+        }
+      ],
+      "motions": [
+        {
+          "id": "idle",
+          "frames": [
+            0,
+            1
+          ],
+          "seconds": [
+            0.32,
+            0.32
+          ],
+          "phases": [
+            "待機",
+            "待機"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": true,
+          "hold": false,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "attack",
+          "frames": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "seconds": [
+            0.28,
+            0.32,
+            0.14,
+            0.3
+          ],
+          "phases": [
+            "予兆",
+            "予兆",
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "",
+            "windup",
+            "contact",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0,
+            0.85,
+            0
+          ]
+        },
+        {
+          "id": "hit",
+          "frames": [
+            6,
+            5
+          ],
+          "seconds": [
+            0.18,
+            0.3
+          ],
+          "phases": [
+            "被弾",
+            "復帰"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "defeat",
+          "frames": [
+            6,
+            7
+          ],
+          "seconds": [
+            0.12,
+            0.55
+          ],
+          "phases": [
+            "被弾",
+            "決着"
+          ],
+          "events": [
+            "",
+            "defeat"
+          ],
+          "loop": false,
+          "hold": true,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "frames": [
+            2,
+            3
+          ],
+          "seconds": [
+            0.28,
+            0.32
+          ],
+          "phases": [
+            "予兆",
+            "予兆"
+          ],
+          "events": [
+            "",
+            "windup"
+          ],
+          "eventAt": [
+            0,
+            0
+          ],
+          "id": "ready",
+          "loop": false,
+          "hold": true
+        },
+        {
+          "frames": [
+            4,
+            5
+          ],
+          "seconds": [
+            0.14,
+            0.3
+          ],
+          "phases": [
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "contact",
+            ""
+          ],
+          "eventAt": [
+            0.85,
+            0
+          ],
+          "id": "strike",
+          "loop": false,
+          "hold": false,
+          "next": "idle"
+        }
+      ],
+      "gameplayHeight": 145
+    },
+    {
+      "id": "vine",
+      "atlas": "enemy-vine-v1",
+      "referenceHeight": 276,
+      "displayHeight": 175,
+      "shadowWidth": 90,
+      "poses": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 81,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 384,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 82,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 768,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 82,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 1152,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 82,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 0,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 86,
+          "offsetX": -220.0,
+          "offsetY": 0
+        },
+        {
+          "x": 384,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 85,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 768,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 85,
+          "offsetX": 12.0,
+          "offsetY": 0
+        },
+        {
+          "x": 1152,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 88,
+          "offsetX": 0.0,
+          "offsetY": 0
+        }
+      ],
+      "motions": [
+        {
+          "id": "idle",
+          "frames": [
+            0,
+            1
+          ],
+          "seconds": [
+            0.32,
+            0.32
+          ],
+          "phases": [
+            "待機",
+            "待機"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": true,
+          "hold": false,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "attack",
+          "frames": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "seconds": [
+            0.3,
+            0.34,
+            0.18,
+            0.28
+          ],
+          "phases": [
+            "予兆",
+            "予兆",
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "",
+            "windup",
+            "contact",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0,
+            0.85,
+            0
+          ]
+        },
+        {
+          "id": "hit",
+          "frames": [
+            6,
+            5
+          ],
+          "seconds": [
+            0.18,
+            0.28
+          ],
+          "phases": [
+            "被弾",
+            "復帰"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "defeat",
+          "frames": [
+            6,
+            7
+          ],
+          "seconds": [
+            0.12,
+            0.55
+          ],
+          "phases": [
+            "被弾",
+            "決着"
+          ],
+          "events": [
+            "",
+            "defeat"
+          ],
+          "loop": false,
+          "hold": true,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "frames": [
+            2,
+            3
+          ],
+          "seconds": [
+            0.3,
+            0.34
+          ],
+          "phases": [
+            "予兆",
+            "予兆"
+          ],
+          "events": [
+            "",
+            "windup"
+          ],
+          "eventAt": [
+            0,
+            0
+          ],
+          "id": "ready",
+          "loop": false,
+          "hold": true
+        },
+        {
+          "frames": [
+            4,
+            5
+          ],
+          "seconds": [
+            0.18,
+            0.28
+          ],
+          "phases": [
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "contact",
+            ""
+          ],
+          "eventAt": [
+            0.85,
+            0
+          ],
+          "id": "strike",
+          "loop": false,
+          "hold": false,
+          "next": "idle"
+        }
+      ],
+      "gameplayHeight": 175
+    },
+    {
+      "id": "beetle",
+      "atlas": "enemy-beetle-v1",
+      "referenceHeight": 211,
+      "displayHeight": 120,
+      "shadowWidth": 90,
+      "poses": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 132,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 384,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 132,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 768,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 132,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 1152,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 132,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 0,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 136,
+          "offsetX": -220.0,
+          "offsetY": 0
+        },
+        {
+          "x": 384,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 133,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 768,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 134,
+          "offsetX": 12.0,
+          "offsetY": 0
+        },
+        {
+          "x": 1152,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 135,
+          "offsetX": 0.0,
+          "offsetY": 0
+        }
+      ],
+      "motions": [
+        {
+          "id": "idle",
+          "frames": [
+            0,
+            1
+          ],
+          "seconds": [
+            0.32,
+            0.32
+          ],
+          "phases": [
+            "待機",
+            "待機"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": true,
+          "hold": false,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "attack",
+          "frames": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "seconds": [
+            0.32,
+            0.36,
+            0.16,
+            0.32
+          ],
+          "phases": [
+            "予兆",
+            "予兆",
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "",
+            "windup",
+            "contact",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0,
+            0.85,
+            0
+          ]
+        },
+        {
+          "id": "hit",
+          "frames": [
+            6,
+            5
+          ],
+          "seconds": [
+            0.18,
+            0.32
+          ],
+          "phases": [
+            "被弾",
+            "復帰"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "defeat",
+          "frames": [
+            6,
+            7
+          ],
+          "seconds": [
+            0.12,
+            0.55
+          ],
+          "phases": [
+            "被弾",
+            "決着"
+          ],
+          "events": [
+            "",
+            "defeat"
+          ],
+          "loop": false,
+          "hold": true,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "frames": [
+            2,
+            3
+          ],
+          "seconds": [
+            0.32,
+            0.36
+          ],
+          "phases": [
+            "予兆",
+            "予兆"
+          ],
+          "events": [
+            "",
+            "windup"
+          ],
+          "eventAt": [
+            0,
+            0
+          ],
+          "id": "ready",
+          "loop": false,
+          "hold": true
+        },
+        {
+          "frames": [
+            4,
+            5
+          ],
+          "seconds": [
+            0.16,
+            0.32
+          ],
+          "phases": [
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "contact",
+            ""
+          ],
+          "eventAt": [
+            0.85,
+            0
+          ],
+          "id": "strike",
+          "loop": false,
+          "hold": false,
+          "next": "idle"
+        }
+      ],
+      "gameplayHeight": 120
+    },
+    {
+      "id": "wisp",
+      "atlas": "enemy-wisp-v1",
+      "referenceHeight": 420,
+      "displayHeight": 155,
+      "shadowWidth": 90,
+      "poses": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 100,
+          "offsetX": 0.0,
+          "offsetY": 45
+        },
+        {
+          "x": 384,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 100,
+          "offsetX": 0.0,
+          "offsetY": 45
+        },
+        {
+          "x": 768,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 100,
+          "offsetX": 0.0,
+          "offsetY": 45
+        },
+        {
+          "x": 1152,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 100,
+          "offsetX": 0.0,
+          "offsetY": 45
+        },
+        {
+          "x": 0,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 100,
+          "offsetX": -220.0,
+          "offsetY": 45
+        },
+        {
+          "x": 384,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 100,
+          "offsetX": 0.0,
+          "offsetY": 45
+        },
+        {
+          "x": 768,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 100,
+          "offsetX": 12.0,
+          "offsetY": 45
+        },
+        {
+          "x": 1152,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 96,
+          "offsetX": 0.0,
+          "offsetY": 0
+        }
+      ],
+      "motions": [
+        {
+          "id": "idle",
+          "frames": [
+            0,
+            1
+          ],
+          "seconds": [
+            0.32,
+            0.32
+          ],
+          "phases": [
+            "待機",
+            "待機"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": true,
+          "hold": false,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "attack",
+          "frames": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "seconds": [
+            0.2,
+            0.28,
+            0.15,
+            0.25
+          ],
+          "phases": [
+            "予兆",
+            "予兆",
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "",
+            "windup",
+            "contact",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0,
+            0.85,
+            0
+          ]
+        },
+        {
+          "id": "hit",
+          "frames": [
+            6,
+            5
+          ],
+          "seconds": [
+            0.18,
+            0.25
+          ],
+          "phases": [
+            "被弾",
+            "復帰"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "defeat",
+          "frames": [
+            6,
+            7
+          ],
+          "seconds": [
+            0.12,
+            0.55
+          ],
+          "phases": [
+            "被弾",
+            "決着"
+          ],
+          "events": [
+            "",
+            "defeat"
+          ],
+          "loop": false,
+          "hold": true,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "frames": [
+            2,
+            3
+          ],
+          "seconds": [
+            0.2,
+            0.28
+          ],
+          "phases": [
+            "予兆",
+            "予兆"
+          ],
+          "events": [
+            "",
+            "windup"
+          ],
+          "eventAt": [
+            0,
+            0
+          ],
+          "id": "ready",
+          "loop": false,
+          "hold": true
+        },
+        {
+          "frames": [
+            4,
+            5
+          ],
+          "seconds": [
+            0.15,
+            0.25
+          ],
+          "phases": [
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "contact",
+            ""
+          ],
+          "eventAt": [
+            0.85,
+            0
+          ],
+          "id": "strike",
+          "loop": false,
+          "hold": false,
+          "next": "idle"
+        }
+      ],
+      "gameplayHeight": 155
+    },
+    {
+      "id": "miner",
+      "atlas": "enemy-miner-v1",
+      "referenceHeight": 305,
+      "displayHeight": 180,
+      "shadowWidth": 90,
+      "poses": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 72,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 384,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 72,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 768,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 72,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 1152,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 72,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 0,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 87,
+          "offsetX": -220.0,
+          "offsetY": 0
+        },
+        {
+          "x": 384,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 87,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 768,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 87,
+          "offsetX": 12.0,
+          "offsetY": 0
+        },
+        {
+          "x": 1152,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 87,
+          "offsetX": 0.0,
+          "offsetY": 0
+        }
+      ],
+      "motions": [
+        {
+          "id": "idle",
+          "frames": [
+            0,
+            1
+          ],
+          "seconds": [
+            0.32,
+            0.32
+          ],
+          "phases": [
+            "待機",
+            "待機"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": true,
+          "hold": false,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "attack",
+          "frames": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "seconds": [
+            0.28,
+            0.36,
+            0.17,
+            0.3
+          ],
+          "phases": [
+            "予兆",
+            "予兆",
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "",
+            "windup",
+            "contact",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0,
+            0.85,
+            0
+          ]
+        },
+        {
+          "id": "hit",
+          "frames": [
+            6,
+            5
+          ],
+          "seconds": [
+            0.18,
+            0.3
+          ],
+          "phases": [
+            "被弾",
+            "復帰"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "defeat",
+          "frames": [
+            6,
+            7
+          ],
+          "seconds": [
+            0.12,
+            0.55
+          ],
+          "phases": [
+            "被弾",
+            "決着"
+          ],
+          "events": [
+            "",
+            "defeat"
+          ],
+          "loop": false,
+          "hold": true,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "frames": [
+            2,
+            3
+          ],
+          "seconds": [
+            0.28,
+            0.36
+          ],
+          "phases": [
+            "予兆",
+            "予兆"
+          ],
+          "events": [
+            "",
+            "windup"
+          ],
+          "eventAt": [
+            0,
+            0
+          ],
+          "id": "ready",
+          "loop": false,
+          "hold": true
+        },
+        {
+          "frames": [
+            4,
+            5
+          ],
+          "seconds": [
+            0.17,
+            0.3
+          ],
+          "phases": [
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "contact",
+            ""
+          ],
+          "eventAt": [
+            0.85,
+            0
+          ],
+          "id": "strike",
+          "loop": false,
+          "hold": false,
+          "next": "idle"
+        }
+      ],
+      "gameplayHeight": 180
+    },
+    {
+      "id": "crystal",
+      "atlas": "enemy-crystal-v1",
+      "referenceHeight": 350,
+      "displayHeight": 195,
+      "shadowWidth": 90,
+      "poses": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 96,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 384,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 96,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 768,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 96,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 1152,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 96,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 0,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 99,
+          "offsetX": -220.0,
+          "offsetY": 0
+        },
+        {
+          "x": 384,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 98,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 768,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 98,
+          "offsetX": 12.0,
+          "offsetY": 0
+        },
+        {
+          "x": 1152,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 99,
+          "offsetX": 0.0,
+          "offsetY": 0
+        }
+      ],
+      "motions": [
+        {
+          "id": "idle",
+          "frames": [
+            0,
+            1
+          ],
+          "seconds": [
+            0.32,
+            0.32
+          ],
+          "phases": [
+            "待機",
+            "待機"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": true,
+          "hold": false,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "attack",
+          "frames": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "seconds": [
+            0.22,
+            0.26,
+            0.13,
+            0.24
+          ],
+          "phases": [
+            "予兆",
+            "予兆",
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "",
+            "windup",
+            "contact",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0,
+            0.85,
+            0
+          ]
+        },
+        {
+          "id": "hit",
+          "frames": [
+            6,
+            5
+          ],
+          "seconds": [
+            0.18,
+            0.24
+          ],
+          "phases": [
+            "被弾",
+            "復帰"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "defeat",
+          "frames": [
+            6,
+            7
+          ],
+          "seconds": [
+            0.12,
+            0.55
+          ],
+          "phases": [
+            "被弾",
+            "決着"
+          ],
+          "events": [
+            "",
+            "defeat"
+          ],
+          "loop": false,
+          "hold": true,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "frames": [
+            2,
+            3
+          ],
+          "seconds": [
+            0.22,
+            0.26
+          ],
+          "phases": [
+            "予兆",
+            "予兆"
+          ],
+          "events": [
+            "",
+            "windup"
+          ],
+          "eventAt": [
+            0,
+            0
+          ],
+          "id": "ready",
+          "loop": false,
+          "hold": true
+        },
+        {
+          "frames": [
+            4,
+            5
+          ],
+          "seconds": [
+            0.13,
+            0.24
+          ],
+          "phases": [
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "contact",
+            ""
+          ],
+          "eventAt": [
+            0.85,
+            0
+          ],
+          "id": "strike",
+          "loop": false,
+          "hold": false,
+          "next": "idle"
+        }
+      ],
+      "gameplayHeight": 195
+    },
+    {
+      "id": "book",
+      "atlas": "enemy-book-v1",
+      "referenceHeight": 252,
+      "displayHeight": 140,
+      "shadowWidth": 90,
+      "poses": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 100,
+          "offsetX": 0.0,
+          "offsetY": 45
+        },
+        {
+          "x": 384,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 100,
+          "offsetX": 0.0,
+          "offsetY": 45
+        },
+        {
+          "x": 768,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 100,
+          "offsetX": 0.0,
+          "offsetY": 45
+        },
+        {
+          "x": 1152,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 100,
+          "offsetX": 0.0,
+          "offsetY": 45
+        },
+        {
+          "x": 0,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 100,
+          "offsetX": -220.0,
+          "offsetY": 45
+        },
+        {
+          "x": 384,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 100,
+          "offsetX": 0.0,
+          "offsetY": 45
+        },
+        {
+          "x": 768,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 100,
+          "offsetX": 12.0,
+          "offsetY": 45
+        },
+        {
+          "x": 1152,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 95,
+          "offsetX": 0.0,
+          "offsetY": 0
+        }
+      ],
+      "motions": [
+        {
+          "id": "idle",
+          "frames": [
+            0,
+            1
+          ],
+          "seconds": [
+            0.32,
+            0.32
+          ],
+          "phases": [
+            "待機",
+            "待機"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": true,
+          "hold": false,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "attack",
+          "frames": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "seconds": [
+            0.34,
+            0.4,
+            0.22,
+            0.3
+          ],
+          "phases": [
+            "予兆",
+            "予兆",
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "",
+            "windup",
+            "contact",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0,
+            0.85,
+            0
+          ]
+        },
+        {
+          "id": "hit",
+          "frames": [
+            6,
+            5
+          ],
+          "seconds": [
+            0.18,
+            0.3
+          ],
+          "phases": [
+            "被弾",
+            "復帰"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "defeat",
+          "frames": [
+            6,
+            7
+          ],
+          "seconds": [
+            0.12,
+            0.55
+          ],
+          "phases": [
+            "被弾",
+            "決着"
+          ],
+          "events": [
+            "",
+            "defeat"
+          ],
+          "loop": false,
+          "hold": true,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "frames": [
+            2,
+            3
+          ],
+          "seconds": [
+            0.34,
+            0.4
+          ],
+          "phases": [
+            "予兆",
+            "予兆"
+          ],
+          "events": [
+            "",
+            "windup"
+          ],
+          "eventAt": [
+            0,
+            0
+          ],
+          "id": "ready",
+          "loop": false,
+          "hold": true
+        },
+        {
+          "frames": [
+            4,
+            5
+          ],
+          "seconds": [
+            0.22,
+            0.3
+          ],
+          "phases": [
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "contact",
+            ""
+          ],
+          "eventAt": [
+            0.85,
+            0
+          ],
+          "id": "strike",
+          "loop": false,
+          "hold": false,
+          "next": "idle"
+        }
+      ],
+      "gameplayHeight": 140
+    },
+    {
+      "id": "gargoyle",
+      "atlas": "enemy-gargoyle-v1",
+      "referenceHeight": 220,
+      "displayHeight": 165,
+      "shadowWidth": 90,
+      "poses": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 98,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 384,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 96,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 768,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 96,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 1152,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 96,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 0,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 103,
+          "offsetX": -220.0,
+          "offsetY": 0
+        },
+        {
+          "x": 384,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 100,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 768,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 102,
+          "offsetX": 12.0,
+          "offsetY": 0
+        },
+        {
+          "x": 1152,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 97,
+          "offsetX": 0.0,
+          "offsetY": 0
+        }
+      ],
+      "motions": [
+        {
+          "id": "idle",
+          "frames": [
+            0,
+            1
+          ],
+          "seconds": [
+            0.32,
+            0.32
+          ],
+          "phases": [
+            "待機",
+            "待機"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": true,
+          "hold": false,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "attack",
+          "frames": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "seconds": [
+            0.32,
+            0.38,
+            0.18,
+            0.34
+          ],
+          "phases": [
+            "予兆",
+            "予兆",
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "",
+            "windup",
+            "contact",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0,
+            0.85,
+            0
+          ]
+        },
+        {
+          "id": "hit",
+          "frames": [
+            6,
+            5
+          ],
+          "seconds": [
+            0.18,
+            0.34
+          ],
+          "phases": [
+            "被弾",
+            "復帰"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "defeat",
+          "frames": [
+            6,
+            7
+          ],
+          "seconds": [
+            0.12,
+            0.55
+          ],
+          "phases": [
+            "被弾",
+            "決着"
+          ],
+          "events": [
+            "",
+            "defeat"
+          ],
+          "loop": false,
+          "hold": true,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "frames": [
+            2,
+            3
+          ],
+          "seconds": [
+            0.32,
+            0.38
+          ],
+          "phases": [
+            "予兆",
+            "予兆"
+          ],
+          "events": [
+            "",
+            "windup"
+          ],
+          "eventAt": [
+            0,
+            0
+          ],
+          "id": "ready",
+          "loop": false,
+          "hold": true
+        },
+        {
+          "frames": [
+            4,
+            5
+          ],
+          "seconds": [
+            0.18,
+            0.34
+          ],
+          "phases": [
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "contact",
+            ""
+          ],
+          "eventAt": [
+            0.85,
+            0
+          ],
+          "id": "strike",
+          "loop": false,
+          "hold": false,
+          "next": "idle"
+        }
+      ],
+      "gameplayHeight": 165
+    },
+    {
+      "id": "sentinel",
+      "atlas": "enemy-sentinel-v1",
+      "referenceHeight": 408,
+      "displayHeight": 205,
+      "shadowWidth": 90,
+      "poses": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 78,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 384,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 78,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 768,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 78,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 1152,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 78,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 0,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 99,
+          "offsetX": -220.0,
+          "offsetY": 0
+        },
+        {
+          "x": 384,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 99,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 768,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 96,
+          "offsetX": 12.0,
+          "offsetY": 0
+        },
+        {
+          "x": 1152,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 74,
+          "offsetX": 0.0,
+          "offsetY": 0
+        }
+      ],
+      "motions": [
+        {
+          "id": "idle",
+          "frames": [
+            0,
+            1
+          ],
+          "seconds": [
+            0.32,
+            0.32
+          ],
+          "phases": [
+            "待機",
+            "待機"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": true,
+          "hold": false,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "attack",
+          "frames": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "seconds": [
+            0.24,
+            0.3,
+            0.16,
+            0.28
+          ],
+          "phases": [
+            "予兆",
+            "予兆",
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "",
+            "windup",
+            "contact",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0,
+            0.85,
+            0
+          ]
+        },
+        {
+          "id": "hit",
+          "frames": [
+            6,
+            5
+          ],
+          "seconds": [
+            0.18,
+            0.28
+          ],
+          "phases": [
+            "被弾",
+            "復帰"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "defeat",
+          "frames": [
+            6,
+            7
+          ],
+          "seconds": [
+            0.12,
+            0.55
+          ],
+          "phases": [
+            "被弾",
+            "決着"
+          ],
+          "events": [
+            "",
+            "defeat"
+          ],
+          "loop": false,
+          "hold": true,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "frames": [
+            2,
+            3
+          ],
+          "seconds": [
+            0.24,
+            0.3
+          ],
+          "phases": [
+            "予兆",
+            "予兆"
+          ],
+          "events": [
+            "",
+            "windup"
+          ],
+          "eventAt": [
+            0,
+            0
+          ],
+          "id": "ready",
+          "loop": false,
+          "hold": true
+        },
+        {
+          "frames": [
+            4,
+            5
+          ],
+          "seconds": [
+            0.16,
+            0.28
+          ],
+          "phases": [
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "contact",
+            ""
+          ],
+          "eventAt": [
+            0.85,
+            0
+          ],
+          "id": "strike",
+          "loop": false,
+          "hold": false,
+          "next": "idle"
+        }
+      ],
+      "gameplayHeight": 205
+    },
+    {
+      "id": "salamander",
+      "atlas": "enemy-salamander-v1",
+      "referenceHeight": 156,
+      "displayHeight": 100,
+      "shadowWidth": 90,
+      "poses": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 136,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 384,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 136,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 768,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 136,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 1152,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 136,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 0,
+          "y": 512,
+          "w": 400,
+          "h": 512,
+          "foot": 139,
+          "offsetX": -214.87179487179486,
+          "offsetY": 0
+        },
+        {
+          "x": 400,
+          "y": 512,
+          "w": 368,
+          "h": 512,
+          "foot": 139,
+          "offsetX": 5.128205128205129,
+          "offsetY": 0
+        },
+        {
+          "x": 768,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 143,
+          "offsetX": 12.0,
+          "offsetY": 0
+        },
+        {
+          "x": 1152,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 139,
+          "offsetX": 0.0,
+          "offsetY": 0
+        }
+      ],
+      "motions": [
+        {
+          "id": "idle",
+          "frames": [
+            0,
+            1
+          ],
+          "seconds": [
+            0.32,
+            0.32
+          ],
+          "phases": [
+            "待機",
+            "待機"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": true,
+          "hold": false,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "attack",
+          "frames": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "seconds": [
+            0.24,
+            0.3,
+            0.18,
+            0.26
+          ],
+          "phases": [
+            "予兆",
+            "予兆",
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "",
+            "windup",
+            "contact",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0,
+            0.85,
+            0
+          ]
+        },
+        {
+          "id": "hit",
+          "frames": [
+            6,
+            5
+          ],
+          "seconds": [
+            0.18,
+            0.26
+          ],
+          "phases": [
+            "被弾",
+            "復帰"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "defeat",
+          "frames": [
+            6,
+            7
+          ],
+          "seconds": [
+            0.12,
+            0.55
+          ],
+          "phases": [
+            "被弾",
+            "決着"
+          ],
+          "events": [
+            "",
+            "defeat"
+          ],
+          "loop": false,
+          "hold": true,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "frames": [
+            2,
+            3
+          ],
+          "seconds": [
+            0.24,
+            0.3
+          ],
+          "phases": [
+            "予兆",
+            "予兆"
+          ],
+          "events": [
+            "",
+            "windup"
+          ],
+          "eventAt": [
+            0,
+            0
+          ],
+          "id": "ready",
+          "loop": false,
+          "hold": true
+        },
+        {
+          "frames": [
+            4,
+            5
+          ],
+          "seconds": [
+            0.18,
+            0.26
+          ],
+          "phases": [
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "contact",
+            ""
+          ],
+          "eventAt": [
+            0.85,
+            0
+          ],
+          "id": "strike",
+          "loop": false,
+          "hold": false,
+          "next": "idle"
+        }
+      ],
+      "gameplayHeight": 100
+    },
+    {
+      "id": "bone",
+      "atlas": "enemy-bone-v1",
+      "referenceHeight": 349,
+      "displayHeight": 175,
+      "shadowWidth": 90,
+      "poses": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 100,
+          "offsetX": 0.0,
+          "offsetY": 65
+        },
+        {
+          "x": 384,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 100,
+          "offsetX": 0.0,
+          "offsetY": 65
+        },
+        {
+          "x": 768,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 100,
+          "offsetX": 0.0,
+          "offsetY": 65
+        },
+        {
+          "x": 1152,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 100,
+          "offsetX": 0.0,
+          "offsetY": 65
+        },
+        {
+          "x": 0,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 100,
+          "offsetX": -220.0,
+          "offsetY": 65
+        },
+        {
+          "x": 384,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 100,
+          "offsetX": 0.0,
+          "offsetY": 65
+        },
+        {
+          "x": 768,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 100,
+          "offsetX": 12.0,
+          "offsetY": 65
+        },
+        {
+          "x": 1152,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 92,
+          "offsetX": 0.0,
+          "offsetY": 0
+        }
+      ],
+      "motions": [
+        {
+          "id": "idle",
+          "frames": [
+            0,
+            1
+          ],
+          "seconds": [
+            0.32,
+            0.32
+          ],
+          "phases": [
+            "待機",
+            "待機"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": true,
+          "hold": false,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "attack",
+          "frames": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "seconds": [
+            0.2,
+            0.26,
+            0.14,
+            0.24
+          ],
+          "phases": [
+            "予兆",
+            "予兆",
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "",
+            "windup",
+            "contact",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0,
+            0.85,
+            0
+          ]
+        },
+        {
+          "id": "hit",
+          "frames": [
+            6,
+            5
+          ],
+          "seconds": [
+            0.18,
+            0.24
+          ],
+          "phases": [
+            "被弾",
+            "復帰"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "defeat",
+          "frames": [
+            6,
+            7
+          ],
+          "seconds": [
+            0.12,
+            0.55
+          ],
+          "phases": [
+            "被弾",
+            "決着"
+          ],
+          "events": [
+            "",
+            "defeat"
+          ],
+          "loop": false,
+          "hold": true,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "frames": [
+            2,
+            3
+          ],
+          "seconds": [
+            0.2,
+            0.26
+          ],
+          "phases": [
+            "予兆",
+            "予兆"
+          ],
+          "events": [
+            "",
+            "windup"
+          ],
+          "eventAt": [
+            0,
+            0
+          ],
+          "id": "ready",
+          "loop": false,
+          "hold": true
+        },
+        {
+          "frames": [
+            4,
+            5
+          ],
+          "seconds": [
+            0.14,
+            0.24
+          ],
+          "phases": [
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "contact",
+            ""
+          ],
+          "eventAt": [
+            0.85,
+            0
+          ],
+          "id": "strike",
+          "loop": false,
+          "hold": false,
+          "next": "idle"
+        }
+      ],
+      "gameplayHeight": 175
+    },
+    {
+      "id": "boss_ogre",
+      "atlas": "enemy-ogre-v1",
+      "referenceHeight": 346,
+      "displayHeight": 175,
+      "shadowWidth": 125,
+      "poses": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 52,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 384,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 52,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 768,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 51,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 1152,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 51,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 0,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 66,
+          "offsetX": -220.0,
+          "offsetY": 0
+        },
+        {
+          "x": 384,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 66,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 768,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 67,
+          "offsetX": 12.0,
+          "offsetY": 0
+        },
+        {
+          "x": 1152,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 68,
+          "offsetX": 0.0,
+          "offsetY": 0
+        }
+      ],
+      "motions": [
+        {
+          "id": "idle",
+          "frames": [
+            0,
+            1
+          ],
+          "seconds": [
+            0.32,
+            0.32
+          ],
+          "phases": [
+            "待機",
+            "待機"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": true,
+          "hold": false,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "attack",
+          "frames": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "seconds": [
+            0.4,
+            0.5,
+            0.2,
+            0.38
+          ],
+          "phases": [
+            "予兆",
+            "予兆",
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "",
+            "windup",
+            "contact",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0,
+            0.85,
+            0
+          ]
+        },
+        {
+          "id": "hit",
+          "frames": [
+            6,
+            5
+          ],
+          "seconds": [
+            0.18,
+            0.38
+          ],
+          "phases": [
+            "被弾",
+            "復帰"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "defeat",
+          "frames": [
+            6,
+            7
+          ],
+          "seconds": [
+            0.12,
+            0.55
+          ],
+          "phases": [
+            "被弾",
+            "決着"
+          ],
+          "events": [
+            "",
+            "defeat"
+          ],
+          "loop": false,
+          "hold": true,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "frames": [
+            2,
+            3
+          ],
+          "seconds": [
+            0.4,
+            0.5
+          ],
+          "phases": [
+            "予兆",
+            "予兆"
+          ],
+          "events": [
+            "",
+            "windup"
+          ],
+          "eventAt": [
+            0,
+            0
+          ],
+          "id": "ready",
+          "loop": false,
+          "hold": true
+        },
+        {
+          "frames": [
+            4,
+            5
+          ],
+          "seconds": [
+            0.2,
+            0.38
+          ],
+          "phases": [
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "contact",
+            ""
+          ],
+          "eventAt": [
+            0.85,
+            0
+          ],
+          "id": "strike",
+          "loop": false,
+          "hold": false,
+          "next": "idle"
+        }
+      ],
+      "gameplayHeight": 175
+    },
+    {
+      "id": "boss_wyvern",
+      "atlas": "enemy-wyvern-v1",
+      "referenceHeight": 297,
+      "displayHeight": 145,
+      "shadowWidth": 125,
+      "poses": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 98,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 384,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 97,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 768,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 97,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 1152,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 95,
+          "offsetX": 0.0,
+          "offsetY": 20
+        },
+        {
+          "x": 0,
+          "y": 512,
+          "w": 396,
+          "h": 512,
+          "foot": 132,
+          "offsetX": -217.07070707070707,
+          "offsetY": 0
+        },
+        {
+          "x": 396,
+          "y": 512,
+          "w": 372,
+          "h": 512,
+          "foot": 121,
+          "offsetX": 2.9292929292929295,
+          "offsetY": 0
+        },
+        {
+          "x": 768,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 121,
+          "offsetX": 12.0,
+          "offsetY": 0
+        },
+        {
+          "x": 1152,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 127,
+          "offsetX": 0.0,
+          "offsetY": 0
+        }
+      ],
+      "motions": [
+        {
+          "id": "idle",
+          "frames": [
+            0,
+            1
+          ],
+          "seconds": [
+            0.32,
+            0.32
+          ],
+          "phases": [
+            "待機",
+            "待機"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": true,
+          "hold": false,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "attack",
+          "frames": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "seconds": [
+            0.36,
+            0.48,
+            0.18,
+            0.36
+          ],
+          "phases": [
+            "予兆",
+            "予兆",
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "",
+            "windup",
+            "contact",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0,
+            0.85,
+            0
+          ]
+        },
+        {
+          "id": "hit",
+          "frames": [
+            6,
+            5
+          ],
+          "seconds": [
+            0.18,
+            0.36
+          ],
+          "phases": [
+            "被弾",
+            "復帰"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "defeat",
+          "frames": [
+            6,
+            7
+          ],
+          "seconds": [
+            0.12,
+            0.55
+          ],
+          "phases": [
+            "被弾",
+            "決着"
+          ],
+          "events": [
+            "",
+            "defeat"
+          ],
+          "loop": false,
+          "hold": true,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "frames": [
+            2,
+            3
+          ],
+          "seconds": [
+            0.36,
+            0.48
+          ],
+          "phases": [
+            "予兆",
+            "予兆"
+          ],
+          "events": [
+            "",
+            "windup"
+          ],
+          "eventAt": [
+            0,
+            0
+          ],
+          "id": "ready",
+          "loop": false,
+          "hold": true
+        },
+        {
+          "frames": [
+            4,
+            5
+          ],
+          "seconds": [
+            0.18,
+            0.36
+          ],
+          "phases": [
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "contact",
+            ""
+          ],
+          "eventAt": [
+            0.85,
+            0
+          ],
+          "id": "strike",
+          "loop": false,
+          "hold": false,
+          "next": "idle"
+        }
+      ],
+      "gameplayHeight": 145
+    },
+    {
+      "id": "boss_slimeking",
+      "atlas": "enemy-slimeking-v1",
+      "referenceHeight": 230,
+      "displayHeight": 155,
+      "shadowWidth": 125,
+      "poses": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 109,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 384,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 106,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 768,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 105,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 1152,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 107,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 0,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 127,
+          "offsetX": -220.0,
+          "offsetY": 0
+        },
+        {
+          "x": 384,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 126,
+          "offsetX": 0.0,
+          "offsetY": 0
+        },
+        {
+          "x": 768,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 127,
+          "offsetX": 12.0,
+          "offsetY": 0
+        },
+        {
+          "x": 1152,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 127,
+          "offsetX": 0.0,
+          "offsetY": 0
+        }
+      ],
+      "motions": [
+        {
+          "id": "idle",
+          "frames": [
+            0,
+            1
+          ],
+          "seconds": [
+            0.32,
+            0.32
+          ],
+          "phases": [
+            "待機",
+            "待機"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": true,
+          "hold": false,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "attack",
+          "frames": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "seconds": [
+            0.38,
+            0.44,
+            0.2,
+            0.36
+          ],
+          "phases": [
+            "予兆",
+            "予兆",
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "",
+            "windup",
+            "contact",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0,
+            0.85,
+            0
+          ]
+        },
+        {
+          "id": "hit",
+          "frames": [
+            6,
+            5
+          ],
+          "seconds": [
+            0.18,
+            0.36
+          ],
+          "phases": [
+            "被弾",
+            "復帰"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "defeat",
+          "frames": [
+            6,
+            7
+          ],
+          "seconds": [
+            0.12,
+            0.55
+          ],
+          "phases": [
+            "被弾",
+            "決着"
+          ],
+          "events": [
+            "",
+            "defeat"
+          ],
+          "loop": false,
+          "hold": true,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "frames": [
+            2,
+            3
+          ],
+          "seconds": [
+            0.38,
+            0.44
+          ],
+          "phases": [
+            "予兆",
+            "予兆"
+          ],
+          "events": [
+            "",
+            "windup"
+          ],
+          "eventAt": [
+            0,
+            0
+          ],
+          "id": "ready",
+          "loop": false,
+          "hold": true
+        },
+        {
+          "frames": [
+            4,
+            5
+          ],
+          "seconds": [
+            0.2,
+            0.36
+          ],
+          "phases": [
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "contact",
+            ""
+          ],
+          "eventAt": [
+            0.85,
+            0
+          ],
+          "id": "strike",
+          "loop": false,
+          "hold": false,
+          "next": "idle"
+        }
+      ],
+      "gameplayHeight": 155
+    },
+    {
+      "id": "boss_mirrorwarden",
+      "atlas": "enemy-mirrorwarden-v1",
+      "referenceHeight": 364,
+      "displayHeight": 190,
+      "shadowWidth": 125,
+      "poses": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 100,
+          "offsetX": 0.0,
+          "offsetY": 35
+        },
+        {
+          "x": 384,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 100,
+          "offsetX": 0.0,
+          "offsetY": 35
+        },
+        {
+          "x": 768,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 100,
+          "offsetX": 0.0,
+          "offsetY": 35
+        },
+        {
+          "x": 1152,
+          "y": 0,
+          "w": 384,
+          "h": 512,
+          "foot": 100,
+          "offsetX": 0.0,
+          "offsetY": 35
+        },
+        {
+          "x": 0,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 100,
+          "offsetX": -220.0,
+          "offsetY": 35
+        },
+        {
+          "x": 384,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 100,
+          "offsetX": 0.0,
+          "offsetY": 35
+        },
+        {
+          "x": 768,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 100,
+          "offsetX": 12.0,
+          "offsetY": 35
+        },
+        {
+          "x": 1152,
+          "y": 512,
+          "w": 384,
+          "h": 512,
+          "foot": 94,
+          "offsetX": 0.0,
+          "offsetY": 0
+        }
+      ],
+      "motions": [
+        {
+          "id": "idle",
+          "frames": [
+            0,
+            1
+          ],
+          "seconds": [
+            0.32,
+            0.32
+          ],
+          "phases": [
+            "待機",
+            "待機"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": true,
+          "hold": false,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "attack",
+          "frames": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "seconds": [
+            0.38,
+            0.46,
+            0.2,
+            0.34
+          ],
+          "phases": [
+            "予兆",
+            "予兆",
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "",
+            "windup",
+            "contact",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0,
+            0.85,
+            0
+          ]
+        },
+        {
+          "id": "hit",
+          "frames": [
+            6,
+            5
+          ],
+          "seconds": [
+            0.18,
+            0.34
+          ],
+          "phases": [
+            "被弾",
+            "復帰"
+          ],
+          "events": [
+            "",
+            ""
+          ],
+          "loop": false,
+          "hold": false,
+          "next": "idle",
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "defeat",
+          "frames": [
+            6,
+            7
+          ],
+          "seconds": [
+            0.12,
+            0.55
+          ],
+          "phases": [
+            "被弾",
+            "決着"
+          ],
+          "events": [
+            "",
+            "defeat"
+          ],
+          "loop": false,
+          "hold": true,
+          "eventAt": [
+            0,
+            0
+          ]
+        },
+        {
+          "frames": [
+            2,
+            3
+          ],
+          "seconds": [
+            0.38,
+            0.46
+          ],
+          "phases": [
+            "予兆",
+            "予兆"
+          ],
+          "events": [
+            "",
+            "windup"
+          ],
+          "eventAt": [
+            0,
+            0
+          ],
+          "id": "ready",
+          "loop": false,
+          "hold": true
+        },
+        {
+          "frames": [
+            4,
+            5
+          ],
+          "seconds": [
+            0.2,
+            0.34
+          ],
+          "phases": [
+            "攻撃",
+            "復帰"
+          ],
+          "events": [
+            "contact",
+            ""
+          ],
+          "eventAt": [
+            0.85,
+            0
+          ],
+          "id": "strike",
+          "loop": false,
+          "hold": false,
+          "next": "idle"
+        }
+      ],
+      "gameplayHeight": 190
+    }
+  ],
+  "gameplayEnabled": true,
+  "gameplayContactGap": 90,
+  "gameplayTypes": [
+    "slime",
+    "goblin",
+    "bat",
+    "forest_wolf",
+    "lantern_moth",
+    "boar",
+    "vine",
+    "beetle",
+    "wisp",
+    "miner",
+    "crystal",
+    "book",
+    "gargoyle",
+    "sentinel",
+    "salamander",
+    "bone",
+    "boss_ogre",
+    "boss_wyvern",
+    "boss_slimeking",
+    "boss_mirrorwarden"
+  ]
+}

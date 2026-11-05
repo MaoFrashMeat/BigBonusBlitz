@@ -1156,7 +1156,7 @@ namespace BBB.Core
                 DefeatStreak = 0;
                 // ボーナス中は中ボス、通常時は雑魚から選ぶ（高確ステージの追加当選は variant A）
                 string variant = result.workflow.category == "ENEMY" ? result.workflow.variant : "A";
-                ActiveEnemyTable = EnemyEngage.SelectTable(EnemyTables, variant, _rng, BonusMode != BonusMode.NORMAL);
+                ActiveEnemyTable = EnemyEngage.SelectTable(EnemyTables, variant, _rng, BonusMode != BonusMode.NORMAL, CurrentStage?.id);
                 result.enemyTable = ActiveEnemyTable;
                 int n = Math.Max(1, Config.enemyPrecursorSpins);
                 PrecursorTotal = n;
@@ -1416,7 +1416,7 @@ namespace BBB.Core
             if (node != null && node.bossRate > 0 && _rng.NextDouble() * 100 < node.bossRate)
             {
                 DefeatStreak = 0;
-                ActiveEnemyTable = EnemyEngage.SelectTable(EnemyTables, "A", _rng, true);
+                ActiveEnemyTable = EnemyEngage.SelectTable(EnemyTables, "A", _rng, true, CurrentStage?.id);
                 result.enemyTable = ActiveEnemyTable;
                 int n = Math.Max(1, Config.enemyPrecursorSpins);
                 PrecursorTotal = n;

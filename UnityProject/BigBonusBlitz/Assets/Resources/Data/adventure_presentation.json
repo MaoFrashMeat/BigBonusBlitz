@@ -7,6 +7,7 @@
   "typingSoundGain": 0.12,
   "tooltipDelay": 0.2,
   "dialogueScale": 0.7,
+  "rewardWaitForCombat": true,
   "portraits": [
     {"speaker":"サリア","atlas":"salia","cell":0},
     {"speaker":"宿の主人","atlas":"town","cell":0},
