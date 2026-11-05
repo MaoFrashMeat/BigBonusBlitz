@@ -1,0 +1,139 @@
+{
+  "date": "2026-11-06",
+  "generator": "built-in image_gen",
+  "source": "source.png",
+  "prompt": "prompt.txt",
+  "sha256": "e44e6045554c50e3f4ae7e8aa1802c6b8a0ac2822f4a0b7811548d9ecf7afb7d",
+  "size": [
+    1536,
+    1024
+  ],
+  "alphaRange": [
+    0,
+    254
+  ],
+  "cells": [
+    {
+      "cell": 0,
+      "rect": [
+        0,
+        0,
+        384,
+        512
+      ],
+      "alpha32Bounds": [
+        43,
+        116,
+        384,
+        512
+      ]
+    },
+    {
+      "cell": 1,
+      "rect": [
+        384,
+        0,
+        768,
+        512
+      ],
+      "alpha32Bounds": [
+        0,
+        94,
+        384,
+        512
+      ]
+    },
+    {
+      "cell": 2,
+      "rect": [
+        768,
+        0,
+        1152,
+        512
+      ],
+      "alpha32Bounds": [
+        0,
+        102,
+        384,
+        512
+      ]
+    },
+    {
+      "cell": 3,
+      "rect": [
+        1152,
+        0,
+        1536,
+        512
+      ],
+      "alpha32Bounds": [
+        0,
+        127,
+        341,
+        512
+      ]
+    },
+    {
+      "cell": 4,
+      "rect": [
+        0,
+        512,
+        384,
+        1024
+      ],
+      "alpha32Bounds": [
+        24,
+        0,
+        384,
+        450
+      ]
+    },
+    {
+      "cell": 5,
+      "rect": [
+        384,
+        512,
+        768,
+        1024
+      ],
+      "alpha32Bounds": [
+        0,
+        0,
+        384,
+        454
+      ]
+    },
+    {
+      "cell": 6,
+      "rect": [
+        768,
+        512,
+        1152,
+        1024
+      ],
+      "alpha32Bounds": [
+        0,
+        0,
+        384,
+        450
+      ]
+    },
+    {
+      "cell": 7,
+      "rect": [
+        1152,
+        512,
+        1536,
+        1024
+      ],
+      "alpha32Bounds": [
+        0,
+        0,
+        355,
+        450
+      ]
+    }
+  ],
+  "status": "candidate",
+  "finalArtApproved": false
+}

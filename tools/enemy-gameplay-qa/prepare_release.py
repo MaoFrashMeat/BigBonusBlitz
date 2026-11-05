@@ -36,7 +36,7 @@ for name in ['ProbabilityEditorWindow', 'AdventureHeroValidation']:
     include(ASSETS + 'Editor/' + name + '.cs')
 for name in ['adventure_environments', 'adventure_presentation', 'enemy_tables', 'notices']:
     include(ASSETS + 'Resources/Data/' + name + '.json')
-for folder in ['HeroPrototype', 'UI/AdventureDialogue', 'Adventure/Modules/A-1', 'Adventure/Modules/B-1', 'Adventure/Modules/B-2', 'Adventure/Modules/C-2', 'Adventure/Modules/E-2', 'Adventure/Modules/H-1']:
+for folder in ['HeroPrototype', 'UI/AdventureDialogue'] + ['Adventure/Modules/' + id for id in ['A-1', 'B-1', 'B-2', 'C-2', 'C-3', 'C-4', 'D-1', 'D-2', 'D-3', 'D-4', 'D-5', 'D-6', 'E-1', 'E-2', 'H-1']]:
     include(ASSETS + 'Resources/Art/' + folder)
 include(ASSETS + 'Resources/Art/Adventure/AdventureSeamless.shader')
 for name in ['PROJECT_STATE', 'AI_HANDOFF_HISTORY', 'devlog', 'HERO_PRESENTATION_P2', 'HERO_GAMEPLAY_P2', 'HERO_REEL_BRIDGE_P2', 'HERO_SUPPORT_P2', 'ENEMY_GAMEPLAY_P2', 'ENEMY_PRESENTATION_P2', 'ADVENTURE_PRESENTATION_P1', 'ADVENTURE_REDESIGN_PLAN_2026-09-23', 'ADVENTURE_ENVIRONMENTS', 'BACKGROUND_ART_DIRECTION', 'note/MEMO', 'note/MATERIAL']:
@@ -51,8 +51,13 @@ for folder in ['tools/enemy-gameplay-qa/2026-11-05/roster-weapons-v3', 'tools/en
     for path in (ROOT / folder).rglob('*'):
         if path.suffix in ['.json', '.xml']:
             include(path.relative_to(ROOT).as_posix())
-for path in (ROOT/'tools/environment-qa/2026-11-06/native-v4').glob('game-*.png'):
-    include(path.relative_to(ROOT).as_posix())
+for version in ['native-v4', 'native-v5', 'native-v6', 'native-v7']:
+    folder = ROOT / 'tools/environment-qa/2026-11-06' / version
+    for path in folder.glob('*.json'):
+        include(path.relative_to(ROOT).as_posix())
+    if version in ['native-v4', 'native-v7']:
+        for path in folder.glob('game-*.png'):
+            include(path.relative_to(ROOT).as_posix())
 for filename in ['w_hammer-attack-030.png', 'w_staff-attack-f2.png', 'w_bow-attack-030.png']:
     include('tools/weapon-gameplay-qa/2026-11-05/families-v2/'+filename)
 include('docs/art/2026-11-06/RELEASE_INTEGRATION_REVIEW.md')
