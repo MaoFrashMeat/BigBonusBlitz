@@ -2526,6 +2526,7 @@ namespace BBB.Runtime
             if(_curseHud!=null)_curseHud.Refresh(presentationBlocked);
             // Play 中にスクリプトが再コンパイルされると非シリアライズ参照が消える。その状態で回さない（NRE の連打防止）
             if (_m == null || _creditNum == null) return;
+            if(!_m.IsGameActive)AdventureAssets.Pump(); // Between spins, so the scan cannot hitch a reel stop.
             if(_adventureEnemy!=null&&!AtelierModalOpen()&&_curseBox==null&&!OpeningPlayer.IsDialogueVisible)
                 _adventureEnemy.Step(Time.deltaTime);
             if(_adventureHero!=null)
@@ -3015,6 +3016,7 @@ namespace BBB.Runtime
             if (r.precursorStarted)
             {
                 _shadowImg.sprite = ArtLoader.EnemySprite(r.enemyTable?.enemyType);
+                _shadowImg.enabled = _shadowImg.sprite != null;
                 ApplyEnemyLook(r.enemyTable);
                 StartPrecursor(0);
             }

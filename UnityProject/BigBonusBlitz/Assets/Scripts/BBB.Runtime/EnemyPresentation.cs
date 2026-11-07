@@ -61,7 +61,8 @@ namespace BBB.Runtime
         void Start(string id){motion=Array.Find(data.motions,m=>m.id==id)??throw new ArgumentException("Unknown enemy motion "+id);frame=0;elapsed=0;frameCueSent=false;}
         public void Request(string id)
         {
-            if(State==id||State=="defeat"&&id!="idle")return;
+            // Loops and held poses keep their phase. A repeated one-shot restarts so its contact cue fires again.
+            if((State==id&&(motion.loop||motion.hold))||State=="defeat"&&id!="idle")return;
             movementFrom=Offset;Start(id);
         }
         public void Tick(float delta)

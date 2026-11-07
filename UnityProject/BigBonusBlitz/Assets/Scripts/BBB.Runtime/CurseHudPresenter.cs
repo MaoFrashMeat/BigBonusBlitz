@@ -13,7 +13,8 @@ namespace BBB.Runtime
     {
         SlotMachine machine;
         RectTransform stage, root, tooltip;
-        string signature, hoverId;
+        int? signature;
+        string hoverId;
         float hoverAt;
         bool blocked, pinned;
         readonly Dictionary<string,List<CurseInstance>> groups=new Dictionary<string,List<CurseInstance>>();
@@ -34,9 +35,7 @@ namespace BBB.Runtime
         {
             blocked=modalOpen;
             if(blocked){HideTooltip();hoverId=null;}
-            var sb=new StringBuilder();
-            foreach(var c in machine.Curse.Taken)if(c!=null)sb.Append(c.curseId).Append('|').Append(c.curseName).Append('|').Append(c.curseEffect).Append('|').Append(c.curseValue).Append('|').Append(c.blessId).Append('|').Append(c.blessName).Append('|').Append(c.blessEffect).Append('|').Append(c.blessValue).Append('|').Append(c.depth).Append(';');
-            string now=sb.ToString();
+            int now=TakenHash();
             if(now!=signature)
             {
                 signature=now;HideTooltip();hoverId=null;groups.Clear();
@@ -52,6 +51,21 @@ namespace BBB.Runtime
             root.gameObject.SetActive(groups.Count>0&&!blocked);
             if(!blocked&&!pinned&&hoverId!=null&&Time.unscaledTime>=hoverAt)ShowTooltip(hoverId,false);
         }
+        // Refresh runs every frame, so the change check must not allocate.
+        int TakenHash()
+        {
+            unchecked
+            {
+                int h=17;
+                foreach(var c in machine.Curse.Taken)
+                {
+                    if(c==null)continue;
+                    h=h*31+(c.curseId?.GetHashCode()??0);h=h*31+(c.curseName?.GetHashCode()??0);h=h*31+(c.curseEffect?.GetHashCode()??0);h=h*31+c.curseValue;
+                    h=h*31+(c.blessId?.GetHashCode()??0);h=h*31+(c.blessName?.GetHashCode()??0);h=h*31+(c.blessEffect?.GetHashCode()??0);h=h*31+c.blessValue;h=h*31+c.depth;
+                }
+                return h;
+            }
+        }
         void Build()
         {
             if(groups.Count==0)return;
@@ -60,11 +74,12 @@ namespace BBB.Runtime
             var label=UiFactory.Label(root,"Caption",new Vector2(-112,0),new Vector2(44,32),"呪い",12,TextAnchor.MiddleCenter,AzureMapSkin.Gold);
             AzureMapSkin.Typography(label);
             int i=0;
+            float step=groups.Count>4?48:52; // Tighter when the "+N" button has to fit inside the panel.
             foreach(var pair in groups)
             {
                 if(i>=4)break;
                 string id=pair.Key;
-                var b=UiSkin.Button(root,"Curse_"+id,new Vector2(-67+i*52,0),new Vector2(46,46),"",()=>ShowTooltip(id,true),AzureMapSkin.Navy,12,false,8);
+                var b=UiSkin.Button(root,"Curse_"+id,new Vector2(-67+i*step,0),new Vector2(46,46),"",()=>ShowTooltip(id,true),AzureMapSkin.Navy,12,false,8);
                 var image=(Image)b.targetGraphic;image.sprite=UiSkin.Rounded(9);image.color=AzureMapSkin.Gold;
                 var mask=UiSkin.Img(b.transform,"Mask",Vector2.zero,new Vector2(42,42),UiSkin.Rounded(7),AzureMapSkin.Navy);
                 mask.gameObject.AddComponent<Mask>().showMaskGraphic=true;
@@ -76,7 +91,7 @@ namespace BBB.Runtime
                 }
                 var trigger=b.gameObject.AddComponent<CurseHudFocus>();trigger.Enter=()=>Hover(id);trigger.Exit=()=>Leave(id);i++;
             }
-            if(groups.Count>4)UiSkin.Button(root,"AllCurses",new Vector2(130,0),new Vector2(44,46),"+"+(groups.Count-4),()=>ShowTooltip(null,true),AzureMapSkin.Navy,12,false,6);
+            if(groups.Count>4)UiSkin.Button(root,"AllCurses",new Vector2(123,0),new Vector2(44,46),"+"+(groups.Count-4),()=>ShowTooltip(null,true),AzureMapSkin.Navy,12,false,6);
         }
         void Hover(string id){if(blocked||pinned)return;hoverId=id;hoverAt=Time.unscaledTime+Mathf.Max(0,AdventurePresentation.Config.tooltipDelay);}
         void Leave(string id){if(hoverId==id)hoverId=null;if(!pinned)HideTooltip();}

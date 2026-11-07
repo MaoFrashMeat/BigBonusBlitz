@@ -543,6 +543,8 @@ public sealed class ProbabilityEditorWindow : EditorWindow
                 string et = (string)t["enemyType"] ?? "slime";
                 string nextType = EditorGUILayout.TextField("見た目ID", et);
                 if (nextType != et) { t["enemyType"] = nextType.Trim(); _dirty = true; }
+                if (!BBB.Runtime.ArtLoader.TryEnemySpritePath(nextType.Trim(), out _) && Array.Find(BBB.Runtime.EnemyPresentation.Config.enemies, e => e.id == nextType.Trim()) == null)
+                    EditorGUILayout.HelpBox($"「{nextType}」の絵がありません。ゲームでは敵が表示されません。", MessageType.Warning);
                 string stages = string.Join(", ", (t["stageIds"] as JArray ?? new JArray()).Values<string>());
                 string nextStages = EditorGUILayout.TextField(new GUIContent("出現地域", "カンマ区切り。空欄は全地域フォールバック"), stages);
                 if (nextStages != stages) { t["stageIds"] = new JArray(nextStages.Split(',').Select(s => s.Trim()).Where(s => s.Length > 0).Distinct()); _dirty = true; }

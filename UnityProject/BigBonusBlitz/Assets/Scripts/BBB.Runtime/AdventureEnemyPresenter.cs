@@ -11,6 +11,7 @@ namespace BBB.Runtime
         public bool Active=>View!=null&&View.gameObject.activeSelf;
         public bool ImpactReady {get;private set;}
         Image legacy;
+        string heldAtlas;
         public static AdventureEnemyPresenter Attach(RectTransform host,float feetY)
         {
             var p=host.gameObject.AddComponent<AdventureEnemyPresenter>();p.legacy=host.GetComponent<Image>();
@@ -25,6 +26,8 @@ namespace BBB.Runtime
             if(!cfg.gameplayEnabled||cfg.gameplayTypes==null||Array.IndexOf(cfg.gameplayTypes,type)<0)return;
             var look=EnemyPresentation.Find(type);
             View.gameObject.SetActive(true);View.SetEnemy(type);View.Player.Cue+=OnCue;
+            if(heldAtlas!=null&&heldAtlas!=look.atlas){HeroPresentation.ReleaseAtlas(heldAtlas);AdventureAssets.RequestUnload();}
+            heldAtlas=look.atlas;
             float scale=look.gameplayHeight/look.displayHeight*size;
             View.transform.localScale=Vector3.one*scale;
             float min=0;foreach(var pose in look.poses)min=Mathf.Min(min,pose.offsetX);
@@ -35,7 +38,8 @@ namespace BBB.Runtime
         public void Hide()
         {
             if(View.Player!=null)View.Player.Cue-=OnCue;
-            View.gameObject.SetActive(false);legacy.enabled=true;ImpactReady=false;
+            // An Image without a sprite draws a white rectangle; unregistered art stays invisible instead.
+            View.gameObject.SetActive(false);legacy.enabled=legacy.sprite!=null;ImpactReady=false;
         }
         public void Request(string motion)
         {

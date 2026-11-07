@@ -32,6 +32,7 @@ namespace BBB.Runtime
         RectTransform scenery;
         int activeBank;
         float stageBlend=1, weatherBlend=1, oldIntensity;
+        bool releaseHiddenBank;
         AdventureWeather oldWeather;
         float weatherSeconds=2, hourFrom, hourTarget, hourBlend=1, hourSeconds=2;
         float offset, meshTimer;
@@ -128,6 +129,7 @@ namespace BBB.Runtime
                     if(Application.isPlaying)Destroy(old);else DestroyImmediate(old);
                 }
             }
+            releaseHiddenBank=true;
             groups[activeBank].transform.SetAsLastSibling();stageBlend=instant?1:0;
             groups[activeBank].alpha=stageBlend;groups[1-activeBank].alpha=1-stageBlend;
             Enum.TryParse(next.weather,out AdventureWeather baseWeather);SetWeather(baseWeather,next.intensity,instant?0:2);
@@ -164,7 +166,15 @@ namespace BBB.Runtime
             weather=AdventureEnvironmentCatalog.WeatherFor(Profile,weather);
             if(EnvironmentSource==null)weatherBlend=Mathf.Min(1,weatherBlend+dt/weatherSeconds);
             stageBlend=Mathf.Min(1,stageBlend+dt/1.4f);groups[activeBank].alpha=stageBlend;groups[1-activeBank].alpha=1-stageBlend;
+            if(releaseHiddenBank&&stageBlend>=1)ReleaseHiddenBank();
             meshTimer-=dt;if(meshTimer<=0){meshTimer=1f/30;ApplyLighting();}
+        }
+        // The faded-out stage must not keep its textures alive; a return visit loads them again.
+        void ReleaseHiddenBank()
+        {
+            releaseHiddenBank=false;
+            foreach(var image in banks[1-activeBank]){image.texture=null;image.enabled=false;}
+            AdventureAssets.RequestUnload();
         }
         void ApplyLighting()
         {

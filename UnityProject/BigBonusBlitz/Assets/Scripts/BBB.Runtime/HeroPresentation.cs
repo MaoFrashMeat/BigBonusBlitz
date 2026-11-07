@@ -87,6 +87,13 @@ namespace BBB.Runtime
             if(t==null||x<0||y<0||x+w>t.width||y+h>t.height)throw new InvalidOperationException("Invalid hero atlas rectangle: "+key);
             return sprites[key]=UnityEngine.Sprite.Create(t,new Rect(x,t.height-y-h,w,h),new Vector2(.5f,.5f),100,0,SpriteMeshType.FullRect);
         }
+        /// <summary>Drops the cache only. A sprite still shown elsewhere stays valid until nothing references it.</summary>
+        public static void ReleaseAtlas(string atlas)
+        {
+            string prefix=atlas+":";var stale=new List<string>();
+            foreach(var key in sprites.Keys)if(key.StartsWith(prefix,StringComparison.Ordinal))stale.Add(key);
+            foreach(var key in stale)sprites.Remove(key);
+        }
         public static HeroWeaponLook Weapon(EquipItem item)
         {
             if(item!=null&&!string.IsNullOrEmpty(item.craftId))foreach(var w in Config.weapons)if(!string.IsNullOrEmpty(w.craftId)&&w.craftId==item.craftId)return w;

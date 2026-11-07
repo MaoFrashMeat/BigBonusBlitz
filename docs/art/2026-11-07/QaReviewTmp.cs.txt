@@ -1,0 +1,96 @@
+#if UNITY_EDITOR && UNITY_INCLUDE_TESTS
+using System.Collections;
+using System.IO;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using BBB.Core;
+using BBB.Runtime;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.Profiling;
+using UnityEngine.TestTools;
+using UnityEngine.UI;
+namespace BBB.Tests
+{
+    /// <summary>見直しの確認用（隔離 QA にだけ置く。本体には入れない）。</summary>
+    public sealed class QaReviewTmp
+    {
+        const string Out="C:/Users/ts081/AppData/Local/Temp/claude/49e255d80b09058e/13a11edb-d346-4d8b-81a2-56fef0c0c759/scratchpad/qa-review";
+        static readonly System.Text.StringBuilder log=new System.Text.StringBuilder();
+        static readonly System.Collections.Generic.HashSet<string> ModuleNames=new System.Collections.Generic.HashSet<string>();
+        static void CollectModuleNames(string[] stages){foreach(var id in stages){var p=AdventureEnvironmentCatalog.Find(id);if(p.layers==null)continue;foreach(var l in p.layers)if(!string.IsNullOrEmpty(l.texture))ModuleNames.Add(System.IO.Path.GetFileName(l.texture));}}
+        // 参照を残さないよう、別メソッドで数えて値だけ返す
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        static string Count(string tag)
+        {
+            int modules=0,enemies=0;long bytes=0;
+            foreach(var t in Resources.FindObjectsOfTypeAll<Texture2D>())
+            {
+                bool module=ModuleNames.Contains(t.name);
+                bool enemy=t.name.StartsWith("enemy-");
+                if(module)modules++;if(enemy)enemies++;
+                if(module||enemy)bytes+=Profiler.GetRuntimeMemorySizeLong(t);
+            }
+            return $"{tag}: modules={modules} enemies={enemies} {bytes/1048576}MB";
+        }
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        static void Names(){var names=Resources.FindObjectsOfTypeAll<Texture2D>().Select(t=>t.name).Distinct().OrderBy(n=>n).ToArray();log.AppendLine("names: "+string.Join(",",names.Take(160)));}
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        static bool Has(string name)=>Resources.FindObjectsOfTypeAll<Texture2D>().Any(t=>t.name==name);
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        static void LoadOnly(string path){var t=Resources.Load<Texture2D>(path);log.AppendLine("loaded "+(t!=null?t.name:"null"));}
+        [UnityTest]
+        public IEnumerator MemoryFallsAfterTravelAndOverflowHudIsCaptured()
+        {
+            yield return new EnterPlayMode();
+            Directory.CreateDirectory(Out);
+            foreach(var t in Object.FindObjectsByType<TitleScreen>(FindObjectsSortMode.None))Object.Destroy(t.gameObject);
+            foreach(var c in Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None))Object.Destroy(c.gameObject);
+            yield return null;
+            // 素の確認: 誰も持っていない絵は、この環境で本当に解放されるか
+            LoadOnly("Art/HeroPrototype/enemy-ogre-v1");log.AppendLine("trivial before "+Has("enemy-ogre-v1"));
+            var op=Resources.UnloadUnusedAssets();while(!op.isDone)yield return null;yield return null;
+            log.AppendLine("trivial after "+Has("enemy-ogre-v1"));
+            var canvasGo=new GameObject("QA",typeof(Canvas));var canvas=canvasGo.GetComponent<Canvas>();canvas.renderMode=RenderMode.WorldSpace;
+            var stage=(RectTransform)canvasGo.transform;stage.sizeDelta=new Vector2(1170,540);stage.position=Vector3.zero;stage.localScale=Vector3.one;
+            var bgHost=UiSkin.Rect(stage,"Area",Vector2.zero,new Vector2(1170,540));
+            var bg=ParallaxBackground.Create(bgHost);
+            var enemyHost=UiSkin.Rect(stage,"Enemy",Vector2.zero,new Vector2(100,100));enemyHost.gameObject.AddComponent<Image>();
+            var enemy=AdventureEnemyPresenter.Attach(enemyHost,-50);
+            string[] stages={"A-1","B-1","B-2","C-2","C-3","C-4","D-1","D-2","D-3","D-4","D-5","D-6","E-1","E-2","H-1"};
+            string[] types={"slime","goblin","bat","forest_wolf","bone","book","crystal","boar","beetle","gargoyle"};
+            CollectModuleNames(stages);
+            log.AppendLine(Count("start"));
+            for(int i=0;i<stages.Length;i++)
+            {
+                bg.SetStage(stages[i],true);enemy.Show(types[i%types.Length],1,400);
+                yield return null;yield return null;
+            }
+            log.AppendLine(Count("after travel, before unload"));
+            var f=System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic;
+            string S(string n)=>typeof(AdventureAssets).GetField(n,f).GetValue(null)?.ToString();
+            log.AppendLine($"before Pump pending={S("pending")} req={S("requestedFrame")} last={S("lastScan")} frame={Time.frameCount} t={Time.unscaledTime} playing={Application.isPlaying}");
+            int endFrame=Time.frameCount+2;while(Time.frameCount<endFrame)yield return null;
+            AdventureAssets.Pump();
+            log.AppendLine($"after Pump pending={S("pending")} last={S("lastScan")}");
+            float until=Time.realtimeSinceStartup+2;while(Time.realtimeSinceStartup<until)yield return null;
+            log.AppendLine(Count("after Pump"));
+            File.WriteAllText(Path.Combine(Out,"memory.txt"),log.ToString());
+            Assert.IsTrue(bg.HasIllustration,"Visible stage lost its art");Assert.IsTrue(enemy.View.Body.sprite!=null,"Visible enemy lost its art");
+            // 呪いが 6 種類の HUD を描き出す
+            var machine=GameDataLoader.CreateMachine(new SystemRandom(7));
+            string[] ids={"c_drain","c_payout","c_torch","c_weak","c_greed","c_dark"};
+            for(int i=0;i<6;i++)machine.Curse.Taken.Add(new CurseInstance{curseId=ids[i],curseName="QA"+i,curseEffect=CurseEffects.TorchDrain,curseValue=1});
+            var hud=CurseHudPresenter.Create(stage,stage,machine,new Vector2(0,120));hud.Refresh(false);
+            enemyHost.gameObject.SetActive(false);bgHost.gameObject.SetActive(false);yield return null;
+            Canvas.ForceUpdateCanvases();
+            var rt=new RenderTexture(760,240,24);var camGo=new GameObject("QACam");var cam=camGo.AddComponent<Camera>();
+            cam.orthographic=true;cam.orthographicSize=60;cam.transform.position=new Vector3(0,120,-10);cam.clearFlags=CameraClearFlags.SolidColor;cam.backgroundColor=new Color(.10f,.14f,.22f);cam.targetTexture=rt;cam.aspect=760f/240f;
+            canvas.worldCamera=cam;cam.Render();
+            RenderTexture.active=rt;var tex=new Texture2D(760,240,TextureFormat.RGB24,false);tex.ReadPixels(new Rect(0,0,760,240),0,0);tex.Apply();RenderTexture.active=null;
+            File.WriteAllBytes(Path.Combine(Out,"curse-hud-6-groups.png"),tex.EncodeToPNG());
+            yield return new ExitPlayMode();
+        }
+    }
+}
+#endif
