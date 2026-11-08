@@ -3068,11 +3068,12 @@ namespace BBB.Runtime
             }
             else
             {
-                if (_m.BonusMode == BonusMode.NORMAL && !battleAction)
+                // ハズレで主人公が食らうのは敵がいるときだけ（2026-11-09 本人: 戦闘中でもないのに毎回食らうのはおかしい）
+                if (_m.BonusMode == BonusMode.NORMAL && !battleAction && _m.EnemyActive)
                 {
                     PlayCharacter("hit");
                     StartCoroutine(Effects.Miss(_charRt));
-                    if (_m.EnemyActive) { StartCoroutine(EnemyHit()); UiFx.Burst(_charRt, UiFx.Preset.RedShards, new Vector2(20, 20)); }
+                    StartCoroutine(EnemyHit()); UiFx.Burst(_charRt, UiFx.Preset.RedShards, new Vector2(20, 20));
                 }
                 if (r.win.winType == WinType.CHANCE) RoleFx(WinType.CHANCE, CellMaskFor(r.win));
                 SetMessage(_m.BonusMode != BonusMode.NORMAL ? $"BONUS: {_m.BonusEarned} / {_m.BonusPayoutTarget}" : (r.win.winType == WinType.CHANCE ? "CHANCE!" : "..."));
