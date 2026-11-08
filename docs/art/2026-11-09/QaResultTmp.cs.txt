@@ -69,7 +69,7 @@ namespace BBB.Tests
             m.Curse.Taken.Add(new CurseInstance{curseId="c_drain",curseName="QA呪い",curseEffect=CurseEffects.TorchDrain,curseValue=1});
             Call("RefreshUi");
             var dlg=Get<DialoguePresenter>("_dialogue");dlg.gameObject.SetActive(true);dlg.Begin("サリア","この気配は……");
-            Call("ShowDefeatResult",r,"鬼将 ガロウ",true);Call("RefreshUi");yield return Tick(.2f);
+            Call("ShowDefeatResult",r,"鬼将 ガロウ",true,true,0f,0);Call("RefreshUi");yield return Tick(.2f);
             {
                 var bw=World((RectTransform)Get<GameObject>("_resultBox").transform);
                 var hud=UnityEngine.Object.FindObjectsByType<RectTransform>(FindObjectsSortMode.None).FirstOrDefault(x=>x.name=="CurseHud");
@@ -86,7 +86,9 @@ namespace BBB.Tests
             Capture("result-boss");
             // 雑魚・物なし
             var r2=new GameResult{enemyExp=30,soulsGained=45};
-            Call("ShowDefeatResult",r2,"スライム",false);yield return Tick(.2f);Capture("result-mob");
+            Call("ShowDefeatResult",r2,"スライム",false,true,0f,0);yield return Tick(.2f);Capture("result-mob");
+            Call("ShowDefeatResult",new GameResult{soulsGained=5},"鬼将 ガロウ",true,false,0.35f,6);yield return Tick(.2f);Capture("result-lose");
+            foreach(var t in Get<GameObject>("_resultBox").GetComponentsInChildren<Text>())log.AppendLine("lose "+t.name+" '"+t.text+"' pref="+t.preferredWidth.ToString("0")+" box="+t.rectTransform.rect.width.ToString("0"));
             // 2G 出して 3 回目のレバーで消える
             for(int i=1;i<=3;i++){Call("TickDefeatResult");log.AppendLine($"tick {i} box={(Get<GameObject>("_resultBox")!=null)} left={Get<int>("_resultGamesLeft")}");}
             File.WriteAllText(Path.Combine(output,"result.txt"),log.ToString());

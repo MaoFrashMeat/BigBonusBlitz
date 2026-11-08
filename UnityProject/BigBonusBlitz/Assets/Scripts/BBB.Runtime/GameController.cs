@@ -159,6 +159,7 @@ namespace BBB.Runtime
         private GameObject _resultBox;
         private Text _resultLeft;
         private int _resultGamesLeft, _resultSerial;
+        private int _engageLifeStart;   // エンゲージ開始時のライフ（負けたときのリザルトで減った分を出す）
         // 敵の体力バー: ステージ札（左上、右端 -130）の右から表示域の右端まで。上端から 5px 下げる
         private const float BossBarW = 580f, BossBarH = 34f, BossBarX = 170f, BossBarY = AreaH * 0.5f - 5f - BossBarH * 0.5f;
         // 示唆セリフの高さ。体力バーが出ている間はその下へずらす
@@ -2360,6 +2361,7 @@ namespace BBB.Runtime
         private void ShowEnemy(EnemyTable table)
         {
             _resultSerial++; HideDefeatResult();   // 次の敵の上に前の結果を残さない
+            _engageLifeStart = _m.Hp;
             if (_traveler != null) { Destroy(_traveler.gameObject); _traveler = null; }
             HideDialogue();
             BeginEnemyPresentation(table?.enemyType,table);
@@ -3204,7 +3206,16 @@ namespace BBB.Runtime
                 yield return SlamTitle(loot, ColText, 2.2f, parts.Count <= 3 ? 26 : 20);
             }
             if (r.equipDropped != null) yield return DropRoutine(r);
-            if (serial == _resultSerial) ShowDefeatResult(r, name, true);
+            if (serial == _resultSerial) ShowDefeatResult(r, name, true, true);
+        }
+
+        /// <summary>逃げられた: 走り去る動きのあとに、負けのリザルトの札（2026-11-09 本人: 負けた時もリザルトを）。</summary>
+        private IEnumerator EscapeThenResult(GameResult r, float hpLeftRatio)
+        {
+            int serial = _resultSerial; string name = _engagedName; bool boss = _engagedBoss;
+            int lifeLost = Mathf.Max(0, _engageLifeStart - _m.Hp);
+            yield return EscapeRoutine();
+            if (serial == _resultSerial) ShowDefeatResult(r, name, boss, false, hpLeftRatio, lifeLost);
         }
 
         /// <summary>雑魚の討伐: 倒れる動きのあとにリザルトの札。</summary>
@@ -3220,7 +3231,7 @@ namespace BBB.Runtime
         /// （2026-11-09 本人 案B: 3 つとも見えるように）。押すのは止めない（raycast を通す）。
         /// 次の engage.resultGames G まで出しておき、レバーごとに残りを減らす。次の敵が出たら消す。
         /// </summary>
-        private void ShowDefeatResult(GameResult r, string name, bool boss)
+        private void ShowDefeatResult(GameResult r, string name, bool boss, bool won = true, float hpLeftRatio = 0f, int lifeLost = 0)
         {
             HideDefeatResult();
             int games = Mathf.Max(0, _m.Config.engage?.resultGames ?? 2);
@@ -3232,7 +3243,7 @@ namespace BBB.Runtime
             UiSkin.Img(box, "Bg", Vector2.zero, new Vector2(W, H), null, new Color(0.055f, 0.09f, 0.165f, 1f));
             AtelierUi.Edge(box, new Color(gold.r, gold.g, gold.b, 0.85f));
             float left = -W * 0.5f, top = H * 0.5f;
-            var head = UiFactory.Label(box, "Head", new Vector2(left + 12 + 60, top - 14), new Vector2(120, 24), "討伐リザルト", 17, TextAnchor.MiddleLeft, gold);
+            var head = UiFactory.Label(box, "Head", new Vector2(left + 12 + 60, top - 14), new Vector2(120, 24), won ? "討伐リザルト" : "取り逃がした", 17, TextAnchor.MiddleLeft, won ? gold : new Color(0.75f, 0.78f, 0.86f, 1f));
             AzureMapSkin.Typography(head, true);
             _resultLeft = UiFactory.Label(box, "Left", new Vector2(left + 134 + 40, top - 13), new Vector2(80, 20), "", 10, TextAnchor.MiddleLeft, ColTextSub);
             var who = UiFactory.Label(box, "Name", new Vector2(W * 0.5f - 12 - 85, top - 14), new Vector2(170, 24),
@@ -3246,7 +3257,7 @@ namespace BBB.Runtime
             {
                 ("EXP", "+" + r.enemyExp.ToString("N0") + (r.levelUp ? "  <color=#e9ce86><size=12>Lv " + _m.PlayerLevel + "！</size></color>" : "")),
                 ("ソウル", "+" + r.soulsGained.ToString("N0")),
-                ("エンバー", "+" + (boss ? _m.EmberCfg.perBoss : _m.EmberCfg.perMob).ToString("N0")),
+                ("エンバー", "+" + (won ? (boss ? _m.EmberCfg.perBoss : _m.EmberCfg.perMob) : 0).ToString("N0")),
             };
             var items = new System.Collections.Generic.List<string>();
             if (r.equipDropped != null)
@@ -3256,6 +3267,13 @@ namespace BBB.Runtime
             }
             if (r.itemDrops != null) foreach (var d in r.itemDrops) items.Add(d.name + " +" + d.amount.ToString("N0"));
             if (r.materialsGained != null) foreach (var g in r.materialsGained) items.Add(g.name + " ×" + g.amount);
+            if (!won)
+            {
+                // 負け: 何が足りなかったかを先に出す（残り HP・減ったライフ・次の手）
+                items.Insert(0, "敵の残り HP " + Mathf.RoundToInt(Mathf.Clamp01(hpLeftRatio) * 100) + "%");
+                items.Insert(1, lifeLost > 0 ? "<color=#ff8a8a>ライフ −" + lifeLost + "</color>" : "ライフは減っていない");
+                if (items.Count < 3) items.Add("次は役を引いて攻撃を通そう");
+            }
             if (items.Count == 0) items.Add("―");
             const float rowTop = 14f, rowH = 22f;
             for (int i = 0; i < nums.Count; i++)
@@ -5613,6 +5631,7 @@ namespace BBB.Runtime
         /// <summary>討伐 / 逃走の見せ方（HP バーの決着、音、帯、揺れ）。</summary>
         private void ResolveEnemyVisuals(GameResult r)
         {
+            float hpLeftRatio = _bossHp;   // 決着の動き（逃げられたら満タンに戻る）より前の残り
             if (_m.ActiveEnemyTable != null || _engagedName != null) _bossBarAnim = StartCoroutine(BossBarResolve(r.enemyResolved == true));
             if (r.enemyResolved == true)
             {
@@ -5634,7 +5653,7 @@ namespace BBB.Runtime
             else
             {
                 _audio.EnemyEscape();
-                StartCoroutine(EscapeRoutine());
+                StartCoroutine(EscapeThenResult(r, hpLeftRatio));
                 SetMessage(_m.Config.engage?.texts?.escaped ?? "ENEMY ESCAPED...", false, ColTextSub);
             }
         }
