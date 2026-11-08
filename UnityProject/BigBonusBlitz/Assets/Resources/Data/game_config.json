@@ -2148,7 +2148,7 @@
     ]
   },
   "engage": {
-    "sets": 3, "lifeDamage": 3,
+    "sets": 3, "resultGames": 2, "lifeDamage": 3,
     "enemyHp": 100, "damageSmall": 15, "damageMedium": 35, "damageLarge": 70, "damageCounter": 50,
     "chargeLoseHit": 70, "chargeLoseGuard": 15, "chargeLoseDodge": 15,
     "rareGivesPotion": true, "potionHeal": 3, "naviSuccessIsRare": false,

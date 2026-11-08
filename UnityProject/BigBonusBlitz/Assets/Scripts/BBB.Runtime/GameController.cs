@@ -155,6 +155,10 @@ namespace BBB.Runtime
         private Image _hpFill;
         private RectTransform _hpTrack;
         private Text _hpLabel, _hpValue, _hpState;
+        // 討伐リザルトの札（倒した次の engage.resultGames G まで出しておく。2026-11-09 本人 案A・画面いっぱい）
+        private GameObject _resultBox;
+        private Text _resultLeft;
+        private int _resultGamesLeft, _resultSerial;
         // 敵の体力バー: ステージ札（左上、右端 -130）の右から表示域の右端まで。上端から 5px 下げる
         private const float BossBarW = 580f, BossBarH = 34f, BossBarX = 170f, BossBarY = AreaH * 0.5f - 5f - BossBarH * 0.5f;
         // 示唆セリフの高さ。体力バーが出ている間はその下へずらす
@@ -2355,6 +2359,7 @@ namespace BBB.Runtime
 
         private void ShowEnemy(EnemyTable table)
         {
+            _resultSerial++; HideDefeatResult();   // 次の敵の上に前の結果を残さない
             if (_traveler != null) { Destroy(_traveler.gameObject); _traveler = null; }
             HideDialogue();
             BeginEnemyPresentation(table?.enemyType,table);
@@ -2594,6 +2599,8 @@ namespace BBB.Runtime
             // Play 中にスクリプトが再コンパイルされると非シリアライズ参照が消える。その状態で回さない（NRE の連打防止）
             if (_m == null || _creditNum == null) return;
             if(!_m.IsGameActive)AdventureAssets.Pump(); // Between spins, so the scan cannot hitch a reel stop.
+            // 天候の層は RefreshUi のたびに一番上へ戻る。リザルトの札はその上に保つ（透けて読めなくなる）
+            if (_resultBox != null) { var rt = _resultBox.transform; if (rt.GetSiblingIndex() != rt.parent.childCount - 1) rt.SetAsLastSibling(); }
             if (_inputLocked != _diagLocked) { _diagLocked = _inputLocked; DiagnosticLog.Write(_inputLocked ? $"LOCK  {_lockReason}" : "UNLOCK"); }
             if (_inputLocked && Time.unscaledTime > _lockUntil)
             {
@@ -2739,6 +2746,7 @@ namespace BBB.Runtime
             ExitFocus();
             _m.AutoPlaying = _autoMode;    // オート中は技術介入の課題を出さない
             bool judgeG = _m.IsTier2 && _m.EnemyActive && _m.EngageJudgeSpin;
+            TickDefeatResult();
             var legacyHint = _m.Lever();   // 抽選はレバーオン時点で確定（旧示唆は使わない）
             DiagnosticLog.Write("LEVER  " + DiagState());
             if (judgeG) StartCoroutine(JudgeCutInRoutine());   // ジャッジの G: BET で「JUDGE」のカットイン
@@ -3176,6 +3184,7 @@ namespace BBB.Runtime
         /// <summary>中ボスの討伐: 爆散 → 「撃破」の帯 → 報酬のまとめ → 戦利品を一列に → 落ちた装備。雑魚とはっきり差をつける。</summary>
         private IEnumerator BossDefeatRoutine(GameResult r)
         {
+            int serial = _resultSerial; string name = _engagedName;
             var col = Hex("#ff9a3c");
             StartCoroutine(EdgeGlow(col, 1.6f, false));
             yield return DefeatRoutine();
@@ -3195,6 +3204,94 @@ namespace BBB.Runtime
                 yield return SlamTitle(loot, ColText, 2.2f, parts.Count <= 3 ? 26 : 20);
             }
             if (r.equipDropped != null) yield return DropRoutine(r);
+            if (serial == _resultSerial) ShowDefeatResult(r, name, true);
+        }
+
+        /// <summary>雑魚の討伐: 倒れる動きのあとにリザルトの札。</summary>
+        private IEnumerator DefeatThenResult(GameResult r)
+        {
+            int serial = _resultSerial; string name = _engagedName;
+            yield return DefeatRoutine();
+            if (serial == _resultSerial) ShowDefeatResult(r, name, false);
+        }
+
+        /// <summary>
+        /// 討伐リザルトの札。敵が立っていた側を大きく使い、得たものを 1 行ずつ並べる。押すのは止めない（raycast を通す）。
+        /// 次の engage.resultGames G まで出しておき、レバーごとに残りを減らす。次の敵が出たら消す。
+        /// </summary>
+        private void ShowDefeatResult(GameResult r, string name, bool boss)
+        {
+            HideDefeatResult();
+            int games = Mathf.Max(0, _m.Config.engage?.resultGames ?? 2);
+            if (games <= 0 || _area == null) return;
+            const float W = 600f, H = 252f;
+            var gold = new Color(0.914f, 0.808f, 0.525f, 1f);
+            var box = UiSkin.Rect(_area, "DefeatResult", new Vector2(AreaW * 0.5f - 10f - W * 0.5f, -6f), new Vector2(W, H));
+            var cg = box.gameObject.AddComponent<CanvasGroup>(); cg.blocksRaycasts = false; cg.interactable = false;
+            UiSkin.Img(box, "Bg", Vector2.zero, new Vector2(W, H), null, new Color(0.055f, 0.09f, 0.165f, 1f));
+            AtelierUi.Edge(box, new Color(gold.r, gold.g, gold.b, 0.85f));
+            float left = -W * 0.5f;
+            var head = UiFactory.Label(box, "Head", new Vector2(left + 20 + 120, H * 0.5f - 26), new Vector2(240, 34), "討伐リザルト", 24, TextAnchor.MiddleLeft, gold);
+            AzureMapSkin.Typography(head, true);
+            var who = UiFactory.Label(box, "Name", new Vector2(W * 0.5f - 20 - 150, H * 0.5f - 26), new Vector2(300, 30),
+                                      boss ? "<color=#e9ce86><size=13>中ボス</size></color>  " + name : name, 18, TextAnchor.MiddleRight, ColText);
+            AzureMapSkin.Typography(who, true);
+            AtelierUi.Panel(box, "Rule", 0, H * 0.5f - 48, W - 32, 1, new Color(gold.r, gold.g, gold.b, 0.7f));
+
+            // 左の列: 数で入るもの。右の列: 物で入るもの
+            var nums = new System.Collections.Generic.List<(string k, string v)>
+            {
+                ("EXP", "+" + r.enemyExp.ToString("N0")),
+                ("ソウル", "+" + r.soulsGained.ToString("N0")),
+                ("エンバー", "+" + (boss ? _m.EmberCfg.perBoss : _m.EmberCfg.perMob).ToString("N0")),
+            };
+            if (r.levelUp) nums.Add(("レベルアップ", "Lv " + _m.PlayerLevel));
+            var items = new System.Collections.Generic.List<string>();
+            if (r.equipDropped != null)
+            {
+                var rar = EquipDirector.RarityOf(_m.Config.equipment, r.equipDropped);
+                items.Add("<color=" + rar.color + ">" + rar.name + "</color>  " + r.equipDropped.name + (r.equipBagFull ? "（見送り）" : ""));
+            }
+            if (r.itemDrops != null) foreach (var d in r.itemDrops) items.Add(d.name + "  +" + d.amount.ToString("N0"));
+            if (r.materialsGained != null) foreach (var g in r.materialsGained) items.Add(g.name + "  ×" + g.amount);
+            if (items.Count == 0) items.Add("―");
+            float rowTop = H * 0.5f - 72, rowH = 34;
+            for (int i = 0; i < nums.Count; i++)
+            {
+                float y = rowTop - i * rowH;
+                UiFactory.Label(box, "K" + i, new Vector2(left + 24 + 50, y), new Vector2(100, rowH), nums[i].k, 15, TextAnchor.MiddleLeft, ColTextSub);
+                var v = UiFactory.Label(box, "V" + i, new Vector2(left + 128 + 85, y), new Vector2(170, rowH), nums[i].v, 21, TextAnchor.MiddleLeft, ColText);
+                v.fontStyle = FontStyle.Bold; v.resizeTextForBestFit = true; v.resizeTextMinSize = 13; v.resizeTextMaxSize = 21;
+            }
+            AtelierUi.Panel(box, "Split", -6, -12, 1, H - 96, new Color(gold.r, gold.g, gold.b, 0.35f));
+            UiFactory.Label(box, "ItemsHead", new Vector2(14 + 100, rowTop), new Vector2(200, rowH), "手に入れた物", 15, TextAnchor.MiddleLeft, ColTextSub);
+            int shown = Mathf.Min(items.Count, 4);
+            for (int i = 0; i < shown; i++)
+            {
+                string t = i == 3 && items.Count > 4 ? "ほか " + (items.Count - 3) + " 件（装備画面・ログ）" : items[i];
+                var it = UiFactory.Label(box, "I" + i, new Vector2(14 + 135, rowTop - (i + 1) * rowH), new Vector2(270, rowH), t, 18, TextAnchor.MiddleLeft, ColText);
+                it.resizeTextForBestFit = true; it.resizeTextMinSize = 12; it.resizeTextMaxSize = 18;
+            }
+            _resultLeft = UiFactory.Label(box, "Left", new Vector2(W * 0.5f - 20 - 90, -H * 0.5f + 16), new Vector2(180, 20), "", 12, TextAnchor.MiddleRight, ColTextSub);
+            _resultGamesLeft = games;
+            _resultLeft.text = "次の " + games + "G まで表示";
+            _resultBox = box.gameObject;
+            box.SetAsLastSibling();
+        }
+
+        /// <summary>レバーごと: 残りを減らし、尽きたら消す。</summary>
+        private void TickDefeatResult()
+        {
+            if (_resultBox == null) return;
+            if (_resultGamesLeft <= 0) { HideDefeatResult(); return; }
+            _resultGamesLeft--;
+            if (_resultLeft != null) _resultLeft.text = _resultGamesLeft > 0 ? "あと " + _resultGamesLeft + "G 表示" : "この G まで表示";
+        }
+
+        private void HideDefeatResult()
+        {
+            if (_resultBox != null) Destroy(_resultBox);
+            _resultBox = null; _resultLeft = null; _resultGamesLeft = 0;
         }
 
         /// <summary>戦利品の音を 1 つずつ少しずらして鳴らす（帯の間に）。</summary>
@@ -3452,6 +3549,7 @@ namespace BBB.Runtime
         /// <summary>力尽きて街へ帰る。ライフ切れとエンバー切れのどちらも同じ罰になる。</summary>
         private IEnumerator ReturnToTownRoutine(GameResult r)
         {
+            _resultSerial++; HideDefeatResult();
             _leaving = true;
             LockInput("街へ戻る場面");
             if (_autoMode) SetAuto(false, _autoSpeed);
@@ -4365,6 +4463,7 @@ namespace BBB.Runtime
         /// <summary>バトル開始: モンスターが出て、名前を叩きつける。</summary>
         private IEnumerator BattleStartRoutine(MonsterDef mon)
         {
+            _resultSerial++; HideDefeatResult();
             HideDialogue();
             if (_traveler != null) { Destroy(_traveler.gameObject); _traveler = null; }
             BeginEnemyPresentation(mon?.enemyType,null);
@@ -5527,7 +5626,7 @@ namespace BBB.Runtime
                 }
                 else
                 {
-                    StartCoroutine(DefeatRoutine());
+                    StartCoroutine(DefeatThenResult(r));
                     SetMessage($"ENEMY DEFEATED!  EXP +{_m.Config.expPerDefeat}{(r.levelUp ? $"   LEVEL UP! Lv.{_m.PlayerLevel}" : "")}", true, ColGold);
                     StartCoroutine(Effects.Shake(_stage, 0.3f, 5f));
                 }

@@ -1,0 +1,87 @@
+#if UNITY_EDITOR && UNITY_INCLUDE_TESTS
+using System;
+using System.Collections;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using BBB.Core;
+using BBB.Runtime;
+using NUnit.Framework;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.TestTools;
+using UnityEngine.UI;
+namespace BBB.Tests
+{
+    /// <summary>討伐リザルトの札の描き出し（隔離 QA にだけ置く）。</summary>
+    public sealed class QaResultTmp
+    {
+        const BindingFlags Private=BindingFlags.Instance|BindingFlags.NonPublic;
+        static GameController game;static string output;static Camera camera;
+        static T Get<T>(string name)=>(T)typeof(GameController).GetField(name,Private).GetValue(game);
+        static void Set(string name,object value)=>typeof(GameController).GetField(name,Private).SetValue(game,value);
+        static object Call(string name,params object[] args)=>typeof(GameController).GetMethod(name,Private).Invoke(game,args);
+        static IEnumerator Tick(float seconds){float until=Time.time+seconds;while(Time.time<until){Call("Update");yield return null;}}
+        static void Capture(string name)
+        {
+            if(camera==null){camera=new GameObject("QACamera").AddComponent<Camera>();camera.transform.position=new Vector3(0,0,-10);camera.orthographic=true;camera.orthographicSize=270;camera.backgroundColor=AzureMapSkin.Navy;}
+            var canvases=UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None).Where(c=>c.isRootCanvas).ToArray();
+            foreach(var c in canvases)
+            {
+                var scaler=c.GetComponent<CanvasScaler>();if(scaler!=null)UnityEngine.Object.DestroyImmediate(scaler);
+                c.renderMode=RenderMode.WorldSpace;c.transform.position=Vector3.zero;c.transform.localScale=Vector3.one;c.worldCamera=camera;
+                foreach(var safe in c.GetComponentsInChildren<SafeStage>()){safe.enabled=false;safe.Stage.SetParent(c.transform,false);}
+            }
+            foreach(var size in new[]{new Vector2Int(1280,720),new Vector2Int(2556,1179)})
+            {
+                float w=540f*size.x/size.y;
+                foreach(var c in canvases){((RectTransform)c.transform).sizeDelta=new Vector2(w,540);foreach(Transform child in c.transform)if(child.name=="Stage")child.localScale=Vector3.one*Mathf.Min(1,w/((RectTransform)child).sizeDelta.x);}
+                Canvas.ForceUpdateCanvases();foreach(var c in canvases)foreach(var t in c.GetComponentsInChildren<Text>())t.font.RequestCharactersInTexture(t.text,t.fontSize,t.fontStyle);
+                for(int pass=0;pass<3;pass++){foreach(var c in canvases)foreach(var g in c.GetComponentsInChildren<Graphic>()){g.SetAllDirty();g.Rebuild(CanvasUpdate.PreRender);g.canvasRenderer.cull=false;}Canvas.ForceUpdateCanvases();}
+                var rt=RenderTexture.GetTemporary(size.x,size.y,24);camera.targetTexture=rt;camera.Render();RenderTexture.active=rt;
+                var image=new Texture2D(size.x,size.y,TextureFormat.RGB24,false);image.ReadPixels(new Rect(0,0,size.x,size.y),0,0);image.Apply();File.WriteAllBytes(Path.Combine(output,name+"-"+size.x+".png"),image.EncodeToPNG());
+                camera.targetTexture=null;RenderTexture.active=null;RenderTexture.ReleaseTemporary(rt);UnityEngine.Object.DestroyImmediate(image);
+            }
+        }
+        static Rect World(RectTransform r){var c=new Vector3[4];r.GetWorldCorners(c);return Rect.MinMaxRect(c[0].x,c[0].y,c[2].x,c[2].y);}
+        [UnityTest, Timeout(300000)]
+        public IEnumerator DefeatResultCard()
+        {
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
+            yield return new EnterPlayMode();
+            output=Environment.GetEnvironmentVariable("QA_RESULT_OUT");Directory.CreateDirectory(output);
+            foreach(var title in UnityEngine.Object.FindObjectsByType<TitleScreen>(FindObjectsSortMode.None))UnityEngine.Object.Destroy(title.gameObject);
+            foreach(var cv in UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None))UnityEngine.Object.Destroy(cv.gameObject);
+            yield return null;
+            var audio=AudioManager.Create();audio.SeVolume=0;audio.BgmVolume=0;
+            var m=GameDataLoader.CreateMachine(new SystemRandom(5));m.Credit=3000;m.Adv.opDone=true;m.Adv.nodeId="A-1";
+            game=new GameObject("ResultQA").AddComponent<GameController>();game.enabled=false;
+            Set("_m",m);Set("_audio",audio);Call("BuildUi");Call("RefreshUi");Call("PlayCharacter","idle");
+            yield return Tick(.3f);
+            var log=new StringBuilder();
+            var r=new GameResult{enemyExp=120,soulsGained=340,levelUp=true};
+            r.itemDrops.Add(new DropEntry{kind="souls",name="魂のかけら",amount=40});
+            r.itemDrops.Add(new DropEntry{kind="torch",name="回復薬",amount=1});
+            r.materialsGained.Add(new MaterialGain{id="iron",name="鉄くず",amount=2});
+            var eq=m.Config.equipment;
+            r.equipDropped=new EquipItem{name="蒼鉄の剣",rarity=Math.Min(2,(eq?.rarities?.Count??1)-1),slot=EquipSlot.Weapon,baseId="sword"};
+            Call("ShowDefeatResult",r,"鬼将 ガロウ",true);Call("RefreshUi");yield return Tick(.2f);
+            var box=Get<GameObject>("_resultBox");
+            log.AppendLine("box "+(box!=null));
+            var area=Get<RectTransform>("_area");
+            log.AppendLine("area "+World(area)+" box "+World((RectTransform)box.transform)+" inside="+(World(area).Contains(World((RectTransform)box.transform).min)&&World(area).Contains(World((RectTransform)box.transform).max)));
+            foreach(var t in box.GetComponentsInChildren<Text>())log.AppendLine($"{t.name} '{t.text}' pref={t.preferredWidth:0}x{t.preferredHeight:0} box={t.rectTransform.rect.width:0}x{t.rectTransform.rect.height:0}");
+            {var bt=box.transform;var par=bt.parent;log.AppendLine("parent "+par.name+" idx "+bt.GetSiblingIndex()+"/"+par.childCount);for(int k=bt.GetSiblingIndex()+1;k<par.childCount;k++)log.AppendLine("  above: "+par.GetChild(k).name);var cgs=box.GetComponentsInParent<CanvasGroup>();foreach(var c in cgs)log.AppendLine("  cg "+c.name+" a="+c.alpha);var bg=box.transform.Find("Bg").GetComponent<Image>();log.AppendLine("  bg color "+bg.color+" sprite="+(bg.sprite!=null)+" mat="+bg.material.name);}
+            Capture("result-boss");
+            // 雑魚・物なし
+            var r2=new GameResult{enemyExp=30,soulsGained=45};
+            Call("ShowDefeatResult",r2,"スライム",false);yield return Tick(.2f);Capture("result-mob");
+            // 2G 出して 3 回目のレバーで消える
+            for(int i=1;i<=3;i++){Call("TickDefeatResult");log.AppendLine($"tick {i} box={(Get<GameObject>("_resultBox")!=null)} left={Get<int>("_resultGamesLeft")}");}
+            File.WriteAllText(Path.Combine(output,"result.txt"),log.ToString());
+            yield return new ExitPlayMode();
+        }
+    }
+}
+#endif

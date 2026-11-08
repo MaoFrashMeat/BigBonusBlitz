@@ -35,6 +35,8 @@ namespace BBB.Core
     {
         /// <summary>セット数（1 セット 2 G）。</summary>
         public int sets = 3;
+        /// <summary>討伐リザルトの札を、倒した次の何 G まで出しておくか（0 で出さない。2026-11-09 本人: テンポが早すぎる）。</summary>
+        public int resultGames = 2;
         /// <summary>敵の攻撃を喰らったときに減る LIFE（回転数）。</summary>
         public int lifeDamage = 3;
         /// <summary>敵の HP（EnemyTable.engageHp が 0 のときの既定）。攻撃のダメージで削り、0 で討伐。</summary>
