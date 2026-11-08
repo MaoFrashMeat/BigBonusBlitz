@@ -187,8 +187,7 @@ namespace BBB.Runtime
         private Text _miniLabel;
         private Text _atRankLabel;
         /// <summary>右のログ枠（説明の吹き出しに流した文を新しい順に。最後の数行だけ見せる）。</summary>
-        private Text _logText, _logState;
-        private float _logStateAt;
+        private Text _logText;
         private readonly System.Collections.Generic.List<string> _log = new System.Collections.Generic.List<string>();
         private Button _graphAlwaysBtn;
         /// <summary>グラフに重ねている履歴の番号（-1 なら重ねていない）。</summary>
@@ -252,6 +251,41 @@ namespace BBB.Runtime
         private void LockInput(string reason, float maxSeconds = float.PositiveInfinity)
         {
             _inputLocked = true; _lockReason = reason; _lockUntil = Time.unscaledTime + maxSeconds;
+        }
+        // 調べるための記録（DiagnosticLog）用: 鍵の変化を見張る値と、押せなかった理由の間引き
+        private bool _diagLocked;
+        private string _diagRefusedLast; private float _diagRefusedAt;
+
+        /// <summary>記録用の状態 1 行。押せない理由を後から判別できるだけの値を並べる。</summary>
+        private string DiagState()
+        {
+            if (_m == null) return "machine=null";
+            var sb = new System.Text.StringBuilder(256);
+            sb.Append("G=").Append(_m.TotalSpinCount).Append(" stage=").Append(_m.Adv?.nodeId)
+              .Append(" active=").Append(_m.IsGameActive).Append(" locked=").Append(_inputLocked);
+            if (_inputLocked) sb.Append('(').Append(_lockReason).Append(')');
+            sb.Append(" leaving=").Append(_leaving).Append(" modal=").Append(AtelierModalOpen()).Append(" curse=").Append(_curseBox != null)
+              .Append(" auto=").Append(_autoMode).Append(" mode=").Append(_m.BonusMode).Append(" flag=").Append(_m.CurrentFlag)
+              .Append(" held=").Append(_m.HeldBonusFlag).Append(" announce=").Append(_m.BonusAnnounceRemaining).Append(" pseudo=").Append(_m.PseudoPlay)
+              .Append(" tier2=").Append(_m.IsTier2).Append(" enemy=").Append(_m.EnemyActive).Append(" at=").Append(_m.InAt).Append(" battle=").Append(_m.InBattle)
+              .Append(" tech=").Append(_m.Tech.kind).Append(" stopsLocked=").Append(StopsLocked).Append(" credit=").Append(_m.Credit);
+            if (_reels != null)
+            {
+                sb.Append(" reels=");
+                for (int i = 0; i < _reels.Length; i++)
+                    sb.Append(_reels[i] != null && _reels[i].IsSpinning ? 'S' : '-').Append(_m.Stopped[i] != null ? 'x' : '.');
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>押したのに受け付けなかったとき、その理由を記録する（同じ理由は 1 秒に 1 回まで）。</summary>
+        private void DiagRefused(string what)
+        {
+            string reason = _m.IsGameActive ? "回転中" : _inputLocked ? "鍵:" + _lockReason : _leaving ? "街へ戻る途中" : AtelierModalOpen() ? "画面が開いている" : StopsLocked ? "停止の待ち" : "その他";
+            string key = what + reason;
+            if (key == _diagRefusedLast && Time.unscaledTime - _diagRefusedAt < 1f) return;
+            _diagRefusedLast = key; _diagRefusedAt = Time.unscaledTime;
+            DiagnosticLog.Write($"REFUSED {what}  理由={reason}  {DiagState()}");
         }
         private float _fps;
         /// <summary>実機のウェイト。前回リール始動から次の始動まで最低この秒数空ける。</summary>
@@ -915,11 +949,7 @@ namespace BBB.Runtime
             var logBox = UiSkin.Rect(side, "LogBox", Llg.Pos - Lsd.Pos, Llg.Size);
             UiSkin.Img(logBox, "Edge", Vector2.zero, new Vector2(Llg.w + 2, Llg.h + 2), UiSkin.Rounded(9), new Color(1, 1, 1, 0.13f));
             UiSkin.Img(logBox, "Bg", Vector2.zero, Llg.Size, UiSkin.Rounded(8), Hex("#0b1120"));
-            // 1 行目は「いま」: 何を待っているか・なぜ押せないかを常に出す（2026-11-09 本人: どういう状況か常にログで分かるように）
-            _logState = UiFactory.Label(logBox, "State", new Vector2(0, Llg.h * 0.5f - 4 - 7), new Vector2(Llg.w - 16, 14), "", 10, TextAnchor.MiddleLeft, ColGold);
-            _logState.fontStyle = FontStyle.Bold;
-            _logState.horizontalOverflow = HorizontalWrapMode.Overflow; _logState.verticalOverflow = VerticalWrapMode.Truncate;
-            _logText = UiFactory.Label(logBox, "Text", new Vector2(0, -8), new Vector2(Llg.w - 16, Llg.h - 8 - 16), "", 10, TextAnchor.LowerLeft, ColTextSub);
+            _logText = UiFactory.Label(logBox, "Text", new Vector2(0, 0), new Vector2(Llg.w - 16, Llg.h - 8), "", 10, TextAnchor.LowerLeft, ColTextSub);
             _logText.horizontalOverflow = HorizontalWrapMode.Wrap; _logText.verticalOverflow = VerticalWrapMode.Truncate;
             // 右の列は無し（状態の札は表示域の左、次のルートの下へ移した）
             // 常駐（ミニ）のスランプは表示域の左下（2026-09-16 本人の赤枠）。グラフのボタンで 大 → ミニ → OFF と切り替える。数字は右下に小さく
@@ -2564,18 +2594,15 @@ namespace BBB.Runtime
             // Play 中にスクリプトが再コンパイルされると非シリアライズ参照が消える。その状態で回さない（NRE の連打防止）
             if (_m == null || _creditNum == null) return;
             if(!_m.IsGameActive)AdventureAssets.Pump(); // Between spins, so the scan cannot hitch a reel stop.
+            if (_inputLocked != _diagLocked) { _diagLocked = _inputLocked; DiagnosticLog.Write(_inputLocked ? $"LOCK  {_lockReason}" : "UNLOCK"); }
             if (_inputLocked && Time.unscaledTime > _lockUntil)
             {
-                LogAdd($"「{_lockReason}」が終わらなかったので、操作を戻しました");
+                DiagnosticLog.Write($"UNLOCK-TIMEOUT  {_lockReason}  {DiagState()}");
                 _inputLocked = false; _lockUntil = float.PositiveInfinity;
                 RefreshUi();
                 if (_autoMode) StartAuto();
             }
-            if (_logState != null && Time.unscaledTime >= _logStateAt)   // 毎コマ文字列を作らない（0.2 秒ごと）
-            {
-                _logStateAt = Time.unscaledTime + 0.2f;
-                string st = StateLine(); if (_logState.text != st) _logState.text = st;
-            }
+
             if(_adventureEnemy!=null&&!AtelierModalOpen()&&_curseBox==null&&!OpeningPlayer.IsDialogueVisible)
                 _adventureEnemy.Step(Time.deltaTime);
             if(_adventureHero!=null)
@@ -2686,7 +2713,7 @@ namespace BBB.Runtime
 
         private void OnBetClicked()
         {
-            if (_m.IsGameActive || _inputLocked || _leaving || AtelierModalOpen()) return;
+            if (_m.IsGameActive || _inputLocked || _leaving || AtelierModalOpen()) { DiagRefused("BET"); return; }
             bool wasReplay = _m.IsReplay;
             if (!_m.MaxBet())
             {
@@ -2713,6 +2740,7 @@ namespace BBB.Runtime
             _m.AutoPlaying = _autoMode;    // オート中は技術介入の課題を出さない
             bool judgeG = _m.IsTier2 && _m.EnemyActive && _m.EngageJudgeSpin;
             var legacyHint = _m.Lever();   // 抽選はレバーオン時点で確定（旧示唆は使わない）
+            DiagnosticLog.Write("LEVER  " + DiagState());
             if (judgeG) StartCoroutine(JudgeCutInRoutine());   // ジャッジの G: BET で「JUDGE」のカットイン
             ResetNaviBadges();             // 前のGのナビ（○×や消えたバッジ）を持ち越さない
             RefreshNavi();
@@ -2868,8 +2896,14 @@ namespace BBB.Runtime
         /// <summary>auto=true は擬似遊技など機械側の停止。false（手動）は擬似遊技中は無視する。pressTime はキーのイベント時刻（無ければ -1）。</summary>
         private void StopReel(int i, bool auto, double pressTime = -1)
         {
-            if (!_m.IsGameActive || StopsLocked || !_reels[i].IsSpinning || _m.Stopped[i] != null) return;
-            if (_m.PseudoPlay && !auto) return;   // 擬似遊技中は手動停止を受け付けない
+            if (!_m.IsGameActive || StopsLocked || !_reels[i].IsSpinning || _m.Stopped[i] != null)
+            {
+                // 機械側の停止（擬似遊技など）が弾かれるとリールが止まらないまま残る。その時だけ必ず残す
+                if (auto) DiagnosticLog.Write($"AUTO-STOP REFUSED reel={i}  {DiagState()}");
+                else if (!_m.IsGameActive || (_reels[i].IsSpinning && _m.Stopped[i] == null)) DiagRefused("STOP" + i);
+                return;
+            }
+            if (_m.PseudoPlay && !auto) { DiagRefused("STOP" + i + "(擬似遊技)"); return; }   // 擬似遊技中は手動停止を受け付けない
             if (_bellShowActive && _bellShowStop < 3) StartCoroutine(BellShowDefeat(_bellShowStop++));
             _reels[i].PressPosition(pressTime, out int baseIdx, out float phase);   // 押した瞬間の位置（1 フレームより細かく）
             var res = _m.Stop(i, baseIdx, SlipController.DefaultMaxSlip, phase);
@@ -2949,6 +2983,7 @@ namespace BBB.Runtime
             // 期待度のランクは判定前に控えておく（昇格したかを比べるため）
             string rankBefore = AtDirector.RankFor(_m.Config.atExpect, _m.AtExpectPercent)?.name;
             var r = _m.Evaluate();
+            DiagnosticLog.Write($"RESULT  win={r.win.winType} payout={r.win.payout} bonusStarted={r.bonusStarted} bonusEnded={r.bonusEnded} enemy={r.enemySpawned}/{r.enemyResolved} at={r.atStarted}/{r.atEnded} town={r.returnedToTown} chapter={r.chapterCleared} curse={r.curseOffer != null}");
             // Payout/reel feedback stays shared; battle results exclusively own character actions.
             bool battleAction = r.engage != null || r.battleDamage > 0 || r.battleResolved.HasValue || _m.InBattle;
             _lastPayout = r.win.payout;
@@ -3668,8 +3703,6 @@ namespace BBB.Runtime
             else if (r.missionStarted != null) lines.Add($"任務を受けた: {r.missionStarted.name}");
             if (unlocked != null) foreach (var a in unlocked) lines.Add(a.rewardSouls > 0 ? $"実績「{a.name}」を解除。{{soul}}+{a.rewardSouls}" : $"実績「{a.name}」を解除");
             if (lines.Count == 0) return;
-            // ログには全部残す（吹き出しは 3 行まで・会話中は出さないが、何が起きたかはいつでもログで追える。2026-11-09 本人）
-            foreach (var l in lines) LogAdd(l);
             if (lines.Count > 3) lines.RemoveRange(3, lines.Count - 3);
             if (_dialogRoutine != null && !_explainActive) return;   // 物語・旅人の会話の途中
             if (_dialogRoutine != null) StopCoroutine(_dialogRoutine);
@@ -3693,31 +3726,6 @@ namespace BBB.Runtime
 
         /// <summary>説明を 1 行ずつ、吹き出しで流す（青いタグ「説明」）。長い行は少し長く見せる。</summary>
         /// <summary>ログ枠に 1 行足す（説明の吹き出しに流した文。絵の印 {soul} などは名前に置き換える）。新しいものが下。</summary>
-        /// <summary>ログの 1 行目「いま」: 何を待っているか、なぜ押せないか。押せる状態なら何を押せばよいか。</summary>
-        private string StateLine()
-        {
-            string s;
-            if (_curseBox != null) s = "呪いの申し出に答えると再開します（受ける／断る）";
-            else if (AtelierModalOpen()) s = "開いている画面を閉じると再開します";
-            else if (_inputLocked) s = $"{(_lockReason.Length > 0 ? _lockReason : "演出")}の途中。終わると押せます";
-            else if (_leaving) s = "街へ戻る途中です";
-            else if (_m.IsGameActive)
-                s = _m.PseudoPlay ? "擬似遊技。リールは自動で止まります"
-                  : StopsLocked ? "回転中。もうすぐ止められます"
-                  : _m.Tech.Active ? "技術介入。狙って止めよう"
-                  : "回転中。リールを止めてください";
-            else
-            {
-                bool held = _m.HeldBonusFlag != Flag.HAZE && _m.BonusAnnounceRemaining <= 0;
-                s = held ? "ボーナス成立中。7 を揃えよう（MAX BET で次のG）"
-                  : _m.BonusMode != BonusMode.NORMAL ? "ボーナス中。MAX BET で次のG"
-                  : _m.IsTier2 && _m.EnemyActive ? $"エンゲージ中（{EngageStatusText()}）。MAX BET で次のG"
-                  : _m.InAt ? $"洞窟（AT）残り {_m.AtSpinsRemaining}G。MAX BET で次のG"
-                  : "MAX BET でレバーを引けます";
-            }
-            return "いま  " + (_autoMode ? "AUTO  " : "") + s;
-        }
-
         private void LogAdd(string line)
         {
             if (string.IsNullOrEmpty(line)) return;
@@ -3726,7 +3734,7 @@ namespace BBB.Runtime
             _log.Add(plain.Trim());
             if (_log.Count > 40) _log.RemoveRange(0, _log.Count - 40);
             if (_logText == null) return;
-            int n = Mathf.Min(_log.Count, 5);
+            int n = Mathf.Min(_log.Count, 6);
             _logText.text = string.Join("\n", _log.GetRange(_log.Count - n, n));
         }
 
@@ -3734,6 +3742,7 @@ namespace BBB.Runtime
         {
             foreach(var line in lines)
             {
+                LogAdd(line);
                 yield return ShowLine("説明",line,ColGold,ColText,line.Length>26?3f:2.4f,true);
             }
             _explainActive=false;HideDialogue();_dialogRoutine=null;
@@ -5787,6 +5796,7 @@ namespace BBB.Runtime
 
         private void SetAuto(bool on, int speed)
         {
+            if (on != _autoMode) DiagnosticLog.Write($"AUTO  {(on ? "on" : "off")} x{speed}");
             _autoMode = on;
             _autoSpeed = Mathf.Clamp(speed, 1, AutoSpeedMax);
             RefreshUi();
