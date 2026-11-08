@@ -9,6 +9,12 @@
 - 本人の依頼原文は `docs/note/MEMO.md`、判断・失敗と修正は `docs/devlog.md`、現在地は `docs/PROJECT_STATE.md`、他AI向け時系列は `docs/AI_HANDOFF_HISTORY.md` に日付付きで残す。note材料は `docs/note/MATERIAL.md` から正本へリンクする。会話にない日時を推測しない。
 - お知らせは `Assets/Resources/Data/notices.json` の最新番号を確認して1件追加。公開・コミットは別途その作業の指示に従う。
 
+## 見せる前に通すもの（2026-11-09 本人指定。記録があるのに同じ指摘が繰り返されたため）
+
+- その分野の検査表を通す。演出・動き＝`docs/FX_KNOWHOW.md` 4.13 / UI＝`docs/AZURE_UI_QUALITY_STANDARD.md` と `docs/ui_rules.md` のチェックリスト / 背景＝`docs/BACKGROUND_ART_DIRECTION.md` 5・7 節。未達は書き出して続け、「できました」で止めない。
+- エフェクトの絵は素材を土台にする（Blender で焼いた `tools/fx-lab/textures/proc_*.png` か CC0）。式だけ・コードで描いた絵・粒子＋ぼかしで作らない（4 回言われた）。
+- 当て推量で直さない。調べて `docs/FX_RESEARCH.md` に書き、書いた原則は実装の前に自分のコードへ当てて確かめる（カメラを傾けて破った）。
+
 ## 作業の残し方（2026-09-14 の背景セッションの版を統合）
 
 - 対象セクションのMDに、現状・ユーザー確定事項・提案と未決定事項・成果物の場所・実施した確認・未実施の確認・次の手順を残す。方針や成果物が変わったら作業中にも更新する。
