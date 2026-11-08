@@ -12,7 +12,8 @@ namespace BBB.Core
         /// <summary>2コマ目押し: 指定図柄を停止枠内（±2コマ相当）に入れる。</summary>
         TwoKoma,
         /// <summary>
-        /// 役の目押し（本人 2026-09-24）: 引いた小役の図柄を枠に入れつつ、BAR か 7 を「枠内」か「枠のすぐ上・下（1 コマはみ出る）」に止める。
+        /// 役の目押し（本人 2026-09-24）: 引いた小役の図柄を枠に入れつつ、BAR か 7 を枠内（見える位置）に止める。
+        /// 2026-11-09 本人: BAR・白7・赤7 が常に見える位置で揃えられる役でだけ出す（枠のすぐ上下＝見えない位置は成功にしない）。
         /// リールは役で決まっている（チェリー = 左 など）。成功する止め位置は tops に全部入っている。
         /// </summary>
         Frame,
@@ -291,7 +292,8 @@ namespace BBB.Core
         }
 
         /// <summary>
-        /// 役の目押しで成功になる止め位置（上段のコマ番号）: 役の図柄が枠（上中下）にあり、狙う図柄が枠内か、枠のすぐ上（上段の 1 つ上）・すぐ下（下段の 1 つ下）にある。
+        /// 役の目押しで成功になる止め位置（上段のコマ番号）: 役の図柄と狙う図柄（BAR / 7）が、どちらも枠（上中下）に見えている。
+        /// 1 つも無ければその図柄では出さない（揃えられない課題は出さない）。
         /// </summary>
         public static List<int> FrameTops(Symbol[] strip, Symbol role, Symbol sym)
         {
@@ -301,7 +303,7 @@ namespace BBB.Core
             {
                 bool roleIn = false, symNear = false;
                 for (int k = 0; k < 3; k++) if (strip[(top + k) % n] == role) roleIn = true;
-                for (int k = -1; k <= 3; k++) if (strip[((top + k) % n + n) % n] == sym) symNear = true;
+                for (int k = 0; k < 3; k++) if (strip[(top + k) % n] == sym) symNear = true;
                 if (roleIn && symNear) r.Add(top);
             }
             return r;

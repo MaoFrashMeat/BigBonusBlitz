@@ -66,7 +66,17 @@ namespace BBB.Tests
             r.materialsGained.Add(new MaterialGain{id="iron",name="鉄くず",amount=2});
             var eq=m.Config.equipment;
             r.equipDropped=new EquipItem{name="蒼鉄の剣",rarity=Math.Min(2,(eq?.rarities?.Count??1)-1),slot=EquipSlot.Weapon,baseId="sword"};
+            m.Curse.Taken.Add(new CurseInstance{curseId="c_drain",curseName="QA呪い",curseEffect=CurseEffects.TorchDrain,curseValue=1});
+            Call("RefreshUi");
+            var dlg=Get<DialoguePresenter>("_dialogue");dlg.gameObject.SetActive(true);dlg.Begin("サリア","この気配は……");
             Call("ShowDefeatResult",r,"鬼将 ガロウ",true);Call("RefreshUi");yield return Tick(.2f);
+            {
+                var bw=World((RectTransform)Get<GameObject>("_resultBox").transform);
+                var hud=UnityEngine.Object.FindObjectsByType<RectTransform>(FindObjectsSortMode.None).FirstOrDefault(x=>x.name=="CurseHud");
+                log.AppendLine("result "+bw);
+                if(hud!=null)log.AppendLine("curse "+World(hud)+" active="+hud.gameObject.activeInHierarchy+" overlap="+World(hud).Overlaps(bw));
+                log.AppendLine("dialog "+World((RectTransform)dlg.transform)+" active="+dlg.gameObject.activeInHierarchy+" overlap="+World((RectTransform)dlg.transform).Overlaps(bw));
+            }
             var box=Get<GameObject>("_resultBox");
             log.AppendLine("box "+(box!=null));
             var area=Get<RectTransform>("_area");

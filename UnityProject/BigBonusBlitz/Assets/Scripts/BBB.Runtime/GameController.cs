@@ -1589,7 +1589,7 @@ namespace BBB.Runtime
             if (!t.Active || !_m.IsGameActive) { if (_techBanner != null) _techBanner.gameObject.SetActive(false); return; }
             _techBanner.gameObject.SetActive(true);
             string reel = t.reel == 0 ? "左" : t.reel == 1 ? "中" : "右";
-            string how = t.kind == TechKind.Vita ? "中段にビタ" : t.kind == TechKind.Frame ? "枠内か枠のすぐ上下に" : "枠内に";
+            string how = t.kind == TechKind.Vita ? "中段にビタ" : "枠内に";
             bool done = _m.Stopped[t.reel] != null;
             if (!done)
             {
@@ -3216,7 +3216,8 @@ namespace BBB.Runtime
         }
 
         /// <summary>
-        /// 討伐リザルトの札。敵が立っていた側を大きく使い、得たものを 1 行ずつ並べる。押すのは止めない（raycast を通す）。
+        /// 討伐リザルトの札。表示域の右の中段: 上の呪いの枠（表示域の y 89〜139）と下のセリフ枠（y −34 より下・x ±330）の間に収める
+        /// （2026-11-09 本人 案B: 3 つとも見えるように）。押すのは止めない（raycast を通す）。
         /// 次の engage.resultGames G まで出しておき、レバーごとに残りを減らす。次の敵が出たら消す。
         /// </summary>
         private void ShowDefeatResult(GameResult r, string name, bool boss)
@@ -3224,57 +3225,56 @@ namespace BBB.Runtime
             HideDefeatResult();
             int games = Mathf.Max(0, _m.Config.engage?.resultGames ?? 2);
             if (games <= 0 || _area == null) return;
-            const float W = 600f, H = 252f;
+            const float W = 390f, H = 112f, Top = 82f;
             var gold = new Color(0.914f, 0.808f, 0.525f, 1f);
-            var box = UiSkin.Rect(_area, "DefeatResult", new Vector2(AreaW * 0.5f - 10f - W * 0.5f, -6f), new Vector2(W, H));
+            var box = UiSkin.Rect(_area, "DefeatResult", new Vector2(AreaW * 0.5f - 5f - W * 0.5f, Top - H * 0.5f), new Vector2(W, H));
             var cg = box.gameObject.AddComponent<CanvasGroup>(); cg.blocksRaycasts = false; cg.interactable = false;
             UiSkin.Img(box, "Bg", Vector2.zero, new Vector2(W, H), null, new Color(0.055f, 0.09f, 0.165f, 1f));
             AtelierUi.Edge(box, new Color(gold.r, gold.g, gold.b, 0.85f));
-            float left = -W * 0.5f;
-            var head = UiFactory.Label(box, "Head", new Vector2(left + 20 + 120, H * 0.5f - 26), new Vector2(240, 34), "討伐リザルト", 24, TextAnchor.MiddleLeft, gold);
+            float left = -W * 0.5f, top = H * 0.5f;
+            var head = UiFactory.Label(box, "Head", new Vector2(left + 12 + 60, top - 14), new Vector2(120, 24), "討伐リザルト", 17, TextAnchor.MiddleLeft, gold);
             AzureMapSkin.Typography(head, true);
-            var who = UiFactory.Label(box, "Name", new Vector2(W * 0.5f - 20 - 150, H * 0.5f - 26), new Vector2(300, 30),
-                                      boss ? "<color=#e9ce86><size=13>中ボス</size></color>  " + name : name, 18, TextAnchor.MiddleRight, ColText);
+            _resultLeft = UiFactory.Label(box, "Left", new Vector2(left + 134 + 40, top - 13), new Vector2(80, 20), "", 10, TextAnchor.MiddleLeft, ColTextSub);
+            var who = UiFactory.Label(box, "Name", new Vector2(W * 0.5f - 12 - 85, top - 14), new Vector2(170, 24),
+                                      boss ? "<color=#e9ce86><size=10>中ボス</size></color> " + name : name, 13, TextAnchor.MiddleRight, ColText);
             AzureMapSkin.Typography(who, true);
-            AtelierUi.Panel(box, "Rule", 0, H * 0.5f - 48, W - 32, 1, new Color(gold.r, gold.g, gold.b, 0.7f));
+            who.resizeTextForBestFit = true; who.resizeTextMinSize = 10; who.resizeTextMaxSize = 13;
+            AtelierUi.Panel(box, "Rule", 0, top - 28, W - 20, 1, new Color(gold.r, gold.g, gold.b, 0.7f));
 
-            // 左の列: 数で入るもの。右の列: 物で入るもの
+            // 左の列: 数で入るもの（レベルアップは EXP の横に）。右の列: 物で入るもの（3 行まで）
             var nums = new System.Collections.Generic.List<(string k, string v)>
             {
-                ("EXP", "+" + r.enemyExp.ToString("N0")),
+                ("EXP", "+" + r.enemyExp.ToString("N0") + (r.levelUp ? "  <color=#e9ce86><size=12>Lv " + _m.PlayerLevel + "！</size></color>" : "")),
                 ("ソウル", "+" + r.soulsGained.ToString("N0")),
                 ("エンバー", "+" + (boss ? _m.EmberCfg.perBoss : _m.EmberCfg.perMob).ToString("N0")),
             };
-            if (r.levelUp) nums.Add(("レベルアップ", "Lv " + _m.PlayerLevel));
             var items = new System.Collections.Generic.List<string>();
             if (r.equipDropped != null)
             {
                 var rar = EquipDirector.RarityOf(_m.Config.equipment, r.equipDropped);
-                items.Add("<color=" + rar.color + ">" + rar.name + "</color>  " + r.equipDropped.name + (r.equipBagFull ? "（見送り）" : ""));
+                items.Add("<color=" + rar.color + ">" + rar.name + "</color> " + r.equipDropped.name + (r.equipBagFull ? "（見送り）" : ""));
             }
-            if (r.itemDrops != null) foreach (var d in r.itemDrops) items.Add(d.name + "  +" + d.amount.ToString("N0"));
-            if (r.materialsGained != null) foreach (var g in r.materialsGained) items.Add(g.name + "  ×" + g.amount);
+            if (r.itemDrops != null) foreach (var d in r.itemDrops) items.Add(d.name + " +" + d.amount.ToString("N0"));
+            if (r.materialsGained != null) foreach (var g in r.materialsGained) items.Add(g.name + " ×" + g.amount);
             if (items.Count == 0) items.Add("―");
-            float rowTop = H * 0.5f - 72, rowH = 34;
+            const float rowTop = 14f, rowH = 22f;
             for (int i = 0; i < nums.Count; i++)
             {
                 float y = rowTop - i * rowH;
-                UiFactory.Label(box, "K" + i, new Vector2(left + 24 + 50, y), new Vector2(100, rowH), nums[i].k, 15, TextAnchor.MiddleLeft, ColTextSub);
-                var v = UiFactory.Label(box, "V" + i, new Vector2(left + 128 + 85, y), new Vector2(170, rowH), nums[i].v, 21, TextAnchor.MiddleLeft, ColText);
-                v.fontStyle = FontStyle.Bold; v.resizeTextForBestFit = true; v.resizeTextMinSize = 13; v.resizeTextMaxSize = 21;
+                UiFactory.Label(box, "K" + i, new Vector2(left + 12 + 30, y), new Vector2(60, rowH), nums[i].k, 12, TextAnchor.MiddleLeft, ColTextSub);
+                var v = UiFactory.Label(box, "V" + i, new Vector2(left + 74 + 55, y), new Vector2(110, rowH), nums[i].v, 16, TextAnchor.MiddleLeft, ColText);
+                v.fontStyle = FontStyle.Bold;
             }
-            AtelierUi.Panel(box, "Split", -6, -12, 1, H - 96, new Color(gold.r, gold.g, gold.b, 0.35f));
-            UiFactory.Label(box, "ItemsHead", new Vector2(14 + 100, rowTop), new Vector2(200, rowH), "手に入れた物", 15, TextAnchor.MiddleLeft, ColTextSub);
-            int shown = Mathf.Min(items.Count, 4);
+            AtelierUi.Panel(box, "Split", -6, rowTop - rowH, 1, rowH * 3 - 4, new Color(gold.r, gold.g, gold.b, 0.35f));
+            int shown = Mathf.Min(items.Count, 3);
             for (int i = 0; i < shown; i++)
             {
-                string t = i == 3 && items.Count > 4 ? "ほか " + (items.Count - 3) + " 件（装備画面・ログ）" : items[i];
-                var it = UiFactory.Label(box, "I" + i, new Vector2(14 + 135, rowTop - (i + 1) * rowH), new Vector2(270, rowH), t, 18, TextAnchor.MiddleLeft, ColText);
-                it.resizeTextForBestFit = true; it.resizeTextMinSize = 12; it.resizeTextMaxSize = 18;
+                string t = i == 2 && items.Count > 3 ? "ほか " + (items.Count - 2) + " 件（ログ）" : items[i];
+                var it = UiFactory.Label(box, "I" + i, new Vector2(4 + 91, rowTop - i * rowH), new Vector2(182, rowH), t, 13, TextAnchor.MiddleLeft, ColText);
+                it.resizeTextForBestFit = true; it.resizeTextMinSize = 10; it.resizeTextMaxSize = 13;
             }
-            _resultLeft = UiFactory.Label(box, "Left", new Vector2(W * 0.5f - 20 - 90, -H * 0.5f + 16), new Vector2(180, 20), "", 12, TextAnchor.MiddleRight, ColTextSub);
             _resultGamesLeft = games;
-            _resultLeft.text = "次の " + games + "G まで表示";
+            _resultLeft.text = "次の " + games + "G";
             _resultBox = box.gameObject;
             box.SetAsLastSibling();
         }
@@ -3285,7 +3285,7 @@ namespace BBB.Runtime
             if (_resultBox == null) return;
             if (_resultGamesLeft <= 0) { HideDefeatResult(); return; }
             _resultGamesLeft--;
-            if (_resultLeft != null) _resultLeft.text = _resultGamesLeft > 0 ? "あと " + _resultGamesLeft + "G 表示" : "この G まで表示";
+            if (_resultLeft != null) _resultLeft.text = _resultGamesLeft > 0 ? "あと " + _resultGamesLeft + "G" : "この G まで";
         }
 
         private void HideDefeatResult()
