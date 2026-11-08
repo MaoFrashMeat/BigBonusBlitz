@@ -683,11 +683,12 @@ public static class AdventureHeroValidation
                 Check(topBg!=null&&topAccent!=null&&topGold!=null&&topText!=null&&(!peak?(bottomBg!=null&&bottomAccent!=null&&bottomText!=null):(bottomBg==null&&bottomAccent==null&&bottomText==null)),"Intensity band children mismatch: "+p.id);
                 Check(hpSurface!=null&&Mathf.Abs(hpSurface.color.a-1f)<.001f,"HP information surface must fully cover scrolling copy: "+p.id);
                 Check(top.transform.GetSiblingIndex()<hpBox.transform.GetSiblingIndex(),"Combat band must stay behind the HP information card: "+p.id);
-                var hpRows=hpLabel!=null?hpLabel.text.Split('\n'):Array.Empty<string>();
-                Check(hpRows.Length==3&&hpRows.All(line=>!string.IsNullOrWhiteSpace(line)),"HP information must use three populated name, value, and status rows: "+p.id);
-                Check(hpRows.Length==3&&hpRows[0]=="スライム（基本）"&&hpRows[1]=="HP 65/100"&&(p.judge?hpRows[2]=="JUDGE":hpRows[2].Contains("SET 1/3")),"HP card should use representative real battle data: "+p.id);
-                Check(hpLabel!=null&&hpLabel.horizontalOverflow==HorizontalWrapMode.Wrap&&hpLabel.verticalOverflow==VerticalWrapMode.Truncate,"HP information must wrap and remain clipped to its card: "+p.id);
-                Check(hpLabel!=null&&hpLabel.preferredWidth<=hpLabel.rectTransform.rect.width+1f&&hpLabel.preferredHeight<=hpLabel.rectTransform.rect.height+1f,"HP information text must fit its card bounds: "+p.id);
+                // 2026-11-08: 頭上の 3 行の箱から、表示域の上端の 1 行のボスバー（名前 / ゲージ / 数値 / 状態）へ
+                var hpValue=Get<Text>("_hpValue");var hpState=Get<Text>("_hpState");
+                Check(hpLabel!=null&&hpValue!=null&&hpState!=null,"HP bar labels missing: "+p.id);
+                Check(hpLabel.text=="スライム（基本）"&&hpValue.text=="65/100"&&(p.judge?hpState.text=="JUDGE":hpState.text.Contains("SET 1/3")),"HP bar should use representative real battle data: "+p.id);
+                foreach(var t in new[]{hpLabel,hpValue,hpState})
+                    Check(t.cachedTextGenerator.characterCountVisible>=t.text.Length||t.preferredWidth<=t.rectTransform.rect.width+1f,"HP bar text must fit its slot: "+p.id+" "+t.name);
                 var expectedSurface=new Color(.045f,.065f,.125f,1f);
                 Check(Vector4.Distance((Vector4)topBg.color,(Vector4)expectedSurface)<.001f,"Intensity surface must stay opaque navy: "+p.id);
                 string hex=ColorUtility.ToHtmlStringRGBA(topAccent.color);string expectedHex=ColorUtility.ToHtmlStringRGBA(expected[i]);

@@ -153,7 +153,11 @@ namespace BBB.Runtime
         private GameObject _atChipBox, _hpBox;
         private Image _hpFill;
         private RectTransform _hpTrack;
-        private Text _hpLabel;
+        private Text _hpLabel, _hpValue, _hpState;
+        // 敵の体力バー: ステージ札（左上、右端 -130）の右から表示域の右端まで。上端から 5px 下げる
+        private const float BossBarW = 580f, BossBarH = 34f, BossBarX = 170f, BossBarY = AreaH * 0.5f - 5f - BossBarH * 0.5f;
+        // 示唆セリフの高さ。体力バーが出ている間はその下へずらす
+        private const float HintY = AreaH * 0.5f - 34f, HintYUnderBossBar = AreaH * 0.5f - 58f;
         private bool _hotStopSound;
         private int _stopCountThisGame;
         private RectTransform _dustRt;
@@ -613,16 +617,27 @@ namespace BBB.Runtime
             UiSkin.Vignette(_area, "VigTop", new Vector2(0, AreaH * 0.5f - 36), new Vector2(AreaW, 72), 0.45f, true);
             UiSkin.Vignette(_area, "VigBottom", new Vector2(0, -AreaH * 0.5f + 18), new Vector2(AreaW, 36), 0.25f, false);
 
-            // バトル（狩猟）: モンスター名 + HP バー + 残りG。敵の頭上に出す
-            var hp = UiSkin.Rect(_area, "BattleHp", new Vector2(EnemyX, EnemyY + 106), new Vector2(230, 70));
-            // This information card can overlap the scrolling combat band. Keep its
-            // panel fully opaque so moving copy cannot ghost through the HP label.
-            UiSkin.Img(hp, "Bg", Vector2.zero, new Vector2(230, 70), UiSkin.Rounded(10), new Color(0.03f, 0.04f, 0.08f, 1f));
-            _hpLabel = UiFactory.Label(hp, "Name", new Vector2(0, 12), new Vector2(214, 44), "", 11, TextAnchor.MiddleLeft, ColText);
+            // 敵の体力: 表示域の上端に横長のボスバー（2026-11-08 本人 案A）。敵の頭上に置くと大きい中ボスの顔が隠れるので、
+            // ステージ札の右から右端まで。名前 / ゲージ / 数値 / SET を 1 行に並べる。不透明な紺に金の細線（Azure 基準）
+            var hp = UiSkin.Rect(_area, "BattleHp", new Vector2(BossBarX, BossBarY), new Vector2(BossBarW, BossBarH));
+            // 流れる帯の文字が透けないよう不透明
+            UiSkin.Img(hp, "Bg", Vector2.zero, new Vector2(BossBarW, BossBarH), null, new Color(0.055f, 0.09f, 0.165f, 1f));
+            AtelierUi.Edge(hp, new Color(0.914f, 0.808f, 0.525f, 0.85f));
+            float bl = -BossBarW * 0.5f;
+            _hpLabel = UiFactory.Label(hp, "Name", new Vector2(bl + 10 + 75, 0), new Vector2(150, BossBarH - 4), "", 15, TextAnchor.MiddleLeft, ColText);
             _hpLabel.horizontalOverflow = HorizontalWrapMode.Wrap;
             _hpLabel.verticalOverflow = VerticalWrapMode.Truncate;
-            _hpLabel.fontStyle = FontStyle.Bold;
-            _hpFill = UiSkin.Gauge(hp, "Hp", new Vector2(0, -23), new Vector2(206, 10), ColAccent, out _hpTrack);
+            _hpLabel.resizeTextForBestFit = true; _hpLabel.resizeTextMinSize = 11; _hpLabel.resizeTextMaxSize = 15;
+            AzureMapSkin.Typography(_hpLabel, true);
+            _hpFill = UiSkin.Gauge(hp, "Hp", new Vector2(bl + 166 + 105, 0), new Vector2(210, 12), ColAccent, out _hpTrack);
+            // 共通のゲージの下地は緑がかった絵で、削れた所が「まだ残っている」ように見える。体力バーでは暗い溝にする
+            var hpGroove = _hpTrack.Find("Track")?.GetComponent<Image>();
+            if (hpGroove != null) { hpGroove.sprite = UiSkin.Rounded(6); hpGroove.type = Image.Type.Sliced; hpGroove.color = new Color(0.02f, 0.025f, 0.05f, 1f); }
+            _hpValue = UiFactory.Label(hp, "Value", new Vector2(bl + 382 + 28, 0), new Vector2(56, BossBarH - 4), "", 12, TextAnchor.MiddleLeft, ColText);
+            _hpValue.fontStyle = FontStyle.Bold;
+            _hpState = UiFactory.Label(hp, "State", new Vector2(bl + 442 + 64, 0), new Vector2(128, BossBarH - 4), "", 13, TextAnchor.MiddleRight, ColGold);
+            _hpState.fontStyle = FontStyle.Bold;
+            _hpState.resizeTextForBestFit = true; _hpState.resizeTextMinSize = 10; _hpState.resizeTextMaxSize = 13;
             _hpBox = hp.gameObject;
             _hpBox.SetActive(false);
 
@@ -703,7 +718,7 @@ namespace BBB.Runtime
             TextShadow(_status, 1f);
             _statusBox = statusRt.gameObject;
 
-            _hint = UiFactory.Label(_area, "Hint", new Vector2(0, AreaH * 0.5f - 34), new Vector2(640, 36), "", 24, TextAnchor.MiddleCenter, ColAccent);
+            _hint = UiFactory.Label(_area, "Hint", new Vector2(0, HintY),new Vector2(640, 36), "", 24, TextAnchor.MiddleCenter, ColAccent);
             _hint.fontStyle = FontStyle.Bold;
             TextShadow(_hint);
 
@@ -1430,16 +1445,17 @@ namespace BBB.Runtime
             // 狩猟中のモンスター HP。エンゲージ中は同じ箱で敵の HP（攻撃のダメージで削る。2026-09-21 案3）
             bool bossBar = _m.EnemyActive && _m.IsTier2 && !_m.InBattle;
             _hpBox.SetActive((_m.InBattle && _m.BattleMonster != null) || bossBar || _bossBarAnim != null);
+            _hint.rectTransform.anchoredPosition = new Vector2(0, _hpBox.activeSelf ? HintYUnderBossBar : HintY);
             if (_m.InBattle && _m.BattleMonster != null)
             {
-                _hpLabel.text = $"{_m.BattleMonster.name}\nHP {_m.BattleHp}/{_m.BattleHpMax}\n残り {_m.BattleSpinsRemaining} G";
+                SetHpText(_m.BattleMonster.name, false, $"{_m.BattleHp}/{_m.BattleHpMax}", $"残り {_m.BattleSpinsRemaining} G");
                 float ratio = _m.BattleHpMax > 0 ? Mathf.Clamp01((float)_m.BattleHp / _m.BattleHpMax) : 0f;
                 _hpFill.rectTransform.sizeDelta = new Vector2(_hpTrack.sizeDelta.x * ratio, _hpTrack.sizeDelta.y);
                 _hpFill.color = ratio > 0.5f ? ColGreen : ratio > 0.25f ? ColGold : ColAccent;
             }
             else if (bossBar)
             {
-                _hpLabel.text = $"{(_engagedBoss ? "中ボス " : "")}{_engagedName}\nHP {_m.EngageHp}/{_m.EngageHpMax}\n{EngageStatusText()}";
+                SetHpText(_engagedName, _engagedBoss, $"{_m.EngageHp}/{_m.EngageHpMax}", EngageStatusText());
                 _bossHp = _m.EngageHpMax > 0 ? (float)_m.EngageHp / _m.EngageHpMax : 0f;
                 SetBossBar(_bossHp);
             }
@@ -2310,6 +2326,14 @@ namespace BBB.Runtime
             if (_engagedBoss) StartCoroutine(SlamTitle($"中ボス  {table.name}", Hex("#ff9a3c"), 1.5f, 46));
         }
 
+        /// <summary>体力バーの 1 行: 名前（中ボスは金の「中ボス」を前に）/ 数値 / 状態。</summary>
+        private void SetHpText(string name, bool boss, string value, string state)
+        {
+            _hpLabel.text = boss ? $"<color=#e9ce86><size=11>中ボス</size></color> {name}" : name;
+            _hpValue.text = value;
+            _hpState.text = state;
+        }
+
         private void SetBossBar(float ratio)
         {
             ratio = Mathf.Clamp01(ratio);
@@ -2321,7 +2345,7 @@ namespace BBB.Runtime
         private IEnumerator BossBarResolve(bool won)
         {
             _hpBox.SetActive(true);
-            _hpLabel.text = won ? $"{(_engagedBoss ? "中ボス " : "")}{_engagedName}    撃破！" : $"{(_engagedBoss ? "中ボス " : "")}{_engagedName}    逃げられた…";
+            SetHpText(_engagedName, _engagedBoss, _hpValue.text, won ? "撃破！" : "逃げられた…");
             float from = _bossHp, to = won ? 0f : 1f, t = 0f;
             while (t < 0.6f) { t += Time.deltaTime; SetBossBar(Mathf.Lerp(from, to, Mathf.SmoothStep(0f, 1f, t / 0.6f))); yield return null; }
             SetBossBar(to);
@@ -2727,13 +2751,16 @@ namespace BBB.Runtime
             UiSkin.Img(root, "Glow", new Vector2(-70f, 0f), new Vector2(420f, 420f), UiSkin.Glow(96), new Color(fire.r, fire.g, fire.b, 0.95f));
             UiSkin.Img(root, "Glow2", new Vector2(-70f, 0f), new Vector2(260f, 300f), UiSkin.Glow(96), new Color(1f, 0.85f, 0.35f, 0.8f));
             UiSkin.Img(root, "Glow3", new Vector2(120f, -4f), new Vector2(300f, 200f), UiSkin.Glow(96), new Color(fire.r, fire.g, fire.b, 0.7f));
-            // 図柄の柱: 3 コマ。ビタは狙う段だけ明るく、枠内ならどこでもよいので 3 つとも明るい
+            // 図柄の柱: 成功する止め位置（上段 aimIndex）の実際のリール配列を上・中・下で見せる（2026-11-08 本人:
+            // 赤7を 3 つ縦に並べた柱は配列に存在しない）。狙う図柄（役の目押しなら役の図柄も）のコマだけ明るい
             const float cw = 118f, ch = 54f, gap = 4f;
-            var sprite = ArtLoader.SymbolSprite(t.symbol);
+            var strip = _m.Strips[t.reel];
             for (int k = 0; k < 3; k++)
             {
                 float y = (1 - k) * (ch + gap);
-                bool lit = t.kind != TechKind.Vita || k == t.row;
+                var cell = strip[((t.aimIndex + k) % strip.Length + strip.Length) % strip.Length];
+                var sprite = ArtLoader.SymbolSprite(cell);
+                bool lit = t.kind == TechKind.Vita ? k == t.row : cell == t.symbol || (t.kind == TechKind.Frame && cell == t.role);
                 UiSkin.Img(root, "CellEdge" + k, new Vector2(-70f, y), new Vector2(cw + 6, ch + 6), UiSkin.Rounded(9), lit ? new Color(1f, 0.85f, 0.3f, 0.95f) : new Color(1f, 1f, 1f, 0.15f));
                 UiSkin.Img(root, "Cell" + k, new Vector2(-70f, y), new Vector2(cw, ch), UiSkin.Rounded(7), lit ? new Color(0.95f, 0.95f, 0.96f, 1f) : new Color(0.25f, 0.25f, 0.3f, 0.9f));
                 if (sprite != null)

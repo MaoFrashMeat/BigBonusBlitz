@@ -1,0 +1,41 @@
+#if UNITY_EDITOR && UNITY_INCLUDE_TESTS
+using System.IO;
+using System.Text;
+using NUnit.Framework;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.Profiling;
+namespace BBB.Tests
+{
+    /// <summary>圧縮の見た目確認用（隔離 QA にだけ置く）。取り込んだ絵をそのまま PNG に書き出す。</summary>
+    public sealed class QaCompressTmp
+    {
+        [Test]
+        public void DumpImportedAtlases()
+        {
+            string outDir=System.Environment.GetEnvironmentVariable("QA_COMPRESS_OUT");
+            Assert.IsFalse(string.IsNullOrEmpty(outDir));
+            Directory.CreateDirectory(outDir);
+            var log=new StringBuilder();
+            log.AppendLine("target "+EditorUserBuildSettings.activeBuildTarget+" colorSpace "+PlayerSettings.colorSpace);
+            var names=new System.Collections.Generic.List<string>();
+            foreach(var f in Directory.GetFiles("Assets/Resources/Art/HeroPrototype","*.png"))names.Add("Art/HeroPrototype/"+Path.GetFileNameWithoutExtension(f));
+            names.Add("QaControl/ctrl");
+            foreach(var n in names)
+            {
+                var t=Resources.Load<Texture2D>(n);Assert.IsNotNull(t,n);
+                var rt=RenderTexture.GetTemporary(t.width,t.height,0,RenderTextureFormat.ARGB32,RenderTextureReadWrite.sRGB);
+                var prev=RenderTexture.active;
+                Graphics.Blit(t,rt);RenderTexture.active=rt;
+                var o=new Texture2D(t.width,t.height,TextureFormat.RGBA32,false,false);
+                o.ReadPixels(new Rect(0,0,t.width,t.height),0,0);o.Apply();
+                RenderTexture.active=prev;RenderTexture.ReleaseTemporary(rt);
+                File.WriteAllBytes(Path.Combine(outDir,Path.GetFileName(n)+".png"),o.EncodeToPNG());
+                log.AppendLine($"{Path.GetFileName(n)} {t.width}x{t.height} {t.format} {Profiler.GetRuntimeMemorySizeLong(t)}");
+                Object.DestroyImmediate(o);
+            }
+            File.WriteAllText(Path.Combine(outDir,"formats.txt"),log.ToString());
+        }
+    }
+}
+#endif

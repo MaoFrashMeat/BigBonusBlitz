@@ -284,7 +284,7 @@ C-1背景で同一候補identityの森狼剣ベースラインと槍の低い接
 | `Scripts/BBB.Runtime/HeroPresentationLab.cs` | 検品画面。状態・コマ・変更待ちを確認できる |
 | `Resources/Data/hero_presentation_prototype.json` | 37ポーズの原本矩形、足元、両手の握り、武器角度、9クリップ、武器2種、敵3種 |
 | `Resources/Art/HeroPrototype/` | 生成原本PNG。元のHero/HeroGen素材は上書きしない |
-| `Editor/HeroPrototypeImporter.cs` | 原寸Texture2D、mipmapなし、Clamp、Bilinear、透明端処理。試作では非圧縮 |
+| `Editor/HeroPrototypeImporter.cs` | 原寸Texture2D、mipmapなし、Clamp、Bilinear、透明端処理。高品質圧縮（2026-11-09 dev 410。試作の間は非圧縮だった） |
 | `Editor/HeroPrototypeMenu.cs` | Editorから開く入口。Edit Modeの時間進行も処理 |
 | `Editor/HeroPrototypeValidation.cs` | 隔離描画、状態遷移・武器予約・握り・欠損IDの検証、連番出力 |
 
