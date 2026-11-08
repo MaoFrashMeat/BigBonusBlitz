@@ -1,0 +1,94 @@
+#if UNITY_EDITOR && UNITY_INCLUDE_TESTS
+using System;
+using System.Collections;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using BBB.Core;
+using BBB.Runtime;
+using NUnit.Framework;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.TestTools;
+namespace BBB.Tests
+{
+    /// <summary>止まる場面を探す: AUTO で長く回し、ボーナスを何度も成立させ、レバーが引けない状態を記録する（隔離 QA にだけ置く）。</summary>
+    public sealed class QaSoakTmp
+    {
+        const BindingFlags Private=BindingFlags.Instance|BindingFlags.NonPublic;
+        static GameController game;
+        static StringBuilder log=new StringBuilder();static int exceptions;
+        static void OnLog(string c,string st,LogType t){if(t!=LogType.Exception)return;exceptions++;if(exceptions<=6)log.AppendLine("EXC "+c+" | "+string.Join(" < ",st.Split((char)10).Where(l=>l.Contains("BBB.Runtime")).Take(3)));}
+        static T Get<T>(string name){var f=typeof(GameController).GetField(name,Private);if(f!=null)return (T)f.GetValue(game);var p=typeof(GameController).GetProperty(name,Private);return (T)p.GetValue(game);}
+        static void Set(string name,object value)=>typeof(GameController).GetField(name,Private).SetValue(game,value);
+        static object Call(string name,params object[] args)=>typeof(GameController).GetMethod(name,Private,null,args.Select(a=>a.GetType()).ToArray(),null).Invoke(game,args);
+        static string State(SlotMachine m)
+        {
+            var reels=Get<ReelView[]>("_reels");
+            var sb=new StringBuilder();
+            sb.Append($"active={m.IsGameActive} locked={Get<bool>("_inputLocked")} leaving={Get<bool>("_leaving")} auto={Get<bool>("_autoMode")} pseudo={m.PseudoPlay} held={m.HeldBonusFlag} announce={m.BonusAnnounceRemaining} mode={m.BonusMode} tier2={m.IsTier2} enemy={m.EnemyActive} inAt={m.InAt} battle={m.InBattle} flag={m.CurrentFlag} tech={m.Tech.kind}");
+            sb.Append(" spinning="+string.Join(",",reels.Select(r=>r.IsSpinning)));
+            sb.Append(" stopped="+string.Join(",",Enumerable.Range(0,3).Select(i=>m.Stopped[i]==null?"-":"x")));
+            sb.Append($" stopsLocked={Get<bool>("StopsLocked")} curse={(Get<GameObject>("_curseBox")!=null)} credit={m.Credit}");
+            return sb.ToString();
+        }
+        [UnityTest, Timeout(900000)]
+        public IEnumerator SoakFindsNoStuckLever()
+        {
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
+            yield return new EnterPlayMode();
+            string output=Environment.GetEnvironmentVariable("QA_SOAK_OUT");Directory.CreateDirectory(output);
+            foreach(var title in UnityEngine.Object.FindObjectsByType<TitleScreen>(FindObjectsSortMode.None))UnityEngine.Object.Destroy(title.gameObject);
+            foreach(var cv in UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None))UnityEngine.Object.Destroy(cv.gameObject);
+            yield return null;
+            log=new StringBuilder();exceptions=0;
+            var audio=AudioManager.Create();log.AppendLine("audio null="+(audio==null));if(audio!=null){audio.SeVolume=0;audio.BgmVolume=0;}
+            int stalls=0;
+            try{LogAssert.ignoreFailingMessages=true;}catch(Exception e){log.AppendLine("ignoreFailingMessages failed: "+e.GetType().Name);}
+            Application.logMessageReceived-=OnLog;Application.logMessageReceived+=OnLog;
+            foreach(int seed in new[]{11,22,33})
+            {
+                if(game!=null)UnityEngine.Object.Destroy(game.gameObject);
+                foreach(var cv in UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None))UnityEngine.Object.Destroy(cv.gameObject);
+                yield return null;
+                var m=GameDataLoader.CreateMachine(new SystemRandom(seed));m.Credit=200000;m.Adv.opDone=true;
+                game=new GameObject("SoakQA").AddComponent<GameController>();game.enabled=false;
+                Set("_m",m);Set("_audio",audio);Call("BuildUi");Call("RefreshUi");Call("PlayCharacter","idle");
+                game.enabled=true;
+                Time.timeScale=3f;
+                Call("SetAuto",true,4);
+                float lastLever=Time.realtimeSinceStartup;float prevStart=Get<float>("_lastSpinStartTime");int levers=0;
+                float end=Time.realtimeSinceStartup+150;
+                while(Time.realtimeSinceStartup<end)
+                {
+                    float s=Get<float>("_lastSpinStartTime");
+                    if(s!=prevStart){prevStart=s;lastLever=Time.realtimeSinceStartup;levers++;
+                        if(levers%20==0&&m.BonusMode==BonusMode.NORMAL&&m.HeldBonusFlag==Flag.HAZE&&!m.IsTier2)m.DebugForceFlag=levers%40==0?Flag.RB_A:Flag.BB_A;}
+                    if(Time.realtimeSinceStartup-lastLever>12)
+                    {
+                        stalls++;
+                        log.AppendLine($"seed {seed} STALL after {levers} levers: {State(m)}");
+                        // 手で押せるか: AUTO を切って MAX BET を押す
+                        Call("SetAuto",false,4);yield return null;
+                        float before=Get<float>("_lastSpinStartTime");
+                        Call("OnBetClicked");yield return null;yield return null;
+                        log.AppendLine($"  manual bet pressed -> lever={(Get<float>("_lastSpinStartTime")!=before)} {State(m)}");
+                        // さらに 3 秒待って止まったリールを手で止める試み
+                        for(int k=0;k<6;k++){Call("OnSpaceStep");yield return new WaitForSecondsRealtime(.5f);}
+                        log.AppendLine($"  after space x6: {State(m)}");
+                        Call("SetAuto",true,4);lastLever=Time.realtimeSinceStartup;
+                        if(stalls>6)break;
+                    }
+                    yield return null;
+                }
+                log.AppendLine($"seed {seed}: exceptions so far={exceptions} levers={levers} credit={m.Credit} final {State(m)}");
+                File.WriteAllText(Path.Combine(output,"soak.txt"),log.ToString());
+            }
+            Time.timeScale=1f;
+            File.WriteAllText(Path.Combine(output,"soak.txt"),log.ToString());
+            yield return new ExitPlayMode();
+        }
+    }
+}
+#endif

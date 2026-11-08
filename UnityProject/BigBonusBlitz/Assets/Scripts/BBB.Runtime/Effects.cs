@@ -16,11 +16,12 @@ namespace BBB.Runtime
             while (t < duration)
             {
                 t += Time.deltaTime;
+                if (target == null) yield break;   // 演出の途中で対象が消えても止まらない（次のレバーで消す敵など）
                 float k = 1f - t / duration;
                 target.anchoredPosition = origin + new Vector2(Random.Range(-amp, amp), Random.Range(-amp, amp)) * k;
                 yield return null;
             }
-            target.anchoredPosition = origin;
+            if (target != null) target.anchoredPosition = origin;
         }
 
         /// <summary>enemyAnimHit 0.3s: scale 1→1.2(rot10°)→1。</summary>
@@ -32,10 +33,12 @@ namespace BBB.Runtime
             {
                 t += Time.deltaTime;
                 float p = Mathf.Sin(Mathf.Clamp01(t / duration) * Mathf.PI);
+                if (target == null) yield break;
                 target.localScale = Vector3.one * (1f + 0.2f * p);
                 target.localRotation = Quaternion.Euler(0, 0, 10f * p);
                 yield return null;
             }
+            if (target == null) yield break;
             target.localScale = Vector3.one;
             target.localRotation = Quaternion.identity;
         }
@@ -52,12 +55,14 @@ namespace BBB.Runtime
                 float p = Mathf.Clamp01(t / duration);
                 float sy = Mathf.Lerp(1f, 0.2f, Mathf.Min(1f, p * 2f));
                 float sx = Mathf.Lerp(1f, 1.5f, Mathf.Min(1f, p * 2f));
+                if (target == null) yield break;
                 target.localScale = new Vector3(sx, sy, 1);
                 target.anchoredPosition = origin + new Vector2(0, -22f * Mathf.Min(1f, p * 2f));
                 if (cg != null && p > 0.5f) cg.alpha = 1f - (p - 0.5f) * 2f;
                 yield return null;
             }
             if (cg != null) cg.alpha = 0f;
+            if (target == null) yield break;
             target.localScale = Vector3.one;
             target.anchoredPosition = origin;
         }
@@ -72,10 +77,12 @@ namespace BBB.Runtime
             {
                 t += Time.deltaTime;
                 float p = 1f - Mathf.Pow(1f - Mathf.Clamp01(t / duration), 2f);
+                if (target == null) yield break;
                 target.anchoredPosition = origin + new Vector2(225f * (1f - p), 0);
                 if (cg != null) cg.alpha = p;
                 yield return null;
             }
+            if (target == null) yield break;
             target.anchoredPosition = origin;
             if (cg != null) cg.alpha = 1f;
         }
@@ -90,18 +97,19 @@ namespace BBB.Runtime
             {
                 t += Time.deltaTime;
                 float p = Mathf.Clamp01(t / duration);
+                if (target == null) yield break;
                 target.anchoredPosition = origin + new Vector2(260f * p * p, 10f * Mathf.Sin(p * Mathf.PI * 4f));
                 if (cg != null) cg.alpha = 1f - p;
                 yield return null;
             }
             if (cg != null) cg.alpha = 0f;
-            target.anchoredPosition = origin;
+            if (target != null) target.anchoredPosition = origin;
         }
 
         /// <summary>虹色: 色相を回し続ける。</summary>
         public static IEnumerator Rainbow(Image img)
         {
-            while (true)
+            while (img != null)
             {
                 img.color = Color.HSVToRGB((Time.time * 0.8f) % 1f, 0.6f, 1f);
                 yield return null;
@@ -112,22 +120,25 @@ namespace BBB.Runtime
         public static IEnumerator Defeat(RectTransform target, Image img, CanvasGroup cg)
         {
             AudioManager.Create().MotionIfQuiet(MotionCue.Impact);
+            if (img == null || target == null) yield break;
             var c0 = img.color;
             for (int i = 0; i < 3; i++)
             {
+                if (img == null) yield break;
                 img.color = Color.white * 3f;
                 yield return new WaitForSeconds(0.06f);
+                if (img == null) yield break;
                 img.color = c0;
                 yield return new WaitForSeconds(0.06f);
             }
-            yield return Squash(target, cg);
+            if (target != null) yield return Squash(target, cg);
         }
 
         /// <summary>idleEnemyAnim: 2秒周期で少し潰れる。無限。</summary>
         public static IEnumerator IdleBob(RectTransform target)
         {
             var origin = target.anchoredPosition;
-            while (true)
+            while (target != null)
             {
                 float p = (1f - Mathf.Cos(Time.time * Mathf.PI)) * 0.5f;   // 0→1→0 / 2s
                 target.localScale = new Vector3(1, 1f - 0.1f * p, 1);

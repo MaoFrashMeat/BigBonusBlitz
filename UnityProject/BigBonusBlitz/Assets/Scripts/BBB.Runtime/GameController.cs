@@ -141,6 +141,7 @@ namespace BBB.Runtime
         private float _fxTimer;
         // ボーナス中の 15 枚ベル演出（3体斬り）
         private bool _bellShowActive;
+        private int _bellShowSerial;   // ClearBellShow のたびに進める。古い演出の続きが新しい 3 体に触らないように
         private int _bellShowStop;
         private readonly RectTransform[] _bellFoe = new RectTransform[3];
         private readonly Image[] _bellFoeImg = new Image[3];
@@ -186,7 +187,8 @@ namespace BBB.Runtime
         private Text _miniLabel;
         private Text _atRankLabel;
         /// <summary>右のログ枠（説明の吹き出しに流した文を新しい順に。最後の数行だけ見せる）。</summary>
-        private Text _logText;
+        private Text _logText, _logState;
+        private float _logStateAt;
         private readonly System.Collections.Generic.List<string> _log = new System.Collections.Generic.List<string>();
         private Button _graphAlwaysBtn;
         /// <summary>グラフに重ねている履歴の番号（-1 なら重ねていない）。</summary>
@@ -244,6 +246,13 @@ namespace BBB.Runtime
         private int _lastPayout;
         private bool _lastWasReplay;
         private bool _inputLocked;     // BB確定音の間
+        // 鍵の理由と期限: ログの「いま」に出す。期限のある鍵（演出の待ち）は期限を過ぎたら外す（2026-11-09 本人: 押せなくなった）
+        private string _lockReason = "";
+        private float _lockUntil = float.PositiveInfinity;
+        private void LockInput(string reason, float maxSeconds = float.PositiveInfinity)
+        {
+            _inputLocked = true; _lockReason = reason; _lockUntil = Time.unscaledTime + maxSeconds;
+        }
         private float _fps;
         /// <summary>実機のウェイト。前回リール始動から次の始動まで最低この秒数空ける。</summary>
         public const float SpinWaitSeconds = 2.05f;   // 実機は4.1秒。半分に短縮（2026-09-08）
@@ -304,7 +313,7 @@ namespace BBB.Runtime
         private IEnumerator OpeningEscapeRoutine()
         {
             var cfg = _m.Config.story.op;
-            _inputLocked = true;
+            LockInput("物語の場面");
             _op = OpeningPlayer.Create(OpeningSkip, OpHeroName);
             yield return _op.Play(cfg.Find("escape"));
             if (_op == null || _op.Skipped) yield break;
@@ -334,7 +343,7 @@ namespace BBB.Runtime
         private IEnumerator OpeningCollapseRoutine()
         {
             _opEscape = false;
-            _inputLocked = true; _leaving = true;
+            LockInput("力尽きた場面"); _leaving = true;
             if (_autoMode) SetAuto(false, _autoSpeed);
             PlayCharacter("hit");
             _audio.EnemyEscape();
@@ -377,7 +386,7 @@ namespace BBB.Runtime
         private IEnumerator OpeningOutroRoutine()
         {
             _opGate = false;
-            _inputLocked = true;
+            LockInput("物語の場面");
             yield return new WaitForSeconds(1.2f);
             _op = OpeningPlayer.Create(OpeningSkip, OpHeroName);
             yield return _op.Play(_m.Config.story.op.Find("gate_out"));
@@ -906,7 +915,11 @@ namespace BBB.Runtime
             var logBox = UiSkin.Rect(side, "LogBox", Llg.Pos - Lsd.Pos, Llg.Size);
             UiSkin.Img(logBox, "Edge", Vector2.zero, new Vector2(Llg.w + 2, Llg.h + 2), UiSkin.Rounded(9), new Color(1, 1, 1, 0.13f));
             UiSkin.Img(logBox, "Bg", Vector2.zero, Llg.Size, UiSkin.Rounded(8), Hex("#0b1120"));
-            _logText = UiFactory.Label(logBox, "Text", new Vector2(0, 0), new Vector2(Llg.w - 16, Llg.h - 8), "", 10, TextAnchor.LowerLeft, ColTextSub);
+            // 1 行目は「いま」: 何を待っているか・なぜ押せないかを常に出す（2026-11-09 本人: どういう状況か常にログで分かるように）
+            _logState = UiFactory.Label(logBox, "State", new Vector2(0, Llg.h * 0.5f - 4 - 7), new Vector2(Llg.w - 16, 14), "", 10, TextAnchor.MiddleLeft, ColGold);
+            _logState.fontStyle = FontStyle.Bold;
+            _logState.horizontalOverflow = HorizontalWrapMode.Overflow; _logState.verticalOverflow = VerticalWrapMode.Truncate;
+            _logText = UiFactory.Label(logBox, "Text", new Vector2(0, -8), new Vector2(Llg.w - 16, Llg.h - 8 - 16), "", 10, TextAnchor.LowerLeft, ColTextSub);
             _logText.horizontalOverflow = HorizontalWrapMode.Wrap; _logText.verticalOverflow = VerticalWrapMode.Truncate;
             // 右の列は無し（状態の札は表示域の左、次のルートの下へ移した）
             // 常駐（ミニ）のスランプは表示域の左下（2026-09-16 本人の赤枠）。グラフのボタンで 大 → ミニ → OFF と切り替える。数字は右下に小さく
@@ -2551,6 +2564,18 @@ namespace BBB.Runtime
             // Play 中にスクリプトが再コンパイルされると非シリアライズ参照が消える。その状態で回さない（NRE の連打防止）
             if (_m == null || _creditNum == null) return;
             if(!_m.IsGameActive)AdventureAssets.Pump(); // Between spins, so the scan cannot hitch a reel stop.
+            if (_inputLocked && Time.unscaledTime > _lockUntil)
+            {
+                LogAdd($"「{_lockReason}」が終わらなかったので、操作を戻しました");
+                _inputLocked = false; _lockUntil = float.PositiveInfinity;
+                RefreshUi();
+                if (_autoMode) StartAuto();
+            }
+            if (_logState != null && Time.unscaledTime >= _logStateAt)   // 毎コマ文字列を作らない（0.2 秒ごと）
+            {
+                _logStateAt = Time.unscaledTime + 0.2f;
+                string st = StateLine(); if (_logState.text != st) _logState.text = st;
+            }
             if(_adventureEnemy!=null&&!AtelierModalOpen()&&_curseBox==null&&!OpeningPlayer.IsDialogueVisible)
                 _adventureEnemy.Step(Time.deltaTime);
             if(_adventureHero!=null)
@@ -3188,7 +3213,7 @@ namespace BBB.Runtime
         {
             if (_m.Curse.Offer == null || _curseBox != null) return;
             var off = _m.Curse.Offer;
-            _inputLocked = true;
+            LockInput("呪いの申し出");
             RefreshUi();
 
             const float W = 520f, H = 260f;
@@ -3392,7 +3417,7 @@ namespace BBB.Runtime
         private IEnumerator ReturnToTownRoutine(GameResult r)
         {
             _leaving = true;
-            _inputLocked = true;
+            LockInput("街へ戻る場面");
             if (_autoMode) SetAuto(false, _autoSpeed);
             var res = _m.Config.adventure?.resource ?? new ResourceConfig();
             bool byHp = r.returnReason == "hp";
@@ -3416,7 +3441,7 @@ namespace BBB.Runtime
         /// <summary>章クリア: 報酬を見せてから街へ戻る（オートは止める）。</summary>
         private IEnumerator ChapterClearRoutine(GameResult r)
         {
-            _leaving=true; _inputLocked=true;
+            _leaving=true; LockInput("章クリアの報酬");
             if(_autoMode) SetAuto(false,_autoSpeed);
             _audio.Win(); _runEndReason="clear";
             if(PlayStory(StoryDirector.OnClear(_m.Config.story,Mathf.Max(1,_m.Adv.chapter-1)))) yield return new WaitForSeconds(3.2f);
@@ -3643,6 +3668,8 @@ namespace BBB.Runtime
             else if (r.missionStarted != null) lines.Add($"任務を受けた: {r.missionStarted.name}");
             if (unlocked != null) foreach (var a in unlocked) lines.Add(a.rewardSouls > 0 ? $"実績「{a.name}」を解除。{{soul}}+{a.rewardSouls}" : $"実績「{a.name}」を解除");
             if (lines.Count == 0) return;
+            // ログには全部残す（吹き出しは 3 行まで・会話中は出さないが、何が起きたかはいつでもログで追える。2026-11-09 本人）
+            foreach (var l in lines) LogAdd(l);
             if (lines.Count > 3) lines.RemoveRange(3, lines.Count - 3);
             if (_dialogRoutine != null && !_explainActive) return;   // 物語・旅人の会話の途中
             if (_dialogRoutine != null) StopCoroutine(_dialogRoutine);
@@ -3666,6 +3693,31 @@ namespace BBB.Runtime
 
         /// <summary>説明を 1 行ずつ、吹き出しで流す（青いタグ「説明」）。長い行は少し長く見せる。</summary>
         /// <summary>ログ枠に 1 行足す（説明の吹き出しに流した文。絵の印 {soul} などは名前に置き換える）。新しいものが下。</summary>
+        /// <summary>ログの 1 行目「いま」: 何を待っているか、なぜ押せないか。押せる状態なら何を押せばよいか。</summary>
+        private string StateLine()
+        {
+            string s;
+            if (_curseBox != null) s = "呪いの申し出に答えると再開します（受ける／断る）";
+            else if (AtelierModalOpen()) s = "開いている画面を閉じると再開します";
+            else if (_inputLocked) s = $"{(_lockReason.Length > 0 ? _lockReason : "演出")}の途中。終わると押せます";
+            else if (_leaving) s = "街へ戻る途中です";
+            else if (_m.IsGameActive)
+                s = _m.PseudoPlay ? "擬似遊技。リールは自動で止まります"
+                  : StopsLocked ? "回転中。もうすぐ止められます"
+                  : _m.Tech.Active ? "技術介入。狙って止めよう"
+                  : "回転中。リールを止めてください";
+            else
+            {
+                bool held = _m.HeldBonusFlag != Flag.HAZE && _m.BonusAnnounceRemaining <= 0;
+                s = held ? "ボーナス成立中。7 を揃えよう（MAX BET で次のG）"
+                  : _m.BonusMode != BonusMode.NORMAL ? "ボーナス中。MAX BET で次のG"
+                  : _m.IsTier2 && _m.EnemyActive ? $"エンゲージ中（{EngageStatusText()}）。MAX BET で次のG"
+                  : _m.InAt ? $"洞窟（AT）残り {_m.AtSpinsRemaining}G。MAX BET で次のG"
+                  : "MAX BET でレバーを引けます";
+            }
+            return "いま  " + (_autoMode ? "AUTO  " : "") + s;
+        }
+
         private void LogAdd(string line)
         {
             if (string.IsNullOrEmpty(line)) return;
@@ -3674,7 +3726,7 @@ namespace BBB.Runtime
             _log.Add(plain.Trim());
             if (_log.Count > 40) _log.RemoveRange(0, _log.Count - 40);
             if (_logText == null) return;
-            int n = Mathf.Min(_log.Count, 6);
+            int n = Mathf.Min(_log.Count, 5);
             _logText.text = string.Join("\n", _log.GetRange(_log.Count - n, n));
         }
 
@@ -3682,7 +3734,6 @@ namespace BBB.Runtime
         {
             foreach(var line in lines)
             {
-                LogAdd(line);
                 yield return ShowLine("説明",line,ColGold,ColText,line.Length>26?3f:2.4f,true);
             }
             _explainActive=false;HideDialogue();_dialogRoutine=null;
@@ -3896,7 +3947,7 @@ namespace BBB.Runtime
             }
             if (rt != null) rt.anchoredPosition = to;
             if (_bellFoeCg[i] != null) _bellFoeCg[i].alpha = 1f;
-            UiFx.Burst(rt, UiFx.Preset.Dust, new Vector2(0, -50));
+            if (rt != null) UiFx.Burst(rt, UiFx.Preset.Dust, new Vector2(0, -50));
         }
 
         /// <summary>停止のたびに 1 体倒す。3 体目は一回転＋ポーズまでやる。</summary>
@@ -3904,6 +3955,9 @@ namespace BBB.Runtime
         {
             PlayCharacter("attack-f3-4");
             _audio.Attack();
+            // 次のレバーで ClearBellShow が敵を消し、新しい 3 体を出すことがある（AUTO の速回し）。
+            // そのときはこの演出を打ち切り、新しい敵や新しい演出の状態に触らない（2026-11-09 例外で演出が止まっていた）
+            int serial = _bellShowSerial;
             var rt = _bellFoe[index];
             if (rt != null)
             {
@@ -3911,12 +3965,15 @@ namespace BBB.Runtime
                 UiFx.Burst(rt, UiFx.Preset.Sparks);
                 UiFx.Ring(rt, new Color(1f, 0.9f, 0.6f, 0.85f), 30, 190, 0.35f);
                 yield return Effects.Hit(rt, 0.18f);
+                if (serial != _bellShowSerial || rt == null) yield break;
                 _audio.EnemyDeath();
                 yield return Effects.Defeat(rt, _bellFoeImg[index], _bellFoeCg[index]);
+                if (serial != _bellShowSerial || rt == null) yield break;
                 UiFx.Burst(rt, UiFx.Preset.Explode);
                 Destroy(rt.gameObject);
                 _bellFoe[index] = null;
             }
+            if (serial != _bellShowSerial) yield break;
             if (index < 2) { PlayCharacter("idle"); yield break; }
 
             // 3 体目: 一回転してポーズ
@@ -3924,6 +3981,7 @@ namespace BBB.Runtime
             // 判定が終わるまで待ってから、期待度が上がっていれば PUSH を出す
             float wait = 0;
             while (_m.IsGameActive && wait < 1.5f) { wait += Time.deltaTime; yield return null; }
+            if (serial != _bellShowSerial) yield break;
             _bellShowActive = false;
             if (_m.AtExpectGained > 0) yield return PushThenChance();
             PlayCharacter("walk");
@@ -3965,7 +4023,7 @@ namespace BBB.Runtime
         {
             var cfg = _m.Config.atExpect ?? new AtExpectConfig();
             // 受付中は他の入力を止める。Space が BET と二重に反応するのを防ぐため
-            _inputLocked = true;
+            LockInput("PUSH の受付", Mathf.Max(0.5f, cfg.pushSeconds) + 6f);
             RefreshUi();
             _pushPressed = false;
             var root = UiSkin.Rect(_area, "PushButton", new Vector2(0, -10), new Vector2(210, 92));
@@ -4001,6 +4059,7 @@ namespace BBB.Runtime
         /// <summary>ベル演出の後片付け（次のレバーや画面切り替えで残さない）。</summary>
         private void ClearBellShow()
         {
+            _bellShowSerial++;
             _bellShowActive = false;
             _bellShowStop = 0;
             for (int i = 0; i < 3; i++)
@@ -5632,7 +5691,7 @@ namespace BBB.Runtime
         /// <summary>JS: BB確定音を流し、終わるまで操作を止める。</summary>
         private IEnumerator BigBonusStartRoutine()
         {
-            _inputLocked = true;
+            LockInput("ボーナス開始の演出", 15f);
             RefreshUi();
             float len = _audio.BbConfirm(); _audio.Voice("bonus");
             var zBig = _m.Config.zoneFx?.big;
