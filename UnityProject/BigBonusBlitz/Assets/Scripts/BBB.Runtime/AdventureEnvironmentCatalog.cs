@@ -7,6 +7,19 @@ namespace BBB.Runtime
     public enum AdventureTime { Morning, Day, Evening, Night }
     public enum AdventureWeather { Clear, Rain, Storm, Snow, Fog, Embers, Drips, Spores, Cloudy }
 
+    [Serializable] public sealed class AdventureLocalLight
+    {
+        // Position and elliptical radius in the unmodified row (top-down y).
+        public float x,y,radiusX,radiusY,intensity;
+        public Color color=Color.white;
+    }
+    [Serializable] public sealed class AdventureLighting
+    {
+        public float actorTintWeight=.48f, indoorActorTintWeight=.38f;
+        public float shadowOpacity=.6f, overcastShadowOpacity=.32f, indoorShadowOpacity=.46f;
+        public float shadowWidth=115, shadowHeight=19, lowSunStretch=.6f, shadowOffset=24;
+        public float depthShade=.16f, indoorDepthShade=.22f;
+    }
     [Serializable] public sealed class AdventureEnvironmentLayer
     {
         public string texture;
@@ -14,6 +27,7 @@ namespace BBB.Runtime
         // Source UV window in an unchanged atlas, measured from the top.
         public float top, rowHeight=1;
         public bool nativeAlpha;
+        public AdventureLocalLight[] lights;
     }
 
     [Serializable] public sealed class AdventureEnvironmentProfile
@@ -33,9 +47,11 @@ namespace BBB.Runtime
     }
     public static class AdventureEnvironmentCatalog
     {
-        [Serializable] sealed class Data { public AdventureEnvironmentProfile[] stages; }
+        [Serializable] sealed class Data { public AdventureEnvironmentProfile[] stages; public AdventureLighting lighting; }
+        static AdventureLighting lighting;
+        public static AdventureLighting Lighting { get { var all=All;return lighting??(lighting=new AdventureLighting()); } }
         static Dictionary<string,AdventureEnvironmentProfile> profiles;
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]static void ResetCache()=>profiles=null;
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]static void ResetCache(){profiles=null;lighting=null;}
         public static IReadOnlyDictionary<string,AdventureEnvironmentProfile> All
         {
             get
@@ -44,7 +60,7 @@ namespace BBB.Runtime
                 {
                     profiles=new Dictionary<string,AdventureEnvironmentProfile>();
                     var asset=Resources.Load<TextAsset>("Data/adventure_environments");
-                    if(asset!=null)foreach(var p in JsonUtility.FromJson<Data>(asset.text).stages)profiles[p.id]=p;
+                    if(asset!=null){var data=JsonUtility.FromJson<Data>(asset.text);lighting=data.lighting;foreach(var p in data.stages)profiles[p.id]=p;}
                 }
                 return profiles;
             }

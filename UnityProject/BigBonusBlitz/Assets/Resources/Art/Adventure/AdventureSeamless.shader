@@ -12,6 +12,15 @@ Shader "BBB/UI/AdventureSeamless"
         _Module("Black matte module (no overlap)",Float)=0
         _Ground("Procedural continuous ground",Float)=0
         _Scroll("Ground travel",Float)=0
+        _DepthShade("Lower-plane shade",Float)=0
+        _LocalLight0("Local light 0 position/radius",Vector)=(0,0,1,1)
+        _LocalLight1("Local light 1 position/radius",Vector)=(0,0,1,1)
+        _LocalLight2("Local light 2 position/radius",Vector)=(0,0,1,1)
+        _LocalLight3("Local light 3 position/radius",Vector)=(0,0,1,1)
+        _LocalColor0("Local light 0 color/intensity",Color)=(0,0,0,0)
+        _LocalColor1("Local light 1 color/intensity",Color)=(0,0,0,0)
+        _LocalColor2("Local light 2 color/intensity",Color)=(0,0,0,0)
+        _LocalColor3("Local light 3 color/intensity",Color)=(0,0,0,0)
         _StencilComp("Stencil Comparison",Float)=8
         _Stencil("Stencil ID",Float)=0
         _StencilOp("Stencil Operation",Float)=0
@@ -40,6 +49,16 @@ Shader "BBB/UI/AdventureSeamless"
             struct appdata{float4 vertex:POSITION;float4 color:COLOR;float2 uv:TEXCOORD0;};
             struct v2f{float4 vertex:SV_POSITION;fixed4 color:COLOR;float2 uv:TEXCOORD0;float4 local:TEXCOORD1;};
             sampler2D _MainTex, _SeamTex;fixed4 _Color;float4 _Row,_ClipRect,_MainTex_TexelSize;float _Overlap,_UseSeam,_SeamFeather,_Module,_Ground,_Scroll;
+            float _DepthShade;
+            float4 _LocalLight0,_LocalLight1,_LocalLight2,_LocalLight3;
+            fixed4 _LocalColor0,_LocalColor1,_LocalColor2,_LocalColor3;
+            float3 LocalLight(float2 uv,float4 lamp,fixed4 color)
+            {
+                float dx=abs(frac(uv.x)-lamp.x);dx=min(dx,1-dx);
+                float2 d=float2(dx,uv.y-lamp.y)/max(lamp.zw,float2(.001,.001));
+                float falloff=saturate(1-dot(d,d));
+                return color.rgb*color.a*falloff*falloff;
+            }
             float3 KeyRGB(float2 uv)
             {
                 float3 rgb=tex2D(_MainTex,uv).rgb;
@@ -115,6 +134,17 @@ Shader "BBB/UI/AdventureSeamless"
                 float y=saturate((i.uv.y-_Row.x)/_Row.y);
                 c.a*=1-smoothstep(1-_Row.z,1,y);
                 if(_Row.w>0)c.a*=smoothstep(0,_Row.w,y);
+                }
+                if(_Module>.5 && _Ground<.5)
+                {
+                    float rowY=saturate((i.uv.y-_Row.x)/max(.001,_Row.y));
+                    c.rgb*=1-_DepthShade*(1-smoothstep(0,.8,rowY));
+                    float2 localUV=float2(i.uv.x,rowY);
+                    // Independent lights follow the source row while it scrolls. Alpha
+                    // stays unchanged: no luminous rectangle over transparent scenery.
+                    float3 radiance=LocalLight(localUV,_LocalLight0,_LocalColor0)+LocalLight(localUV,_LocalLight1,_LocalColor1)
+                        +LocalLight(localUV,_LocalLight2,_LocalColor2)+LocalLight(localUV,_LocalLight3,_LocalColor3);
+                    c.rgb=saturate(c.rgb+radiance);
                 }
                 #ifdef UNITY_UI_CLIP_RECT
                 c.a*=UnityGet2DClipping(i.local.xy,_ClipRect);

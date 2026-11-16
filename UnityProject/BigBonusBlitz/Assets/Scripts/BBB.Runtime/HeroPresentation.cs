@@ -25,7 +25,7 @@ namespace BBB.Runtime
     {
         public string id,next,weaponId;
         public int[] frames;
-        public float[] seconds;
+        public float[] seconds,retreatSeconds;
         public string[] events;
         public bool loop,hold;
     }
@@ -58,6 +58,8 @@ namespace BBB.Runtime
         public float maxDistance;
         public float leadSeconds;
         public float handoffSeconds;
+        public float returnWalkStart=.25f;
+        public float returnWalkCycles=.5f;
     }
     [Serializable] public sealed class HeroPresentationConfig
     {
@@ -111,6 +113,10 @@ namespace BBB.Runtime
         int frame;
         float elapsed;
         bool frameCueSent;
+        // The longer backstep is only used after a spatial melee approach.
+        internal bool UseRetreatTiming { get; set; }
+        float[] FrameDurations => UseRetreatTiming && motion.retreatSeconds != null &&
+            motion.retreatSeconds.Length == motion.frames.Length ? motion.retreatSeconds : motion.seconds;
         string requestedLoop="idle",pendingWeapon;
         public string State=>motion.id;
         public bool IsLoop=>motion.loop;
@@ -121,10 +127,10 @@ namespace BBB.Runtime
             get
             {
                 float total=0,elapsedInClip=elapsed;
-                for(int i=0;i<motion.seconds.Length;i++)
+                for(int i=0;i<FrameDurations.Length;i++)
                 {
-                    total+=Mathf.Max(.01f,motion.seconds[i]);
-                    if(i<frame)elapsedInClip+=Mathf.Max(.01f,motion.seconds[i]);
+                    total+=Mathf.Max(.01f,FrameDurations[i]);
+                    if(i<frame)elapsedInClip+=Mathf.Max(.01f,FrameDurations[i]);
                 }
                 return total>0?Mathf.Clamp01(elapsedInClip/total):0;
             }
@@ -161,11 +167,11 @@ namespace BBB.Runtime
             if(motion.loop||State=="recover")
             {
                 // Preserve normalized clip time when a weapon has a different stance/clip length.
-                float time=elapsed,total=0;for(int i=0;i<motion.seconds.Length;i++){total+=motion.seconds[i];if(i<frame)time+=motion.seconds[i];}
+                float time=elapsed,total=0;for(int i=0;i<FrameDurations.Length;i++){total+=FrameDurations[i];if(i<frame)time+=FrameDurations[i];}
                 string state=State;WeaponId=id;pendingWeapon=null;motion=Find(state);
-                float nextTotal=0;foreach(float seconds in motion.seconds)nextTotal+=seconds;
+                float nextTotal=0;foreach(float seconds in FrameDurations)nextTotal+=seconds;
                 elapsed=total>0?time/total*nextTotal:0;frame=0;
-                while(frame<motion.seconds.Length-1&&elapsed>=motion.seconds[frame]){elapsed-=motion.seconds[frame];frame++;}
+                while(frame<FrameDurations.Length-1&&elapsed>=FrameDurations[frame]){elapsed-=FrameDurations[frame];frame++;}
                 frameCueSent=true; // Replacing the weapon is not a new footfall/action.
             }
             else pendingWeapon=id; // Finish the current stroke with its starting weapon.
@@ -187,7 +193,7 @@ namespace BBB.Runtime
                     string cue=motion.events!=null&&frame<motion.events.Length?motion.events[frame]:null;
                     if(!string.IsNullOrEmpty(cue)&&emitted.Add(cue))Cue?.Invoke(cue);
                 }
-                float duration=Mathf.Max(.01f,motion.seconds[frame]);
+                float duration=Mathf.Max(.01f,FrameDurations[frame]);
                 if(elapsed<duration)return;
                 if(motion.hold&&frame==motion.frames.Length-1){elapsed=duration;return;}
                 float remainder=elapsed-duration;
@@ -215,6 +221,14 @@ namespace BBB.Runtime
         public Vector2 GripPosition {get;private set;}
         public Vector2 SupportPosition {get;private set;}
         public bool TwoHanded {get;private set;}
+        public void ApplyEnvironment(ParallaxBackground environment)
+        {
+            if(environment==null)return;
+            Body.color=Weapon.color=Hand.color=SupportHand.color=environment.ActorTint;
+            shadow.color=environment.ContactShadowColor;
+            shadow.rectTransform.sizeDelta=environment.ContactShadowSize;
+            shadow.rectTransform.anchoredPosition=environment.ContactShadowOffset;
+        }
         Image shadow,marker,supportMarker,stringTop,stringBottom,nockedArrow;
         int lastPose=-1;
         string lastWeapon;

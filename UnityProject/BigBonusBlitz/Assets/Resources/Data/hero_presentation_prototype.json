@@ -6,7 +6,9 @@
     "enabled": true,
     "maxDistance": 600,
     "leadSeconds": 0.36,
-    "handoffSeconds": 0.08
+    "handoffSeconds": 0.08,
+    "returnWalkStart": 0.25,
+    "returnWalkCycles": 0.5
   },
   "poses": [
     {
@@ -1278,6 +1280,10 @@
       "events": [
         "",
         ""
+      ],
+      "retreatSeconds": [
+        0.14,
+        0.4
       ]
     },
     {
@@ -1367,7 +1373,11 @@
         "",
         ""
       ],
-      "weaponId": "w_spear"
+      "weaponId": "w_spear",
+      "retreatSeconds": [
+        0.16,
+        0.4
+      ]
     },
     {
       "id": "attack-f1",
@@ -1603,7 +1613,11 @@
         "",
         ""
       ],
-      "weaponId": "w_dagger"
+      "weaponId": "w_dagger",
+      "retreatSeconds": [
+        0.12,
+        0.32
+      ]
     },
     {
       "id": "attack-f1",
@@ -1762,6 +1776,10 @@
       "events": [
         "",
         ""
+      ],
+      "retreatSeconds": [
+        0.24,
+        0.46
       ]
     },
     {

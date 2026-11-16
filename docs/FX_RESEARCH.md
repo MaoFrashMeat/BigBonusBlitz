@@ -155,3 +155,8 @@
 ## 出典
 [1] shoryuken.com/2016/06/07/hitstop-in-street-fighter-v-kens-not-so-little-secret/ ・[2] dustloop.com/w/GBVS/Mechanics ・[6] infovore.org/archives/2013/10/22/making-game-feel/ ・[10] 80.lv/articles/constructing-vfx-worthy-of-league-of-legends ・[11] effekseer.github.io/Help_Tool/ja/ToolTutorial/05.html ・[12] Riot VFX style guide（slideshare） ・[13] vfxapprentice.com/blog/10-league-of-legends-vfx-design-tips ・[14] brainvoyage.blog/impact-frames-meaning-animation-guide ・[15] blog.cg-wire.com/smear-frames/ ・[16] GGXrd GDC2015（arcsystemworks.com） ・[17] kyky.blog.jp/archives/41067430.html ・[18] unity-effect.com/368/ ・[19] optica.livedoor.blog/archives/11719287.html ・[20] torchinsky.me/stylized-vfx-unity-01/ ・[23] note.com/bbds_blog/n/n99e89912fafe ・[25] アニメ塗りの段数（bd_publishing） ・[26] learnopengl.com/Guest-Articles/2022/Phys.-Based-Bloom ・[27] Unity URP Bloom ・[28] 桜井政博「エフェクトを目立たせる」 ・[29] GDC2016 Eiserloh（archive.org） ・[30] davetech.co.uk/gamedevscreenshake
 [GEA] unity-effect.com/245/ ・[RIME] simonschreibt.de/gat/stylized-vfx-in-rime/ ・[CC2] gamemakers.jp/article/2023_12_19_57404/ ・Cyanilux sword slash breakdown
+
+
+## 2026-11-17 接近攻撃の復帰と環境色への適用
+
+本リポジトリ6.4節の「止めと動きの速度差」を現在のHeroMotionPlayer/AdventureHeroPresenterへ照合。従来recoverは静止姿勢のままrootだけが戻っていたため、前半の姿勢保持と後半の既存逆順歩行に分ける。接触cue時刻を変更せず、被弾/ガードの復帰時間も分けて保持する。これは原画の支持足連続を保証しない。太陽の描画x式と接触影の符号を照合し、逆向きに修正した。観測・失敗・検査表は[動作・光影レビュー](art/2026-11-06/MOTION_LIGHTING_REVIEW.md)。外部の新規調査や新しい美術採用決定は行っていない。

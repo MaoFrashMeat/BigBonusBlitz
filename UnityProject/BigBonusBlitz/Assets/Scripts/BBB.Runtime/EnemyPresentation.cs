@@ -92,6 +92,7 @@ namespace BBB.Runtime
         public Image Body {get;private set;}
         public EnemyLook Look {get;private set;}
         public float MovementScaleX {get;set;}=1f;
+        public ParallaxBackground Environment {get;set;}
         RectTransform root;
         Image shadow;
         int lastPose=-1;
@@ -117,6 +118,13 @@ namespace BBB.Runtime
             Body.rectTransform.anchoredPosition=new Vector2(offset.x,(pose.h*.5f-pose.foot)*scale+offset.y);
             shadow.rectTransform.anchoredPosition=new Vector2(offset.x,0);
             shadow.rectTransform.sizeDelta=new Vector2(Look.shadowWidth/(1+Mathf.Max(0,offset.y)/100),16);
+            if(Environment!=null)
+            {
+                var lighting=AdventureEnvironmentCatalog.Lighting;
+                shadow.rectTransform.anchoredPosition+=Environment.ContactShadowOffset;
+                var size=shadow.rectTransform.sizeDelta;size.x*=Environment.ContactShadowSize.x/Mathf.Max(1,lighting.shadowWidth);shadow.rectTransform.sizeDelta=size;
+                var color=Environment.ContactShadowColor;color.a/=1+Mathf.Max(0,offset.y)/100;shadow.color=color;
+            }
         }
     }
 }

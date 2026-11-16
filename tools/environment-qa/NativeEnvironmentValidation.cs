@@ -73,7 +73,10 @@ public static class NativeEnvironmentValidation
         var main=(ParallaxBackground)typeof(GameController).GetField("_bg",flags).GetValue(game);
         foreach(var id in nativeIds)
         {
+            machine.Adv.nodeId=id;
+            typeof(GameController).GetMethod("RefreshUi",flags).Invoke(game,null);
             main.SetStage(id,true);main.SetHour(12,0);main.SetWeather(AdventureWeather.Clear,0,0);main.PreviewScroll(7);
+            foreach(var hero in canvas.GetComponentsInChildren<AdventureHeroPresenter>())hero.View.ApplyEnvironment(main);
             foreach(var size in new[]{new Vector2Int(1280,720),new Vector2Int(2556,1179)}){if(safe!=null)safe.Stage.localScale=Vector3.one*Mathf.Min(1,540f*size.x/size.y/safe.Stage.sizeDelta.x);Render("game-"+id+"-"+size.x,size.x,size.y);}
         }
         File.WriteAllText(Path.Combine(output,"validation.json"),"{\"passed\":true,\"nativeStages\":"+nativeIds.Length+",\"legacyMatteRegression\":true,\"timeWeatherCombinations\":"+combinations+",\"periodChecks\":"+periodChecks+",\"worstWrapDifference\":"+worst.ToString(System.Globalization.CultureInfo.InvariantCulture)+",\"stageCoverage\":30,\"mainResolutions\":2,\"finalArtApproved\":false,\"productionSaveTouched\":false}");

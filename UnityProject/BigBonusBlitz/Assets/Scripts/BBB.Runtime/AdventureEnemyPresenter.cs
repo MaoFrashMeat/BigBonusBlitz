@@ -32,7 +32,7 @@ namespace BBB.Runtime
             View.transform.localScale=Vector3.one*scale;
             float min=0;foreach(var pose in look.poses)min=Mathf.Min(min,pose.offsetX);
             View.MovementScaleX=min<0?Mathf.Max(0,(heroDistance+cfg.gameplayContactGap)/(min*scale)):1;
-            legacy.enabled=false;View.Body.color=legacy.color;View.Render();
+            legacy.enabled=false;ApplyTint();View.Render();
         }
         void OnCue(string cue){if(cue=="contact")ImpactReady=true;}
         public void Hide()
@@ -46,7 +46,8 @@ namespace BBB.Runtime
             if(!Active)return;
             ImpactReady=false;View.Request(motion);
         }
-        public void Step(float seconds){if(Active)View.Step(seconds);}
-        void LateUpdate(){if(Active)View.Body.color=legacy.color;}
+        public void Step(float seconds){if(Active){View.Step(seconds);ApplyTint();}}
+        void ApplyTint(){View.Body.color=legacy.color*(View.Environment!=null?View.Environment.ActorTint:Color.white);}
+        void LateUpdate(){if(Active)ApplyTint();}
     }
 }

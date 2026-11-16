@@ -10,6 +10,8 @@ namespace BBB.Runtime
         public HeroPresentationView View {get;private set;}
         public int MotionVersion {get;private set;}
         public bool ImpactReady {get;private set;}
+        public ParallaxBackground Environment {get;set;}
+        public bool IsReturning {get;private set;}
         string requestedWeapon;
         RectTransform queuedTarget,attackTarget;
         Vector2 restFeet;
@@ -87,7 +89,7 @@ namespace BBB.Runtime
             projectile.rectTransform.localRotation=Quaternion.Euler(0,0,Mathf.Atan2(localDirection.y,localDirection.x)*Mathf.Rad2Deg);
             if(flightElapsed>=rangedLook.flightSeconds){ImpactReady=true;CancelProjectile();}
         }
-        void ResetApproach(){attackTarget=null;advance=0;approachElapsed=0;leadElapsed=leadSeconds=0;approachWalk=null;approachHandoffPose=-1;View.Root.anchoredPosition=restFeet;View.Render();}
+        void ResetApproach(){View.Player.UseRetreatTiming=false;IsReturning=false;attackTarget=null;advance=0;approachElapsed=0;leadElapsed=leadSeconds=0;approachWalk=null;approachHandoffPose=-1;View.Root.anchoredPosition=restFeet;View.Render();}
         void BeginApproach(string id)
         {
             ResetApproach();
@@ -106,6 +108,7 @@ namespace BBB.Runtime
                     contactTime=0;for(int i=0;i<contact;i++)contactTime+=Mathf.Max(.01f,motion.seconds[i]);
                     contactPose=motion.frames[contact];attackWeapon=weapon;approachMotion=id;
                     attackTarget=queuedTarget;advance=DesiredAdvance();
+                    View.Player.UseRetreatTiming=advance>0;
                     leadSeconds=advance>0?Mathf.Max(0,cfg.approach.leadSeconds):0;leadElapsed=0;
                     approachWalk=System.Array.Find(cfg.motions,m=>m.id=="walk"&&m.weaponId==weapon)
                         ??System.Array.Find(cfg.motions,m=>m.id=="walk"&&string.IsNullOrEmpty(m.weaponId));
@@ -128,6 +131,7 @@ namespace BBB.Runtime
         }
         public void Step(float seconds)
         {
+            View.ApplyEnvironment(Environment);
             if(float.IsNaN(seconds)||float.IsInfinity(seconds)||seconds<=0)return;
             StepProjectile(seconds);
             if(IsApproaching)
@@ -149,9 +153,33 @@ namespace BBB.Runtime
                 advance=DesiredAdvance();
                 progress=leadSeconds>0?1:contactTime>0?Mathf.Clamp01(approachElapsed/contactTime):1;
             }
-            else if(View.Player.State=="recover")progress=1-View.Player.NormalizedTime;
+            else if(View.Player.State=="recover")
+            {
+                float start=Mathf.Clamp(HeroPresentation.Config.approach.returnWalkStart,0,.8f);
+                float returning=Mathf.InverseLerp(start,1,View.Player.NormalizedTime);
+                progress=1-returning;
+                IsReturning=returning>0&&advance>0;
+                if(IsReturning)RenderReturnWalk(returning);
+            }
             else {ResetApproach();return;}
             View.Root.anchoredPosition=restFeet+Vector2.right*(advance*Mathf.SmoothStep(0,1,progress));
+        }
+        void RenderReturnWalk(float progress)
+        {
+            // Reuse the authored gait in reverse for the retreat; the action clock and
+            // its cues remain in recover. Select the currently equipped weapon's gait.
+            var cfg=HeroPresentation.Config;
+            var walk=System.Array.Find(cfg.motions,m=>m.id=="walk"&&m.weaponId==View.Player.WeaponId)
+                ??System.Array.Find(cfg.motions,m=>m.id=="walk"&&string.IsNullOrEmpty(m.weaponId));
+            if(walk==null)return;
+            float duration=0;foreach(float value in walk.seconds)duration+=Mathf.Max(.01f,value);
+            float phase=(1-Mathf.Clamp01(progress))*duration*Mathf.Clamp(cfg.approach.returnWalkCycles,.1f,1);
+            for(int i=0;i<walk.frames.Length;i++)
+            {
+                float step=Mathf.Max(.01f,walk.seconds[i]);
+                if(phase<step||i==walk.frames.Length-1){View.RenderPose(walk.frames[i]);return;}
+                phase-=step;
+            }
         }
         void RenderApproach()
         {

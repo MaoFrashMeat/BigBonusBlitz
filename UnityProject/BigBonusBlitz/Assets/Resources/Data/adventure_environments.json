@@ -909,7 +909,61 @@
           "speed": 0.024,
           "phase": 0,
           "height": 1.05,
-          "bottom": 0.11
+          "bottom": 0.11,
+          "lights": [
+            {
+              "x": 0.14,
+              "y": 0.49,
+              "radiusX": 0.065,
+              "radiusY": 0.31,
+              "intensity": 0.22,
+              "color": {
+                "r": 0.16,
+                "g": 0.78,
+                "b": 1,
+                "a": 1
+              }
+            },
+            {
+              "x": 0.56,
+              "y": 0.68,
+              "radiusX": 0.075,
+              "radiusY": 0.28,
+              "intensity": 0.24,
+              "color": {
+                "r": 0.15,
+                "g": 0.75,
+                "b": 1,
+                "a": 1
+              }
+            },
+            {
+              "x": 0.9,
+              "y": 0.37,
+              "radiusX": 0.065,
+              "radiusY": 0.25,
+              "intensity": 0.2,
+              "color": {
+                "r": 0.23,
+                "g": 0.7,
+                "b": 1,
+                "a": 1
+              }
+            },
+            {
+              "x": 0.55,
+              "y": 0.22,
+              "radiusX": 0.05,
+              "radiusY": 0.18,
+              "intensity": 0.16,
+              "color": {
+                "r": 0.65,
+                "g": 0.27,
+                "b": 1,
+                "a": 1
+              }
+            }
+          ]
         },
         {
           "texture": "Art/Adventure/Modules/E-2/layers-v1",
@@ -919,7 +973,35 @@
           "speed": 0.065,
           "phase": 0.61,
           "height": 0.48,
-          "bottom": -0.075
+          "bottom": -0.075,
+          "lights": [
+            {
+              "x": 0.17,
+              "y": 0.7,
+              "radiusX": 0.05,
+              "radiusY": 0.22,
+              "intensity": 0.14,
+              "color": {
+                "r": 0.2,
+                "g": 0.65,
+                "b": 1,
+                "a": 1
+              }
+            },
+            {
+              "x": 0.84,
+              "y": 0.72,
+              "radiusX": 0.05,
+              "radiusY": 0.22,
+              "intensity": 0.16,
+              "color": {
+                "r": 0.2,
+                "g": 0.7,
+                "b": 1,
+                "a": 1
+              }
+            }
+          ]
         }
       ],
       "ground": {
@@ -1224,7 +1306,35 @@
           "speed": 0.024,
           "phase": 0,
           "height": 1.05,
-          "bottom": 0.106379
+          "bottom": 0.106379,
+          "lights": [
+            {
+              "x": 0.25,
+              "y": 0.64,
+              "radiusX": 0.11,
+              "radiusY": 0.22,
+              "intensity": 0.22,
+              "color": {
+                "r": 1,
+                "g": 0.39,
+                "b": 0.07,
+                "a": 1
+              }
+            },
+            {
+              "x": 0.75,
+              "y": 0.65,
+              "radiusX": 0.12,
+              "radiusY": 0.2,
+              "intensity": 0.22,
+              "color": {
+                "r": 1,
+                "g": 0.39,
+                "b": 0.07,
+                "a": 1
+              }
+            }
+          ]
         },
         {
           "texture": "Art/Adventure/Modules/H-1/layers-v3",
@@ -1251,5 +1361,18 @@
       },
       "groundHeight": 0.235
     }
-  ]
+  ],
+  "lighting": {
+    "actorTintWeight": 0.48,
+    "indoorActorTintWeight": 0.38,
+    "shadowOpacity": 0.6,
+    "overcastShadowOpacity": 0.32,
+    "indoorShadowOpacity": 0.46,
+    "shadowWidth": 115,
+    "shadowHeight": 19,
+    "lowSunStretch": 0.6,
+    "shadowOffset": 24,
+    "depthShade": 0.16,
+    "indoorDepthShade": 0.22
+  }
 }

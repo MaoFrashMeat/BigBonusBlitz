@@ -1,0 +1,1778 @@
+[
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Editor/AdventureHeroValidation.cs",
+    "sha256": "77223808c904ea5ea4137ac49544724607c949d0f4893a59d1bdc336d2d2c141",
+    "qaMatches": true,
+    "qaSha256": "77223808c904ea5ea4137ac49544724607c949d0f4893a59d1bdc336d2d2c141"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Editor/HeroPrototypeImporter.cs",
+    "sha256": "dece2d03a219dbc428bd3ccc4486be001fa3f44d564a750cf4673c70ab334be1",
+    "qaMatches": true,
+    "qaSha256": "dece2d03a219dbc428bd3ccc4486be001fa3f44d564a750cf4673c70ab334be1"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Editor/ProbabilityEditorWindow.cs",
+    "sha256": "763f5ab5250bdba3925a556a781ac7793c5321add45d67d7dd2aa15b32c4bfce",
+    "qaMatches": true,
+    "qaSha256": "763f5ab5250bdba3925a556a781ac7793c5321add45d67d7dd2aa15b32c4bfce"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/AdventureSeamless.shader",
+    "sha256": "ebae26db8e2318c4b0242240df108b63d76eb0b5d2c14f1df581448ba6fbef4c",
+    "qaMatches": true,
+    "qaSha256": "ebae26db8e2318c4b0242240df108b63d76eb0b5d2c14f1df581448ba6fbef4c"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/body-v2.png.meta",
+    "sha256": "3236d4b9c612227c5d3f0822c5aaf4dc30222839e69c894150e82caf9b6ff67c",
+    "qaMatches": true,
+    "qaSha256": "3236d4b9c612227c5d3f0822c5aaf4dc30222839e69c894150e82caf9b6ff67c"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/bow-components-v1.png.meta",
+    "sha256": "ea6179305d0d5bb66abbddff61198d18af6395115d1ac9381bd0a66b1af5e6b4",
+    "qaMatches": true,
+    "qaSha256": "ea6179305d0d5bb66abbddff61198d18af6395115d1ac9381bd0a66b1af5e6b4"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemies-v1.png.meta",
+    "sha256": "a95aa935e9e33dfdde18142cfdfa5a27d60838f707089bdfe44b55086edbe286",
+    "qaMatches": true,
+    "qaSha256": "a95aa935e9e33dfdde18142cfdfa5a27d60838f707089bdfe44b55086edbe286"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-bat-v1.png.meta",
+    "sha256": "ac6c5a76722635b9991598ad9d07cfe8a0ad88a034f40ab74188acafbec3dc16",
+    "qaMatches": true,
+    "qaSha256": "ac6c5a76722635b9991598ad9d07cfe8a0ad88a034f40ab74188acafbec3dc16"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-beetle-v1.png.meta",
+    "sha256": "2f2a55295a3d5e05d5e3b55cd7eab7c97313d8fec5eb1b03ca7e694424141e0f",
+    "qaMatches": true,
+    "qaSha256": "2f2a55295a3d5e05d5e3b55cd7eab7c97313d8fec5eb1b03ca7e694424141e0f"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-boar-v1.png.meta",
+    "sha256": "182eeb83464380dc6577ba3dcc90a9c2a5e9f01a5054616fb8cc4493f3a32b2b",
+    "qaMatches": true,
+    "qaSha256": "182eeb83464380dc6577ba3dcc90a9c2a5e9f01a5054616fb8cc4493f3a32b2b"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-bone-v1.png.meta",
+    "sha256": "68291e5d9cb8b160ae67164b96253eec7c0e756ae789d7fa663e34b205f11462",
+    "qaMatches": true,
+    "qaSha256": "68291e5d9cb8b160ae67164b96253eec7c0e756ae789d7fa663e34b205f11462"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-book-v1.png.meta",
+    "sha256": "2242fd1dcd8b823ab9a49b66dec44363f330f6a1503033d4cb3ab615f3804eaa",
+    "qaMatches": true,
+    "qaSha256": "2242fd1dcd8b823ab9a49b66dec44363f330f6a1503033d4cb3ab615f3804eaa"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-crystal-v1.png.meta",
+    "sha256": "09d378bf9df522cc6e50e68d4e7246b1b3dc529df3f6177c2101291f9fb90a33",
+    "qaMatches": true,
+    "qaSha256": "09d378bf9df522cc6e50e68d4e7246b1b3dc529df3f6177c2101291f9fb90a33"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-gargoyle-v1.png.meta",
+    "sha256": "9825ca900de317397e1a0e4c27a86a2e1eb45578a2252dffea7632970b06826c",
+    "qaMatches": true,
+    "qaSha256": "9825ca900de317397e1a0e4c27a86a2e1eb45578a2252dffea7632970b06826c"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-goblin-v2.png.meta",
+    "sha256": "ce16de1e9b24ca80a316959a35b4ebe2ec84c2de62dde6dc73b68ec8426a9c13",
+    "qaMatches": true,
+    "qaSha256": "ce16de1e9b24ca80a316959a35b4ebe2ec84c2de62dde6dc73b68ec8426a9c13"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-miner-v1.png.meta",
+    "sha256": "0782c053c916bb3ed0bcb49aad3e8f6c1fb64e47a3d7ba59148f94d6a6be1731",
+    "qaMatches": true,
+    "qaSha256": "0782c053c916bb3ed0bcb49aad3e8f6c1fb64e47a3d7ba59148f94d6a6be1731"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-mirrorwarden-v1.png.meta",
+    "sha256": "7cbc96ea7a2d01e791d30139f2c4d4c873f730f7df42814f0e0f0ea5f7aa30eb",
+    "qaMatches": true,
+    "qaSha256": "7cbc96ea7a2d01e791d30139f2c4d4c873f730f7df42814f0e0f0ea5f7aa30eb"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-moth-v1.png.meta",
+    "sha256": "29514650de1165d70b449543249870001e79cb7ff040e041ab3c6bdcef3b369e",
+    "qaMatches": true,
+    "qaSha256": "29514650de1165d70b449543249870001e79cb7ff040e041ab3c6bdcef3b369e"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-ogre-v1.png.meta",
+    "sha256": "ffc4bb2a1e978baff18a9116f358f481728b0fe0d3031148e74b0b8c374b24bd",
+    "qaMatches": true,
+    "qaSha256": "ffc4bb2a1e978baff18a9116f358f481728b0fe0d3031148e74b0b8c374b24bd"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-salamander-v1.png.meta",
+    "sha256": "9b6d48f3f9fed456cd97ab8734b17fcf1ae87c8a1995a3ff1c061560764b5069",
+    "qaMatches": true,
+    "qaSha256": "9b6d48f3f9fed456cd97ab8734b17fcf1ae87c8a1995a3ff1c061560764b5069"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-sentinel-v1.png.meta",
+    "sha256": "8dea369cf6097f88fb7a8f68908b095c01971047f678b6cb5808236cc2e2ac73",
+    "qaMatches": true,
+    "qaSha256": "8dea369cf6097f88fb7a8f68908b095c01971047f678b6cb5808236cc2e2ac73"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-slime-v1.png.meta",
+    "sha256": "1d6a607b525471aae24462f0191d726e6e836363f90bc45a79db31ff9c828ace",
+    "qaMatches": true,
+    "qaSha256": "1d6a607b525471aae24462f0191d726e6e836363f90bc45a79db31ff9c828ace"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-slimeking-v1.png.meta",
+    "sha256": "2add28803f1969ba118e2d5e81e40ce5184df2c7d6036a3f99fa41b6dac18123",
+    "qaMatches": true,
+    "qaSha256": "2add28803f1969ba118e2d5e81e40ce5184df2c7d6036a3f99fa41b6dac18123"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-vine-v1.png.meta",
+    "sha256": "c478273ba218a9630e4930627e6b6327baac20066e12fec395610d55e45449aa",
+    "qaMatches": true,
+    "qaSha256": "c478273ba218a9630e4930627e6b6327baac20066e12fec395610d55e45449aa"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-wisp-v1.png.meta",
+    "sha256": "e4194c3209442aca90a69927d42b2382ca46b893d77cdd07678fe269f64e60a6",
+    "qaMatches": true,
+    "qaSha256": "e4194c3209442aca90a69927d42b2382ca46b893d77cdd07678fe269f64e60a6"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-wolf-v1.png.meta",
+    "sha256": "13d69b6c385f78c77809ff3c57cebce5b51caafafb2a4a0db32936b5fa39b7e1",
+    "qaMatches": true,
+    "qaSha256": "13d69b6c385f78c77809ff3c57cebce5b51caafafb2a4a0db32936b5fa39b7e1"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/enemy-wyvern-v1.png.meta",
+    "sha256": "6ce240fd1f55d128345e2985ea5653ca906aace0224b4b778faf2e06bb674ac9",
+    "qaMatches": true,
+    "qaSha256": "6ce240fd1f55d128345e2985ea5653ca906aace0224b4b778faf2e06bb674ac9"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/hero-bow-v1.png.meta",
+    "sha256": "2e31721491ffe120790af6a90f0a015a7c6f5891d7ce8cee8b8072d9e78adfe8",
+    "qaMatches": true,
+    "qaSha256": "2e31721491ffe120790af6a90f0a015a7c6f5891d7ce8cee8b8072d9e78adfe8"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/hero-heavy-v1.png.meta",
+    "sha256": "def8c20a6269c7d280d0de29bc50bb7b102fcfb7f1a423579a0ca9c91e83b159",
+    "qaMatches": true,
+    "qaSha256": "def8c20a6269c7d280d0de29bc50bb7b102fcfb7f1a423579a0ca9c91e83b159"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/hero-staff-v1.png.meta",
+    "sha256": "5f5f711dd439ccba792e5cb48ec62439f175bafa203f59f49ac0fd15e9693a85",
+    "qaMatches": true,
+    "qaSha256": "5f5f711dd439ccba792e5cb48ec62439f175bafa203f59f49ac0fd15e9693a85"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/spear-v2.png.meta",
+    "sha256": "5fb15adea557133fafa844b6aa1e6dee90f3c7fbe2472599e975c71954027580",
+    "qaMatches": true,
+    "qaSha256": "5fb15adea557133fafa844b6aa1e6dee90f3c7fbe2472599e975c71954027580"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/support-v1.png.meta",
+    "sha256": "d4a7e00a349f725755c13961583012ae94e162108f096a84eb4e05be85e7da8d",
+    "qaMatches": true,
+    "qaSha256": "d4a7e00a349f725755c13961583012ae94e162108f096a84eb4e05be85e7da8d"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/sword-v2.png.meta",
+    "sha256": "dac1031ce1fa79d3d0498caf489fa3777e657646208c413361f92a390595a1c0",
+    "qaMatches": true,
+    "qaSha256": "dac1031ce1fa79d3d0498caf489fa3777e657646208c413361f92a390595a1c0"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/walk-v2.png.meta",
+    "sha256": "f9dc774e3ca165ca7405e9ae68d3cbf2e30e4c7bbc401e4f225d8e7a437d9364",
+    "qaMatches": true,
+    "qaSha256": "f9dc774e3ca165ca7405e9ae68d3cbf2e30e4c7bbc401e4f225d8e7a437d9364"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/walk-v3.png.meta",
+    "sha256": "16035b85327185bf73c8c2a63c88ece9e7e7201424590523ed7d74a4cc918f20",
+    "qaMatches": true,
+    "qaSha256": "16035b85327185bf73c8c2a63c88ece9e7e7201424590523ed7d74a4cc918f20"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/weapons-five-v1.png.meta",
+    "sha256": "e6a0a47e691e7ff356a6a2dbf3f2d31ed838a0fdd779ccf2faceae22fb703e02",
+    "qaMatches": true,
+    "qaSha256": "e6a0a47e691e7ff356a6a2dbf3f2d31ed838a0fdd779ccf2faceae22fb703e02"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/weapons-v1.png.meta",
+    "sha256": "4a191837d5a589341b2e82671eac8b344d369d55905a73a55248c41d6eb36c7e",
+    "qaMatches": true,
+    "qaSha256": "4a191837d5a589341b2e82671eac8b344d369d55905a73a55248c41d6eb36c7e"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Data/adventure_environments.json",
+    "sha256": "a518a8311bd63bb4c5cc9f85e0a0702100ce70de2dc3341096ba2b986962f081",
+    "qaMatches": true,
+    "qaSha256": "a518a8311bd63bb4c5cc9f85e0a0702100ce70de2dc3341096ba2b986962f081"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Data/game_config.json",
+    "sha256": "1871f051600cd1685e80afa9126397e34d725661f6deb1356c1c890d5c32f5c3",
+    "qaMatches": true,
+    "qaSha256": "1871f051600cd1685e80afa9126397e34d725661f6deb1356c1c890d5c32f5c3"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Data/hero_presentation_prototype.json",
+    "sha256": "bf0224c1db55ba81a73d087beab61bfda2a9b91febc5fa453448ae2249ea9651",
+    "qaMatches": true,
+    "qaSha256": "bf0224c1db55ba81a73d087beab61bfda2a9b91febc5fa453448ae2249ea9651"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Data/notices.json",
+    "sha256": "3ca82800db463eb6374b83fbc77e066d9a54ee1aa890b60f0054d9d9f8b1fcc1",
+    "qaMatches": true,
+    "qaSha256": "3ca82800db463eb6374b83fbc77e066d9a54ee1aa890b60f0054d9d9f8b1fcc1"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/Achievements.cs",
+    "sha256": "3f384443ffa064f6b52c2e6b03255d4d878161cb3c271aa8e06bc16cb0d82d71",
+    "qaMatches": true,
+    "qaSha256": "3f384443ffa064f6b52c2e6b03255d4d878161cb3c271aa8e06bc16cb0d82d71"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/Achievements.cs.meta",
+    "sha256": "b8b6e8a984f6a3a39532fff76ef1385bfb3a341aac9d8b614e9182e881d10b8f",
+    "qaMatches": true,
+    "qaSha256": "b8b6e8a984f6a3a39532fff76ef1385bfb3a341aac9d8b614e9182e881d10b8f"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/Adventure.cs",
+    "sha256": "00bbfa8d2073302dac5c7fbf65588c7fbe3d6e9a37f04894a7a8e42027cffffb",
+    "qaMatches": true,
+    "qaSha256": "00bbfa8d2073302dac5c7fbf65588c7fbe3d6e9a37f04894a7a8e42027cffffb"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/Adventure.cs.meta",
+    "sha256": "45a9839ac66ddf3987c11ed1e0b937579e31a59b4b730f12e0ef911871c809ce",
+    "qaMatches": true,
+    "qaSha256": "45a9839ac66ddf3987c11ed1e0b937579e31a59b4b730f12e0ef911871c809ce"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/AtDirector.cs",
+    "sha256": "67502036339641cf11b58b8604ffff449143ec66def64cd5db10a899d7ade324",
+    "qaMatches": true,
+    "qaSha256": "67502036339641cf11b58b8604ffff449143ec66def64cd5db10a899d7ade324"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/AtDirector.cs.meta",
+    "sha256": "4a7cb57fd74ceeb316eb69a0898bc2e929f0bb5c585964f491e0a28640b8188c",
+    "qaMatches": true,
+    "qaSha256": "4a7cb57fd74ceeb316eb69a0898bc2e929f0bb5c585964f491e0a28640b8188c"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/AtMode.cs",
+    "sha256": "9072a29fc112f25b183e72079f2be9f069bdeee296e011681d52240341cd314f",
+    "qaMatches": true,
+    "qaSha256": "9072a29fc112f25b183e72079f2be9f069bdeee296e011681d52240341cd314f"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/AtMode.cs.meta",
+    "sha256": "344350acb533358529881c2f7bc815fb7d6b89ae25484e55ff4c1fd1fbcbb755",
+    "qaMatches": true,
+    "qaSha256": "344350acb533358529881c2f7bc815fb7d6b89ae25484e55ff4c1fd1fbcbb755"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/BBB.Core.asmdef",
+    "sha256": "d1d45497802bfac3265244975b538166d8362377d2c32e054c39b597fba2ea51",
+    "qaMatches": true,
+    "qaSha256": "d1d45497802bfac3265244975b538166d8362377d2c32e054c39b597fba2ea51"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/BBB.Core.asmdef.meta",
+    "sha256": "4a09d4d2b366febb5be587dbc075ca0d3d92a72cf88cc0e75e369dc3b7ae29d1",
+    "qaMatches": true,
+    "qaSha256": "4a09d4d2b366febb5be587dbc075ca0d3d92a72cf88cc0e75e369dc3b7ae29d1"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/Craft.cs",
+    "sha256": "c5d4d83a32dda8b524527ddcac15abb7dbbf217d9b7493e3a507065dc272a579",
+    "qaMatches": true,
+    "qaSha256": "c5d4d83a32dda8b524527ddcac15abb7dbbf217d9b7493e3a507065dc272a579"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/Craft.cs.meta",
+    "sha256": "6c96b65106141ea622656d1b006ea1c147d2d24b35d183d05e807b6065040a57",
+    "qaMatches": true,
+    "qaSha256": "6c96b65106141ea622656d1b006ea1c147d2d24b35d183d05e807b6065040a57"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/Curse.cs",
+    "sha256": "b12b876a1b4ebaa8768872871428322af68e1157b59cfad90d9feb37b28f8427",
+    "qaMatches": true,
+    "qaSha256": "b12b876a1b4ebaa8768872871428322af68e1157b59cfad90d9feb37b28f8427"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/Curse.cs.meta",
+    "sha256": "cd2ad5c9b016510c4497d1276d858d939867aec163d1cac6725989e637012f69",
+    "qaMatches": true,
+    "qaSha256": "cd2ad5c9b016510c4497d1276d858d939867aec163d1cac6725989e637012f69"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/EnemyEngage.cs",
+    "sha256": "f13a235f4821a6f09f13c85d0b266b57be937b7324182ba3378caef4f244d96c",
+    "qaMatches": true,
+    "qaSha256": "f13a235f4821a6f09f13c85d0b266b57be937b7324182ba3378caef4f244d96c"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/EnemyEngage.cs.meta",
+    "sha256": "45a465e9f6f918eb19aba370db819ff084818f65e2edacfad1e9f17e8df8d028",
+    "qaMatches": true,
+    "qaSha256": "45a465e9f6f918eb19aba370db819ff084818f65e2edacfad1e9f17e8df8d028"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/Engage.cs",
+    "sha256": "a045b01a88dd923eeb56897e3df2a643882670de51db48377529c90981cbf294",
+    "qaMatches": true,
+    "qaSha256": "a045b01a88dd923eeb56897e3df2a643882670de51db48377529c90981cbf294"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/Engage.cs.meta",
+    "sha256": "c2af99efc6e9202dafd069785723d42431df2aa56db9c4ae476a7d22b4084617",
+    "qaMatches": true,
+    "qaSha256": "c2af99efc6e9202dafd069785723d42431df2aa56db9c4ae476a7d22b4084617"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/EngageDirector.cs",
+    "sha256": "80bf1f3ccd5800214ef1aaa5eee2a46c5ed1fe6035119a499fe357b86f446f14",
+    "qaMatches": true,
+    "qaSha256": "80bf1f3ccd5800214ef1aaa5eee2a46c5ed1fe6035119a499fe357b86f446f14"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/EngageDirector.cs.meta",
+    "sha256": "ad0fb26359ab6d4d078fcfeada3988eec4c9dfca0cf3407858d1a87aae645b29",
+    "qaMatches": true,
+    "qaSha256": "ad0fb26359ab6d4d078fcfeada3988eec4c9dfca0cf3407858d1a87aae645b29"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/Equipment.cs",
+    "sha256": "90abe86053c57c61750f02c9b70aeb2151a97117bc694a737ae2b6563b4e5705",
+    "qaMatches": true,
+    "qaSha256": "90abe86053c57c61750f02c9b70aeb2151a97117bc694a737ae2b6563b4e5705"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/Equipment.cs.meta",
+    "sha256": "cedf9554d4b51dc664cf6731e163cf6d133eb39be1fb4e85fff461c0b5f5bf19",
+    "qaMatches": true,
+    "qaSha256": "cedf9554d4b51dc664cf6731e163cf6d133eb39be1fb4e85fff461c0b5f5bf19"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/Flags.cs",
+    "sha256": "44c6cd20a19e99278a22a0c98c06262e99bb1e9f98d5e5d69afae14462e5add9",
+    "qaMatches": true,
+    "qaSha256": "44c6cd20a19e99278a22a0c98c06262e99bb1e9f98d5e5d69afae14462e5add9"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/Flags.cs.meta",
+    "sha256": "1b459c7f6b84631654ed30fb67ef136cdec7fea9a24ce4402f19e2d06b4a7099",
+    "qaMatches": true,
+    "qaSha256": "1b459c7f6b84631654ed30fb67ef136cdec7fea9a24ce4402f19e2d06b4a7099"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/GameConfig.cs",
+    "sha256": "aa15b83aa89e48f6e841efbeb5ab0a22cf7d3ebba5360749b8501ed235c1152a",
+    "qaMatches": true,
+    "qaSha256": "aa15b83aa89e48f6e841efbeb5ab0a22cf7d3ebba5360749b8501ed235c1152a"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/GameConfig.cs.meta",
+    "sha256": "7b8c8e3aba1d0551ecd659d559928e5ac22ac4e3a9e0383fd92d56677dec27c0",
+    "qaMatches": true,
+    "qaSha256": "7b8c8e3aba1d0551ecd659d559928e5ac22ac4e3a9e0383fd92d56677dec27c0"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/HeroDirector.cs",
+    "sha256": "924833e895d9a0f9166acff10d0db5027fdf2979df3111b7c81a95a20b047917",
+    "qaMatches": true,
+    "qaSha256": "924833e895d9a0f9166acff10d0db5027fdf2979df3111b7c81a95a20b047917"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/HeroDirector.cs.meta",
+    "sha256": "eccab817c35f9e09a0ce9ad7ee84d22bdb40edcfb3f27f58d93ddc6b928a9fff",
+    "qaMatches": true,
+    "qaSha256": "eccab817c35f9e09a0ce9ad7ee84d22bdb40edcfb3f27f58d93ddc6b928a9fff"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/IRandom.cs",
+    "sha256": "08614f306de68e11f5c01c0a1eb5c1ba18de6b7167132a45707f81f03b5dea86",
+    "qaMatches": true,
+    "qaSha256": "08614f306de68e11f5c01c0a1eb5c1ba18de6b7167132a45707f81f03b5dea86"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/IRandom.cs.meta",
+    "sha256": "e0c7919ae580d76f04bb43e91b5f095d158b21a9caa30e166457a0d031649299",
+    "qaMatches": true,
+    "qaSha256": "e0c7919ae580d76f04bb43e91b5f095d158b21a9caa30e166457a0d031649299"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/LotteryTable.cs",
+    "sha256": "679192c47009ce2e4f8dcba3f4a65cc0dff377a03773a55821d00506231d2155",
+    "qaMatches": true,
+    "qaSha256": "679192c47009ce2e4f8dcba3f4a65cc0dff377a03773a55821d00506231d2155"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/LotteryTable.cs.meta",
+    "sha256": "ac57c3af370219e1d98dd52997f05360502c4b359c6568ca2b840b25d8be47b7",
+    "qaMatches": true,
+    "qaSha256": "ac57c3af370219e1d98dd52997f05360502c4b359c6568ca2b840b25d8be47b7"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/ModeTransition.cs",
+    "sha256": "0e5ded384ff1deac4e25f9e6ae81a426599d8820bceeef687315a9380f19c4a9",
+    "qaMatches": true,
+    "qaSha256": "0e5ded384ff1deac4e25f9e6ae81a426599d8820bceeef687315a9380f19c4a9"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/ModeTransition.cs.meta",
+    "sha256": "dd8c1fcd418665d5c8f4b82c096e9cc6827afa6cc1a21a15d2631dca7e571157",
+    "qaMatches": true,
+    "qaSha256": "dd8c1fcd418665d5c8f4b82c096e9cc6827afa6cc1a21a15d2631dca7e571157"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/PlayerStats.cs",
+    "sha256": "f0c7c98ff38ffd435b827be35e4083d4f34e93e5c4569c96766299bfefb1db51",
+    "qaMatches": true,
+    "qaSha256": "f0c7c98ff38ffd435b827be35e4083d4f34e93e5c4569c96766299bfefb1db51"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/PlayerStats.cs.meta",
+    "sha256": "445ce06358f1e192351b50bae16e6bf19b4f17855b773286195943668311f79c",
+    "qaMatches": true,
+    "qaSha256": "445ce06358f1e192351b50bae16e6bf19b4f17855b773286195943668311f79c"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/PrecogDirector.cs",
+    "sha256": "48c2a0d5304b1ae8430e3e3f15875a2cd2f65afbfe17c29557ba7d4e81f16191",
+    "qaMatches": true,
+    "qaSha256": "48c2a0d5304b1ae8430e3e3f15875a2cd2f65afbfe17c29557ba7d4e81f16191"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/PrecogDirector.cs.meta",
+    "sha256": "767baf43714a901b63085300ebb62d01e723e1518c10eb9005ecdb6a7dbcf556",
+    "qaMatches": true,
+    "qaSha256": "767baf43714a901b63085300ebb62d01e723e1518c10eb9005ecdb6a7dbcf556"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/Shop.cs",
+    "sha256": "a892a45ec26ecf93aa65b40c54061a388e51f04c980ab6a97b478ce7eece4578",
+    "qaMatches": true,
+    "qaSha256": "a892a45ec26ecf93aa65b40c54061a388e51f04c980ab6a97b478ce7eece4578"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/Shop.cs.meta",
+    "sha256": "e6886e6f5531a97ce8d0a3140a86bcdc30654a385650cad120ae86d305eb04d8",
+    "qaMatches": true,
+    "qaSha256": "e6886e6f5531a97ce8d0a3140a86bcdc30654a385650cad120ae86d305eb04d8"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/SlipController.cs",
+    "sha256": "d4c2f8fea56112ab64e95d78adc6321ae84ade8f0eedc4a4a9c4d0baa80ba590",
+    "qaMatches": true,
+    "qaSha256": "d4c2f8fea56112ab64e95d78adc6321ae84ade8f0eedc4a4a9c4d0baa80ba590"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/SlipController.cs.meta",
+    "sha256": "274610033c0b06080d7563f59dd08d67cef0969e076bdb59626af2392ecf8a7e",
+    "qaMatches": true,
+    "qaSha256": "274610033c0b06080d7563f59dd08d67cef0969e076bdb59626af2392ecf8a7e"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/SlotMachine.cs",
+    "sha256": "1c4bd00dde7016a35fe598613c0825eca60a72597c8f283410b27458feacae72",
+    "qaMatches": true,
+    "qaSha256": "1c4bd00dde7016a35fe598613c0825eca60a72597c8f283410b27458feacae72"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/SlotMachine.cs.meta",
+    "sha256": "e93266f9e87235bdca4a8d82602e1e50e363a515732973294b259a79c82bd2c4",
+    "qaMatches": true,
+    "qaSha256": "e93266f9e87235bdca4a8d82602e1e50e363a515732973294b259a79c82bd2c4"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/Story.cs",
+    "sha256": "eccabd0063b0ad44ce7feb861d76d10cd1279c95e2af9cb87754342b4fe686db",
+    "qaMatches": true,
+    "qaSha256": "eccabd0063b0ad44ce7feb861d76d10cd1279c95e2af9cb87754342b4fe686db"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/Story.cs.meta",
+    "sha256": "ad42c7d78ec1fb057bc787dabe87c68bf4e339a7e24927b40ad3aea1dbc5af24",
+    "qaMatches": true,
+    "qaSha256": "ad42c7d78ec1fb057bc787dabe87c68bf4e339a7e24927b40ad3aea1dbc5af24"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/TechChallenge.cs",
+    "sha256": "b70221dd267bffe857c777d702eb45fcf1a42ad7f08667f925a060a8d7019e55",
+    "qaMatches": true,
+    "qaSha256": "b70221dd267bffe857c777d702eb45fcf1a42ad7f08667f925a060a8d7019e55"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/TechChallenge.cs.meta",
+    "sha256": "4344d5842ffe05cda29a37a67e0cab7c05f2d25b588ba39c223e89335aedb39e",
+    "qaMatches": true,
+    "qaSha256": "4344d5842ffe05cda29a37a67e0cab7c05f2d25b588ba39c223e89335aedb39e"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/TravelerDirector.cs",
+    "sha256": "6b66a8608aa5a82d83ad1ec410cf6e03d47881882988ddfce3172a128cb089a4",
+    "qaMatches": true,
+    "qaSha256": "6b66a8608aa5a82d83ad1ec410cf6e03d47881882988ddfce3172a128cb089a4"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/TravelerDirector.cs.meta",
+    "sha256": "9c1f2be2a87aaf6aff0f47399b84285da4bd98f519a0c2529462c91e3fe66188",
+    "qaMatches": true,
+    "qaSha256": "9c1f2be2a87aaf6aff0f47399b84285da4bd98f519a0c2529462c91e3fe66188"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/WinCombos.cs",
+    "sha256": "2e4d41c6f62c726009c331eb51b8a077b1843a678fb901a37f2dfbcf16cc5432",
+    "qaMatches": true,
+    "qaSha256": "2e4d41c6f62c726009c331eb51b8a077b1843a678fb901a37f2dfbcf16cc5432"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/WinCombos.cs.meta",
+    "sha256": "ef468377c7ff7b74cdf1b3f0ae62d1238cfeab1342306f691f05edf6b187e180",
+    "qaMatches": true,
+    "qaSha256": "ef468377c7ff7b74cdf1b3f0ae62d1238cfeab1342306f691f05edf6b187e180"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/WinEvaluator.cs",
+    "sha256": "359cbddffb3f8cd5ed94cd76e9c580f0c084ddfd5c73b286f9740f84cd222e5c",
+    "qaMatches": true,
+    "qaSha256": "359cbddffb3f8cd5ed94cd76e9c580f0c084ddfd5c73b286f9740f84cd222e5c"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/WinEvaluator.cs.meta",
+    "sha256": "33d26a79683af7f1e46f1eacb3930af51b824791b40b294a6644f06441350142",
+    "qaMatches": true,
+    "qaSha256": "33d26a79683af7f1e46f1eacb3930af51b824791b40b294a6644f06441350142"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/WorkflowLottery.cs",
+    "sha256": "7b7beafdbe1acde8de3118d09636086b4a97567fb81a8ae0e3036966d4f441fe",
+    "qaMatches": true,
+    "qaSha256": "7b7beafdbe1acde8de3118d09636086b4a97567fb81a8ae0e3036966d4f441fe"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Core/WorkflowLottery.cs.meta",
+    "sha256": "33783abf8bcda495787362e8b92b410fa7eebabd382caf875606f74a825d6a18",
+    "qaMatches": true,
+    "qaSha256": "33783abf8bcda495787362e8b92b410fa7eebabd382caf875606f74a825d6a18"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AdventureAssets.cs",
+    "sha256": "a192b0ad036f867964f0a5fd348cd7b6bd124b319a3b7e431ad988ce4e3a71e6",
+    "qaMatches": true,
+    "qaSha256": "a192b0ad036f867964f0a5fd348cd7b6bd124b319a3b7e431ad988ce4e3a71e6"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AdventureAssets.cs.meta",
+    "sha256": "1aee4b942c5c597ff78aa5880f23ce5f1482796b862dd02f10a706d127a90da3",
+    "qaMatches": true,
+    "qaSha256": "1aee4b942c5c597ff78aa5880f23ce5f1482796b862dd02f10a706d127a90da3"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AdventureAtmosphereGraphic.cs",
+    "sha256": "8ae609275f6272143ee82a640b8e4d1b6689f70c5f6f5f188e7bf3425c7422e6",
+    "qaMatches": true,
+    "qaSha256": "8ae609275f6272143ee82a640b8e4d1b6689f70c5f6f5f188e7bf3425c7422e6"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AdventureAtmosphereGraphic.cs.meta",
+    "sha256": "ea33cff4b2fc872c934ab41b0e10d77cf527a2420e434c68b20b29173607589d",
+    "qaMatches": true,
+    "qaSha256": "ea33cff4b2fc872c934ab41b0e10d77cf527a2420e434c68b20b29173607589d"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AdventureEnemyPresenter.cs",
+    "sha256": "798319c1f6e7fbc532a3453458a868cfbb20e748741a468dcf4ce547ed42adc4",
+    "qaMatches": true,
+    "qaSha256": "798319c1f6e7fbc532a3453458a868cfbb20e748741a468dcf4ce547ed42adc4"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AdventureEnemyPresenter.cs.meta",
+    "sha256": "6cfa2563c90e96bf79becf8f67bc8127ee0378be841a713c0dc8a256016e38a3",
+    "qaMatches": true,
+    "qaSha256": "6cfa2563c90e96bf79becf8f67bc8127ee0378be841a713c0dc8a256016e38a3"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AdventureEnvironmentCatalog.cs",
+    "sha256": "156f53eb9d3d42a8bdbda09d45480c54e5ca69e9cff799d05280261e26dc56e8",
+    "qaMatches": true,
+    "qaSha256": "156f53eb9d3d42a8bdbda09d45480c54e5ca69e9cff799d05280261e26dc56e8"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AdventureEnvironmentCatalog.cs.meta",
+    "sha256": "b7e71589a3915160016e4b95923acd535b0e3c61c4dee3c481e382de8955c9e9",
+    "qaMatches": true,
+    "qaSha256": "b7e71589a3915160016e4b95923acd535b0e3c61c4dee3c481e382de8955c9e9"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AdventureHeroPresenter.cs",
+    "sha256": "a7018ba1c04f682775fa7fd90cfcac6079565a4c2bc65bede3bd777eff3c9ea9",
+    "qaMatches": true,
+    "qaSha256": "a7018ba1c04f682775fa7fd90cfcac6079565a4c2bc65bede3bd777eff3c9ea9"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AdventureHeroPresenter.cs.meta",
+    "sha256": "2b077c9123c023afac102dbe5f76e72402541d92b0267d7e495cc059c7d4525e",
+    "qaMatches": true,
+    "qaSha256": "2b077c9123c023afac102dbe5f76e72402541d92b0267d7e495cc059c7d4525e"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AdventurePresentation.cs",
+    "sha256": "b5f24a57cc87e5f0af9140ba256bb86f0a75b08735d66c4506e705dbd4d02637",
+    "qaMatches": true,
+    "qaSha256": "b5f24a57cc87e5f0af9140ba256bb86f0a75b08735d66c4506e705dbd4d02637"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AdventurePresentation.cs.meta",
+    "sha256": "6938d129d31e35e79f7a8a3f45e4538667a6b263a59137d63015de4e23cd45b5",
+    "qaMatches": true,
+    "qaSha256": "6938d129d31e35e79f7a8a3f45e4538667a6b263a59137d63015de4e23cd45b5"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AdventureUiV2.cs",
+    "sha256": "22820184453f4ed375f4183bd0f0c4639f207cc31c12d7b2b930afc726eb12f2",
+    "qaMatches": true,
+    "qaSha256": "22820184453f4ed375f4183bd0f0c4639f207cc31c12d7b2b930afc726eb12f2"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AdventureUiV2.cs.meta",
+    "sha256": "091c52455bf483e0b170ee5f66b595032173ddf16c040671f21b2060463e71a0",
+    "qaMatches": true,
+    "qaSha256": "091c52455bf483e0b170ee5f66b595032173ddf16c040671f21b2060463e71a0"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/ArtLoader.cs",
+    "sha256": "ca5c53476b2258db89e4535a7fb7d03dfd4e49d930801aa236008560a7ae4467",
+    "qaMatches": true,
+    "qaSha256": "ca5c53476b2258db89e4535a7fb7d03dfd4e49d930801aa236008560a7ae4467"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/ArtLoader.cs.meta",
+    "sha256": "aaf81943a68342552f426479cc730ca8647fb0fcf1a61d8381f25689754cf7c6",
+    "qaMatches": true,
+    "qaSha256": "aaf81943a68342552f426479cc730ca8647fb0fcf1a61d8381f25689754cf7c6"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AspectCover.cs",
+    "sha256": "de25c2fc164a7143bf2c1ee31df47b24f1b5fe936356039072f8f0bddb75b2ed",
+    "qaMatches": true,
+    "qaSha256": "de25c2fc164a7143bf2c1ee31df47b24f1b5fe936356039072f8f0bddb75b2ed"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AspectCover.cs.meta",
+    "sha256": "61edbda7be16ea19aae760e7a17e4093dab0af47e8c9b0037c470ff79157b96f",
+    "qaMatches": true,
+    "qaSha256": "61edbda7be16ea19aae760e7a17e4093dab0af47e8c9b0037c470ff79157b96f"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AtelierContourGraphic.cs",
+    "sha256": "d500fba2cc14597af56c286fe1c39d0e20d0ed708d82e1a5aa41a4d7db99d8d3",
+    "qaMatches": true,
+    "qaSha256": "d500fba2cc14597af56c286fe1c39d0e20d0ed708d82e1a5aa41a4d7db99d8d3"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AtelierContourGraphic.cs.meta",
+    "sha256": "8a63e8884b2505371d212db952a5002956f2195d2d17a81e6870a17d00fb83f9",
+    "qaMatches": true,
+    "qaSha256": "8a63e8884b2505371d212db952a5002956f2195d2d17a81e6870a17d00fb83f9"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AtelierEquip.cs",
+    "sha256": "99941832cce2d20927262c8230b791e61da3e9cf4bab8d4670a08f4ea594596c",
+    "qaMatches": true,
+    "qaSha256": "99941832cce2d20927262c8230b791e61da3e9cf4bab8d4670a08f4ea594596c"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AtelierEquip.cs.meta",
+    "sha256": "be832276359c6ce6ac80e7260bddc29c9592ed366186ae090acbfd8f06a55501",
+    "qaMatches": true,
+    "qaSha256": "be832276359c6ce6ac80e7260bddc29c9592ed366186ae090acbfd8f06a55501"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AtelierMap.cs",
+    "sha256": "6082acb12c65960192ca8e4227fdcf42d618fa1295d9ee2ea042dd339d9e18ea",
+    "qaMatches": true,
+    "qaSha256": "6082acb12c65960192ca8e4227fdcf42d618fa1295d9ee2ea042dd339d9e18ea"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AtelierMap.cs.meta",
+    "sha256": "e32ff27cfe88650d4ee6e708244ea7c0609bc96448094b2551653e0e8a32b194",
+    "qaMatches": true,
+    "qaSha256": "e32ff27cfe88650d4ee6e708244ea7c0609bc96448094b2551653e0e8a32b194"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AtelierModalInput.cs",
+    "sha256": "6729f0168761042b8e140e141749dee0b30c70423da77e80615bbde04f3acf13",
+    "qaMatches": true,
+    "qaSha256": "6729f0168761042b8e140e141749dee0b30c70423da77e80615bbde04f3acf13"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AtelierModalInput.cs.meta",
+    "sha256": "131b9fd5701e39eb387d6561d968fabd5c335d0cf138bd74cb424f251890b425",
+    "qaMatches": true,
+    "qaSha256": "131b9fd5701e39eb387d6561d968fabd5c335d0cf138bd74cb424f251890b425"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AtelierResult.cs",
+    "sha256": "a01337d268d3391314888917ea01f642b2d68c105ff8395edba8aa61d875fe1f",
+    "qaMatches": true,
+    "qaSha256": "a01337d268d3391314888917ea01f642b2d68c105ff8395edba8aa61d875fe1f"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AtelierResult.cs.meta",
+    "sha256": "69c9a9db3d0d1154015f75742a020e697c12a6ff295d2d864b02229f587a84f3",
+    "qaMatches": true,
+    "qaSha256": "69c9a9db3d0d1154015f75742a020e697c12a6ff295d2d864b02229f587a84f3"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AtelierSettings.cs",
+    "sha256": "cf5937902f012c786d6791cc6beb999b2b910c8f7b7c05be0b47c42b705a588d",
+    "qaMatches": true,
+    "qaSha256": "cf5937902f012c786d6791cc6beb999b2b910c8f7b7c05be0b47c42b705a588d"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AtelierSettings.cs.meta",
+    "sha256": "b7a4e825111032d8f88f96433e1286ee8e82be647082894944ef969a62f9e1a3",
+    "qaMatches": true,
+    "qaSha256": "b7a4e825111032d8f88f96433e1286ee8e82be647082894944ef969a62f9e1a3"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AtelierShop.cs",
+    "sha256": "64c60015d19f98976ef89116a58f636fbce316d00467caa8bfa3257d3bf4cea1",
+    "qaMatches": true,
+    "qaSha256": "64c60015d19f98976ef89116a58f636fbce316d00467caa8bfa3257d3bf4cea1"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AtelierShop.cs.meta",
+    "sha256": "941a562ecb5bf075fa4090fb5bd8f8d82f8c7ce77589bc95dde1f0366ac0e469",
+    "qaMatches": true,
+    "qaSha256": "941a562ecb5bf075fa4090fb5bd8f8d82f8c7ce77589bc95dde1f0366ac0e469"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AtelierUi.cs",
+    "sha256": "f040cd1b411678256412ea815721ce897dbd290a65eac6353ed54b3859757179",
+    "qaMatches": true,
+    "qaSha256": "f040cd1b411678256412ea815721ce897dbd290a65eac6353ed54b3859757179"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AtelierUi.cs.meta",
+    "sha256": "d51d5bf5d9ddaac13e44d3d760abe5cb70e4be28ec4e80c2ba4cd8d3003cff6e",
+    "qaMatches": true,
+    "qaSha256": "d51d5bf5d9ddaac13e44d3d760abe5cb70e4be28ec4e80c2ba4cd8d3003cff6e"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AudioManager.Dialogue.cs",
+    "sha256": "18095129e1e3f0004e781272a96905f6a18c07a763e2d7aae220e065c510c763",
+    "qaMatches": true,
+    "qaSha256": "18095129e1e3f0004e781272a96905f6a18c07a763e2d7aae220e065c510c763"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AudioManager.Dialogue.cs.meta",
+    "sha256": "5b34f9efe7a52f5386ce3058f9eb45bf7d457024af108540d18fde422cbf6bc5",
+    "qaMatches": true,
+    "qaSha256": "5b34f9efe7a52f5386ce3058f9eb45bf7d457024af108540d18fde422cbf6bc5"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AudioManager.Motion.cs",
+    "sha256": "2e7593b32d5044bbd04046c85ed0f838188772f6c1bc094f925c9107da170959",
+    "qaMatches": true,
+    "qaSha256": "2e7593b32d5044bbd04046c85ed0f838188772f6c1bc094f925c9107da170959"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AudioManager.Motion.cs.meta",
+    "sha256": "3fa7142feece1049daa62dc7b8f838176a64b337287597d2feb78f2e3d7aa3e1",
+    "qaMatches": true,
+    "qaSha256": "3fa7142feece1049daa62dc7b8f838176a64b337287597d2feb78f2e3d7aa3e1"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AudioManager.cs",
+    "sha256": "5315cecfe238517fcc5f112655e4347e972ff25122976bed6023b8cc966235a6",
+    "qaMatches": true,
+    "qaSha256": "5315cecfe238517fcc5f112655e4347e972ff25122976bed6023b8cc966235a6"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AudioManager.cs.meta",
+    "sha256": "0006bea4d5cb7f5988dd9bade0cf16d0a7e581772e259404cf80585ada16a340",
+    "qaMatches": true,
+    "qaSha256": "0006bea4d5cb7f5988dd9bade0cf16d0a7e581772e259404cf80585ada16a340"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AzureEquipSkin.cs",
+    "sha256": "91059c3915b71aa0005831bfa04460091430add120af19891d9653fca76c82c8",
+    "qaMatches": true,
+    "qaSha256": "91059c3915b71aa0005831bfa04460091430add120af19891d9653fca76c82c8"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AzureEquipSkin.cs.meta",
+    "sha256": "773258995476564350708d779814fbba20cca0d3ce6be572674300901889c802",
+    "qaMatches": true,
+    "qaSha256": "773258995476564350708d779814fbba20cca0d3ce6be572674300901889c802"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AzureMapSkin.cs",
+    "sha256": "755c5af7a73f7ff8b1964e4c66a5f49e454596c5a0ae786dce248a05243de44a",
+    "qaMatches": true,
+    "qaSha256": "755c5af7a73f7ff8b1964e4c66a5f49e454596c5a0ae786dce248a05243de44a"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AzureMapSkin.cs.meta",
+    "sha256": "b53247fd8ed5d8fd62d43adb364ff964673e32cb8e6511c2dcbfe61ecd6e5f37",
+    "qaMatches": true,
+    "qaSha256": "b53247fd8ed5d8fd62d43adb364ff964673e32cb8e6511c2dcbfe61ecd6e5f37"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AzureScreenFit.cs",
+    "sha256": "c4841782ea1f82d3f5587dc316fe1d6ab56f1590382281b5965d5f1f5f3ed965",
+    "qaMatches": true,
+    "qaSha256": "c4841782ea1f82d3f5587dc316fe1d6ab56f1590382281b5965d5f1f5f3ed965"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AzureScreenFit.cs.meta",
+    "sha256": "1e1a959dc8c02291f3e4af2c05e3a59f93853d91f8c197ba2f92251a1c8488d5",
+    "qaMatches": true,
+    "qaSha256": "1e1a959dc8c02291f3e4af2c05e3a59f93853d91f8c197ba2f92251a1c8488d5"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AzureShopSkin.cs",
+    "sha256": "be27135fa5777218420aae0519ea16b54014a2553bcd929a4880fcb3477df15e",
+    "qaMatches": true,
+    "qaSha256": "be27135fa5777218420aae0519ea16b54014a2553bcd929a4880fcb3477df15e"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AzureShopSkin.cs.meta",
+    "sha256": "40767365d6382051b15413728cba60f745cb998e599a9464af08366b0083d219",
+    "qaMatches": true,
+    "qaSha256": "40767365d6382051b15413728cba60f745cb998e599a9464af08366b0083d219"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AzureUiControls.cs",
+    "sha256": "ce5d4a55e9eef903bfbab54b6e42c8d873f45235dd831a34bb1ae053c8b79538",
+    "qaMatches": true,
+    "qaSha256": "ce5d4a55e9eef903bfbab54b6e42c8d873f45235dd831a34bb1ae053c8b79538"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AzureUiControls.cs.meta",
+    "sha256": "c89a5cbe3b506cc0c46b0520c8a23a5171c0ec5e5ac72bf4a79c8171c8203e0c",
+    "qaMatches": true,
+    "qaSha256": "c89a5cbe3b506cc0c46b0520c8a23a5171c0ec5e5ac72bf4a79c8171c8203e0c"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/BBB.Runtime.asmdef",
+    "sha256": "00e4c40c4a7077c557efb897292b3b91e6714ba9d29986064c76f68e123cad51",
+    "qaMatches": true,
+    "qaSha256": "00e4c40c4a7077c557efb897292b3b91e6714ba9d29986064c76f68e123cad51"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/BBB.Runtime.asmdef.meta",
+    "sha256": "b119bc31b3cca344f94bb5136e7fcf6981b5a469678bd859ee86ce048dee856f",
+    "qaMatches": true,
+    "qaSha256": "b119bc31b3cca344f94bb5136e7fcf6981b5a469678bd859ee86ce048dee856f"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/BuildInfo.cs",
+    "sha256": "0108f71502fb3e773ad8265cc5893367ae63e52674b676ba35ccffc3fa47b65d",
+    "qaMatches": true,
+    "qaSha256": "0108f71502fb3e773ad8265cc5893367ae63e52674b676ba35ccffc3fa47b65d"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/BuildInfo.cs.meta",
+    "sha256": "7f2cb911a960b6422ca7ed6d86ab571ad4526afb9230bb29bb3dbd70cf96f742",
+    "qaMatches": true,
+    "qaSha256": "7f2cb911a960b6422ca7ed6d86ab571ad4526afb9230bb29bb3dbd70cf96f742"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/CelestialStatGlow.cs",
+    "sha256": "a25072ac6bc5bcf0c5cb6148c338113ea18e66ac99817c2868edbb80e2595d9b",
+    "qaMatches": true,
+    "qaSha256": "a25072ac6bc5bcf0c5cb6148c338113ea18e66ac99817c2868edbb80e2595d9b"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/CelestialStatGlow.cs.meta",
+    "sha256": "9c7d4a614a58b2a9ff90a8b6b3a0b77665cdfba14d4d926cfd50a18ef55d61b3",
+    "qaMatches": true,
+    "qaSha256": "9c7d4a614a58b2a9ff90a8b6b3a0b77665cdfba14d4d926cfd50a18ef55d61b3"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/CelestialStatsSkin.cs",
+    "sha256": "b9fc1b9c6994e7cf93cecea24b910c4b55db0c91bd5ffd03bcb2814af3645445",
+    "qaMatches": true,
+    "qaSha256": "b9fc1b9c6994e7cf93cecea24b910c4b55db0c91bd5ffd03bcb2814af3645445"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/CelestialStatsSkin.cs.meta",
+    "sha256": "0ead5f54902a332c62bf21c474f088cb3736fe319dcaffbfd0129e3ea717aff4",
+    "qaMatches": true,
+    "qaSha256": "0ead5f54902a332c62bf21c474f088cb3736fe319dcaffbfd0129e3ea717aff4"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/CurseHudPresenter.cs",
+    "sha256": "0e6d5a74c508897f2a9eca84a37f00789a284ef3c1539f2c679f717ddd1cf523",
+    "qaMatches": true,
+    "qaSha256": "0e6d5a74c508897f2a9eca84a37f00789a284ef3c1539f2c679f717ddd1cf523"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/CurseHudPresenter.cs.meta",
+    "sha256": "b5701c589b3f3d745cefbe3689491efd5439d5681928e19bf5775afc71362627",
+    "qaMatches": true,
+    "qaSha256": "b5701c589b3f3d745cefbe3689491efd5439d5681928e19bf5775afc71362627"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/CurseScreen.cs",
+    "sha256": "b68233ccb852c78eb3397f2f113b7f0ebf7a010e86acc4fb4b0868d2a925fd3d",
+    "qaMatches": true,
+    "qaSha256": "b68233ccb852c78eb3397f2f113b7f0ebf7a010e86acc4fb4b0868d2a925fd3d"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/CurseScreen.cs.meta",
+    "sha256": "209d7adb8ec38547a8b48beb83e944c7b7634739add526419d187003bd24627e",
+    "qaMatches": true,
+    "qaSha256": "209d7adb8ec38547a8b48beb83e944c7b7634739add526419d187003bd24627e"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/DiagnosticLog.cs",
+    "sha256": "c82e83833028353de9c264291243a86e6f1097741c236372a1230f62d600a3dc",
+    "qaMatches": true,
+    "qaSha256": "c82e83833028353de9c264291243a86e6f1097741c236372a1230f62d600a3dc"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/DiagnosticLog.cs.meta",
+    "sha256": "4d5a9c28049e0072a618fd3fc93f4531b69b1e4b7ef9493a1fe9f98d5bb679d2",
+    "qaMatches": true,
+    "qaSha256": "4d5a9c28049e0072a618fd3fc93f4531b69b1e4b7ef9493a1fe9f98d5bb679d2"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/DialoguePresenter.cs",
+    "sha256": "81b07c645ba20d78516164e5d1f9493c7ec2503c145ed67b9742e4e5287f89f2",
+    "qaMatches": true,
+    "qaSha256": "81b07c645ba20d78516164e5d1f9493c7ec2503c145ed67b9742e4e5287f89f2"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/DialoguePresenter.cs.meta",
+    "sha256": "2c2dd01f08349cfdc7de0b231bdc59c8b7b33290bd5962ce3a6ba12118ed4af3",
+    "qaMatches": true,
+    "qaSha256": "2c2dd01f08349cfdc7de0b231bdc59c8b7b33290bd5962ce3a6ba12118ed4af3"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/Effects.cs",
+    "sha256": "25222b801b515b93ab22e0f848eb7eacec77b32cab9b7bef599d57396c4c0b56",
+    "qaMatches": true,
+    "qaSha256": "25222b801b515b93ab22e0f848eb7eacec77b32cab9b7bef599d57396c4c0b56"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/Effects.cs.meta",
+    "sha256": "3a35911385b571e283308874d451998915ff963a7747761a15dd72d60a3dd70a",
+    "qaMatches": true,
+    "qaSha256": "3a35911385b571e283308874d451998915ff963a7747761a15dd72d60a3dd70a"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/EnemyPresentation.cs",
+    "sha256": "7e9349ec9390fc719b9ef24107b8a8ca95db6477822effc8dbcf813ebd22678c",
+    "qaMatches": true,
+    "qaSha256": "7e9349ec9390fc719b9ef24107b8a8ca95db6477822effc8dbcf813ebd22678c"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/EnemyPresentation.cs.meta",
+    "sha256": "9be5325b89bed07ffd803d39ddfa8dcb95f565f720529f767e4353e267a20740",
+    "qaMatches": true,
+    "qaSha256": "9be5325b89bed07ffd803d39ddfa8dcb95f565f720529f767e4353e267a20740"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/EquipScreen.cs",
+    "sha256": "bd363dc2119b012a348dffddd6cbd0c89bdfc83e6c0f546a35b259ada375c1fc",
+    "qaMatches": true,
+    "qaSha256": "bd363dc2119b012a348dffddd6cbd0c89bdfc83e6c0f546a35b259ada375c1fc"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/EquipScreen.cs.meta",
+    "sha256": "bb7463c2c485760dfcdc1cd7cc4d9871b3af8a4409c81dcabfd669a7ab2657f7",
+    "qaMatches": true,
+    "qaSha256": "bb7463c2c485760dfcdc1cd7cc4d9871b3af8a4409c81dcabfd669a7ab2657f7"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/GameController.cs",
+    "sha256": "08ec5519fce102e050c387c0054f0da7eda7728c722656bd3f0fef31d08a9711",
+    "qaMatches": true,
+    "qaSha256": "08ec5519fce102e050c387c0054f0da7eda7728c722656bd3f0fef31d08a9711"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/GameController.cs.meta",
+    "sha256": "84843d4d8f0191ba10a7aa028eb964714cd5bd5fccff225c085275601efb7963",
+    "qaMatches": true,
+    "qaSha256": "84843d4d8f0191ba10a7aa028eb964714cd5bd5fccff225c085275601efb7963"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/GameDataLoader.cs",
+    "sha256": "b06afc79f3551994c96946bfc0d7f6c2ea3e126b937e7e0419fa44693b3e9d28",
+    "qaMatches": true,
+    "qaSha256": "b06afc79f3551994c96946bfc0d7f6c2ea3e126b937e7e0419fa44693b3e9d28"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/GameDataLoader.cs.meta",
+    "sha256": "bc8c9863699d333a7b4a3f080080b44ce58a4439917067955a55c94338d83d6c",
+    "qaMatches": true,
+    "qaSha256": "bc8c9863699d333a7b4a3f080080b44ce58a4439917067955a55c94338d83d6c"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/HeroPresentation.cs",
+    "sha256": "1727b45a8af3762165db2d16aca1d3da8b540a1075bd02609da1b56b04040c17",
+    "qaMatches": true,
+    "qaSha256": "1727b45a8af3762165db2d16aca1d3da8b540a1075bd02609da1b56b04040c17"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/HeroPresentation.cs.meta",
+    "sha256": "e5ff96b5232356336c426a2a06cffaac625a0d5ec58674bd35ff1ba3b6d2511c",
+    "qaMatches": true,
+    "qaSha256": "e5ff96b5232356336c426a2a06cffaac625a0d5ec58674bd35ff1ba3b6d2511c"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/HeroPresentationLab.cs",
+    "sha256": "91b39ba9fe27474a6857dd2b5c21874d732fcdd600ba54c783049916366b9f33",
+    "qaMatches": true,
+    "qaSha256": "91b39ba9fe27474a6857dd2b5c21874d732fcdd600ba54c783049916366b9f33"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/HeroPresentationLab.cs.meta",
+    "sha256": "6d6a315a7491e2e7813df12c0f3d422ad6aef2d7f90222ca84affe811f5e6355",
+    "qaMatches": true,
+    "qaSha256": "6d6a315a7491e2e7813df12c0f3d422ad6aef2d7f90222ca84affe811f5e6355"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/HeroReelPreview.cs",
+    "sha256": "6f442ebcf605ae23f5f9845d405536639ef4c907c53b1530ffc85266ab408385",
+    "qaMatches": true,
+    "qaSha256": "6f442ebcf605ae23f5f9845d405536639ef4c907c53b1530ffc85266ab408385"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/HeroReelPreview.cs.meta",
+    "sha256": "08d0b3620befda7238ef6ff705b30908f6809553d66fc977880cd1731b27a846",
+    "qaMatches": true,
+    "qaSha256": "08d0b3620befda7238ef6ff705b30908f6809553d66fc977880cd1731b27a846"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/HoverGlow.cs",
+    "sha256": "f9dcae8530ad8266085905b7a889a9c2beaeefd435983c866402a2972dacd654",
+    "qaMatches": true,
+    "qaSha256": "f9dcae8530ad8266085905b7a889a9c2beaeefd435983c866402a2972dacd654"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/HoverGlow.cs.meta",
+    "sha256": "392d8ab8c8af7e713dc771303ba94af96f1f2524a46b9ad4a0ecabbf1f415649",
+    "qaMatches": true,
+    "qaSha256": "392d8ab8c8af7e713dc771303ba94af96f1f2524a46b9ad4a0ecabbf1f415649"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/IconText.cs",
+    "sha256": "cd8558b63830d189214547b2adaf574c71c45969c1f69a15c8cc8ee10455089f",
+    "qaMatches": true,
+    "qaSha256": "cd8558b63830d189214547b2adaf574c71c45969c1f69a15c8cc8ee10455089f"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/IconText.cs.meta",
+    "sha256": "ba1fabca4073e6e0c6ce76ce0a14f6c47e6786c1746274b3ee2104d8e85a4e71",
+    "qaMatches": true,
+    "qaSha256": "ba1fabca4073e6e0c6ce76ce0a14f6c47e6786c1746274b3ee2104d8e85a4e71"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/MapScreen.cs",
+    "sha256": "76b09839206fb4a2c6c8bd2a6030ec078fa4b5fb3fadb0912209a1f8fd400119",
+    "qaMatches": true,
+    "qaSha256": "76b09839206fb4a2c6c8bd2a6030ec078fa4b5fb3fadb0912209a1f8fd400119"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/MapScreen.cs.meta",
+    "sha256": "c1e85d9437344f6fa1f51e00aae851cdaf10466ab443161910e1477e937702ed",
+    "qaMatches": true,
+    "qaSha256": "c1e85d9437344f6fa1f51e00aae851cdaf10466ab443161910e1477e937702ed"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/MapUiV2.cs",
+    "sha256": "15b6352c48e168f064fc6abe23ee10001cef1b38d87fb60e338fb4849db735be",
+    "qaMatches": true,
+    "qaSha256": "15b6352c48e168f064fc6abe23ee10001cef1b38d87fb60e338fb4849db735be"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/MapUiV2.cs.meta",
+    "sha256": "2695c1e1b35451982808198920179179e0fbbe50b2a7652e3ddae829350dd42d",
+    "qaMatches": true,
+    "qaSha256": "2695c1e1b35451982808198920179179e0fbbe50b2a7652e3ddae829350dd42d"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/MarqueeBand.cs",
+    "sha256": "5f0d4ebf2d416573ae182ee14119d116bd07cbec306e3c16631e9e6288c03c32",
+    "qaMatches": true,
+    "qaSha256": "5f0d4ebf2d416573ae182ee14119d116bd07cbec306e3c16631e9e6288c03c32"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/MarqueeBand.cs.meta",
+    "sha256": "7d2562a40a63a895542519f2ac3fe132f38922d833e075929c034318483d3553",
+    "qaMatches": true,
+    "qaSha256": "7d2562a40a63a895542519f2ac3fe132f38922d833e075929c034318483d3553"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/MotionSound.cs",
+    "sha256": "38e412367a03578afb0124338eebd17d85561e330f2c78bd360d6436e261b7e2",
+    "qaMatches": true,
+    "qaSha256": "38e412367a03578afb0124338eebd17d85561e330f2c78bd360d6436e261b7e2"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/MotionSound.cs.meta",
+    "sha256": "651eaef6e730ab8a51d0698a0a805bbad3becf229566115a250d64c7f3109f91",
+    "qaMatches": true,
+    "qaSha256": "651eaef6e730ab8a51d0698a0a805bbad3becf229566115a250d64c7f3109f91"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/MotionSoundSynth.cs",
+    "sha256": "50b5525115585650f6d22f0e585d0992f22ea393837bc2bd364f53afac81b396",
+    "qaMatches": true,
+    "qaSha256": "50b5525115585650f6d22f0e585d0992f22ea393837bc2bd364f53afac81b396"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/MotionSoundSynth.cs.meta",
+    "sha256": "4d66d80c76342951a96a607104d2ef653da2b1b0baef465cbe5d9d040f228825",
+    "qaMatches": true,
+    "qaSha256": "4d66d80c76342951a96a607104d2ef653da2b1b0baef465cbe5d9d040f228825"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/OpeningPlayer.cs",
+    "sha256": "8a6ee9c0eac311c9c8b0bd64f25ecc68ff523e21c83011a701d5bb38ae8a546e",
+    "qaMatches": true,
+    "qaSha256": "8a6ee9c0eac311c9c8b0bd64f25ecc68ff523e21c83011a701d5bb38ae8a546e"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/OpeningPlayer.cs.meta",
+    "sha256": "fdf4f696bc894a033165ffb888be30cec0112cd34a410ac3e990e4490273fdec",
+    "qaMatches": true,
+    "qaSha256": "fdf4f696bc894a033165ffb888be30cec0112cd34a410ac3e990e4490273fdec"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/ParallaxBackground.cs",
+    "sha256": "0b06b520c92c6d7cb0f5e190867f81cdb476f1877222f5b9a7b63305ebecbe74",
+    "qaMatches": true,
+    "qaSha256": "0b06b520c92c6d7cb0f5e190867f81cdb476f1877222f5b9a7b63305ebecbe74"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/ParallaxBackground.cs.meta",
+    "sha256": "a3b37ce80a1f88aa9dcca90881816ffcb436d5525c51ed12a4761104d7f7bfe7",
+    "qaMatches": true,
+    "qaSha256": "a3b37ce80a1f88aa9dcca90881816ffcb436d5525c51ed12a4761104d7f7bfe7"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/PressTimer.cs",
+    "sha256": "1ae31f02426e239ad02c6129a34c7024c01716c9bf607830e1aeb4f36129b8cb",
+    "qaMatches": true,
+    "qaSha256": "1ae31f02426e239ad02c6129a34c7024c01716c9bf607830e1aeb4f36129b8cb"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/PressTimer.cs.meta",
+    "sha256": "a02c55c1810991ca8d309c036dc66c90ce3c32141efefcdd0ecc06b01a4b5521",
+    "qaMatches": true,
+    "qaSha256": "a02c55c1810991ca8d309c036dc66c90ce3c32141efefcdd0ecc06b01a4b5521"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/RainbowTint.cs",
+    "sha256": "1a43a170f1224087c52f8406fc0fa26d81fbfeb8c163ac40e586c3ab5479a922",
+    "qaMatches": true,
+    "qaSha256": "1a43a170f1224087c52f8406fc0fa26d81fbfeb8c163ac40e586c3ab5479a922"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/RainbowTint.cs.meta",
+    "sha256": "0bb47b0e37fdceb7f58e7dc363f62230f17207f416765d6f94c089c1754b84e1",
+    "qaMatches": true,
+    "qaSha256": "0bb47b0e37fdceb7f58e7dc363f62230f17207f416765d6f94c089c1754b84e1"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/ReelView.cs",
+    "sha256": "92e22acca7214d5f86bc38766e01cc187679dfdf32ed53c80074f9c6347d74f0",
+    "qaMatches": true,
+    "qaSha256": "92e22acca7214d5f86bc38766e01cc187679dfdf32ed53c80074f9c6347d74f0"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/ReelView.cs.meta",
+    "sha256": "b9891bf43f851d2d9e7ec1482209f80d34360eaeb29791203ef26128dd934777",
+    "qaMatches": true,
+    "qaSha256": "b9891bf43f851d2d9e7ec1482209f80d34360eaeb29791203ef26128dd934777"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/RunHistory.cs",
+    "sha256": "61ae6074a3505b7e52aefe31a52024c99815c5868dc5d6fa5cd923e2533465f7",
+    "qaMatches": true,
+    "qaSha256": "61ae6074a3505b7e52aefe31a52024c99815c5868dc5d6fa5cd923e2533465f7"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/RunHistory.cs.meta",
+    "sha256": "c7d8d238cd1214281ca148e319501441c14bfc600cce2b155c7758240632953e",
+    "qaMatches": true,
+    "qaSha256": "c7d8d238cd1214281ca148e319501441c14bfc600cce2b155c7758240632953e"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/RunIO.cs",
+    "sha256": "3482f912c770a47929723f331c3530f2db1912df1c0f83c6418d1532ecd854a5",
+    "qaMatches": true,
+    "qaSha256": "3482f912c770a47929723f331c3530f2db1912df1c0f83c6418d1532ecd854a5"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/RunIO.cs.meta",
+    "sha256": "0f9c612740a2632c570610422aa9cf859bf6cd7a4bf43650812a25f33cc3efdc",
+    "qaMatches": true,
+    "qaSha256": "0f9c612740a2632c570610422aa9cf859bf6cd7a4bf43650812a25f33cc3efdc"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/SafeStage.cs",
+    "sha256": "b7289c42102819d80d6db9841f7d2cf8a3d49a8624228b77760531a750ab80fb",
+    "qaMatches": true,
+    "qaSha256": "b7289c42102819d80d6db9841f7d2cf8a3d49a8624228b77760531a750ab80fb"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/SafeStage.cs.meta",
+    "sha256": "f196a23487b9e7575bf6de9ff1b2a0f7e88b881309169c2dd5fbfa4aad147791",
+    "qaMatches": true,
+    "qaSha256": "f196a23487b9e7575bf6de9ff1b2a0f7e88b881309169c2dd5fbfa4aad147791"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/SaliaLayerGraphic.cs",
+    "sha256": "622371a956ec38d9832927c4ad865730ba23c2aeaed920202998d6369cd20a6e",
+    "qaMatches": true,
+    "qaSha256": "622371a956ec38d9832927c4ad865730ba23c2aeaed920202998d6369cd20a6e"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/SaliaLayerGraphic.cs.meta",
+    "sha256": "808aa86ead578d1efc2e6758dad082fd5e62caa43763623dd721261ed93d0179",
+    "qaMatches": true,
+    "qaSha256": "808aa86ead578d1efc2e6758dad082fd5e62caa43763623dd721261ed93d0179"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/SaliaTitleModel.cs",
+    "sha256": "07bc1fe10a72c7977fd807c14abfbda1d8f444a071f378902cf1ebd35798ca85",
+    "qaMatches": true,
+    "qaSha256": "07bc1fe10a72c7977fd807c14abfbda1d8f444a071f378902cf1ebd35798ca85"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/SaliaTitleModel.cs.meta",
+    "sha256": "ae15edf7e8971d17378d3e5717c6e650f8f77a3433573a6dc0c9de2a2ea51d87",
+    "qaMatches": true,
+    "qaSha256": "ae15edf7e8971d17378d3e5717c6e650f8f77a3433573a6dc0c9de2a2ea51d87"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/SaveData.cs",
+    "sha256": "6ae301aa460b47316df9eeab81917d3c98dcd4d71abe9d3be3f227454f2936e3",
+    "qaMatches": true,
+    "qaSha256": "6ae301aa460b47316df9eeab81917d3c98dcd4d71abe9d3be3f227454f2936e3"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/SaveData.cs.meta",
+    "sha256": "f7c326bd9014ad5773617086e7266b02c4c12c8ec97bb6f6398a07866b0c7a1e",
+    "qaMatches": true,
+    "qaSha256": "f7c326bd9014ad5773617086e7266b02c4c12c8ec97bb6f6398a07866b0c7a1e"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/SfxSynth.cs",
+    "sha256": "e1eb9eaffc7c433354e7bbfdaec7b5cdda01e288aff6b7a3a7ccc4b148529069",
+    "qaMatches": true,
+    "qaSha256": "e1eb9eaffc7c433354e7bbfdaec7b5cdda01e288aff6b7a3a7ccc4b148529069"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/SfxSynth.cs.meta",
+    "sha256": "38a8c3481f77f4425f9caa5544fff5ffd967b45ac86f5e4bdf405583facc86e4",
+    "qaMatches": true,
+    "qaSha256": "38a8c3481f77f4425f9caa5544fff5ffd967b45ac86f5e4bdf405583facc86e4"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/ShopScreen.cs",
+    "sha256": "f664cc285bef0b9421cba01a5c79fc0cb30d11eaabc8e4f0b1d5bc72e37c9978",
+    "qaMatches": true,
+    "qaSha256": "f664cc285bef0b9421cba01a5c79fc0cb30d11eaabc8e4f0b1d5bc72e37c9978"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/ShopScreen.cs.meta",
+    "sha256": "24430f75290f576625ad1442c27f66a6c6f38d94cbf0b640ca670ebfe7aae6b3",
+    "qaMatches": true,
+    "qaSha256": "24430f75290f576625ad1442c27f66a6c6f38d94cbf0b640ca670ebfe7aae6b3"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/SliderReleaseSound.cs",
+    "sha256": "d370463620ad98299e1dd05b5274527f025cb322c1a3af9374f7dcb58c250826",
+    "qaMatches": true,
+    "qaSha256": "d370463620ad98299e1dd05b5274527f025cb322c1a3af9374f7dcb58c250826"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/SliderReleaseSound.cs.meta",
+    "sha256": "0e8926da556d47bcecb399125807749510d3613337cc8778758e1ccf9c3b36fa",
+    "qaMatches": true,
+    "qaSha256": "0e8926da556d47bcecb399125807749510d3613337cc8778758e1ccf9c3b36fa"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/SlumpGraph.cs",
+    "sha256": "34dc72a4f06369cc326f1e542e9de26d9563cd96fef268cdd258a3acb804a926",
+    "qaMatches": true,
+    "qaSha256": "34dc72a4f06369cc326f1e542e9de26d9563cd96fef268cdd258a3acb804a926"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/SlumpGraph.cs.meta",
+    "sha256": "3130f9800afe6a20caf36cd334a2bec135352ecc5224597f6c9cc76f2507b65f",
+    "qaMatches": true,
+    "qaSha256": "3130f9800afe6a20caf36cd334a2bec135352ecc5224597f6c9cc76f2507b65f"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/SpriteAnimator.cs",
+    "sha256": "7755bf1302211d2cb47a6d3dbff1b4f4c339d168be84fe34df7de4ca2433085c",
+    "qaMatches": true,
+    "qaSha256": "7755bf1302211d2cb47a6d3dbff1b4f4c339d168be84fe34df7de4ca2433085c"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/SpriteAnimator.cs.meta",
+    "sha256": "e3d79f351cda56d75ef135008c6a3a957ff0aabef3c7a1c597309122c94a4595",
+    "qaMatches": true,
+    "qaSha256": "e3d79f351cda56d75ef135008c6a3a957ff0aabef3c7a1c597309122c94a4595"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/StageMapView.cs",
+    "sha256": "6a5925ba1532a582cd2dba01e26e3d12d0dd7e248dcfe807017b50d76876d259",
+    "qaMatches": true,
+    "qaSha256": "6a5925ba1532a582cd2dba01e26e3d12d0dd7e248dcfe807017b50d76876d259"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/StageMapView.cs.meta",
+    "sha256": "3169fa574a647bdb283d527d9df6cb63e5d1b2f5f8dcb4ebc3ac3ef909193666",
+    "qaMatches": true,
+    "qaSha256": "3169fa574a647bdb283d527d9df6cb63e5d1b2f5f8dcb4ebc3ac3ef909193666"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/StatsScreen.cs",
+    "sha256": "1236ab26610bd6a4796f15778211d2c2de7df9f5e0db88b5f0861dd945cd8141",
+    "qaMatches": true,
+    "qaSha256": "1236ab26610bd6a4796f15778211d2c2de7df9f5e0db88b5f0861dd945cd8141"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/StatsScreen.cs.meta",
+    "sha256": "c84f71aa1513c91588b3d6c922e749d1ccb134d878e8e3269936199f288460d2",
+    "qaMatches": true,
+    "qaSha256": "c84f71aa1513c91588b3d6c922e749d1ccb134d878e8e3269936199f288460d2"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/TitleAmbience.cs",
+    "sha256": "74a41e41175bf6507f416448370d7bb9bec9cb9cf334ba389761240505f40746",
+    "qaMatches": true,
+    "qaSha256": "74a41e41175bf6507f416448370d7bb9bec9cb9cf334ba389761240505f40746"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/TitleAmbience.cs.meta",
+    "sha256": "cd483b4744726873d0a3ebb12bf7adbec5f5945fa7903542b022b11274966929",
+    "qaMatches": true,
+    "qaSha256": "cd483b4744726873d0a3ebb12bf7adbec5f5945fa7903542b022b11274966929"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/TitleCharacterWarp.cs",
+    "sha256": "a321a6cf40b81da8b709886f1b948f50841e2c6abf3eb80274dac3e1fe2fe707",
+    "qaMatches": true,
+    "qaSha256": "a321a6cf40b81da8b709886f1b948f50841e2c6abf3eb80274dac3e1fe2fe707"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/TitleCharacterWarp.cs.meta",
+    "sha256": "da91da591916163a57a27e44ee448728e091769962dd998bf37a37071b454d2e",
+    "qaMatches": true,
+    "qaSha256": "da91da591916163a57a27e44ee448728e091769962dd998bf37a37071b454d2e"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/TitleParallax.cs",
+    "sha256": "aee39bcd046699f03566f99c7973c78e06463905fe215f6fdd20746ea9f7e709",
+    "qaMatches": true,
+    "qaSha256": "aee39bcd046699f03566f99c7973c78e06463905fe215f6fdd20746ea9f7e709"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/TitleParallax.cs.meta",
+    "sha256": "b83be90f97abaa6eb4a1efa4bc379c7931c0040c29900d28068f394a777bc14b",
+    "qaMatches": true,
+    "qaSha256": "b83be90f97abaa6eb4a1efa4bc379c7931c0040c29900d28068f394a777bc14b"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/TitleScreen.cs",
+    "sha256": "931cfaa445d953b863f9bf046828a6b38d9cb7047eaf47ffb710853a44d803ce",
+    "qaMatches": true,
+    "qaSha256": "931cfaa445d953b863f9bf046828a6b38d9cb7047eaf47ffb710853a44d803ce"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/TitleScreen.cs.meta",
+    "sha256": "55ee3fbcce5eb856cdaa881c7d44e93bc39ace7f628d31c5ec377fb3b1e84c47",
+    "qaMatches": true,
+    "qaSha256": "55ee3fbcce5eb856cdaa881c7d44e93bc39ace7f628d31c5ec377fb3b1e84c47"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/TitleUiLayout.cs",
+    "sha256": "69c0e564e6745d1b916fb658a4d631d5d629386863e764c410490eaca64aa714",
+    "qaMatches": true,
+    "qaSha256": "69c0e564e6745d1b916fb658a4d631d5d629386863e764c410490eaca64aa714"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/TitleUiLayout.cs.meta",
+    "sha256": "2038d3ee567cf5ed89438ff403d5765d57430239499774e22afff29c52b426ca",
+    "qaMatches": true,
+    "qaSha256": "2038d3ee567cf5ed89438ff403d5765d57430239499774e22afff29c52b426ca"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/TravelerView.cs",
+    "sha256": "3cdb39275d875c8381155a4df756f8f2f087fe6098159b98469e83418392045c",
+    "qaMatches": true,
+    "qaSha256": "3cdb39275d875c8381155a4df756f8f2f087fe6098159b98469e83418392045c"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/TravelerView.cs.meta",
+    "sha256": "8ab7f5d1f642661c498bf04472b56e3c826e23806e6741edd0075503b1fd647d",
+    "qaMatches": true,
+    "qaSha256": "8ab7f5d1f642661c498bf04472b56e3c826e23806e6741edd0075503b1fd647d"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/TrophyScreen.cs",
+    "sha256": "d5d6e75ca7b1295bbfc5dc6dd49894b5729c243ac0011705304ad117c0857323",
+    "qaMatches": true,
+    "qaSha256": "d5d6e75ca7b1295bbfc5dc6dd49894b5729c243ac0011705304ad117c0857323"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/TrophyScreen.cs.meta",
+    "sha256": "25c93c250b8454d7aa31c37cbf48716d7243eb9393fb598079ca5161683ca2be",
+    "qaMatches": true,
+    "qaSha256": "25c93c250b8454d7aa31c37cbf48716d7243eb9393fb598079ca5161683ca2be"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/UiFactory.cs",
+    "sha256": "6cb318f8ab574c00550a0d1dc61851b8c7381eac6c25169e3a1cccdccc4ccb19",
+    "qaMatches": true,
+    "qaSha256": "6cb318f8ab574c00550a0d1dc61851b8c7381eac6c25169e3a1cccdccc4ccb19"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/UiFactory.cs.meta",
+    "sha256": "3c2acdec08e66c95403091d07b9a1f94095121a43345eeabfdcb5188cd4e9eb4",
+    "qaMatches": true,
+    "qaSha256": "3c2acdec08e66c95403091d07b9a1f94095121a43345eeabfdcb5188cd4e9eb4"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/UiFx.cs",
+    "sha256": "49c39ff682d5abc8fe7a1a165c4ab0d0e5b5f5c4810d96a0a9912e00bac6e827",
+    "qaMatches": true,
+    "qaSha256": "49c39ff682d5abc8fe7a1a165c4ab0d0e5b5f5c4810d96a0a9912e00bac6e827"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/UiFx.cs.meta",
+    "sha256": "7d9802df948af06e872c98dcf3c9f3aceeb46603a9bb7d0d91aa210b2d71ffba",
+    "qaMatches": true,
+    "qaSha256": "7d9802df948af06e872c98dcf3c9f3aceeb46603a9bb7d0d91aa210b2d71ffba"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/UiLayout.cs",
+    "sha256": "dcc20adc0c0222223cc7e204d85d806c8dde4e125c3ca703a235ea4f5bf17bb9",
+    "qaMatches": true,
+    "qaSha256": "dcc20adc0c0222223cc7e204d85d806c8dde4e125c3ca703a235ea4f5bf17bb9"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/UiLayout.cs.meta",
+    "sha256": "c901788b1fa0aaf1c1b8fc9314acc93b49a8c2567bcf6d4a52f2a44756a94d0d",
+    "qaMatches": true,
+    "qaSha256": "c901788b1fa0aaf1c1b8fc9314acc93b49a8c2567bcf6d4a52f2a44756a94d0d"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/UiSkin.cs",
+    "sha256": "d9f2b8d0c42c6fb2ec312afc3bd006178d45a3aa5dd500316f92e8fdc1cc989f",
+    "qaMatches": true,
+    "qaSha256": "d9f2b8d0c42c6fb2ec312afc3bd006178d45a3aa5dd500316f92e8fdc1cc989f"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/UiSkin.cs.meta",
+    "sha256": "2b8dd4c47b1c52abaecf2afd6a9274b88ab823de7c783e7359145f10ff6cc32d",
+    "qaMatches": true,
+    "qaSha256": "2b8dd4c47b1c52abaecf2afd6a9274b88ab823de7c783e7359145f10ff6cc32d"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/ZoneFx.cs",
+    "sha256": "c3d6810634a39a6d39af3f0eb0c43c0756223aa419c79dd247e278bf471ce326",
+    "qaMatches": true,
+    "qaSha256": "c3d6810634a39a6d39af3f0eb0c43c0756223aa419c79dd247e278bf471ce326"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/ZoneFx.cs.meta",
+    "sha256": "2fae7e3a285e4361740214b7d333c56032506e2525c8c3a8cd568b4fc4e2a3dd",
+    "qaMatches": true,
+    "qaSha256": "2fae7e3a285e4361740214b7d333c56032506e2525c8c3a8cd568b4fc4e2a3dd"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode.meta",
+    "sha256": "c2e44d5f2f238957b0caab0fea555698c33177d791fac8784c06ea1ed870e25e",
+    "qaMatches": true,
+    "qaSha256": "c2e44d5f2f238957b0caab0fea555698c33177d791fac8784c06ea1ed870e25e"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/AdventureEnemyPlayTests.cs",
+    "sha256": "df858f83f8db56b4796ec0d8cf2762d86208b6d8e14ee88028dee99ea3eb2a95",
+    "qaMatches": true,
+    "qaSha256": "df858f83f8db56b4796ec0d8cf2762d86208b6d8e14ee88028dee99ea3eb2a95"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/AdventureEnemyPlayTests.cs.meta",
+    "sha256": "29a80861d53fd8355f4aef72c8c2fd4b5a8ff76b20794a43e34277fb9cc6499b",
+    "qaMatches": true,
+    "qaSha256": "29a80861d53fd8355f4aef72c8c2fd4b5a8ff76b20794a43e34277fb9cc6499b"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/AdventureEnemyReelTests.cs",
+    "sha256": "88a1536eb051fac9a608f61b5dc1f2897284dc5a88180d9dbebf5ac8b6c436e6",
+    "qaMatches": true,
+    "qaSha256": "88a1536eb051fac9a608f61b5dc1f2897284dc5a88180d9dbebf5ac8b6c436e6"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/AdventureEnemyReelTests.cs.meta",
+    "sha256": "b964d5c5cbd99d9212999db33d133f46b41b6d16bea6a010af713e9ce739520d",
+    "qaMatches": true,
+    "qaSha256": "b964d5c5cbd99d9212999db33d133f46b41b6d16bea6a010af713e9ce739520d"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/AdventureHeroJourneyTests.cs",
+    "sha256": "fddb4e9d61c3589efeb8a27bd0fd107723809b4732bb303ebc57128a614de049",
+    "qaMatches": true,
+    "qaSha256": "fddb4e9d61c3589efeb8a27bd0fd107723809b4732bb303ebc57128a614de049"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/AdventureHeroJourneyTests.cs.meta",
+    "sha256": "99ff80d1b90b1c2b9b7ae0e89810f8f583e5f962289015895f8d96d9df2c3b16",
+    "qaMatches": true,
+    "qaSha256": "99ff80d1b90b1c2b9b7ae0e89810f8f583e5f962289015895f8d96d9df2c3b16"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/AdventureHeroPlayTests.cs",
+    "sha256": "f0095eaa992bd36cb1a7701c354e836da9f8e6a79162eafd60fb2d43be40ca4a",
+    "qaMatches": true,
+    "qaSha256": "f0095eaa992bd36cb1a7701c354e836da9f8e6a79162eafd60fb2d43be40ca4a"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/AdventureHeroPlayTests.cs.meta",
+    "sha256": "d29020084b69a0902dcd65331ab16f68fbe905085c1f2a065f4099d5d4e5f852",
+    "qaMatches": true,
+    "qaSha256": "d29020084b69a0902dcd65331ab16f68fbe905085c1f2a065f4099d5d4e5f852"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/AdventurePresentationPlayTests.cs",
+    "sha256": "e505606eb0fb721bef5c29663482e3a190747c2739cd32a16f42badecbe59014",
+    "qaMatches": true,
+    "qaSha256": "e505606eb0fb721bef5c29663482e3a190747c2739cd32a16f42badecbe59014"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/AdventurePresentationPlayTests.cs.meta",
+    "sha256": "d7be42f85716fe297b0231ce957828069fa31678fd1faa6ff53cec32c69afb6b",
+    "qaMatches": true,
+    "qaSha256": "d7be42f85716fe297b0231ce957828069fa31678fd1faa6ff53cec32c69afb6b"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/AdventureTests.cs",
+    "sha256": "c4a90473dc4391da8d4c6e6d9d5549e9a2964e788850f05d037ab6bbbbd577d1",
+    "qaMatches": true,
+    "qaSha256": "c4a90473dc4391da8d4c6e6d9d5549e9a2964e788850f05d037ab6bbbbd577d1"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/AdventureTests.cs.meta",
+    "sha256": "d0141c0655dc7f822767d174813c9d544ecd100d8a61071b6fcfc45a551d65d1",
+    "qaMatches": true,
+    "qaSha256": "d0141c0655dc7f822767d174813c9d544ecd100d8a61071b6fcfc45a551d65d1"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/BBB.Tests.EditMode.asmdef",
+    "sha256": "d76b5a966ff608a77b5b49171f24375d85896a29624080d65ee8cd6b5786eff6",
+    "qaMatches": true,
+    "qaSha256": "d76b5a966ff608a77b5b49171f24375d85896a29624080d65ee8cd6b5786eff6"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/BBB.Tests.EditMode.asmdef.meta",
+    "sha256": "e68a82ed2f118fc5c3db5c14e3499db9fee8daffe2cf0e4df60d502e89fa13e8",
+    "qaMatches": true,
+    "qaSha256": "e68a82ed2f118fc5c3db5c14e3499db9fee8daffe2cf0e4df60d502e89fa13e8"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/CraftTests.cs",
+    "sha256": "ee12584496e5b76977b4d7748d33b131e937d2e95602ed2cb7cb77b7ad7e4f6e",
+    "qaMatches": true,
+    "qaSha256": "ee12584496e5b76977b4d7748d33b131e937d2e95602ed2cb7cb77b7ad7e4f6e"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/CraftTests.cs.meta",
+    "sha256": "79e2830650774c129811708e1e9e464ce2d1d1c6809f7776e5010179ead5c765",
+    "qaMatches": true,
+    "qaSha256": "79e2830650774c129811708e1e9e464ce2d1d1c6809f7776e5010179ead5c765"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/EngageBattleTests.cs",
+    "sha256": "50a76a4748aa4e23e563ed08e3b42f8dd771dbaf9d9db791a0923f907675e90a",
+    "qaMatches": true,
+    "qaSha256": "50a76a4748aa4e23e563ed08e3b42f8dd771dbaf9d9db791a0923f907675e90a"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/EngageBattleTests.cs.meta",
+    "sha256": "0d7fbe0b6006b4ffa61419b67fbebdb0a8acea359142e0ad08f7067f6e197620",
+    "qaMatches": true,
+    "qaSha256": "0d7fbe0b6006b4ffa61419b67fbebdb0a8acea359142e0ad08f7067f6e197620"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/HeroPresentationPlayTests.cs",
+    "sha256": "e23f74d961326d47f9ab2cf160e3eef43fd17ef6078d28bf6c228da21c851d25",
+    "qaMatches": true,
+    "qaSha256": "e23f74d961326d47f9ab2cf160e3eef43fd17ef6078d28bf6c228da21c851d25"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/HeroPresentationPlayTests.cs.meta",
+    "sha256": "52a5c4702011f573d88e19e1889d709c93e606fb32e82f38351e05ae1d969fb1",
+    "qaMatches": true,
+    "qaSha256": "52a5c4702011f573d88e19e1889d709c93e606fb32e82f38351e05ae1d969fb1"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/LotteryTableTests.cs",
+    "sha256": "fe2b5a2b145e68f3b383a2a1c8339604e2ea75f303ed5e32fd3fc80220851925",
+    "qaMatches": true,
+    "qaSha256": "fe2b5a2b145e68f3b383a2a1c8339604e2ea75f303ed5e32fd3fc80220851925"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/LotteryTableTests.cs.meta",
+    "sha256": "e5d9044913af4b96c3de399b37f0a4e5018171cf1f7d931402e1d080cacc4115",
+    "qaMatches": true,
+    "qaSha256": "e5d9044913af4b96c3de399b37f0a4e5018171cf1f7d931402e1d080cacc4115"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/OpeningTests.cs",
+    "sha256": "70d6f316611ebf647d4453b14cfa49bb8719cf10864cd3258803fc49c077f23a",
+    "qaMatches": true,
+    "qaSha256": "70d6f316611ebf647d4453b14cfa49bb8719cf10864cd3258803fc49c077f23a"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/OpeningTests.cs.meta",
+    "sha256": "83c99bf861ccc949ec68f0aaf112090f11f6354cf20728bba737154ea6d6ffc9",
+    "qaMatches": true,
+    "qaSha256": "83c99bf861ccc949ec68f0aaf112090f11f6354cf20728bba737154ea6d6ffc9"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/PlayerStatsTests.cs",
+    "sha256": "6dc6beffb9e27bb83bd4a9bfa4fdbb37764357097351c82497671280b55a202d",
+    "qaMatches": true,
+    "qaSha256": "6dc6beffb9e27bb83bd4a9bfa4fdbb37764357097351c82497671280b55a202d"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/PlayerStatsTests.cs.meta",
+    "sha256": "f456fd5bb441810220309e5abe36b39dbfad6203eaf8d31fcf1b2749de7c04bd",
+    "qaMatches": true,
+    "qaSha256": "f456fd5bb441810220309e5abe36b39dbfad6203eaf8d31fcf1b2749de7c04bd"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/RegionalEnemyTests.cs",
+    "sha256": "1584c9253b324d0184a7a6f2d24e7b2e5efbc5b0d6d929917401e733c33f3545",
+    "qaMatches": true,
+    "qaSha256": "1584c9253b324d0184a7a6f2d24e7b2e5efbc5b0d6d929917401e733c33f3545"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/RegionalEnemyTests.cs.meta",
+    "sha256": "9af24f3ef573e1f9bbf4d440ba9d4069e305c60d817b3a9be6395186b798bcf4",
+    "qaMatches": true,
+    "qaSha256": "9af24f3ef573e1f9bbf4d440ba9d4069e305c60d817b3a9be6395186b798bcf4"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/SlipControllerTests.cs",
+    "sha256": "77d45b394c49ab2c99a2a0305c83dfa1f815b7864bbe6ef008c8ab8a6c53069e",
+    "qaMatches": true,
+    "qaSha256": "77d45b394c49ab2c99a2a0305c83dfa1f815b7864bbe6ef008c8ab8a6c53069e"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/SlipControllerTests.cs.meta",
+    "sha256": "7d9f4df05f80f4110b3ba7991701ca36222fcfb539da65f2cfa2e4a014b02f77",
+    "qaMatches": true,
+    "qaSha256": "7d9f4df05f80f4110b3ba7991701ca36222fcfb539da65f2cfa2e4a014b02f77"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/SlotMachineTests.cs",
+    "sha256": "7515e77e65f8127c2f63042c80f9a7c4e11040f48525a3e202568d73dbe5e9dd",
+    "qaMatches": true,
+    "qaSha256": "7515e77e65f8127c2f63042c80f9a7c4e11040f48525a3e202568d73dbe5e9dd"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/SlotMachineTests.cs.meta",
+    "sha256": "ee8ff2d6c001c7fe14e9675c7e2026db86f8f7c283c17f27dd37f02866b794b1",
+    "qaMatches": true,
+    "qaSha256": "ee8ff2d6c001c7fe14e9675c7e2026db86f8f7c283c17f27dd37f02866b794b1"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/SlumpGraphTests.cs",
+    "sha256": "6160ed70b4a22e9cb72ce473fea906d0aec77af29f7341824968935a3d4ec94c",
+    "qaMatches": true,
+    "qaSha256": "6160ed70b4a22e9cb72ce473fea906d0aec77af29f7341824968935a3d4ec94c"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/SlumpGraphTests.cs.meta",
+    "sha256": "7b55d94fe76654dd920970ea92830fa644c98800e2b2fd6a93a99eecb7cbcba2",
+    "qaMatches": true,
+    "qaSha256": "7b55d94fe76654dd920970ea92830fa644c98800e2b2fd6a93a99eecb7cbcba2"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/TechRankTests.cs",
+    "sha256": "62d4d56ee4dae3b5e5ba7d433a0c9bcc1e1d2d17b30fb2ce08cfc1b6c0f9178e",
+    "qaMatches": true,
+    "qaSha256": "62d4d56ee4dae3b5e5ba7d433a0c9bcc1e1d2d17b30fb2ce08cfc1b6c0f9178e"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/TechRankTests.cs.meta",
+    "sha256": "63bc507d7240addf4ac6da06994df74b9f1626e62adc9e823a98550a5237c28e",
+    "qaMatches": true,
+    "qaSha256": "63bc507d7240addf4ac6da06994df74b9f1626e62adc9e823a98550a5237c28e"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/TechRoleTests.cs",
+    "sha256": "b9723b48b485796e470912df01d0a5911ee8e81617c156372c1cb3bf87097d9a",
+    "qaMatches": true,
+    "qaSha256": "b9723b48b485796e470912df01d0a5911ee8e81617c156372c1cb3bf87097d9a"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/TechRoleTests.cs.meta",
+    "sha256": "e8ce8f34f336fcaa3d5ce5b132ce7c15c5043ef99526fc465265bcb994a13ce9",
+    "qaMatches": true,
+    "qaSha256": "e8ce8f34f336fcaa3d5ce5b132ce7c15c5043ef99526fc465265bcb994a13ce9"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/WorkflowAndEnemyTests.cs",
+    "sha256": "12cae8b1bbfe62901cdc3d3938ada6816354c6018ed6590ad9d7c922268c634f",
+    "qaMatches": true,
+    "qaSha256": "12cae8b1bbfe62901cdc3d3938ada6816354c6018ed6590ad9d7c922268c634f"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/WorkflowAndEnemyTests.cs.meta",
+    "sha256": "3c4479c10b337bae5ba5454f9df41880bdd5fbd3bdf4c3e8d521e11ab7be56bb",
+    "qaMatches": true,
+    "qaSha256": "3c4479c10b337bae5ba5454f9df41880bdd5fbd3bdf4c3e8d521e11ab7be56bb"
+  },
+  {
+    "path": "tools/environment-qa/MotionLightingValidation.cs",
+    "sha256": "7a4b323a4d52df3bf2ea1fbac58bcbd0d0c6b8f77c44e5fa9fe642e56be0716d",
+    "qaMatches": true,
+    "qaSha256": "7a4b323a4d52df3bf2ea1fbac58bcbd0d0c6b8f77c44e5fa9fe642e56be0716d"
+  },
+  {
+    "path": "tools/environment-qa/NativeEnvironmentValidation.cs",
+    "sha256": "ca191e4a4394e254107583c87b30701c83d2a5cee16fec7367395be6611763f8",
+    "qaMatches": true,
+    "qaSha256": "ca191e4a4394e254107583c87b30701c83d2a5cee16fec7367395be6611763f8"
+  }
+]

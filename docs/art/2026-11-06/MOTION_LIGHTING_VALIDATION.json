@@ -1,0 +1,61 @@
+{
+  "reviewDate": "2026-11-18",
+  "executionArtifactsDate": "2026-11-17",
+  "upstreamBase": "5bc6206d6a491f9dc0df2da16ccce361aedb2beb",
+  "passed": true,
+  "editMode": {
+    "total": 148,
+    "passed": 148,
+    "failed": 0,
+    "skipped": 0
+  },
+  "motionLighting": {
+    "passed": true,
+    "weaponFamilies": 7,
+    "enemyAmbientCases": 20,
+    "lightingConditions": 24,
+    "localLightChangedPixels": 131708,
+    "contactOnce": true,
+    "retreatGait": true,
+    "reactionTimingCases": 14,
+    "firstFrameEnemyTint": true,
+    "footBaseline": true,
+    "finalArtApproved": false,
+    "productionSaveTouched": false
+  },
+  "backgroundLighting": {
+    "passed": true,
+    "nativeStages": 15,
+    "legacyMatteRegression": true,
+    "timeWeatherCombinations": 192,
+    "periodChecks": 288,
+    "worstWrapDifference": 0.0001967209027586,
+    "stageCoverage": 30,
+    "mainResolutions": 2,
+    "finalArtApproved": false,
+    "productionSaveTouched": false
+  },
+  "compilation": [
+    "core",
+    "runtime",
+    "tests"
+  ],
+  "millionGameHarnessPassed": true,
+  "layoutPassed": true,
+  "isolatedSourceMatches": 296,
+  "productionSaveTouched": false,
+  "finalArtApproved": false,
+  "deviceBuildVerified": false,
+  "sharedWorkspaceSynced": true,
+  "remaining": [
+    "14 background locations",
+    "strict planted foot continuity and pose proportions",
+    "low enemy contact poses",
+    "independent enemy ranged projectiles",
+    "ground and road blend",
+    "emission art layers",
+    "URP/device/performance/audio/build verification"
+  ],
+  "sharedIndexUnchanged": true,
+  "sharedFilesCopied": 225
+}

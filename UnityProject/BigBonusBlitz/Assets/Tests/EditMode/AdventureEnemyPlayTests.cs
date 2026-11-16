@@ -23,6 +23,13 @@ namespace BBB.Tests
         static T Get<T>(string name)=>(T)typeof(GameController).GetField(name,Private).GetValue(game);
         static void Set(string name,object value)=>typeof(GameController).GetField(name,Private).SetValue(game,value);
         static object Call(string name,params object[] args)=>typeof(GameController).GetMethod(name,Private).Invoke(game,args);
+        static void AssertEnemyEnvironmentTint()
+        {
+            var view=Get<AdventureEnemyPresenter>("_adventureEnemy").View;
+            Assert.AreSame(Get<ParallaxBackground>("_bg"),view.Environment,"Enemy lost the scene lighting source");
+            // Boss/rainbow state color must survive the scene's ambient multiplication.
+            Assert.AreEqual(Get<Image>("_enemyImg").color*view.Environment.ActorTint,view.Body.color);
+        }
         static IEnumerator Tick(float seconds)
         {
             float until=Time.time+seconds;
@@ -139,8 +146,8 @@ namespace BBB.Tests
                 Assert.IsFalse(enemy.Active);Assert.AreEqual(0,Get<CanvasGroup>("_enemyCg").alpha);
             }
             Call("ShowEnemy",new EnemyTable{enemyType="goblin",name="QA boss",group="boss",scale=1.35f,color="#ff8888"});yield return Tick(4f);
-            Assert.AreEqual(Get<Image>("_enemyImg").color,Get<AdventureEnemyPresenter>("_adventureEnemy").View.Body.color);Capture("boss-goblin");
-            Call("SetEnemyColor","rainbow");yield return Tick(.1f);Assert.AreEqual(Get<Image>("_enemyImg").color,Get<AdventureEnemyPresenter>("_adventureEnemy").View.Body.color);
+            AssertEnemyEnvironmentTint();Capture("boss-goblin");
+            Call("SetEnemyColor","rainbow");yield return Tick(.1f);AssertEnemyEnvironmentTint();
             var enabledTypes=EnemyPresentation.Config.gameplayTypes;
             EnemyPresentation.Config.gameplayTypes=new[]{"slime","goblin"};
             Call("ShowEnemy",new EnemyTable{enemyType="bat",name="QA bat",scale=1});yield return Tick(4f);

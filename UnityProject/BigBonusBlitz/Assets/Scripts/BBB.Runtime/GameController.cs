@@ -639,7 +639,7 @@ namespace BBB.Runtime
             _charRt = MakeImage(_area, "Character", new Vector2(-AreaW * 0.5f + 0.15f * AreaW + charSize * 0.5f, -AreaH * 0.5f + 6f + charSize * 0.5f), new Vector2(charSize, charSize), null);
             _charRt.GetComponent<Image>().color = Color.white;
             _charAnim = _charRt.gameObject.AddComponent<SpriteAnimator>();
-            if(HeroPresentation.Config.gameplayEnabled)_adventureHero=AdventureHeroPresenter.Attach(_charRt);
+            if(HeroPresentation.Config.gameplayEnabled){_adventureHero=AdventureHeroPresenter.Attach(_charRt);_adventureHero.Environment=_bg;_adventureHero.View.ApplyEnvironment(_bg);}
 
             // 前兆: 暗幕（背景の上・キャラの下）とシルエット
             _darken = UiFactory.Panel(_area, "Darken", Vector2.zero, new Vector2(AreaW, AreaH), new Color(0, 0, 0, 0)).GetComponent<Image>();
@@ -652,6 +652,7 @@ namespace BBB.Runtime
             _enemyRt = MakeImage(_area, "Enemy", new Vector2(EnemyX, EnemyY), new Vector2(150, 150), null);
             _enemyImg = _enemyRt.GetComponent<Image>();
             _adventureEnemy = AdventureEnemyPresenter.Attach(_enemyRt,-EnemyBaseSize.y*.5f);
+            _adventureEnemy.View.Environment=_bg;
             _enemyCg = _enemyRt.gameObject.AddComponent<CanvasGroup>();
             _enemyCg.alpha = 0f;
             _dustRt = MakeImage(_area, "Dust", _enemyRt.anchoredPosition, new Vector2(180, 180), ArtLoader.Sprite("Art/UI/dust_cloud"));

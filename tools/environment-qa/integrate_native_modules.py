@@ -35,8 +35,11 @@ for id,(cuts,ground,road) in specs.items():
     for cut in cuts[1:-1]:
         assert alpha.crop((0,cut-2,1536,cut+2)).getextrema()[1]<32,(id,cut,'Crossed row')
     p=next(p for p in data['stages'] if p['id']==id)
+    previous_lights=[layer.get('lights') for layer in p.get('layers',[])]
     p['layers']=[dict(texture='Art/Adventure/Modules/'+id+'/layers-'+version,top=cuts[i]/1024,rowHeight=(cuts[i+1]-cuts[i])/1024,
                       nativeAlpha=True,speed=[.007,.024,.065][i],phase=[.31,0,.61][i],height=[.8,1.05,.48][i],bottom=[.08,.025,-.075][i]) for i in range(3)]
+    for layer,lights in zip(p['layers'],previous_lights):
+        if lights:layer['lights']=lights
     p['ground']=dict(zip(('r','g','b','a'),(*ground,1)))
     p['path']=dict(zip(('r','g','b','a'),(*road,1)))
     p['groundHeight']=.235

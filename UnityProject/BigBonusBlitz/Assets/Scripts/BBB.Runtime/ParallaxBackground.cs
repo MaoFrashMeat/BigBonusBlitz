@@ -17,6 +17,10 @@ namespace BBB.Runtime
         public string CurrentStageId => Profile.id;
         public AdventureEnvironmentProfile Profile { get; private set; }
         public float Hour => hour;
+        public Color ActorTint { get; private set; }=Color.white;
+        public Color ContactShadowColor { get; private set; }
+        public Vector2 ContactShadowSize { get; private set; }
+        public Vector2 ContactShadowOffset { get; private set; }
         public float Elapsed { get; private set; }
         public int IllustratedLayerCount => 3;
         public AdventureWeather CurrentWeather => weather;
@@ -125,6 +129,7 @@ namespace BBB.Runtime
                         material.SetTexture("_SeamTex",seam);material.SetFloat("_UseSeam",1);
                         material.SetFloat("_Overlap",.22f);material.SetFloat("_SeamFeather",.012f);
                     }
+                    ApplyLayerLight(material,next,i,AdventureEnvironmentCatalog.Lighting);
                     layerMaterials[activeBank][i]=material;im.material=material;
                     if(Application.isPlaying)Destroy(old);else DestroyImmediate(old);
                 }
@@ -180,12 +185,17 @@ namespace BBB.Runtime
         {
             if(banks==null)return;
             AdventureEnvironmentCatalog.Palette(hour,out var skyColor,out var horizon,out var light);
+            var lighting=AdventureEnvironmentCatalog.Lighting;
+            Color actor=Color.clear;float indoorWeight=0;
             for(int b=0;b<2;b++)
             {
                 var p=bankProfiles[b];if(p==null)continue;
                 Color bankLight=p.indoor?Color.Lerp(new Color(.63f,.7f,.8f),Color.white,.42f):light;
                 // Multiplication keeps overcast nights dark instead of lerping toward a daylight gray.
                 if(!p.indoor)bankLight*=Color.Lerp(Color.white,new Color(.68f,.75f,.83f),CloudCover*.65f);
+                float bankWeight=groups[b].alpha;
+                actor+=Color.Lerp(Color.white,bankLight,p.indoor?lighting.indoorActorTintWeight:lighting.actorTintWeight)*bankWeight;
+                if(p.indoor)indoorWeight+=bankWeight;
                 for(int g=0;g<2;g++)grounds[b][g].color=(g==0?p.ground:p.path)*bankLight;
                 if(groundMaterials[b]!=null)
                 {
@@ -208,7 +218,26 @@ namespace BBB.Runtime
                     im.uvRect=uv;
                 }
             }
+            actor.a=1;ActorTint=actor;
+            float sun=Mathf.Sin((hour-6)/12*Mathf.PI),lowSun=1-Mathf.Clamp01(sun);
+            float directional=(1-indoorWeight)*(1-CloudCover)*Mathf.Clamp01(sun*4);
+            ContactShadowSize=new Vector2(lighting.shadowWidth*(1+lighting.lowSunStretch*lowSun*directional),lighting.shadowHeight);
+            ContactShadowOffset=new Vector2(Mathf.Cos((hour-6)/12*Mathf.PI)*lighting.shadowOffset*directional,2);
+            float opacity=Mathf.Lerp(lighting.shadowOpacity,lighting.overcastShadowOpacity,CloudCover);
+            ContactShadowColor=new Color(.015f,.025f,.05f,Mathf.Lerp(opacity,lighting.indoorShadowOpacity,indoorWeight));
             Dirty();
+        }
+        void ApplyLayerLight(Material material,AdventureEnvironmentProfile profile,int index,AdventureLighting lighting)
+        {
+            material.SetFloat("_DepthShade",profile.UsesModules?(profile.indoor?lighting.indoorDepthShade:lighting.depthShade)*(index==0?.35f:1):0);
+            var lights=profile.UsesModules?profile.layers[index].lights:null;
+            for(int n=0;n<4;n++)
+            {
+                var lamp=lights!=null&&n<lights.Length?lights[n]:null;
+                material.SetVector("_LocalLight"+n,lamp==null?Vector4.zero:new Vector4(lamp.x,1-lamp.y,Mathf.Max(.001f,lamp.radiusX),Mathf.Max(.001f,lamp.radiusY)));
+                var color=lamp==null?Color.clear:lamp.color;color.a=lamp==null?0:lamp.intensity;
+                material.SetColor("_LocalColor"+n,color);
+            }
         }
         void Dirty(){if(sky!=null)sky.SetVerticesDirty();if(atmosphere!=null)atmosphere.SetVerticesDirty();}
         void OnDestroy()
