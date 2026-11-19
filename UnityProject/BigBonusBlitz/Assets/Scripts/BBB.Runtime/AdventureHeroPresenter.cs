@@ -89,7 +89,7 @@ namespace BBB.Runtime
             projectile.rectTransform.localRotation=Quaternion.Euler(0,0,Mathf.Atan2(localDirection.y,localDirection.x)*Mathf.Rad2Deg);
             if(flightElapsed>=rangedLook.flightSeconds){ImpactReady=true;CancelProjectile();}
         }
-        void ResetApproach(){View.Player.UseRetreatTiming=false;IsReturning=false;attackTarget=null;advance=0;approachElapsed=0;leadElapsed=leadSeconds=0;approachWalk=null;approachHandoffPose=-1;View.Root.anchoredPosition=restFeet;View.Render();}
+        void ResetApproach(){View.LowTarget=false;View.Player.UseRetreatTiming=false;IsReturning=false;attackTarget=null;advance=0;approachElapsed=0;leadElapsed=leadSeconds=0;approachWalk=null;approachHandoffPose=-1;View.Root.anchoredPosition=restFeet;View.Render();}
         void BeginApproach(string id)
         {
             ResetApproach();
@@ -107,7 +107,12 @@ namespace BBB.Runtime
                     if(look!=null&&look.ranged){rangedLook=look;rangedTarget=queuedTarget;queuedTarget=null;return;}
                     contactTime=0;for(int i=0;i<contact;i++)contactTime+=Mathf.Max(.01f,motion.seconds[i]);
                     contactPose=motion.frames[contact];attackWeapon=weapon;approachMotion=id;
-                    attackTarget=queuedTarget;advance=DesiredAdvance();
+                    attackTarget=queuedTarget;
+                    // Choose authored bent-knee poses from target height; the action clock,
+                    // damage event and root's ground baseline stay unchanged.
+                    float targetHeight=View.Root.InverseTransformPoint(attackTarget.TransformPoint(attackTarget.rect.center)).y;
+                    View.LowTarget=targetHeight<cfg.height*.5f;
+                    advance=DesiredAdvance();
                     View.Player.UseRetreatTiming=advance>0;
                     leadSeconds=advance>0?Mathf.Max(0,cfg.approach.leadSeconds):0;leadElapsed=0;
                     approachWalk=System.Array.Find(cfg.motions,m=>m.id=="walk"&&m.weaponId==weapon)

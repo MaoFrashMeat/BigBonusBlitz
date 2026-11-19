@@ -1,0 +1,736 @@
+{
+  "date": "2026-11-19",
+  "baseline": "b2608035985721981d5318fbf2d3152ee70e8aac",
+  "release": "D:\\Mao-PC\\Github\\_BigBonusBlitz_release-20261105",
+  "destination": "D:\\Mao-PC\\Github\\BigBonusBlitz",
+  "filesChecked": 180,
+  "copied": 180,
+  "unchanged": 0,
+  "mainIndexSha256Before": "681bc9a6c406e461804f560155b4cb1ff5153ac87fb4c6bf8d3e2301df199f04",
+  "mainIndexSha256After": "681bc9a6c406e461804f560155b4cb1ff5153ac87fb4c6bf8d3e2301df199f04",
+  "mainIndexPreserved": true,
+  "conflicts": [],
+  "productionSaveTouched": false,
+  "files": [
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/E-3.meta",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/E-3/layers-v1.png",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/E-3/layers-v1.png.meta",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/E-4.meta",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/E-4/layers-v1.png",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/E-4/layers-v1.png.meta",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/E-5.meta",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/E-5/layers-v1.png",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/E-5/layers-v1.png.meta",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/E-6.meta",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/E-6/layers-v1.png",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/E-6/layers-v1.png.meta",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/E-7.meta",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/E-7/layers-v1.png",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/E-7/layers-v1.png.meta",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/E-8.meta",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/E-8/layers-v1.png",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/E-8/layers-v1.png.meta",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/F-1.meta",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/F-1/layers-v1.png",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/F-1/layers-v1.png.meta",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/F-2.meta",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/F-2/layers-v1.png",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/F-2/layers-v1.png.meta",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/F-3.meta",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/F-3/layers-v1.png",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/F-3/layers-v1.png.meta",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/F-4.meta",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/F-4/layers-v1.png",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/F-4/layers-v1.png.meta",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/F-5.meta",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/F-5/layers-v1.png",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/F-5/layers-v1.png.meta",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/G-1.meta",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/G-1/layers-v1.png",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/G-1/layers-v1.png.meta",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/G-2.meta",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/G-2/layers-v1.png",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/G-2/layers-v1.png.meta",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/G-3.meta",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/G-3/layers-v1.png",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/Adventure/Modules/G-3/layers-v1.png.meta",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/hero-low-contact-v1.png",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/hero-low-contact-v1.png.meta",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/hero-spear-walk-v1.png",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Art/HeroPrototype/hero-spear-walk-v1.png.meta",
+      "action": "new"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Data/adventure_environments.json",
+      "action": "update-baseline"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Data/hero_presentation_prototype.json",
+      "action": "update-baseline"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Resources/Data/notices.json",
+      "action": "update-baseline"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AdventureHeroPresenter.cs",
+      "action": "update-baseline"
+    },
+    {
+      "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/HeroPresentation.cs",
+      "action": "update-baseline"
+    },
+    {
+      "path": "docs/ADVENTURE_ENVIRONMENTS.md",
+      "action": "update-baseline"
+    },
+    {
+      "path": "docs/ADVENTURE_REDESIGN_PLAN_2026-09-23.md",
+      "action": "update-baseline"
+    },
+    {
+      "path": "docs/AI_HANDOFF_HISTORY.md",
+      "action": "update-baseline"
+    },
+    {
+      "path": "docs/BACKGROUND_ART_DIRECTION.md",
+      "action": "update-baseline"
+    },
+    {
+      "path": "docs/FX_RESEARCH.md",
+      "action": "update-baseline"
+    },
+    {
+      "path": "docs/HERO_PRESENTATION_P2.md",
+      "action": "update-baseline"
+    },
+    {
+      "path": "docs/PROJECT_STATE.md",
+      "action": "update-baseline"
+    },
+    {
+      "path": "docs/art/2026-11-18/REVIEW.md",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/background-manifest.json",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/environment-E-3-v1/prompt.txt",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/environment-E-3-v1/source.png",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/environment-E-4-v1/prompt.txt",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/environment-E-4-v1/source.png",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/environment-E-5-v1/prompt.txt",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/environment-E-5-v1/source.png",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/environment-E-6-v1/prompt.txt",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/environment-E-6-v1/source.png",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/environment-E-7-v1/prompt.txt",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/environment-E-7-v1/source.png",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/environment-E-8-v1/prompt.txt",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/environment-E-8-v1/source.png",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/environment-F-1-v1/prompt.txt",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/environment-F-1-v1/source.png",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/environment-F-2-v1/prompt.txt",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/environment-F-2-v1/source.png",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/environment-F-3-v1/prompt.txt",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/environment-F-3-v1/source.png",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/environment-F-4-v1/prompt.txt",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/environment-F-4-v1/source.png",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/environment-F-5-v1/prompt.txt",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/environment-F-5-v1/source.png",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/environment-G-1-v1/prompt.txt",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/environment-G-1-v1/source.png",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/environment-G-2-v1/prompt.txt",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/environment-G-2-v1/source.png",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/environment-G-3-v1/prompt.txt",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/environment-G-3-v1/source.png",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/hero-low-contact-v1/prompt.txt",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/hero-low-contact-v1/source.png",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/hero-spear-walk-v1/prompt.txt",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/hero-spear-walk-v1/source.png",
+      "action": "new"
+    },
+    {
+      "path": "docs/art/2026-11-18/source-manifest.json",
+      "action": "new"
+    },
+    {
+      "path": "docs/devlog.md",
+      "action": "update-baseline"
+    },
+    {
+      "path": "docs/note/MATERIAL.md",
+      "action": "update-baseline"
+    },
+    {
+      "path": "docs/note/MEMO.md",
+      "action": "update-baseline"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-18/native-v1/validation.json",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/compile-harness.txt",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/editmode/gameplay/validation.json",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/editmode/journey/journey.json",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/editmode/reel/hero-contact-spear-1280.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/editmode/reel/hero-contact-sword-1280.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/editmode/reel/validation.json",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/editmode/tests-summary.json",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/layout.txt",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/E-3-Night-Clear.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/E-4-Night-Clear.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/E-5-Night-Clear.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/E-6-Night-Clear.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/E-7-Night-Clear.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/E-8-Night-Clear.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/F-1-Night-Clear.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/F-2-Night-Clear.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/F-3-Night-Clear.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/F-4-Night-Clear.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/F-5-Night-Clear.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/G-1-Night-Clear.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/G-2-Night-Clear.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/G-3-Night-Clear.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/game-E-3-1280.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/game-E-3-2556.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/game-E-4-1280.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/game-E-4-2556.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/game-E-5-1280.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/game-E-5-2556.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/game-E-6-1280.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/game-E-6-2556.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/game-E-7-1280.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/game-E-7-2556.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/game-E-8-1280.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/game-E-8-2556.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/game-F-1-1280.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/game-F-1-2556.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/game-F-2-1280.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/game-F-2-2556.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/game-F-3-1280.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/game-F-3-2556.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/game-F-4-1280.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/game-F-4-2556.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/game-F-5-1280.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/game-F-5-2556.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/game-G-1-1280.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/game-G-1-2556.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/game-G-2-1280.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/game-G-2-2556.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/game-G-3-1280.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/game-G-3-2556.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/native-v2/validation.json",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/release-files.json",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/support-v1/contacts.csv",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/support-v1/spear-walk-67.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/support-v1/spear-walk-68.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/support-v1/spear-walk-69.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/support-v1/spear-walk-70.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/support-v1/spear-walk-71.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/support-v1/spear-walk-72.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/support-v1/spear-walk-73.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/support-v1/spear-walk-74.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/support-v1/validation.json",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/support-v1/w_blade-beetle-044.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/support-v1/w_blade-beetle-088.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/support-v1/w_blade-beetle-116.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/support-v1/w_blade-goblin-044.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/support-v1/w_blade-goblin-088.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/support-v1/w_blade-goblin-116.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/support-v1/w_blade-slime-044.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/support-v1/w_blade-slime-088.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/support-v1/w_blade-slime-116.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/support-v1/w_spear-beetle-044.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/support-v1/w_spear-beetle-080.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/support-v1/w_spear-beetle-116.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/support-v1/w_spear-goblin-044.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/support-v1/w_spear-goblin-080.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/support-v1/w_spear-goblin-116.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/support-v1/w_spear-slime-044.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/support-v1/w_spear-slime-080.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/support-v1/w_spear-slime-116.png",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/2026-11-19/validated-sources.json",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/SupportContactValidation.cs",
+      "action": "new"
+    },
+    {
+      "path": "tools/environment-qa/integrate_remaining_art.py",
+      "action": "new"
+    }
+  ]
+}

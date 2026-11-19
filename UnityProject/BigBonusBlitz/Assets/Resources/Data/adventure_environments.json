@@ -1034,7 +1034,52 @@
         "a": 1
       },
       "farEnd": 0.392578125,
-      "middleEnd": 0.7275390625
+      "middleEnd": 0.7275390625,
+      "layers": [
+        {
+          "texture": "Art/Adventure/Modules/E-3/layers-v1",
+          "top": 0.0,
+          "rowHeight": 0.376953125,
+          "nativeAlpha": true,
+          "speed": 0.007,
+          "phase": 0.31,
+          "height": 0.8,
+          "bottom": 0.08
+        },
+        {
+          "texture": "Art/Adventure/Modules/E-3/layers-v1",
+          "top": 0.376953125,
+          "rowHeight": 0.39453125,
+          "nativeAlpha": true,
+          "speed": 0.024,
+          "phase": 0,
+          "height": 1.05,
+          "bottom": 0.066634
+        },
+        {
+          "texture": "Art/Adventure/Modules/E-3/layers-v1",
+          "top": 0.771484375,
+          "rowHeight": 0.228515625,
+          "nativeAlpha": true,
+          "speed": 0.065,
+          "phase": 0.61,
+          "height": 0.48,
+          "bottom": -0.075
+        }
+      ],
+      "groundHeight": 0.235,
+      "ground": {
+        "r": 0.15,
+        "g": 0.17,
+        "b": 0.17,
+        "a": 1
+      },
+      "path": {
+        "r": 0.29,
+        "g": 0.27,
+        "b": 0.23,
+        "a": 1
+      }
     },
     {
       "id": "E-4",
@@ -1052,7 +1097,52 @@
         "a": 1
       },
       "farEnd": 0.3359375,
-      "middleEnd": 0.7177734375
+      "middleEnd": 0.7177734375,
+      "layers": [
+        {
+          "texture": "Art/Adventure/Modules/E-4/layers-v1",
+          "top": 0.0,
+          "rowHeight": 0.3623046875,
+          "nativeAlpha": true,
+          "speed": 0.007,
+          "phase": 0.31,
+          "height": 0.8,
+          "bottom": 0.08
+        },
+        {
+          "texture": "Art/Adventure/Modules/E-4/layers-v1",
+          "top": 0.3623046875,
+          "rowHeight": 0.4013671875,
+          "nativeAlpha": true,
+          "speed": 0.024,
+          "phase": 0,
+          "height": 1.05,
+          "bottom": 0.045146
+        },
+        {
+          "texture": "Art/Adventure/Modules/E-4/layers-v1",
+          "top": 0.763671875,
+          "rowHeight": 0.236328125,
+          "nativeAlpha": true,
+          "speed": 0.065,
+          "phase": 0.61,
+          "height": 0.48,
+          "bottom": -0.075
+        }
+      ],
+      "groundHeight": 0.235,
+      "ground": {
+        "r": 0.16,
+        "g": 0.17,
+        "b": 0.23,
+        "a": 1
+      },
+      "path": {
+        "r": 0.3,
+        "g": 0.3,
+        "b": 0.36,
+        "a": 1
+      }
     },
     {
       "id": "E-5",
@@ -1070,7 +1160,52 @@
         "a": 1
       },
       "farEnd": 0.3701171875,
-      "middleEnd": 0.6953125
+      "middleEnd": 0.6953125,
+      "layers": [
+        {
+          "texture": "Art/Adventure/Modules/E-5/layers-v1",
+          "top": 0.0,
+          "rowHeight": 0.3642578125,
+          "nativeAlpha": true,
+          "speed": 0.007,
+          "phase": 0.31,
+          "height": 0.8,
+          "bottom": 0.08
+        },
+        {
+          "texture": "Art/Adventure/Modules/E-5/layers-v1",
+          "top": 0.3642578125,
+          "rowHeight": 0.392578125,
+          "nativeAlpha": true,
+          "speed": 0.024,
+          "phase": 0,
+          "height": 1.05,
+          "bottom": 0.029627
+        },
+        {
+          "texture": "Art/Adventure/Modules/E-5/layers-v1",
+          "top": 0.7568359375,
+          "rowHeight": 0.2431640625,
+          "nativeAlpha": true,
+          "speed": 0.065,
+          "phase": 0.61,
+          "height": 0.48,
+          "bottom": -0.075
+        }
+      ],
+      "groundHeight": 0.235,
+      "ground": {
+        "r": 0.22,
+        "g": 0.2,
+        "b": 0.15,
+        "a": 1
+      },
+      "path": {
+        "r": 0.37,
+        "g": 0.32,
+        "b": 0.24,
+        "a": 1
+      }
     },
     {
       "id": "E-6",
@@ -1088,7 +1223,52 @@
         "a": 1
       },
       "farEnd": 0.330078125,
-      "middleEnd": 0.6650390625
+      "middleEnd": 0.6650390625,
+      "layers": [
+        {
+          "texture": "Art/Adventure/Modules/E-6/layers-v1",
+          "top": 0.0,
+          "rowHeight": 0.37890625,
+          "nativeAlpha": true,
+          "speed": 0.007,
+          "phase": 0.31,
+          "height": 0.8,
+          "bottom": 0.08
+        },
+        {
+          "texture": "Art/Adventure/Modules/E-6/layers-v1",
+          "top": 0.37890625,
+          "rowHeight": 0.3837890625,
+          "nativeAlpha": true,
+          "speed": 0.024,
+          "phase": 0,
+          "height": 1.05,
+          "bottom": 0.040115
+        },
+        {
+          "texture": "Art/Adventure/Modules/E-6/layers-v1",
+          "top": 0.7626953125,
+          "rowHeight": 0.2373046875,
+          "nativeAlpha": true,
+          "speed": 0.065,
+          "phase": 0.61,
+          "height": 0.48,
+          "bottom": -0.075
+        }
+      ],
+      "groundHeight": 0.235,
+      "ground": {
+        "r": 0.28,
+        "g": 0.28,
+        "b": 0.29,
+        "a": 1
+      },
+      "path": {
+        "r": 0.42,
+        "g": 0.42,
+        "b": 0.39,
+        "a": 1
+      }
     },
     {
       "id": "E-7",
@@ -1106,7 +1286,52 @@
         "a": 1
       },
       "farEnd": 0.328125,
-      "middleEnd": 0.671875
+      "middleEnd": 0.671875,
+      "layers": [
+        {
+          "texture": "Art/Adventure/Modules/E-7/layers-v1",
+          "top": 0.0,
+          "rowHeight": 0.349609375,
+          "nativeAlpha": true,
+          "speed": 0.007,
+          "phase": 0.31,
+          "height": 0.8,
+          "bottom": 0.08
+        },
+        {
+          "texture": "Art/Adventure/Modules/E-7/layers-v1",
+          "top": 0.349609375,
+          "rowHeight": 0.4052734375,
+          "nativeAlpha": true,
+          "speed": 0.024,
+          "phase": 0,
+          "height": 1.05,
+          "bottom": 0.061386
+        },
+        {
+          "texture": "Art/Adventure/Modules/E-7/layers-v1",
+          "top": 0.7548828125,
+          "rowHeight": 0.2451171875,
+          "nativeAlpha": true,
+          "speed": 0.065,
+          "phase": 0.61,
+          "height": 0.48,
+          "bottom": -0.075
+        }
+      ],
+      "groundHeight": 0.235,
+      "ground": {
+        "r": 0.2,
+        "g": 0.18,
+        "b": 0.1,
+        "a": 1
+      },
+      "path": {
+        "r": 0.35,
+        "g": 0.28,
+        "b": 0.15,
+        "a": 1
+      }
     },
     {
       "id": "E-8",
@@ -1124,7 +1349,52 @@
         "a": 1
       },
       "farEnd": 0.33203125,
-      "middleEnd": 0.6650390625
+      "middleEnd": 0.6650390625,
+      "layers": [
+        {
+          "texture": "Art/Adventure/Modules/E-8/layers-v1",
+          "top": 0.0,
+          "rowHeight": 0.349609375,
+          "nativeAlpha": true,
+          "speed": 0.007,
+          "phase": 0.31,
+          "height": 0.8,
+          "bottom": 0.08
+        },
+        {
+          "texture": "Art/Adventure/Modules/E-8/layers-v1",
+          "top": 0.349609375,
+          "rowHeight": 0.408203125,
+          "nativeAlpha": true,
+          "speed": 0.024,
+          "phase": 0,
+          "height": 1.05,
+          "bottom": 0.064569
+        },
+        {
+          "texture": "Art/Adventure/Modules/E-8/layers-v1",
+          "top": 0.7578125,
+          "rowHeight": 0.2421875,
+          "nativeAlpha": true,
+          "speed": 0.065,
+          "phase": 0.61,
+          "height": 0.48,
+          "bottom": -0.075
+        }
+      ],
+      "groundHeight": 0.235,
+      "ground": {
+        "r": 0.1,
+        "g": 0.18,
+        "b": 0.16,
+        "a": 1
+      },
+      "path": {
+        "r": 0.22,
+        "g": 0.26,
+        "b": 0.19,
+        "a": 1
+      }
     },
     {
       "id": "F-1",
@@ -1142,7 +1412,52 @@
         "a": 1
       },
       "farEnd": 0.35546875,
-      "middleEnd": 0.71484375
+      "middleEnd": 0.71484375,
+      "layers": [
+        {
+          "texture": "Art/Adventure/Modules/F-1/layers-v1",
+          "top": 0.0,
+          "rowHeight": 0.37109375,
+          "nativeAlpha": true,
+          "speed": 0.007,
+          "phase": 0.31,
+          "height": 0.8,
+          "bottom": 0.08
+        },
+        {
+          "texture": "Art/Adventure/Modules/F-1/layers-v1",
+          "top": 0.37109375,
+          "rowHeight": 0.390625,
+          "nativeAlpha": true,
+          "speed": 0.024,
+          "phase": 0,
+          "height": 1.05,
+          "bottom": 0.0395
+        },
+        {
+          "texture": "Art/Adventure/Modules/F-1/layers-v1",
+          "top": 0.76171875,
+          "rowHeight": 0.23828125,
+          "nativeAlpha": true,
+          "speed": 0.065,
+          "phase": 0.61,
+          "height": 0.48,
+          "bottom": -0.075
+        }
+      ],
+      "groundHeight": 0.235,
+      "ground": {
+        "r": 0.29,
+        "g": 0.27,
+        "b": 0.21,
+        "a": 1
+      },
+      "path": {
+        "r": 0.46,
+        "g": 0.41,
+        "b": 0.31,
+        "a": 1
+      }
     },
     {
       "id": "F-2",
@@ -1160,7 +1475,52 @@
         "a": 1
       },
       "farEnd": 0.3212890625,
-      "middleEnd": 0.6552734375
+      "middleEnd": 0.6552734375,
+      "layers": [
+        {
+          "texture": "Art/Adventure/Modules/F-2/layers-v1",
+          "top": 0.0,
+          "rowHeight": 0.375,
+          "nativeAlpha": true,
+          "speed": 0.007,
+          "phase": 0.31,
+          "height": 0.8,
+          "bottom": 0.08
+        },
+        {
+          "texture": "Art/Adventure/Modules/F-2/layers-v1",
+          "top": 0.375,
+          "rowHeight": 0.3837890625,
+          "nativeAlpha": true,
+          "speed": 0.024,
+          "phase": 0,
+          "height": 1.05,
+          "bottom": 0.029427
+        },
+        {
+          "texture": "Art/Adventure/Modules/F-2/layers-v1",
+          "top": 0.7587890625,
+          "rowHeight": 0.2412109375,
+          "nativeAlpha": true,
+          "speed": 0.065,
+          "phase": 0.61,
+          "height": 0.48,
+          "bottom": -0.075
+        }
+      ],
+      "groundHeight": 0.235,
+      "ground": {
+        "r": 0.13,
+        "g": 0.19,
+        "b": 0.22,
+        "a": 1
+      },
+      "path": {
+        "r": 0.26,
+        "g": 0.31,
+        "b": 0.32,
+        "a": 1
+      }
     },
     {
       "id": "F-3",
@@ -1178,7 +1538,52 @@
         "a": 1
       },
       "farEnd": 0.3271484375,
-      "middleEnd": 0.6669921875
+      "middleEnd": 0.6669921875,
+      "layers": [
+        {
+          "texture": "Art/Adventure/Modules/F-3/layers-v1",
+          "top": 0.0,
+          "rowHeight": 0.375,
+          "nativeAlpha": true,
+          "speed": 0.007,
+          "phase": 0.31,
+          "height": 0.8,
+          "bottom": 0.08
+        },
+        {
+          "texture": "Art/Adventure/Modules/F-3/layers-v1",
+          "top": 0.375,
+          "rowHeight": 0.396484375,
+          "nativeAlpha": true,
+          "speed": 0.024,
+          "phase": 0,
+          "height": 1.05,
+          "bottom": 0.064483
+        },
+        {
+          "texture": "Art/Adventure/Modules/F-3/layers-v1",
+          "top": 0.771484375,
+          "rowHeight": 0.228515625,
+          "nativeAlpha": true,
+          "speed": 0.065,
+          "phase": 0.61,
+          "height": 0.48,
+          "bottom": -0.075
+        }
+      ],
+      "groundHeight": 0.235,
+      "ground": {
+        "r": 0.21,
+        "g": 0.16,
+        "b": 0.19,
+        "a": 1
+      },
+      "path": {
+        "r": 0.36,
+        "g": 0.27,
+        "b": 0.25,
+        "a": 1
+      }
     },
     {
       "id": "F-4",
@@ -1196,7 +1601,52 @@
         "a": 1
       },
       "farEnd": 0.384765625,
-      "middleEnd": 0.7431640625
+      "middleEnd": 0.7431640625,
+      "layers": [
+        {
+          "texture": "Art/Adventure/Modules/F-4/layers-v1",
+          "top": 0.0,
+          "rowHeight": 0.3466796875,
+          "nativeAlpha": true,
+          "speed": 0.007,
+          "phase": 0.31,
+          "height": 0.8,
+          "bottom": 0.08
+        },
+        {
+          "texture": "Art/Adventure/Modules/F-4/layers-v1",
+          "top": 0.3466796875,
+          "rowHeight": 0.41796875,
+          "nativeAlpha": true,
+          "speed": 0.024,
+          "phase": 0,
+          "height": 1.05,
+          "bottom": 0.051963
+        },
+        {
+          "texture": "Art/Adventure/Modules/F-4/layers-v1",
+          "top": 0.7646484375,
+          "rowHeight": 0.2353515625,
+          "nativeAlpha": true,
+          "speed": 0.065,
+          "phase": 0.61,
+          "height": 0.48,
+          "bottom": -0.075
+        }
+      ],
+      "groundHeight": 0.235,
+      "ground": {
+        "r": 0.25,
+        "g": 0.29,
+        "b": 0.28,
+        "a": 1
+      },
+      "path": {
+        "r": 0.42,
+        "g": 0.44,
+        "b": 0.38,
+        "a": 1
+      }
     },
     {
       "id": "F-5",
@@ -1214,7 +1664,52 @@
         "a": 1
       },
       "farEnd": 0.3515625,
-      "middleEnd": 0.712890625
+      "middleEnd": 0.712890625,
+      "layers": [
+        {
+          "texture": "Art/Adventure/Modules/F-5/layers-v1",
+          "top": 0.0,
+          "rowHeight": 0.3505859375,
+          "nativeAlpha": true,
+          "speed": 0.007,
+          "phase": 0.31,
+          "height": 0.8,
+          "bottom": 0.08
+        },
+        {
+          "texture": "Art/Adventure/Modules/F-5/layers-v1",
+          "top": 0.3505859375,
+          "rowHeight": 0.408203125,
+          "nativeAlpha": true,
+          "speed": 0.024,
+          "phase": 0,
+          "height": 1.05,
+          "bottom": 0.01433
+        },
+        {
+          "texture": "Art/Adventure/Modules/F-5/layers-v1",
+          "top": 0.7587890625,
+          "rowHeight": 0.2412109375,
+          "nativeAlpha": true,
+          "speed": 0.065,
+          "phase": 0.61,
+          "height": 0.48,
+          "bottom": -0.075
+        }
+      ],
+      "groundHeight": 0.235,
+      "ground": {
+        "r": 0.21,
+        "g": 0.21,
+        "b": 0.21,
+        "a": 1
+      },
+      "path": {
+        "r": 0.36,
+        "g": 0.33,
+        "b": 0.28,
+        "a": 1
+      }
     },
     {
       "id": "G-1",
@@ -1232,7 +1727,52 @@
         "a": 1
       },
       "farEnd": 0.3291015625,
-      "middleEnd": 0.6689453125
+      "middleEnd": 0.6689453125,
+      "layers": [
+        {
+          "texture": "Art/Adventure/Modules/G-1/layers-v1",
+          "top": 0.0,
+          "rowHeight": 0.3408203125,
+          "nativeAlpha": true,
+          "speed": 0.007,
+          "phase": 0.31,
+          "height": 0.8,
+          "bottom": 0.08
+        },
+        {
+          "texture": "Art/Adventure/Modules/G-1/layers-v1",
+          "top": 0.3408203125,
+          "rowHeight": 0.4130859375,
+          "nativeAlpha": true,
+          "speed": 0.024,
+          "phase": 0,
+          "height": 1.05,
+          "bottom": 0.043298
+        },
+        {
+          "texture": "Art/Adventure/Modules/G-1/layers-v1",
+          "top": 0.75390625,
+          "rowHeight": 0.24609375,
+          "nativeAlpha": true,
+          "speed": 0.065,
+          "phase": 0.61,
+          "height": 0.48,
+          "bottom": -0.075
+        }
+      ],
+      "groundHeight": 0.235,
+      "ground": {
+        "r": 0.16,
+        "g": 0.13,
+        "b": 0.17,
+        "a": 1
+      },
+      "path": {
+        "r": 0.29,
+        "g": 0.21,
+        "b": 0.23,
+        "a": 1
+      }
     },
     {
       "id": "G-2",
@@ -1250,7 +1790,52 @@
         "a": 1
       },
       "farEnd": 0.375,
-      "middleEnd": 0.68359375
+      "middleEnd": 0.68359375,
+      "layers": [
+        {
+          "texture": "Art/Adventure/Modules/G-2/layers-v1",
+          "top": 0.0,
+          "rowHeight": 0.3359375,
+          "nativeAlpha": true,
+          "speed": 0.007,
+          "phase": 0.31,
+          "height": 0.8,
+          "bottom": 0.08
+        },
+        {
+          "texture": "Art/Adventure/Modules/G-2/layers-v1",
+          "top": 0.3359375,
+          "rowHeight": 0.4228515625,
+          "nativeAlpha": true,
+          "speed": 0.024,
+          "phase": 0,
+          "height": 1.05,
+          "bottom": 0.038603
+        },
+        {
+          "texture": "Art/Adventure/Modules/G-2/layers-v1",
+          "top": 0.7587890625,
+          "rowHeight": 0.2412109375,
+          "nativeAlpha": true,
+          "speed": 0.065,
+          "phase": 0.61,
+          "height": 0.48,
+          "bottom": -0.075
+        }
+      ],
+      "groundHeight": 0.235,
+      "ground": {
+        "r": 0.16,
+        "g": 0.12,
+        "b": 0.15,
+        "a": 1
+      },
+      "path": {
+        "r": 0.29,
+        "g": 0.19,
+        "b": 0.2,
+        "a": 1
+      }
     },
     {
       "id": "G-3",
@@ -1268,7 +1853,52 @@
         "a": 1
       },
       "farEnd": 0.3427734375,
-      "middleEnd": 0.6748046875
+      "middleEnd": 0.6748046875,
+      "layers": [
+        {
+          "texture": "Art/Adventure/Modules/G-3/layers-v1",
+          "top": 0.0,
+          "rowHeight": 0.3291015625,
+          "nativeAlpha": true,
+          "speed": 0.007,
+          "phase": 0.31,
+          "height": 0.8,
+          "bottom": 0.08
+        },
+        {
+          "texture": "Art/Adventure/Modules/G-3/layers-v1",
+          "top": 0.3291015625,
+          "rowHeight": 0.4384765625,
+          "nativeAlpha": true,
+          "speed": 0.024,
+          "phase": 0,
+          "height": 1.05,
+          "bottom": 0.063797
+        },
+        {
+          "texture": "Art/Adventure/Modules/G-3/layers-v1",
+          "top": 0.767578125,
+          "rowHeight": 0.232421875,
+          "nativeAlpha": true,
+          "speed": 0.065,
+          "phase": 0.61,
+          "height": 0.48,
+          "bottom": -0.075
+        }
+      ],
+      "groundHeight": 0.235,
+      "ground": {
+        "r": 0.19,
+        "g": 0.16,
+        "b": 0.21,
+        "a": 1
+      },
+      "path": {
+        "r": 0.33,
+        "g": 0.27,
+        "b": 0.29,
+        "a": 1
+      }
     },
     {
       "id": "H-1",

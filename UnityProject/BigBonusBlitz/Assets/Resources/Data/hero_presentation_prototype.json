@@ -1,5 +1,5 @@
 {
-  "status": "Seven weapon families integrated; isolated Unity verification and final art review pending",
+  "status": "30 backgrounds integrated; spear gait and planted low-target attack poses pending isolated art review",
   "height": 220,
   "walkSeconds": 0.88,
   "approach": {
@@ -1187,6 +1187,394 @@
         "h": 40
       },
       "bowDraw": false
+    },
+    {
+      "atlas": "hero-spear-walk-v1",
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 42,
+      "height": 440,
+      "gripX": 220,
+      "gripY": 210,
+      "swordAngle": -90,
+      "spearAngle": -90,
+      "twoHanded": true,
+      "supportX": 328,
+      "supportY": 202,
+      "offsetX": 0,
+      "swordHand": {
+        "x": 202,
+        "y": 193,
+        "w": 36,
+        "h": 34
+      },
+      "supportHand": {
+        "x": 310,
+        "y": 185,
+        "w": 36,
+        "h": 34
+      }
+    },
+    {
+      "atlas": "hero-spear-walk-v1",
+      "x": 384,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 38,
+      "height": 440,
+      "gripX": 211,
+      "gripY": 219,
+      "swordAngle": -90,
+      "spearAngle": -90,
+      "twoHanded": true,
+      "supportX": 329,
+      "supportY": 209,
+      "offsetX": 0,
+      "swordHand": {
+        "x": 193,
+        "y": 202,
+        "w": 36,
+        "h": 34
+      },
+      "supportHand": {
+        "x": 311,
+        "y": 192,
+        "w": 36,
+        "h": 34
+      }
+    },
+    {
+      "atlas": "hero-spear-walk-v1",
+      "x": 768,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 38,
+      "height": 440,
+      "gripX": 216,
+      "gripY": 209,
+      "swordAngle": -90,
+      "spearAngle": -90,
+      "twoHanded": true,
+      "supportX": 329,
+      "supportY": 201,
+      "offsetX": 0,
+      "swordHand": {
+        "x": 198,
+        "y": 192,
+        "w": 36,
+        "h": 34
+      },
+      "supportHand": {
+        "x": 311,
+        "y": 184,
+        "w": 36,
+        "h": 34
+      }
+    },
+    {
+      "atlas": "hero-spear-walk-v1",
+      "x": 1152,
+      "y": 0,
+      "w": 384,
+      "h": 512,
+      "foot": 45,
+      "height": 440,
+      "gripX": 222,
+      "gripY": 209,
+      "swordAngle": -90,
+      "spearAngle": -90,
+      "twoHanded": true,
+      "supportX": 328,
+      "supportY": 199,
+      "offsetX": 0,
+      "swordHand": {
+        "x": 204,
+        "y": 192,
+        "w": 36,
+        "h": 34
+      },
+      "supportHand": {
+        "x": 310,
+        "y": 182,
+        "w": 36,
+        "h": 34
+      }
+    },
+    {
+      "atlas": "hero-spear-walk-v1",
+      "x": 0,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 38,
+      "height": 440,
+      "gripX": 214,
+      "gripY": 199,
+      "swordAngle": -90,
+      "spearAngle": -90,
+      "twoHanded": true,
+      "supportX": 327,
+      "supportY": 199,
+      "offsetX": 0,
+      "swordHand": {
+        "x": 196,
+        "y": 182,
+        "w": 36,
+        "h": 34
+      },
+      "supportHand": {
+        "x": 309,
+        "y": 182,
+        "w": 36,
+        "h": 34
+      }
+    },
+    {
+      "atlas": "hero-spear-walk-v1",
+      "x": 384,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 35,
+      "height": 440,
+      "gripX": 214,
+      "gripY": 211,
+      "swordAngle": -90,
+      "spearAngle": -90,
+      "twoHanded": true,
+      "supportX": 328,
+      "supportY": 202,
+      "offsetX": 0,
+      "swordHand": {
+        "x": 196,
+        "y": 194,
+        "w": 36,
+        "h": 34
+      },
+      "supportHand": {
+        "x": 310,
+        "y": 185,
+        "w": 36,
+        "h": 34
+      }
+    },
+    {
+      "atlas": "hero-spear-walk-v1",
+      "x": 768,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 35,
+      "height": 440,
+      "gripX": 215,
+      "gripY": 201,
+      "swordAngle": -90,
+      "spearAngle": -90,
+      "twoHanded": true,
+      "supportX": 328,
+      "supportY": 198,
+      "offsetX": 0,
+      "swordHand": {
+        "x": 197,
+        "y": 184,
+        "w": 36,
+        "h": 34
+      },
+      "supportHand": {
+        "x": 310,
+        "y": 181,
+        "w": 36,
+        "h": 34
+      }
+    },
+    {
+      "atlas": "hero-spear-walk-v1",
+      "x": 1152,
+      "y": 512,
+      "w": 384,
+      "h": 512,
+      "foot": 39,
+      "height": 440,
+      "gripX": 217,
+      "gripY": 201,
+      "swordAngle": -90,
+      "spearAngle": -90,
+      "twoHanded": true,
+      "supportX": 328,
+      "supportY": 198,
+      "offsetX": 0,
+      "swordHand": {
+        "x": 199,
+        "y": 184,
+        "w": 36,
+        "h": 34
+      },
+      "supportHand": {
+        "x": 310,
+        "y": 181,
+        "w": 36,
+        "h": 34
+      }
+    },
+    {
+      "atlas": "hero-low-contact-v1",
+      "x": 0,
+      "y": 0,
+      "w": 512,
+      "h": 512,
+      "foot": 21,
+      "height": 440,
+      "gripX": 207,
+      "gripY": 187,
+      "swordAngle": 35,
+      "spearAngle": 35,
+      "twoHanded": false,
+      "supportX": 0,
+      "supportY": 0,
+      "offsetX": 10,
+      "swordHand": {
+        "x": 189,
+        "y": 170,
+        "w": 36,
+        "h": 34
+      }
+    },
+    {
+      "atlas": "hero-low-contact-v1",
+      "x": 512,
+      "y": 0,
+      "w": 512,
+      "h": 512,
+      "foot": 21,
+      "height": 440,
+      "gripX": 400,
+      "gripY": 352,
+      "swordAngle": -100,
+      "spearAngle": -100,
+      "twoHanded": false,
+      "supportX": 0,
+      "supportY": 0,
+      "offsetX": 10,
+      "swordHand": {
+        "x": 382,
+        "y": 335,
+        "w": 36,
+        "h": 34
+      }
+    },
+    {
+      "atlas": "hero-low-contact-v1",
+      "x": 1024,
+      "y": 0,
+      "w": 512,
+      "h": 512,
+      "foot": 21,
+      "height": 440,
+      "gripX": 423,
+      "gripY": 351,
+      "swordAngle": -98,
+      "spearAngle": -98,
+      "twoHanded": false,
+      "supportX": 0,
+      "supportY": 0,
+      "offsetX": 0,
+      "swordHand": {
+        "x": 405,
+        "y": 334,
+        "w": 36,
+        "h": 34
+      }
+    },
+    {
+      "atlas": "hero-low-contact-v1",
+      "x": 0,
+      "y": 512,
+      "w": 512,
+      "h": 512,
+      "foot": 25,
+      "height": 440,
+      "gripX": 243,
+      "gripY": 256,
+      "swordAngle": -110,
+      "spearAngle": -110,
+      "twoHanded": true,
+      "supportX": 382,
+      "supportY": 311,
+      "offsetX": 35,
+      "swordHand": {
+        "x": 225,
+        "y": 239,
+        "w": 36,
+        "h": 34
+      },
+      "supportHand": {
+        "x": 364,
+        "y": 294,
+        "w": 36,
+        "h": 34
+      }
+    },
+    {
+      "atlas": "hero-low-contact-v1",
+      "x": 512,
+      "y": 512,
+      "w": 512,
+      "h": 512,
+      "foot": 25,
+      "height": 440,
+      "gripX": 283,
+      "gripY": 276,
+      "swordAngle": -105,
+      "spearAngle": -105,
+      "twoHanded": true,
+      "supportX": 436,
+      "supportY": 307,
+      "offsetX": 45,
+      "swordHand": {
+        "x": 265,
+        "y": 259,
+        "w": 36,
+        "h": 34
+      },
+      "supportHand": {
+        "x": 418,
+        "y": 290,
+        "w": 36,
+        "h": 34
+      }
+    },
+    {
+      "atlas": "hero-low-contact-v1",
+      "x": 1024,
+      "y": 512,
+      "w": 512,
+      "h": 512,
+      "foot": 25,
+      "height": 440,
+      "gripX": 277,
+      "gripY": 280,
+      "swordAngle": -105,
+      "spearAngle": -105,
+      "twoHanded": true,
+      "supportX": 441,
+      "supportY": 310,
+      "offsetX": 35,
+      "swordHand": {
+        "x": 259,
+        "y": 263,
+        "w": 36,
+        "h": 34
+      },
+      "supportHand": {
+        "x": 423,
+        "y": 293,
+        "w": 36,
+        "h": 34
+      }
     }
   ],
   "motions": [
@@ -2235,6 +2623,41 @@
         ""
       ],
       "next": "recover"
+    },
+    {
+      "id": "walk",
+      "frames": [
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74
+      ],
+      "seconds": [
+        0.11,
+        0.11,
+        0.11,
+        0.11,
+        0.11,
+        0.11,
+        0.11,
+        0.11
+      ],
+      "loop": true,
+      "events": [
+        "footstep",
+        "",
+        "",
+        "",
+        "footstep",
+        "",
+        "",
+        ""
+      ],
+      "weaponId": "w_spear"
     }
   ],
   "weapons": [
@@ -2609,5 +3032,67 @@
     }
   ],
   "gameplayEnabled": true,
-  "gameplayHeight": 170
+  "gameplayHeight": 170,
+  "lowTargetPoses": [
+    {
+      "weaponId": "w_blade",
+      "original": 23,
+      "pose": 75
+    },
+    {
+      "weaponId": "w_blade",
+      "original": 24,
+      "pose": 75
+    },
+    {
+      "weaponId": "w_blade",
+      "original": 25,
+      "pose": 75
+    },
+    {
+      "weaponId": "w_blade",
+      "original": 26,
+      "pose": 76
+    },
+    {
+      "weaponId": "w_blade",
+      "original": 27,
+      "pose": 77
+    },
+    {
+      "weaponId": "w_blade",
+      "original": 28,
+      "pose": 77
+    },
+    {
+      "weaponId": "w_blade",
+      "original": 29,
+      "pose": 77
+    },
+    {
+      "weaponId": "w_spear",
+      "original": 31,
+      "pose": 78
+    },
+    {
+      "weaponId": "w_spear",
+      "original": 32,
+      "pose": 78
+    },
+    {
+      "weaponId": "w_spear",
+      "original": 33,
+      "pose": 79
+    },
+    {
+      "weaponId": "w_spear",
+      "original": 34,
+      "pose": 80
+    },
+    {
+      "weaponId": "w_spear",
+      "original": 35,
+      "pose": 80
+    }
+  ]
 }

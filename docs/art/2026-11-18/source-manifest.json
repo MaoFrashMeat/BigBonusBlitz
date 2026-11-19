@@ -1,0 +1,114 @@
+[
+  {
+    "source": "docs\\art\\2026-11-18\\environment-E-3-v1\\source.png",
+    "prompt": "docs\\art\\2026-11-18\\environment-E-3-v1\\prompt.txt",
+    "sha256": "9a73b161ba7422ed45bd972040d7172a8fc4bd587e8d28e01e8395e6885de9db",
+    "generator": "built-in imagegen",
+    "pixelsModified": false
+  },
+  {
+    "source": "docs\\art\\2026-11-18\\environment-E-4-v1\\source.png",
+    "prompt": "docs\\art\\2026-11-18\\environment-E-4-v1\\prompt.txt",
+    "sha256": "288f701b145966dd039fb31d92e3b2fd2a51a7c15c99d938923aa5827bb7cc29",
+    "generator": "built-in imagegen",
+    "pixelsModified": false
+  },
+  {
+    "source": "docs\\art\\2026-11-18\\environment-E-5-v1\\source.png",
+    "prompt": "docs\\art\\2026-11-18\\environment-E-5-v1\\prompt.txt",
+    "sha256": "8f0365c9806c46064d341b36e1d85b2e84e17adb47a615581055eeefe70652e2",
+    "generator": "built-in imagegen",
+    "pixelsModified": false
+  },
+  {
+    "source": "docs\\art\\2026-11-18\\environment-E-6-v1\\source.png",
+    "prompt": "docs\\art\\2026-11-18\\environment-E-6-v1\\prompt.txt",
+    "sha256": "78ddf2d39f0139b09f8d4e1b8c3bd7d4d6d678b0ee410982cfd57e36d6d483f5",
+    "generator": "built-in imagegen",
+    "pixelsModified": false
+  },
+  {
+    "source": "docs\\art\\2026-11-18\\environment-E-7-v1\\source.png",
+    "prompt": "docs\\art\\2026-11-18\\environment-E-7-v1\\prompt.txt",
+    "sha256": "2f607495d902839b088f2fb4d89d557d84ae441202eda88d36c6b77fa9eb814f",
+    "generator": "built-in imagegen",
+    "pixelsModified": false
+  },
+  {
+    "source": "docs\\art\\2026-11-18\\environment-E-8-v1\\source.png",
+    "prompt": "docs\\art\\2026-11-18\\environment-E-8-v1\\prompt.txt",
+    "sha256": "c63a73dd19740d5a9ac3a3bb4f7880b38cec8a30a98dff70fec14e7347b7e9b0",
+    "generator": "built-in imagegen",
+    "pixelsModified": false
+  },
+  {
+    "source": "docs\\art\\2026-11-18\\environment-F-1-v1\\source.png",
+    "prompt": "docs\\art\\2026-11-18\\environment-F-1-v1\\prompt.txt",
+    "sha256": "55c9775a457ea7d45d06b8dffff3912d6a06d2c52e329353efebd0133a9301c0",
+    "generator": "built-in imagegen",
+    "pixelsModified": false
+  },
+  {
+    "source": "docs\\art\\2026-11-18\\environment-F-2-v1\\source.png",
+    "prompt": "docs\\art\\2026-11-18\\environment-F-2-v1\\prompt.txt",
+    "sha256": "7ae95493c6366e576e304e79104ffb7581e8b019ab67dcc3ef578166c6abd364",
+    "generator": "built-in imagegen",
+    "pixelsModified": false
+  },
+  {
+    "source": "docs\\art\\2026-11-18\\environment-F-3-v1\\source.png",
+    "prompt": "docs\\art\\2026-11-18\\environment-F-3-v1\\prompt.txt",
+    "sha256": "802388e4bd9d12cbe34aca90b00a56de4107e608d4b03c72bcb2bea4ad11534f",
+    "generator": "built-in imagegen",
+    "pixelsModified": false
+  },
+  {
+    "source": "docs\\art\\2026-11-18\\environment-F-4-v1\\source.png",
+    "prompt": "docs\\art\\2026-11-18\\environment-F-4-v1\\prompt.txt",
+    "sha256": "638d1054a529939f7ed13a76cc55e2383496264f3f17d5fdf9202f40019aa508",
+    "generator": "built-in imagegen",
+    "pixelsModified": false
+  },
+  {
+    "source": "docs\\art\\2026-11-18\\environment-F-5-v1\\source.png",
+    "prompt": "docs\\art\\2026-11-18\\environment-F-5-v1\\prompt.txt",
+    "sha256": "01db76a5f9b359c1d5b0fd3188f6013d9395f03bde71b0790f01fa380392d74d",
+    "generator": "built-in imagegen",
+    "pixelsModified": false
+  },
+  {
+    "source": "docs\\art\\2026-11-18\\environment-G-1-v1\\source.png",
+    "prompt": "docs\\art\\2026-11-18\\environment-G-1-v1\\prompt.txt",
+    "sha256": "b6b957610bdfa51c99e9adc77d84f0bcfe0bd5947fb934a555c840c021a5dd82",
+    "generator": "built-in imagegen",
+    "pixelsModified": false
+  },
+  {
+    "source": "docs\\art\\2026-11-18\\environment-G-2-v1\\source.png",
+    "prompt": "docs\\art\\2026-11-18\\environment-G-2-v1\\prompt.txt",
+    "sha256": "89954a6823a048b846f89b7b023669dbb57aa977369230bcc97d1e9821d8454a",
+    "generator": "built-in imagegen",
+    "pixelsModified": false
+  },
+  {
+    "source": "docs\\art\\2026-11-18\\environment-G-3-v1\\source.png",
+    "prompt": "docs\\art\\2026-11-18\\environment-G-3-v1\\prompt.txt",
+    "sha256": "65d8e4170ab33b27ea3179f5b9334aada83e5d882a4d7d18d1151edc5a34e740",
+    "generator": "built-in imagegen",
+    "pixelsModified": false
+  },
+  {
+    "source": "docs\\art\\2026-11-18\\hero-low-contact-v1\\source.png",
+    "prompt": "docs\\art\\2026-11-18\\hero-low-contact-v1\\prompt.txt",
+    "sha256": "e1cfec42a7546e704bd7a5b8e5882cb59299b2bf66a614bd0000e3dacd38351d",
+    "generator": "built-in imagegen",
+    "pixelsModified": false
+  },
+  {
+    "source": "docs\\art\\2026-11-18\\hero-spear-walk-v1\\source.png",
+    "prompt": "docs\\art\\2026-11-18\\hero-spear-walk-v1\\prompt.txt",
+    "sha256": "b7eba22c0b65ad6d08c31b65170fe20bc082589d292cdc63230e8727e15e2e6d",
+    "generator": "built-in imagegen",
+    "pixelsModified": false
+  }
+]

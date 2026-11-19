@@ -15,11 +15,17 @@ namespace BBB.Runtime
         public string atlas;
         public int x,y,w,h; // Source pixels, y measured from the top; PNG remains unchanged.
         public float foot, height, gripX, gripY, swordAngle, spearAngle;
+        public float offsetX; // Authored support-foot registration; applied to body and attachment points together.
         public bool twoHanded;
         public float supportX,supportY;
         public HeroHandPatch swordHand; // Optional foreground grip; original atlas pixels stay unchanged.
         public HeroHandPatch supportHand;
         public bool bowDraw;
+    }
+    [Serializable] public sealed class HeroTargetPose
+    {
+        public string weaponId;
+        public int original,pose;
     }
     [Serializable] public sealed class HeroMotion
     {
@@ -69,6 +75,7 @@ namespace BBB.Runtime
         public float height=230,walkSeconds=0.85f;
         public HeroApproach approach;
         public HeroPose[] poses;
+        public HeroTargetPose[] lowTargetPoses;
         public HeroMotion[] motions;
         public HeroWeaponLook[] weapons;
         public HeroEnemyLook[] enemies;
@@ -253,10 +260,10 @@ namespace BBB.Runtime
         // Predict the rigid tip at contact without changing the active pose or emitting cues.
         public Vector3 WeaponTipWorld(int poseIndex,string weaponId)
         {
-            var cfg=HeroPresentation.Config;var p=cfg.poses[poseIndex];
+            var cfg=HeroPresentation.Config;var p=cfg.poses[ResolvePose(poseIndex,weaponId)];
             var look=Array.Find(cfg.weapons,w=>w.id==weaponId)??cfg.weapons[0];
             float scale=cfg.height/p.height;
-            var grip=new Vector3((p.gripX-p.w*.5f)*scale,(p.h-p.gripY-p.foot)*scale,0);
+            var grip=new Vector3((p.gripX-p.w*.5f+p.offsetX)*scale,(p.h-p.gripY-p.foot)*scale,0);
             bool spear=weaponId=="w_spear";
             float angle=spear?p.spearAngle:p.swordAngle;
             if((spear||look.alignToSupport)&&p.twoHanded)angle=Mathf.Atan2(p.gripY-p.supportY,p.supportX-p.gripX)*Mathf.Rad2Deg-90;
@@ -264,25 +271,34 @@ namespace BBB.Runtime
             return Root.TransformPoint(grip+Quaternion.Euler(0,0,angle)*tip);
         }
         public int RenderedPoseIndex=>lastPose;
+        public bool LowTarget {get;set;}
+        int ResolvePose(int pose,string weapon)
+        {
+            if(!LowTarget)return pose;
+            var variants=HeroPresentation.Config.lowTargetPoses;
+            var replacement=variants==null?null:Array.Find(variants,p=>p.original==pose&&p.weaponId==weapon);
+            return replacement==null?pose:replacement.pose;
+        }
         public void Render(){RenderPose(Player.PoseIndex);}
         // Spatial approach can show authored walk keys while the combat clock waits.
         public void RenderPose(int i)
         {
+            i=ResolvePose(i,Player.WeaponId);
             if(i==lastPose&&lastWeapon==Player.WeaponId)return;
             lastPose=i;lastWeapon=Player.WeaponId;
             var cfg=HeroPresentation.Config;var p=cfg.poses[i];
             Body.sprite=HeroPresentation.Sprite(p.atlas,p.x,p.y,p.w,p.h);
             float scale=cfg.height/Mathf.Max(1,p.height);
             Body.rectTransform.sizeDelta=new Vector2(p.w,p.h)*scale;
-            Body.rectTransform.anchoredPosition=new Vector2(0,(p.h*.5f-p.foot)*scale);
-            GripPosition=new Vector2(p.gripX-p.w*.5f,p.h-p.gripY-p.foot)*scale;
+            Body.rectTransform.anchoredPosition=new Vector2(p.offsetX*scale,(p.h*.5f-p.foot)*scale);
+            GripPosition=new Vector2(p.gripX-p.w*.5f+p.offsetX,p.h-p.gripY-p.foot)*scale;
             var look=Array.Find(cfg.weapons,w=>w.id==Player.WeaponId)??cfg.weapons[0];
             Weapon.sprite=HeroPresentation.Sprite(look.atlas,look.x,look.y,look.w,look.h);
             Weapon.rectTransform.pivot=new Vector2(look.gripX/look.w,1-look.gripY/look.h);
             Weapon.rectTransform.sizeDelta=new Vector2(look.w/(float)look.h*look.height,look.height);
             Weapon.rectTransform.anchoredPosition=GripPosition;
             TwoHanded=(look.id=="w_spear"||look.alignToSupport)&&p.twoHanded;
-            SupportPosition=new Vector2(p.supportX-p.w*.5f,p.h-p.supportY-p.foot)*scale;
+            SupportPosition=new Vector2(p.supportX-p.w*.5f+p.offsetX,p.h-p.supportY-p.foot)*scale;
             float angle=look.id=="w_spear"?p.spearAngle:p.swordAngle;
             if(TwoHanded){var direction=SupportPosition-GripPosition;angle=Mathf.Atan2(direction.y,direction.x)*Mathf.Rad2Deg-90;}
             Weapon.rectTransform.localRotation=Quaternion.Euler(0,0,angle);
@@ -295,7 +311,7 @@ namespace BBB.Runtime
                 Body.transform.SetSiblingIndex(1);Weapon.transform.SetSiblingIndex(2);Hand.transform.SetSiblingIndex(3);
                 Hand.sprite=HeroPresentation.Sprite(p.atlas,p.x+hand.x,p.y+hand.y,hand.w,hand.h);
                 Hand.rectTransform.sizeDelta=new Vector2(hand.w,hand.h)*scale;
-                Hand.rectTransform.anchoredPosition=new Vector2(hand.x+hand.w*.5f-p.w*.5f,p.h-hand.y-hand.h*.5f-p.foot)*scale;
+                Hand.rectTransform.anchoredPosition=new Vector2(hand.x+hand.w*.5f-p.w*.5f+p.offsetX,p.h-hand.y-hand.h*.5f-p.foot)*scale;
             }
             else {Weapon.transform.SetSiblingIndex(1);Body.transform.SetSiblingIndex(2);}
             Hand.gameObject.SetActive(front);
@@ -306,7 +322,7 @@ namespace BBB.Runtime
             {
                 SupportHand.sprite=HeroPresentation.Sprite(p.atlas,p.x+support.x,p.y+support.y,support.w,support.h);
                 SupportHand.rectTransform.sizeDelta=new Vector2(support.w,support.h)*scale;
-                SupportHand.rectTransform.anchoredPosition=new Vector2(support.x+support.w*.5f-p.w*.5f,p.h-support.y-support.h*.5f-p.foot)*scale;
+                SupportHand.rectTransform.anchoredPosition=new Vector2(support.x+support.w*.5f-p.w*.5f+p.offsetX,p.h-support.y-support.h*.5f-p.foot)*scale;
                 SupportHand.transform.SetSiblingIndex(Hand.transform.GetSiblingIndex()+1);
             }
             stringTop.gameObject.SetActive(look.bowString);stringBottom.gameObject.SetActive(look.bowString);

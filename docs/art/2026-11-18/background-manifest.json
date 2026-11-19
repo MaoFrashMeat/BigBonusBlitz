@@ -1,0 +1,450 @@
+[
+  {
+    "id": "E-3",
+    "source": "docs\\art\\2026-11-18\\environment-E-3-v1\\source.png",
+    "sha256": "9a73b161ba7422ed45bd972040d7172a8fc4bd587e8d28e01e8395e6885de9db",
+    "cuts": [
+      0,
+      386,
+      790,
+      1024
+    ],
+    "opaqueBounds": [
+      [
+        34,
+        49,
+        1497,
+        364
+      ],
+      [
+        22,
+        22,
+        1514,
+        370
+      ],
+      [
+        33,
+        49,
+        1508,
+        189
+      ]
+    ],
+    "runtime": "UnityProject\\BigBonusBlitz\\Assets\\Resources\\Art\\Adventure\\Modules\\E-3\\layers-v1.png"
+  },
+  {
+    "id": "E-4",
+    "source": "docs\\art\\2026-11-18\\environment-E-4-v1\\source.png",
+    "sha256": "288f701b145966dd039fb31d92e3b2fd2a51a7c15c99d938923aa5827bb7cc29",
+    "cuts": [
+      0,
+      371,
+      782,
+      1024
+    ],
+    "opaqueBounds": [
+      [
+        60,
+        33,
+        1479,
+        359
+      ],
+      [
+        40,
+        13,
+        1506,
+        368
+      ],
+      [
+        51,
+        77,
+        1451,
+        200
+      ]
+    ],
+    "runtime": "UnityProject\\BigBonusBlitz\\Assets\\Resources\\Art\\Adventure\\Modules\\E-4\\layers-v1.png"
+  },
+  {
+    "id": "E-5",
+    "source": "docs\\art\\2026-11-18\\environment-E-5-v1\\source.png",
+    "sha256": "8f0365c9806c46064d341b36e1d85b2e84e17adb47a615581055eeefe70652e2",
+    "cuts": [
+      0,
+      373,
+      775,
+      1024
+    ],
+    "opaqueBounds": [
+      [
+        52,
+        25,
+        1477,
+        352
+      ],
+      [
+        32,
+        21,
+        1505,
+        354
+      ],
+      [
+        48,
+        45,
+        1476,
+        196
+      ]
+    ],
+    "runtime": "UnityProject\\BigBonusBlitz\\Assets\\Resources\\Art\\Adventure\\Modules\\E-5\\layers-v1.png"
+  },
+  {
+    "id": "E-6",
+    "source": "docs\\art\\2026-11-18\\environment-E-6-v1\\source.png",
+    "sha256": "78ddf2d39f0139b09f8d4e1b8c3bd7d4d6d678b0ee410982cfd57e36d6d483f5",
+    "cuts": [
+      0,
+      388,
+      781,
+      1024
+    ],
+    "opaqueBounds": [
+      [
+        46,
+        30,
+        1490,
+        366
+      ],
+      [
+        39,
+        52,
+        1497,
+        350
+      ],
+      [
+        40,
+        50,
+        1482,
+        190
+      ]
+    ],
+    "runtime": "UnityProject\\BigBonusBlitz\\Assets\\Resources\\Art\\Adventure\\Modules\\E-6\\layers-v1.png"
+  },
+  {
+    "id": "E-7",
+    "source": "docs\\art\\2026-11-18\\environment-E-7-v1\\source.png",
+    "sha256": "2f607495d902839b088f2fb4d89d557d84ae441202eda88d36c6b77fa9eb814f",
+    "cuts": [
+      0,
+      358,
+      773,
+      1024
+    ],
+    "opaqueBounds": [
+      [
+        42,
+        40,
+        1495,
+        332
+      ],
+      [
+        28,
+        27,
+        1508,
+        378
+      ],
+      [
+        35,
+        38,
+        1506,
+        207
+      ]
+    ],
+    "runtime": "UnityProject\\BigBonusBlitz\\Assets\\Resources\\Art\\Adventure\\Modules\\E-7\\layers-v1.png"
+  },
+  {
+    "id": "E-8",
+    "source": "docs\\art\\2026-11-18\\environment-E-8-v1\\source.png",
+    "sha256": "c63a73dd19740d5a9ac3a3bb4f7880b38cec8a30a98dff70fec14e7347b7e9b0",
+    "cuts": [
+      0,
+      358,
+      776,
+      1024
+    ],
+    "opaqueBounds": [
+      [
+        64,
+        29,
+        1471,
+        322
+      ],
+      [
+        40,
+        36,
+        1498,
+        382
+      ],
+      [
+        49,
+        36,
+        1484,
+        206
+      ]
+    ],
+    "runtime": "UnityProject\\BigBonusBlitz\\Assets\\Resources\\Art\\Adventure\\Modules\\E-8\\layers-v1.png"
+  },
+  {
+    "id": "F-1",
+    "source": "docs\\art\\2026-11-18\\environment-F-1-v1\\source.png",
+    "sha256": "55c9775a457ea7d45d06b8dffff3912d6a06d2c52e329353efebd0133a9301c0",
+    "cuts": [
+      0,
+      380,
+      780,
+      1024
+    ],
+    "opaqueBounds": [
+      [
+        36,
+        35,
+        1502,
+        361
+      ],
+      [
+        33,
+        20,
+        1504,
+        356
+      ],
+      [
+        36,
+        51,
+        1502,
+        203
+      ]
+    ],
+    "runtime": "UnityProject\\BigBonusBlitz\\Assets\\Resources\\Art\\Adventure\\Modules\\F-1\\layers-v1.png"
+  },
+  {
+    "id": "F-2",
+    "source": "docs\\art\\2026-11-18\\environment-F-2-v1\\source.png",
+    "sha256": "7ae95493c6366e576e304e79104ffb7581e8b019ab67dcc3ef578166c6abd364",
+    "cuts": [
+      0,
+      384,
+      777,
+      1024
+    ],
+    "opaqueBounds": [
+      [
+        65,
+        54,
+        1471,
+        359
+      ],
+      [
+        43,
+        35,
+        1493,
+        346
+      ],
+      [
+        57,
+        74,
+        1483,
+        205
+      ]
+    ],
+    "runtime": "UnityProject\\BigBonusBlitz\\Assets\\Resources\\Art\\Adventure\\Modules\\F-2\\layers-v1.png"
+  },
+  {
+    "id": "F-3",
+    "source": "docs\\art\\2026-11-18\\environment-F-3-v1\\source.png",
+    "sha256": "802388e4bd9d12cbe34aca90b00a56de4107e608d4b03c72bcb2bea4ad11534f",
+    "cuts": [
+      0,
+      384,
+      790,
+      1024
+    ],
+    "opaqueBounds": [
+      [
+        45,
+        19,
+        1493,
+        358
+      ],
+      [
+        56,
+        26,
+        1469,
+        371
+      ],
+      [
+        54,
+        52,
+        1473,
+        189
+      ]
+    ],
+    "runtime": "UnityProject\\BigBonusBlitz\\Assets\\Resources\\Art\\Adventure\\Modules\\F-3\\layers-v1.png"
+  },
+  {
+    "id": "F-4",
+    "source": "docs\\art\\2026-11-18\\environment-F-4-v1\\source.png",
+    "sha256": "638d1054a529939f7ed13a76cc55e2383496264f3f17d5fdf9202f40019aa508",
+    "cuts": [
+      0,
+      355,
+      783,
+      1024
+    ],
+    "opaqueBounds": [
+      [
+        59,
+        50,
+        1474,
+        324
+      ],
+      [
+        51,
+        32,
+        1486,
+        386
+      ],
+      [
+        41,
+        51,
+        1486,
+        201
+      ]
+    ],
+    "runtime": "UnityProject\\BigBonusBlitz\\Assets\\Resources\\Art\\Adventure\\Modules\\F-4\\layers-v1.png"
+  },
+  {
+    "id": "F-5",
+    "source": "docs\\art\\2026-11-18\\environment-F-5-v1\\source.png",
+    "sha256": "01db76a5f9b359c1d5b0fd3188f6013d9395f03bde71b0790f01fa380392d74d",
+    "cuts": [
+      0,
+      359,
+      777,
+      1024
+    ],
+    "opaqueBounds": [
+      [
+        66,
+        129,
+        1474,
+        318
+      ],
+      [
+        34,
+        42,
+        1505,
+        362
+      ],
+      [
+        48,
+        80,
+        1482,
+        206
+      ]
+    ],
+    "runtime": "UnityProject\\BigBonusBlitz\\Assets\\Resources\\Art\\Adventure\\Modules\\F-5\\layers-v1.png"
+  },
+  {
+    "id": "G-1",
+    "source": "docs\\art\\2026-11-18\\environment-G-1-v1\\source.png",
+    "sha256": "b6b957610bdfa51c99e9adc77d84f0bcfe0bd5947fb934a555c840c021a5dd82",
+    "cuts": [
+      0,
+      349,
+      772,
+      1024
+    ],
+    "opaqueBounds": [
+      [
+        39,
+        33,
+        1499,
+        322
+      ],
+      [
+        24,
+        28,
+        1515,
+        378
+      ],
+      [
+        40,
+        43,
+        1496,
+        200
+      ]
+    ],
+    "runtime": "UnityProject\\BigBonusBlitz\\Assets\\Resources\\Art\\Adventure\\Modules\\G-1\\layers-v1.png"
+  },
+  {
+    "id": "G-2",
+    "source": "docs\\art\\2026-11-18\\environment-G-2-v1\\source.png",
+    "sha256": "89954a6823a048b846f89b7b023669dbb57aa977369230bcc97d1e9821d8454a",
+    "cuts": [
+      0,
+      344,
+      777,
+      1024
+    ],
+    "opaqueBounds": [
+      [
+        52,
+        40,
+        1485,
+        322
+      ],
+      [
+        32,
+        22,
+        1503,
+        385
+      ],
+      [
+        44,
+        65,
+        1492,
+        199
+      ]
+    ],
+    "runtime": "UnityProject\\BigBonusBlitz\\Assets\\Resources\\Art\\Adventure\\Modules\\G-2\\layers-v1.png"
+  },
+  {
+    "id": "G-3",
+    "source": "docs\\art\\2026-11-18\\environment-G-3-v1\\source.png",
+    "sha256": "65d8e4170ab33b27ea3179f5b9334aada83e5d882a4d7d18d1151edc5a34e740",
+    "cuts": [
+      0,
+      337,
+      786,
+      1024
+    ],
+    "opaqueBounds": [
+      [
+        45,
+        29,
+        1494,
+        320
+      ],
+      [
+        32,
+        17,
+        1503,
+        410
+      ],
+      [
+        47,
+        69,
+        1472,
+        193
+      ]
+    ],
+    "runtime": "UnityProject\\BigBonusBlitz\\Assets\\Resources\\Art\\Adventure\\Modules\\G-3\\layers-v1.png"
+  }
+]
