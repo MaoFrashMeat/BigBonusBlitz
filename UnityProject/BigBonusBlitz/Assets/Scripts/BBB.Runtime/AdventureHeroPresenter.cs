@@ -16,6 +16,7 @@ namespace BBB.Runtime
         RectTransform queuedTarget,attackTarget;
         Vector2 restFeet;
         float approachElapsed,contactTime,advance;
+        bool contactPlanted;
         int contactPose;
         int approachHandoffPose=-1;
         string attackWeapon,approachMotion;
@@ -66,7 +67,19 @@ namespace BBB.Runtime
         void OnCue(string cue)
         {
             if(cue!="contact")return;
-            if(rangedLook==null){ImpactReady=true;return;}
+            if(rangedLook==null)
+            {
+                if(attackTarget!=null)
+                {
+                    // Commit the contact position before observers trigger enemy recoil.
+                    // Follow-through stays planted; recovery returns from this same point.
+                    advance=DesiredAdvance();
+                    View.Root.anchoredPosition=restFeet+Vector2.right*advance;
+                    contactPlanted=true;
+                    View.Render();
+                }
+                ImpactReady=true;return;
+            }
             if(rangedTarget==null)return;
             View.Render();
             if(projectile==null){projectile=UiSkin.Img(transform,"HeroProjectile",Vector2.zero,Vector2.one,null,Color.white);projectile.raycastTarget=false;}
@@ -89,7 +102,7 @@ namespace BBB.Runtime
             projectile.rectTransform.localRotation=Quaternion.Euler(0,0,Mathf.Atan2(localDirection.y,localDirection.x)*Mathf.Rad2Deg);
             if(flightElapsed>=rangedLook.flightSeconds){ImpactReady=true;CancelProjectile();}
         }
-        void ResetApproach(){View.LowTarget=false;View.Player.UseRetreatTiming=false;IsReturning=false;attackTarget=null;advance=0;approachElapsed=0;leadElapsed=leadSeconds=0;approachWalk=null;approachHandoffPose=-1;View.Root.anchoredPosition=restFeet;View.Render();}
+        void ResetApproach(){contactPlanted=false;View.LowTarget=false;View.Player.UseRetreatTiming=false;IsReturning=false;attackTarget=null;advance=0;approachElapsed=0;leadElapsed=leadSeconds=0;approachWalk=null;approachHandoffPose=-1;View.Root.anchoredPosition=restFeet;View.Render();}
         void BeginApproach(string id)
         {
             ResetApproach();
@@ -155,8 +168,8 @@ namespace BBB.Runtime
             float progress;
             if(View.Player.State==approachMotion)
             {
-                advance=DesiredAdvance();
-                progress=leadSeconds>0?1:contactTime>0?Mathf.Clamp01(approachElapsed/contactTime):1;
+                if(!contactPlanted)advance=DesiredAdvance();
+                progress=contactPlanted||leadSeconds>0?1:contactTime>0?Mathf.Clamp01(approachElapsed/contactTime):1;
             }
             else if(View.Player.State=="recover")
             {

@@ -1,0 +1,37 @@
+{
+  "result": "Passed",
+  "total": "7",
+  "passed": "7",
+  "failed": "0",
+  "skipped": "0",
+  "cases": [
+    {
+      "name": "BBB.Tests.HeroContactPlantTests.BladeVariantsUseLowPosesOnlyForShortTargets(\"w_dagger\")",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.HeroContactPlantTests.BladeVariantsUseLowPosesOnlyForShortTargets(\"w_holy\")",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.HeroContactPlantTests.EnemyRecoilDoesNotDragHeroAfterContact(\"w_blade\")",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.HeroContactPlantTests.EnemyRecoilDoesNotDragHeroAfterContact(\"w_spear\")",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.HeroContactPlantTests.EnemyRecoilDoesNotDragHeroAfterContact(\"w_dagger\")",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.HeroContactPlantTests.EnemyRecoilDoesNotDragHeroAfterContact(\"w_holy\")",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.HeroContactPlantTests.EnemyRecoilDoesNotDragHeroAfterContact(\"w_hammer\")",
+      "result": "Passed"
+    }
+  ]
+}

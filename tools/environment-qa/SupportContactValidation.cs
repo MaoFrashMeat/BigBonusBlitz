@@ -32,7 +32,7 @@ public static class SupportContactValidation
             camera.targetTexture=null;RenderTexture.active=null;RenderTexture.ReleaseTemporary(rt);UnityEngine.Object.DestroyImmediate(image);
         };
         int cases=0;var trace=new System.Collections.Generic.List<string>{"weapon,enemy,frame,state,pose,low,tipX,tipY,targetX,targetY"};
-        foreach(string weapon in new[]{"w_blade","w_spear"})foreach(string id in new[]{"slime","beetle","goblin"})
+        foreach(string weapon in new[]{"w_blade","w_spear","w_dagger","w_holy"})foreach(string id in new[]{"slime","beetle","goblin"})
         {
             hero.Cancel();hero.Equip(new EquipItem{baseId=weapon,slot=EquipSlot.Weapon});enemy.Show(id,1,400);enemy.Step(.001f);
             int contacts=0;Action<string> cue=s=>{if(s=="contact")contacts++;};hero.View.Player.Cue+=cue;

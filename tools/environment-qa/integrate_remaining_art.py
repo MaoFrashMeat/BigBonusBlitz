@@ -114,6 +114,8 @@ for weapon, pairs in [('w_blade',[(23,0),(24,0),(25,0),(26,1),(27,2),(28,2),(29,
                       ('w_spear',[(31,3),(32,3),(33,4),(34,5),(35,5)])]:
     for original, replacement in pairs:
         hero['lowTargetPoses'].append(dict(weaponId=weapon,original=original,pose=low+replacement))
-hero['status']='30 backgrounds integrated; spear gait and planted low-target attack poses pending isolated art review'
+for weapon in ['w_dagger','w_holy']:
+    hero['lowTargetPoses'] += [dict(p,weaponId=weapon) for p in hero['lowTargetPoses'] if p['weaponId']=='w_blade']
+hero['status']='30 backgrounds integrated; blade, spear, dagger and holy blade use authored low-target poses; final art approval pending'
 write(hero_path, hero)
 print('Installed 14 backgrounds, spear walk, six low-target poses:', walk, low)

@@ -1,5 +1,5 @@
 {
-  "status": "30 backgrounds integrated; spear gait and planted low-target attack poses pending isolated art review",
+  "status": "30 backgrounds integrated; blade, spear, dagger and holy blade use authored low-target poses; final art approval pending",
   "height": 220,
   "walkSeconds": 0.88,
   "approach": {
@@ -3093,6 +3093,76 @@
       "weaponId": "w_spear",
       "original": 35,
       "pose": 80
+    },
+    {
+      "weaponId": "w_dagger",
+      "original": 23,
+      "pose": 75
+    },
+    {
+      "weaponId": "w_dagger",
+      "original": 24,
+      "pose": 75
+    },
+    {
+      "weaponId": "w_dagger",
+      "original": 25,
+      "pose": 75
+    },
+    {
+      "weaponId": "w_dagger",
+      "original": 26,
+      "pose": 76
+    },
+    {
+      "weaponId": "w_dagger",
+      "original": 27,
+      "pose": 77
+    },
+    {
+      "weaponId": "w_dagger",
+      "original": 28,
+      "pose": 77
+    },
+    {
+      "weaponId": "w_dagger",
+      "original": 29,
+      "pose": 77
+    },
+    {
+      "weaponId": "w_holy",
+      "original": 23,
+      "pose": 75
+    },
+    {
+      "weaponId": "w_holy",
+      "original": 24,
+      "pose": 75
+    },
+    {
+      "weaponId": "w_holy",
+      "original": 25,
+      "pose": 75
+    },
+    {
+      "weaponId": "w_holy",
+      "original": 26,
+      "pose": 76
+    },
+    {
+      "weaponId": "w_holy",
+      "original": 27,
+      "pose": 77
+    },
+    {
+      "weaponId": "w_holy",
+      "original": 28,
+      "pose": 77
+    },
+    {
+      "weaponId": "w_holy",
+      "original": 29,
+      "pose": 77
     }
   ]
 }

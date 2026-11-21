@@ -1,0 +1,630 @@
+{
+  "result": "Failed(Child)",
+  "total": "155",
+  "passed": "154",
+  "failed": "1",
+  "skipped": "0",
+  "cases": [
+    {
+      "name": "BBB.Tests.AdventureEnemyPlayTests.MainEnemyPresentationKeepsResultsAndFallbacks",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.AdventureEnemyPlayTests.SevenWeaponFamiliesDriveMainBattleAndCancelRangedHits",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.AdventureEnemyReelTests.ReelResultsOwnBattleActions",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.AdventureHeroJourneyTests.OpeningEscapeGateAndTownReentryKeepHeroAlive",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.AdventureHeroPlayTests.RealReelsPreserveHeldPhasesEquipmentAndSingleContact",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.AdventurePresentationPlayTests.RewardsPauseAndResumeWithoutLosingDialogueOrGrantingAgain",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.AdventureTests.クレジットが尽きたら力尽きて章の最初へ戻る",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.AdventureTests.ステージが変わると数えものがリセットされる",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.AdventureTests.ステージ移動は敵戦闘や前兆を抱えたままでは起きない",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.AdventureTests.ボーナス持ち越し中はライフが減らない",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.AdventureTests.ボーナス中のベルでライフが回復する",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.AdventureTests.ライフが尽きたら力尽きた扱いになる",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.AdventureTests.ライフの回復は上限で止まる",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.AdventureTests.ライフは回復薬の個数と残量から一意に決まる",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.AdventureTests.ルート抽選は上位ランクにだけ書き換わる",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.AdventureTests.回復薬の補給は上限で止まる",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.AdventureTests.高確ステージは指定モードのテーブルで抽選する",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.AdventureTests.残りGが尽きたら次のステージへ進み終点で章クリア",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.AdventureTests.持ち物の条件も見る",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.AdventureTests.実際に回してもリプレイ条件が成立する",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.AdventureTests.設定ファイルの冒険は読み込めてステージが繋がっている",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.AdventureTests.第3章は全部の段に台詞があり_第2章はステージ名が全部書き換わる",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.AdventureTests.達成条件でルートが決まり確率では覆らない",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.AdventureTests.通常時のリプレイでライフが回復する",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.AdventureTests.物語は第2章まであり_段ごとに上中下の台詞がある",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.AdventureTests.宝の洞窟の地図は次のATに上乗せされる",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.AdventureTests.優先度が高い条件が勝つ",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.CraftTests.帰還で拾い物は流れ_工房の品は残る_鞄の数にも入らない",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.CraftTests.作るとソウルと素材が減り_空き枠に着く",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.CraftTests.素材の落とし物は財布に貯まる",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.CraftTests.装備の上乗せがエンゲージに効く",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.CraftTests.足りない理由と章の解放",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.EngageBattleTests.ジャッジの率は削った分と役で決まる",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.EngageBattleTests.ダメージとルーレット",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.EngageBattleTests.リプレイは_揃った結果からでも小役",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.EngageBattleTests.一ターン目_役で構えが決まる",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.EngageBattleTests.強弱演出の調整値は既定の表示を保ちゲーム結果に関与しない",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.EngageBattleTests.帯の文の置き換え",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.EngageBattleTests.二ターン目_攻撃確定の構えは中攻撃以上",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.EngageBattleTests.二ターン目_敵の攻撃の構え",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.EngageBattleTests.二ターン目_力を貯めた構え",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.EngageBattleTests.役の分類_ハズレ小役レア役",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.HeroContactPlantTests.BladeVariantsUseLowPosesOnlyForShortTargets(\"w_dagger\")",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.HeroContactPlantTests.BladeVariantsUseLowPosesOnlyForShortTargets(\"w_holy\")",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.HeroContactPlantTests.EnemyRecoilDoesNotDragHeroAfterContact(\"w_blade\")",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.HeroContactPlantTests.EnemyRecoilDoesNotDragHeroAfterContact(\"w_spear\")",
+      "result": "Failed",
+      "message": "  No follow-through was observed\n  Expected: greater than 0\n  But was:  0\n"
+    },
+    {
+      "name": "BBB.Tests.HeroContactPlantTests.EnemyRecoilDoesNotDragHeroAfterContact(\"w_dagger\")",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.HeroContactPlantTests.EnemyRecoilDoesNotDragHeroAfterContact(\"w_holy\")",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.HeroContactPlantTests.EnemyRecoilDoesNotDragHeroAfterContact(\"w_hammer\")",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.HeroPresentationPlayTests.PreviewAudioHonorsMutePauseAndOwnership",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.LotteryTableTests.Tier2のSTAR合算はデータどおり",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.LotteryTableTests.テーブル内の各フラグ数が設定値と一致",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.LotteryTableTests.モンテカルロ_設定1のBB出現率が理論値に収束",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.LotteryTableTests.仕様書の通常時モードA_ボーナス合算(1,438,200)",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.LotteryTableTests.仕様書の通常時モードA_ボーナス合算(2,485,216)",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.LotteryTableTests.仕様書の通常時モードA_ボーナス合算(4,593,250)",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.LotteryTableTests.仕様書の通常時モードA_ボーナス合算(6,748,300)",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.LotteryTableTests.全テーブルの合計が65536",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.OpeningTests.序章の場面が揃っている",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.PlayerStatsTests.テクニックはエンゲージのG数を伸ばす",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.PlayerStatsTests.ポイントが無ければ振れない",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.PlayerStatsTests.まとめて売るはレア度以下だけで_着けている物は残る",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.PlayerStatsTests.ライフは回復薬の効きを伸ばす",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.PlayerStatsTests.ライフを振るとBETが無料になることがある",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.PlayerStatsTests.ラックを振るとハズレが減る",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.PlayerStatsTests.レベルアップでポイントが配られる",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.PlayerStatsTests.実績の一覧が読めて_数えもののキーが全部知っているものである",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.PlayerStatsTests.実績は数えものが規定に届くと解除され_報酬のソウルが入る",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.PlayerStatsTests.上限まで振れて上限を超えられない",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.PlayerStatsTests.振り直すとポイントが全部戻る",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.PlayerStatsTests.設定ファイルのステータスが読み込める",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.PlayerStatsTests.装備の種類ごとに品があり_昔の部位名も読み替えられる",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.PlayerStatsTests.装備の枠は8つ_アクセは3つ着けられて4つ目は一番弱いものと入れ替わる",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.PlayerStatsTests.装備を売るとレア度と深さのソウルが入り_着けていれば外れる",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.PlayerStatsTests.売った数と図鑑の種類数と呪い付きの踏破が数えられる",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.PlayerStatsTests.落とし物は表の率で落ち_ソウルと回復薬が増える",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.RegionalEnemyTests.AllTwentyProductionIdentitiesHaveMotionArtAndReachableEncounters",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.RegionalEnemyTests.BossFilteringAndLegacyFallbackRemainAvailable",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.RegionalEnemyTests.CurseHudFollowsChangesAndKeepsTheOverflowButtonInsideItsPanel",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.RegionalEnemyTests.FinishedStageChangeLetsGoOfTheHiddenTextures",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.RegionalEnemyTests.LegacyUniformSelectionRetainsSeedSequence",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.RegionalEnemyTests.MissingEnemyArtStaysInvisibleInsteadOfAWhiteRectangle",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.RegionalEnemyTests.RegionOverridesOnlyMatchingVariantAndFallsBackOutsideRegion",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.RegionalEnemyTests.ReleasedEnemyAtlasIsLoadedAgainOnDemand",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.RegionalEnemyTests.RepeatedStrikeFiresContactAgainButHeldPoseKeepsItsPhase",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.RegionalEnemyTests.WeightsRespectBoundariesAndDisabledEntriesCannotWin",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlipControllerTests.スベリは最大4コマ",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlipControllerTests.チェリー当選時は左リールにチェリーが止まる(CHERRY_A,True)",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlipControllerTests.チェリー当選時は左リールにチェリーが止まる(CHERRY_C,False)",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlipControllerTests.ハズレ時はどこで押しても役が揃わない",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlipControllerTests.ベル当選時は順押しなら必ずSTAR払い出し(BELL_A)",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlipControllerTests.ベル当選時は順押しなら必ずSTAR払い出し(BELL_B)",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlipControllerTests.ベル当選時は順押しなら必ずSTAR払い出し(BELL_C)",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlipControllerTests.リール配列は3本x20コマ",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlipControllerTests.リプレイ当選時は必ず再遊技(REPLAY_A)",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlipControllerTests.リプレイ当選時は必ず再遊技(REPLAY_B)",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlipControllerTests.リプレイ当選時は必ず再遊技(REPLAY_C)",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlipControllerTests.非当選役では役の払い出しが起きない_全フラグ総当たり",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlotMachineTests.AT開始で通常時のエンゲージは持ち込まれない",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlotMachineTests.AT期待度_ボーナス中だけ溜まりランクが上がる",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlotMachineTests.AT当選後は洞窟前兆を挟んでから50Gで始まる",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlotMachineTests.BAR揃いと青赤青はどのラインでもBIG_紛らわしい停止形は出ない",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlotMachineTests.BB中は目標枚数に達すると終了する",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlotMachineTests.クレジット不足ならBETできない",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlotMachineTests.ジャッジの示唆は終了のとき金と虹が出ず_継続率100なら必ず継続する",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlotMachineTests.セットを使い切ると継続ジャッジに入り_示唆のあと最終Gに結果が出る",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlotMachineTests.チェリーは4コマ以内に無ければこぼす",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlotMachineTests.ベル択ナビ_外すとベルを取りこぼす",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlotMachineTests.ボーナスはG数を使い切れば規定枚数に届かなくても終わる",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlotMachineTests.ボーナス成立後は前兆を挟み最後の擬似遊技で揃う",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlotMachineTests.ボーナス中でも敵エンゲージは進んで決着する",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlotMachineTests.ボーナス中のベル_ナビ通りなら多め_外せばこぼし_ナビ無しは共通ベル",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlotMachineTests.ボーナス当選フラグは揃うまで持ち越す",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlotMachineTests.リプレイ後はクレジットを減らさず回せる",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlotMachineTests.一万G回してもクレジットが破綻しない",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlotMachineTests.初期エンバー500_BETで497",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlotMachineTests.前兆が終われば引き込みでどこで押しても揃う",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlotMachineTests.通しで回しても状態が壊れない",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlotMachineTests.敵出現の翌Gから3GでTier2が決着する",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlotMachineTests.天井到達で強制ボーナス",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlotMachineTests.配列は全役をどの押し順_どの位置でも成立または回避できる",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlumpGraphTests.取り直すと_潜行の始まりも先頭に戻る",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlumpGraphTests.潜行の始まりを置くと_そこからの回転数と増減だけを数える",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.SlumpGraphTests.点が間引かれても_潜行の始まりがずれない",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.TechRankTests.ビタは押した位相でPerfectからCoolまで5段",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.TechRankTests.既定の表は上から狭い順で_上乗せは最高100パーセント",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.TechRankTests.手前で押した分だけ1コマ2コマになり_3コマ以上はランク無し",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.TechRankTests.同じ図柄が複数あれば一番近い狙いで数える",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.TechRankTests.表が空ならランク無し",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.TechRoleTests.左リールのチェリーで成功になる止め位置",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.TechRoleTests.出た課題は成功の止め位置で役とBARか7が両方見える",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.TechRoleTests.狙いの位置で押せば成功しランクが付く",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.TechRoleTests.役ごとに決まったリールで出る_リプレイとハズレでは出ない",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.WorkflowAndEnemyTests.AT_ナビに従うと得_外すと損_バトルは討伐で上乗せ",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.WorkflowAndEnemyTests.JSONのリストが既定値に追記されず置き換えになる",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.WorkflowAndEnemyTests.rateが0でないカテゴリのバリアント合計は100か0",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.WorkflowAndEnemyTests.REPLAYはENEMY当選率50pct",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.WorkflowAndEnemyTests.VariantAならスライム_未指定ならANYかランダム",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.WorkflowAndEnemyTests.ショップ_買うとレベルが上がり効果が乗る_ソウル不足は弾かれる",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.WorkflowAndEnemyTests.ソウル_討伐で貯まり取得量アップが効く",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.WorkflowAndEnemyTests.各役のNONEとカテゴリrateの合計が100",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.WorkflowAndEnemyTests.主人公のひとりごと_確率どおりに出て文脈に沿う",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.WorkflowAndEnemyTests.揃ったラインが記録される_上段_下段_斜め_チェリー段",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.WorkflowAndEnemyTests.敵Tier2テーブルの合計は65536",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.WorkflowAndEnemyTests.敵アートは登録されたIDだけに明示解決する(\"slime\",\"Art/Enemies/slime\")",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.WorkflowAndEnemyTests.敵アートは登録されたIDだけに明示解決する(\"goblin\",\"Art/Enemies/goblin\")",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.WorkflowAndEnemyTests.敵アートは登録されたIDだけに明示解決する(\"bat\",\"Art/Enemies/bat\")",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.WorkflowAndEnemyTests.敵テーブルは通常16種とボス4種_スライムはVariantA",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.WorkflowAndEnemyTests.討伐率_CHANCEは100pct_REPLAYは10pct",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.WorkflowAndEnemyTests.討伐率_連続小役でストリークボーナス加算",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.WorkflowAndEnemyTests.討伐率は基本に連続ボーナスと装備の上乗せを足し_表にない役は0",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.WorkflowAndEnemyTests.未登録敵はゴブリン画像へ流用しない(\"table_wolf_1\")",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.WorkflowAndEnemyTests.未登録敵はゴブリン画像へ流用しない(\"unregistered\")",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.WorkflowAndEnemyTests.未登録敵はゴブリン画像へ流用しない(null)",
+      "result": "Passed"
+    },
+    {
+      "name": "BBB.Tests.WorkflowAndEnemyTests.予告_ハズレのガセは低確率_チャンス目は高確率",
+      "result": "Passed"
+    }
+  ]
+}

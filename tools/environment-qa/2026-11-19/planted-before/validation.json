@@ -1,0 +1,607 @@
+{
+    "passed": false,
+    "productionSaveTouched": false,
+    "finalArtApproved": false,
+    "cases": [
+        {
+            "weapon": "w_blade",
+            "motion": "attack",
+            "fps": 15,
+            "contacts": 1,
+            "recoil": -48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_blade",
+            "motion": "attack",
+            "fps": 15,
+            "contacts": 1,
+            "recoil": 48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_blade",
+            "motion": "attack",
+            "fps": 60,
+            "contacts": 1,
+            "recoil": -48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_blade",
+            "motion": "attack",
+            "fps": 60,
+            "contacts": 1,
+            "recoil": 48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_blade",
+            "motion": "attack",
+            "fps": 120,
+            "contacts": 1,
+            "recoil": -48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_blade",
+            "motion": "attack",
+            "fps": 120,
+            "contacts": 1,
+            "recoil": 48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_blade",
+            "motion": "attack-f3-4",
+            "fps": 15,
+            "contacts": 1,
+            "recoil": -48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_blade",
+            "motion": "attack-f3-4",
+            "fps": 15,
+            "contacts": 1,
+            "recoil": 48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_blade",
+            "motion": "attack-f3-4",
+            "fps": 60,
+            "contacts": 1,
+            "recoil": -48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_blade",
+            "motion": "attack-f3-4",
+            "fps": 60,
+            "contacts": 1,
+            "recoil": 48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_blade",
+            "motion": "attack-f3-4",
+            "fps": 120,
+            "contacts": 1,
+            "recoil": -48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_blade",
+            "motion": "attack-f3-4",
+            "fps": 120,
+            "contacts": 1,
+            "recoil": 48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_spear",
+            "motion": "attack",
+            "fps": 15,
+            "contacts": 1,
+            "recoil": -48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_spear",
+            "motion": "attack",
+            "fps": 15,
+            "contacts": 1,
+            "recoil": 48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_spear",
+            "motion": "attack",
+            "fps": 60,
+            "contacts": 1,
+            "recoil": -48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_spear",
+            "motion": "attack",
+            "fps": 60,
+            "contacts": 1,
+            "recoil": 48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_spear",
+            "motion": "attack",
+            "fps": 120,
+            "contacts": 1,
+            "recoil": -48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_spear",
+            "motion": "attack",
+            "fps": 120,
+            "contacts": 1,
+            "recoil": 48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_spear",
+            "motion": "attack-f3-4",
+            "fps": 15,
+            "contacts": 1,
+            "recoil": -48.0,
+            "maxRootDrift": 0.0,
+            "restError": 0.0,
+            "passed": true
+        },
+        {
+            "weapon": "w_spear",
+            "motion": "attack-f3-4",
+            "fps": 15,
+            "contacts": 1,
+            "recoil": 48.0,
+            "maxRootDrift": 0.0,
+            "restError": 0.0,
+            "passed": true
+        },
+        {
+            "weapon": "w_spear",
+            "motion": "attack-f3-4",
+            "fps": 60,
+            "contacts": 1,
+            "recoil": -48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_spear",
+            "motion": "attack-f3-4",
+            "fps": 60,
+            "contacts": 1,
+            "recoil": 48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_spear",
+            "motion": "attack-f3-4",
+            "fps": 120,
+            "contacts": 1,
+            "recoil": -48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_spear",
+            "motion": "attack-f3-4",
+            "fps": 120,
+            "contacts": 1,
+            "recoil": 48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_dagger",
+            "motion": "attack",
+            "fps": 15,
+            "contacts": 1,
+            "recoil": -48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_dagger",
+            "motion": "attack",
+            "fps": 15,
+            "contacts": 1,
+            "recoil": 48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_dagger",
+            "motion": "attack",
+            "fps": 60,
+            "contacts": 1,
+            "recoil": -48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_dagger",
+            "motion": "attack",
+            "fps": 60,
+            "contacts": 1,
+            "recoil": 48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_dagger",
+            "motion": "attack",
+            "fps": 120,
+            "contacts": 1,
+            "recoil": -48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_dagger",
+            "motion": "attack",
+            "fps": 120,
+            "contacts": 1,
+            "recoil": 48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_dagger",
+            "motion": "attack-f3-4",
+            "fps": 15,
+            "contacts": 1,
+            "recoil": -48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_dagger",
+            "motion": "attack-f3-4",
+            "fps": 15,
+            "contacts": 1,
+            "recoil": 48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_dagger",
+            "motion": "attack-f3-4",
+            "fps": 60,
+            "contacts": 1,
+            "recoil": -48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_dagger",
+            "motion": "attack-f3-4",
+            "fps": 60,
+            "contacts": 1,
+            "recoil": 48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_dagger",
+            "motion": "attack-f3-4",
+            "fps": 120,
+            "contacts": 1,
+            "recoil": -48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_dagger",
+            "motion": "attack-f3-4",
+            "fps": 120,
+            "contacts": 1,
+            "recoil": 48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_holy",
+            "motion": "attack",
+            "fps": 15,
+            "contacts": 1,
+            "recoil": -48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_holy",
+            "motion": "attack",
+            "fps": 15,
+            "contacts": 1,
+            "recoil": 48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_holy",
+            "motion": "attack",
+            "fps": 60,
+            "contacts": 1,
+            "recoil": -48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_holy",
+            "motion": "attack",
+            "fps": 60,
+            "contacts": 1,
+            "recoil": 48.0,
+            "maxRootDrift": 47.99998474121094,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_holy",
+            "motion": "attack",
+            "fps": 120,
+            "contacts": 1,
+            "recoil": -48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_holy",
+            "motion": "attack",
+            "fps": 120,
+            "contacts": 1,
+            "recoil": 48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_holy",
+            "motion": "attack-f3-4",
+            "fps": 15,
+            "contacts": 1,
+            "recoil": -48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_holy",
+            "motion": "attack-f3-4",
+            "fps": 15,
+            "contacts": 1,
+            "recoil": 48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_holy",
+            "motion": "attack-f3-4",
+            "fps": 60,
+            "contacts": 1,
+            "recoil": -48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_holy",
+            "motion": "attack-f3-4",
+            "fps": 60,
+            "contacts": 1,
+            "recoil": 48.0,
+            "maxRootDrift": 47.99998474121094,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_holy",
+            "motion": "attack-f3-4",
+            "fps": 120,
+            "contacts": 1,
+            "recoil": -48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_holy",
+            "motion": "attack-f3-4",
+            "fps": 120,
+            "contacts": 1,
+            "recoil": 48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_hammer",
+            "motion": "attack",
+            "fps": 15,
+            "contacts": 1,
+            "recoil": -48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_hammer",
+            "motion": "attack",
+            "fps": 15,
+            "contacts": 1,
+            "recoil": 48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_hammer",
+            "motion": "attack",
+            "fps": 60,
+            "contacts": 1,
+            "recoil": -48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_hammer",
+            "motion": "attack",
+            "fps": 60,
+            "contacts": 1,
+            "recoil": 48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_hammer",
+            "motion": "attack",
+            "fps": 120,
+            "contacts": 1,
+            "recoil": -48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_hammer",
+            "motion": "attack",
+            "fps": 120,
+            "contacts": 1,
+            "recoil": 48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_hammer",
+            "motion": "attack-f3-4",
+            "fps": 15,
+            "contacts": 1,
+            "recoil": -48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_hammer",
+            "motion": "attack-f3-4",
+            "fps": 15,
+            "contacts": 1,
+            "recoil": 48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_hammer",
+            "motion": "attack-f3-4",
+            "fps": 60,
+            "contacts": 1,
+            "recoil": -48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_hammer",
+            "motion": "attack-f3-4",
+            "fps": 60,
+            "contacts": 1,
+            "recoil": 48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_hammer",
+            "motion": "attack-f3-4",
+            "fps": 120,
+            "contacts": 1,
+            "recoil": -48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        },
+        {
+            "weapon": "w_hammer",
+            "motion": "attack-f3-4",
+            "fps": 120,
+            "contacts": 1,
+            "recoil": 48.0,
+            "maxRootDrift": 48.0,
+            "restError": 0.0,
+            "passed": false
+        }
+    ]
+}

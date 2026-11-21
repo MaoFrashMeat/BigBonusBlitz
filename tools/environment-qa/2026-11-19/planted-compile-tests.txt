@@ -1,0 +1,3 @@
+OK  コンパイル core
+OK  コンパイル runtime
+OK  コンパイル tests

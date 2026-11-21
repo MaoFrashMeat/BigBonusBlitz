@@ -1,0 +1,18 @@
+[
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Scripts/BBB.Runtime/AdventureHeroPresenter.cs",
+    "sha256": "4661a7e6402b9e66a1aac355273f96565ffe9c9d89874873b60a41803407308d"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Data/hero_presentation_prototype.json",
+    "sha256": "8057fe16817a616b9240d94a56322467d226b7ac9de041326e8689582ffa8350"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Resources/Data/notices.json",
+    "sha256": "f84066ce8d670a18bde375504e7584cdc1052b207258a8cfd36a3def9505c79e"
+  },
+  {
+    "path": "UnityProject/BigBonusBlitz/Assets/Tests/EditMode/HeroContactPlantTests.cs",
+    "sha256": "0e9f47fc84a3bef33d289c297ef685596704e7a530004b7537edbeaced6d32b9"
+  }
+]
