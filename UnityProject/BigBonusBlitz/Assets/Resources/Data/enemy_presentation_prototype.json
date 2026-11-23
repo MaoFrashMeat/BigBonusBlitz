@@ -2962,7 +2962,18 @@
           "next": "idle"
         }
       ],
-      "gameplayHeight": 140
+      "gameplayHeight": 140,
+      "shot": {
+        "atlas": "enemy-bolt",
+        "w": 256,
+        "h": 256,
+        "width": 56,
+        "height": 24,
+        "seconds": 0.25,
+        "color": "C184FF",
+        "rotation": -90,
+        "reachScale": 0.06
+      }
     },
     {
       "id": "gargoyle",
@@ -3703,7 +3714,18 @@
           "next": "idle"
         }
       ],
-      "gameplayHeight": 100
+      "gameplayHeight": 100,
+      "shot": {
+        "atlas": "enemy-flame_a",
+        "w": 256,
+        "h": 256,
+        "width": 64,
+        "height": 33,
+        "seconds": 0.3,
+        "color": "FF9A43",
+        "rotation": -90,
+        "reachScale": 0.06
+      }
     },
     {
       "id": "bone",

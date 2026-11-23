@@ -1,0 +1,42 @@
+{
+  "dateJST": "2026-11-23",
+  "releaseBranch": "codex/p2-gameplay-handoff",
+  "editMode": {
+    "total": 156,
+    "passed": 156,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "editModeXmlSha256": "037abcdf2571c3d7ca17c7bf0dfdde495ed1a7dd2887239708d39bb60d7f2c5a",
+  "compilePassed": [
+    "Core",
+    "Runtime",
+    "Tests"
+  ],
+  "millionGameHarnessPassed": true,
+  "layoutPassed": true,
+  "windowsBuild": {
+    "result": "Succeeded",
+    "bytes": 1112576227,
+    "errors": 0,
+    "company": "BBBPresentationQA",
+    "startupEmptyAudioWarnings": 0
+  },
+  "environment": {
+    "passed": true,
+    "nativeStages": 29,
+    "legacyMatteRegression": true,
+    "timeWeatherCombinations": 1080,
+    "periodChecks": 540,
+    "worstWrapDifference": 0.000206357973549357,
+    "paintedRoadScroll": true,
+    "stageCoverage": 30,
+    "mainResolutions": 2,
+    "finalArtApproved": false,
+    "productionSaveTouched": false
+  },
+  "hardwareTouchTested": false,
+  "finalArtApproved": false,
+  "storePublished": false
+}

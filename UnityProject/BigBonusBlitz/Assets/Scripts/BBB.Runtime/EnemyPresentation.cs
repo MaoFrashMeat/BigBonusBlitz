@@ -18,10 +18,18 @@ namespace BBB.Runtime
         public string[] events,phases;
         public bool loop,hold;
     }
+    [Serializable] public sealed class EnemyShot
+    {
+        public string atlas,color;
+        public int w,h;
+        public float width,height,seconds,rotation,reachScale;
+    }
     [Serializable] public sealed class EnemyLook
     {
         public string id,atlas;
         public float referenceHeight,displayHeight,shadowWidth,gameplayHeight;
+        public EnemyShot shot;
+        public bool HasShot=>shot!=null&&!string.IsNullOrEmpty(shot.atlas)&&shot.w>0&&shot.h>0&&shot.seconds>0;
         public EnemyPose[] poses;
         public EnemyMotion[] motions;
     }

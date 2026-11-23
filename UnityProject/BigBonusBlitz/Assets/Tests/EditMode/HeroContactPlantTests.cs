@@ -68,7 +68,8 @@ namespace BBB.Tests
 
         [TestCase("w_dagger")]
         [TestCase("w_holy")]
-        public void BladeVariantsUseLowPosesOnlyForShortTargets(string weapon)
+        [TestCase("w_hammer")]
+        public void MeleeVariantsUseLowPosesOnlyForShortTargets(string weapon)
         {
             RequireIsolation();
             var stage=new GameObject("LowBladeTest",typeof(RectTransform));
@@ -84,7 +85,7 @@ namespace BBB.Tests
                     for(int frame=0;frame<240&&!hero.ImpactReady;frame++)hero.Step(1f/120);
                     Assert.IsTrue(hero.ImpactReady);Assert.AreEqual(low,hero.View.LowTarget);
                     var pose=HeroPresentation.Config.poses[hero.View.RenderedPoseIndex];
-                    Assert.AreEqual(low,pose.atlas=="hero-low-contact-v1");
+                    Assert.AreEqual(low,(pose.atlas=="hero-low-contact-v1"||pose.atlas=="hammer-low"));
                 }
             }
             finally {Object.DestroyImmediate(stage);}

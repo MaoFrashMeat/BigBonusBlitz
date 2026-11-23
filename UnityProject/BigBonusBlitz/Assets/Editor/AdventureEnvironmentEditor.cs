@@ -29,6 +29,11 @@ public sealed class AdventureEnvironmentTextureImporter : AssetPostprocessor
     {
         if(!assetPath.StartsWith("Assets/Resources/Art/Adventure/"))return;
         var t=(TextureImporter)assetImporter;t.textureType=TextureImporterType.Default;t.textureShape=TextureImporterShape.Texture2D;t.npotScale=TextureImporterNPOTScale.None;t.sRGBTexture=true;t.alphaIsTransparency=true;t.mipmapEnabled=false;t.isReadable=false;t.maxTextureSize=2048;t.wrapModeU=TextureWrapMode.Mirror;t.wrapModeV=TextureWrapMode.Clamp;t.filterMode=FilterMode.Bilinear;t.textureCompression=TextureImporterCompression.CompressedHQ;
+        if(assetPath=="Assets/Resources/Art/Adventure/road-grain.png")
+        {
+            t.textureType=TextureImporterType.Sprite;t.spriteImportMode=SpriteImportMode.Single;
+            t.wrapModeU=TextureWrapMode.Repeat;
+        }
         if(assetPath.Contains("/Modules/"))
         {
             // Preserve the matte and painted edges; compression can introduce key-colored fringes.

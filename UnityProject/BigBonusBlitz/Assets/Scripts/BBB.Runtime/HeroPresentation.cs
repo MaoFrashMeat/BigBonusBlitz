@@ -15,6 +15,7 @@ namespace BBB.Runtime
         public string atlas;
         public int x,y,w,h; // Source pixels, y measured from the top; PNG remains unchanged.
         public float foot, height, gripX, gripY, swordAngle, spearAngle;
+        public float supportFootX; // Planted sole center in the source cel, measured from its left edge.
         public float offsetX; // Authored support-foot registration; applied to body and attachment points together.
         public bool twoHanded;
         public float supportX,supportY;
@@ -128,6 +129,7 @@ namespace BBB.Runtime
         public string State=>motion.id;
         public bool IsLoop=>motion.loop;
         public int PoseIndex=>motion.frames[frame];
+        public float SecondsIntoPose=>elapsed;
         /// <summary>Normalized time inside the current clip, used to keep locomotion continuous across a weapon swap.</summary>
         public float NormalizedTime
         {
@@ -236,6 +238,7 @@ namespace BBB.Runtime
             shadow.rectTransform.sizeDelta=environment.ContactShadowSize;
             shadow.rectTransform.anchoredPosition=environment.ContactShadowOffset;
         }
+        HeroSoleMesh sole;
         Image shadow,marker,supportMarker,stringTop,stringBottom,nockedArrow;
         int lastPose=-1;
         string lastWeapon;
@@ -246,6 +249,7 @@ namespace BBB.Runtime
             v.shadow=UiSkin.Img(root,"ContactShadow",new Vector2(0,2),new Vector2(115,19),UiSkin.Glow(64),new Color(.015f,.025f,.05f,.6f));
             v.Weapon=UiSkin.Img(root,"RigidWeapon",Vector2.zero,Vector2.one,null,Color.white);
             v.Body=UiSkin.Img(root,"Body",Vector2.zero,new Vector2(300,300),null,Color.white);
+            v.sole=v.Body.gameObject.AddComponent<HeroSoleMesh>();
             v.Hand=UiSkin.Img(root,"ForegroundGrip",Vector2.zero,Vector2.one,null,Color.white);v.Hand.gameObject.SetActive(false);
             v.SupportHand=UiSkin.Img(root,"ForegroundSupportGrip",Vector2.zero,Vector2.one,null,Color.white);
             v.stringTop=UiSkin.Img(root,"BowStringTop",Vector2.zero,Vector2.one,null,new Color(.85f,.76f,.58f));
@@ -254,6 +258,16 @@ namespace BBB.Runtime
             v.marker=UiSkin.Img(root,"GripMarker",Vector2.zero,new Vector2(7,7),UiSkin.Circle(16),Color.cyan);v.marker.gameObject.SetActive(false);
             v.supportMarker=UiSkin.Img(root,"SupportMarker",Vector2.zero,new Vector2(7,7),UiSkin.Circle(16),Color.yellow);v.supportMarker.gameObject.SetActive(false);
             v.Render();return v;
+        }
+        public void ApplyWalkingSurface(ParallaxBackground environment)
+        {
+            var pose=HeroPresentation.Config.poses[RenderedPoseIndex];
+            if(environment==null||!environment.IsWalking||Player.State!="walk"||pose.supportFootX<=0)
+            {
+                sole.SetTravel(0,0,0);return;
+            }
+            float speed=Body.rectTransform.InverseTransformVector(environment.RoadVelocity).x;
+            sole.SetTravel(pose.supportFootX/pose.w,pose.foot/pose.h,speed*Player.SecondsIntoPose);
         }
         public void ShowGrip(bool show){marker.gameObject.SetActive(show);supportMarker.gameObject.SetActive(show&&TwoHanded);}
         public void Step(float seconds){Player.Tick(seconds);Render();}
@@ -286,6 +300,7 @@ namespace BBB.Runtime
             i=ResolvePose(i,Player.WeaponId);
             if(i==lastPose&&lastWeapon==Player.WeaponId)return;
             lastPose=i;lastWeapon=Player.WeaponId;
+            sole.SetTravel(0,0,0);
             var cfg=HeroPresentation.Config;var p=cfg.poses[i];
             Body.sprite=HeroPresentation.Sprite(p.atlas,p.x,p.y,p.w,p.h);
             float scale=cfg.height/Mathf.Max(1,p.height);

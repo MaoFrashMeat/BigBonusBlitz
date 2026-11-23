@@ -39,6 +39,8 @@ namespace BBB.Runtime
         bool releaseHiddenBank;
         AdventureWeather oldWeather;
         float weatherSeconds=2, hourFrom, hourTarget, hourBlend=1, hourSeconds=2;
+        const float RoadScrollRate=.065f;
+        public Vector3 RoadVelocity=>scenery.TransformVector(Vector3.left*(scenery.rect.width*RoadScrollRate));
         float offset, meshTimer;
         readonly float[] speeds={.007f,.024f,.065f};
         // Tall middle-plane trees/columns touch the atlas crop. Keep that crop above the
@@ -57,6 +59,7 @@ namespace BBB.Runtime
             banks=new RawImage[2][];layerMaterials=new Material[2][];groups=new CanvasGroup[2];
             bankProfiles=new AdventureEnvironmentProfile[2];grounds=new Image[2][];
             groundMaterials=new Material[2];
+            var road=Resources.Load<Sprite>("Art/Adventure/road-grain");
             var layerShader=Resources.Load<Shader>("Art/Adventure/AdventureSeamless");
             for(int b=0;b<2;b++)
             {
@@ -67,6 +70,7 @@ namespace BBB.Runtime
                 {
                     var gr=UiSkin.Rect(root,g==0?"ContinuousGround":"WalkingPath",Vector2.zero,Vector2.zero);
                     grounds[b][g]=gr.gameObject.AddComponent<Image>();grounds[b][g].raycastTarget=false;grounds[b][g].enabled=false;
+                    if(g==1)grounds[b][g].sprite=road;
                     if(g==1&&layerShader!=null){groundMaterials[b]=new Material(layerShader);groundMaterials[b].SetFloat("_Ground",1);grounds[b][g].material=groundMaterials[b];}
                 }
                 for(int i=0;i<3;i++)
@@ -76,6 +80,8 @@ namespace BBB.Runtime
                     var image=rt.gameObject.AddComponent<RawImage>();image.raycastTarget=false;banks[b][i]=image;
                     if(layerShader!=null){layerMaterials[b][i]=new Material(layerShader);image.material=layerMaterials[b][i];}
                 }
+                // The feathered road covers the cut bottom of the distant terrain.
+                grounds[b][1].transform.SetSiblingIndex(banks[b][2].transform.GetSiblingIndex()-1);
             }
             SetStage("A-1",true);
             atmosphere=Graphic("EnvironmentWeather",true);
@@ -99,9 +105,9 @@ namespace BBB.Runtime
             bankProfiles[activeBank]=next;
             for(int g=0;g<2;g++)
             {
-                var ground=grounds[activeBank][g];ground.enabled=next.UsesModules;
+                var ground=grounds[activeBank][g];ground.enabled=next.UsesModules&&(g==1||groundMaterials[activeBank]==null);
                 ground.rectTransform.anchorMin=new Vector2(0,0);
-                ground.rectTransform.anchorMax=new Vector2(1,next.groundHeight);
+                ground.rectTransform.anchorMax=new Vector2(1,next.groundHeight+(g==1?.085f:0));
                 ground.rectTransform.offsetMin=ground.rectTransform.offsetMax=Vector2.zero;
             }
             float[] cuts={0,next.farEnd,next.middleEnd,1};
@@ -200,7 +206,10 @@ namespace BBB.Runtime
                 if(groundMaterials[b]!=null)
                 {
                     // Update the stencil copy too; uGUI may cache the material used for masking.
-                    float travel=Mathf.Repeat(offset*.065f,1)*12;
+                    float travel=Mathf.Repeat(offset*RoadScrollRate,1)*12;
+                    var tint=p.ground*bankLight;
+                    groundMaterials[b].SetColor("_GroundTint",tint);
+                    grounds[b][1].materialForRendering.SetColor("_GroundTint",tint);
                     groundMaterials[b].SetFloat("_Scroll",travel);
                     grounds[b][1].materialForRendering.SetFloat("_Scroll",travel);
                 }

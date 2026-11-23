@@ -2620,7 +2620,7 @@ namespace BBB.Runtime
                 _adventureHero.Equip(_m.Equip.WornOf(EquipSlot.Weapon));
                 bool heroBlocked=AtelierModalOpen()||_curseBox!=null||OpeningPlayer.IsDialogueVisible;
                 if(!heroBlocked)_adventureHero.Step(Time.deltaTime);
-                _bg.IsWalking=_adventureHero.View.Player.State=="walk";_bgOuter.IsWalking=_bg.IsWalking;
+                _bg.IsWalking=!heroBlocked&&_adventureHero.View.Player.State=="walk";_bgOuter.IsWalking=_bg.IsWalking;
             }
             RefreshExplanationVisibility();
             if(_gainVisibility!=null)_gainVisibility.alpha=RewardPresentationBlocked()?0:1;
@@ -5457,8 +5457,8 @@ namespace BBB.Runtime
             bool incoming=st.outcome==EngageOutcome.Hit||st.outcome==EngageOutcome.Guard||st.outcome==EngageOutcome.Dodge||st.outcome==EngageOutcome.Counter;
             if(incoming&&_adventureEnemy.Active)
             {
-                _adventureEnemy.Request("strike");
-                while(version==_enemyPresentationVersion&&_adventureEnemy.Active&&!_adventureEnemy.ImpactReady&&_adventureEnemy.View.Player.State=="strike")yield return null;
+                _adventureEnemy.RequestStrike(_adventureHero!=null?_adventureHero.View.Body.rectTransform:_charRt);
+                while(version==_enemyPresentationVersion&&_adventureEnemy.Active&&!_adventureEnemy.ImpactReady&&(_adventureEnemy.View.Player.State=="strike"||_adventureEnemy.IsProjectileFlying))yield return null;
                 if(version!=_enemyPresentationVersion||!_adventureEnemy.ImpactReady)yield break;
             }
             bool outgoing=st.outcome==EngageOutcome.Attack||st.outcome==EngageOutcome.Counter||st.outcome==EngageOutcome.Judge&&st.defeated;

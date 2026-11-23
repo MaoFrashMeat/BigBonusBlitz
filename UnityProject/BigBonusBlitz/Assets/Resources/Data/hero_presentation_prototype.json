@@ -1,5 +1,5 @@
 {
-  "status": "30 backgrounds integrated; blade, spear, dagger and holy blade use authored low-target poses; final art approval pending",
+  "status": "Five melee weapon families have low-target poses.",
   "height": 220,
   "walkSeconds": 0.88,
   "approach": {
@@ -217,7 +217,8 @@
       "gripX": 300,
       "gripY": 190,
       "swordAngle": -15,
-      "spearAngle": -80
+      "spearAngle": -80,
+      "supportFootX": 304
     },
     {
       "atlas": "walk-v3",
@@ -230,7 +231,8 @@
       "gripX": 308,
       "gripY": 190,
       "swordAngle": -15,
-      "spearAngle": -80
+      "spearAngle": -80,
+      "supportFootX": 238
     },
     {
       "atlas": "walk-v3",
@@ -243,7 +245,8 @@
       "gripX": 307,
       "gripY": 190,
       "swordAngle": -15,
-      "spearAngle": -80
+      "spearAngle": -80,
+      "supportFootX": 195
     },
     {
       "atlas": "walk-v3",
@@ -256,7 +259,8 @@
       "gripX": 306,
       "gripY": 190,
       "swordAngle": -15,
-      "spearAngle": -80
+      "spearAngle": -80,
+      "supportFootX": 315
     },
     {
       "atlas": "walk-v3",
@@ -269,7 +273,8 @@
       "gripX": 327,
       "gripY": 188,
       "swordAngle": -15,
-      "spearAngle": -80
+      "spearAngle": -80,
+      "supportFootX": 164
     },
     {
       "atlas": "walk-v3",
@@ -282,7 +287,8 @@
       "gripX": 307,
       "gripY": 186,
       "swordAngle": -15,
-      "spearAngle": -80
+      "spearAngle": -80,
+      "supportFootX": 290
     },
     {
       "atlas": "walk-v3",
@@ -295,7 +301,8 @@
       "gripX": 305,
       "gripY": 188,
       "swordAngle": -15,
-      "spearAngle": -80
+      "spearAngle": -80,
+      "supportFootX": 194
     },
     {
       "atlas": "walk-v3",
@@ -308,7 +315,8 @@
       "gripX": 305,
       "gripY": 188,
       "swordAngle": -15,
-      "spearAngle": -80
+      "spearAngle": -80,
+      "supportFootX": 154
     },
     {
       "atlas": "sword-v2",
@@ -1215,7 +1223,8 @@
         "y": 185,
         "w": 36,
         "h": 34
-      }
+      },
+      "supportFootX": 302
     },
     {
       "atlas": "hero-spear-walk-v1",
@@ -1244,7 +1253,8 @@
         "y": 192,
         "w": 36,
         "h": 34
-      }
+      },
+      "supportFootX": 229
     },
     {
       "atlas": "hero-spear-walk-v1",
@@ -1273,7 +1283,8 @@
         "y": 184,
         "w": 36,
         "h": 34
-      }
+      },
+      "supportFootX": 176
     },
     {
       "atlas": "hero-spear-walk-v1",
@@ -1302,7 +1313,8 @@
         "y": 182,
         "w": 36,
         "h": 34
-      }
+      },
+      "supportFootX": 300
     },
     {
       "atlas": "hero-spear-walk-v1",
@@ -1331,7 +1343,8 @@
         "y": 182,
         "w": 36,
         "h": 34
-      }
+      },
+      "supportFootX": 112
     },
     {
       "atlas": "hero-spear-walk-v1",
@@ -1360,7 +1373,8 @@
         "y": 185,
         "w": 36,
         "h": 34
-      }
+      },
+      "supportFootX": 250
     },
     {
       "atlas": "hero-spear-walk-v1",
@@ -1389,7 +1403,8 @@
         "y": 181,
         "w": 36,
         "h": 34
-      }
+      },
+      "supportFootX": 184
     },
     {
       "atlas": "hero-spear-walk-v1",
@@ -1418,7 +1433,8 @@
         "y": 181,
         "w": 36,
         "h": 34
-      }
+      },
+      "supportFootX": 121
     },
     {
       "atlas": "hero-low-contact-v1",
@@ -1572,6 +1588,180 @@
       "supportHand": {
         "x": 423,
         "y": 293,
+        "w": 36,
+        "h": 34
+      }
+    },
+    {
+      "atlas": "hammer-low",
+      "x": 0,
+      "y": 0,
+      "w": 512,
+      "h": 512,
+      "foot": 24,
+      "height": 440,
+      "gripX": 253,
+      "gripY": 250,
+      "supportX": 363,
+      "supportY": 253,
+      "twoHanded": true,
+      "offsetX": 0,
+      "swordAngle": -20,
+      "spearAngle": -20,
+      "swordHand": {
+        "x": 235,
+        "y": 233,
+        "w": 36,
+        "h": 34
+      },
+      "supportHand": {
+        "x": 345,
+        "y": 236,
+        "w": 36,
+        "h": 34
+      }
+    },
+    {
+      "atlas": "hammer-low",
+      "x": 512,
+      "y": 0,
+      "w": 512,
+      "h": 512,
+      "foot": 24,
+      "height": 440,
+      "gripX": 219,
+      "gripY": 172,
+      "supportX": 225,
+      "supportY": 136,
+      "twoHanded": true,
+      "offsetX": 0,
+      "swordAngle": -20,
+      "spearAngle": -20,
+      "swordHand": {
+        "x": 201,
+        "y": 155,
+        "w": 36,
+        "h": 34
+      },
+      "supportHand": {
+        "x": 207,
+        "y": 119,
+        "w": 36,
+        "h": 34
+      }
+    },
+    {
+      "atlas": "hammer-low",
+      "x": 1024,
+      "y": 0,
+      "w": 512,
+      "h": 512,
+      "foot": 24,
+      "height": 440,
+      "gripX": 222,
+      "gripY": 87,
+      "supportX": 282,
+      "supportY": 38,
+      "twoHanded": true,
+      "offsetX": 0,
+      "swordAngle": -20,
+      "spearAngle": -20,
+      "swordHand": {
+        "x": 204,
+        "y": 70,
+        "w": 36,
+        "h": 34
+      },
+      "supportHand": {
+        "x": 264,
+        "y": 21,
+        "w": 36,
+        "h": 34
+      }
+    },
+    {
+      "atlas": "hammer-low",
+      "x": 0,
+      "y": 512,
+      "w": 512,
+      "h": 512,
+      "foot": 24,
+      "height": 440,
+      "gripX": 380,
+      "gripY": 295,
+      "supportX": 401,
+      "supportY": 308,
+      "twoHanded": true,
+      "offsetX": 31,
+      "swordAngle": -20,
+      "spearAngle": -20,
+      "swordHand": {
+        "x": 362,
+        "y": 278,
+        "w": 36,
+        "h": 34
+      },
+      "supportHand": {
+        "x": 383,
+        "y": 291,
+        "w": 36,
+        "h": 34
+      }
+    },
+    {
+      "atlas": "hammer-low",
+      "x": 512,
+      "y": 512,
+      "w": 512,
+      "h": 512,
+      "foot": 24,
+      "height": 440,
+      "gripX": 353,
+      "gripY": 316,
+      "supportX": 372,
+      "supportY": 322,
+      "twoHanded": true,
+      "offsetX": 24,
+      "swordAngle": -20,
+      "spearAngle": -20,
+      "swordHand": {
+        "x": 335,
+        "y": 299,
+        "w": 36,
+        "h": 34
+      },
+      "supportHand": {
+        "x": 354,
+        "y": 305,
+        "w": 36,
+        "h": 34
+      }
+    },
+    {
+      "atlas": "hammer-low",
+      "x": 1024,
+      "y": 512,
+      "w": 512,
+      "h": 512,
+      "foot": 25,
+      "height": 440,
+      "gripX": 259,
+      "gripY": 261,
+      "supportX": 364,
+      "supportY": 269,
+      "twoHanded": true,
+      "offsetX": 7,
+      "swordAngle": -20,
+      "spearAngle": -20,
+      "swordHand": {
+        "x": 241,
+        "y": 244,
+        "w": 36,
+        "h": 34
+      },
+      "supportHand": {
+        "x": 346,
+        "y": 252,
         "w": 36,
         "h": 34
       }
@@ -3163,6 +3353,36 @@
       "weaponId": "w_holy",
       "original": 29,
       "pose": 77
+    },
+    {
+      "weaponId": "w_hammer",
+      "original": 43,
+      "pose": 81
+    },
+    {
+      "weaponId": "w_hammer",
+      "original": 44,
+      "pose": 82
+    },
+    {
+      "weaponId": "w_hammer",
+      "original": 45,
+      "pose": 83
+    },
+    {
+      "weaponId": "w_hammer",
+      "original": 46,
+      "pose": 84
+    },
+    {
+      "weaponId": "w_hammer",
+      "original": 47,
+      "pose": 85
+    },
+    {
+      "weaponId": "w_hammer",
+      "original": 48,
+      "pose": 86
     }
   ]
 }

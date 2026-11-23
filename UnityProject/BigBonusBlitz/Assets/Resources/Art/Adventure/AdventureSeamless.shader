@@ -10,7 +10,8 @@ Shader "BBB/UI/AdventureSeamless"
         _UseSeam("Use content seam",Float)=0
         _SeamFeather("Seam half width",Float)=.012
         _Module("Black matte module (no overlap)",Float)=0
-        _Ground("Procedural continuous ground",Float)=0
+        _Ground("Painted road surface",Float)=0
+        _GroundTint("Distant soil tint",Color)=(1,1,1,1)
         _Scroll("Ground travel",Float)=0
         _DepthShade("Lower-plane shade",Float)=0
         _LocalLight0("Local light 0 position/radius",Vector)=(0,0,1,1)
@@ -48,7 +49,7 @@ Shader "BBB/UI/AdventureSeamless"
             #include "UnityUI.cginc"
             struct appdata{float4 vertex:POSITION;float4 color:COLOR;float2 uv:TEXCOORD0;};
             struct v2f{float4 vertex:SV_POSITION;fixed4 color:COLOR;float2 uv:TEXCOORD0;float4 local:TEXCOORD1;};
-            sampler2D _MainTex, _SeamTex;fixed4 _Color;float4 _Row,_ClipRect,_MainTex_TexelSize;float _Overlap,_UseSeam,_SeamFeather,_Module,_Ground,_Scroll;
+            sampler2D _MainTex, _SeamTex;fixed4 _Color,_GroundTint;float4 _Row,_ClipRect,_MainTex_TexelSize;float _Overlap,_UseSeam,_SeamFeather,_Module,_Ground,_Scroll;
             float _DepthShade;
             float4 _LocalLight0,_LocalLight1,_LocalLight2,_LocalLight3;
             fixed4 _LocalColor0,_LocalColor1,_LocalColor2,_LocalColor3;
@@ -74,16 +75,15 @@ Shader "BBB/UI/AdventureSeamless"
                 fixed4 c;
                 if(_Ground>.5)
                 {
-                    // Periodic flat paint facets, continuous in x; no bitmap join or mirrored rocks.
-                    float x=i.uv.x*12+_Scroll;
-                    float y=i.uv.y;
-                    float2 cell=floor(float2(x+y*.8,y*6));
-                    float seed=frac(sin(dot(float2(fmod(cell.x+1200,12),cell.y),float2(12.9898,78.233)))*43758.5453);
-                    float edge=.91+.035*sin(x*6.2831853)+.018*sin(x*18.849556);
-                    float band=step(edge,y);
-                    float shade=.82+seed*.28;
-                    c=i.color*fixed4(shade,shade,shade,1);
-                    c.rgb=lerp(c.rgb,c.rgb*float3(.50,.67,.55),band);
+                    float2 uv=float2(i.uv.x+_Scroll/12,i.uv.y*.36);
+                    float grain=tex2D(_MainTex,uv).r;
+                    #ifndef UNITY_COLORSPACE_GAMMA
+                    grain=LinearToGammaSpace(grain);
+                    #endif
+                    c=i.color;
+                    c.rgb=lerp(c.rgb,_GroundTint.rgb,smoothstep(.45,.95,i.uv.y)*.65);
+                    c.rgb*=clamp(1+(grain-.50)*2.8,.55,1.45);
+                    c.a*=1-smoothstep(.56+.07*grain,.99,i.uv.y);
                 }
                 else if(_Module>1.5)
                 {

@@ -101,6 +101,8 @@ walk = append_atlas('hero-spear-walk-v1',4,
     [(220,210),(211,219),(216,209),(222,209),(214,199),(214,211),(215,201),(217,201)],
     [(328,202),(329,209),(329,201),(328,199),(327,199),(328,202),(328,198),(328,198)],
     [0]*8,[-90]*8,440)
+for index, x in enumerate([302,229,176,300,112,250,184,121]):
+    hero['poses'][walk+index]['supportFootX']=x
 base = copy.deepcopy(next(m for m in hero['motions'] if m['id']=='walk' and not m.get('weaponId')))
 base.update(weaponId='w_spear',frames=list(range(walk,walk+8)))
 hero['motions'][:]=[m for m in hero['motions'] if not(m['id']=='walk' and m.get('weaponId')=='w_spear')]
@@ -109,13 +111,13 @@ low = append_atlas('hero-low-contact-v1',3,
     [(207,187),(400,352),(423,351),(243,256),(283,276),(277,280)],
     [(0,0)]*3+[(382,311),(436,307),(441,310)],
     [10,10,0,35,45,35],[35,-100,-98,-110,-105,-105],440)
-hero['lowTargetPoses'] = []
+hero['lowTargetPoses'] = [p for p in hero.get('lowTargetPoses',[]) if p['weaponId'] not in {'w_blade','w_spear','w_dagger','w_holy'}]
 for weapon, pairs in [('w_blade',[(23,0),(24,0),(25,0),(26,1),(27,2),(28,2),(29,2)]),
                       ('w_spear',[(31,3),(32,3),(33,4),(34,5),(35,5)])]:
     for original, replacement in pairs:
         hero['lowTargetPoses'].append(dict(weaponId=weapon,original=original,pose=low+replacement))
 for weapon in ['w_dagger','w_holy']:
     hero['lowTargetPoses'] += [dict(p,weaponId=weapon) for p in hero['lowTargetPoses'] if p['weaponId']=='w_blade']
-hero['status']='30 backgrounds integrated; blade, spear, dagger and holy blade use authored low-target poses; final art approval pending'
+hero['status']=f"30 backgrounds integrated; {len({p['weaponId'] for p in hero['lowTargetPoses']}) melee families have low-target poses; final art approval pending"
 write(hero_path, hero)
 print('Installed 14 backgrounds, spear walk, six low-target poses:', walk, low)

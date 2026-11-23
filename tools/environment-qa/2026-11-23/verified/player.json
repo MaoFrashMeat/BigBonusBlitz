@@ -1,0 +1,15 @@
+{
+    "capture": "Explicit camera render of live canvases to 1280x720 texture",
+    "gpu": "NVIDIA GeForce RTX 4070 Ti",
+    "cpu": "13th Gen Intel(R) Core(TM) i7-13700KF",
+    "graphics": "Direct3D12",
+    "quality": "Ultra",
+    "audioClip": "bgm_adventure",
+    "width": 1280,
+    "height": 720,
+    "frames": 240,
+    "p50ms": 8.333503723144532,
+    "p95ms": 8.333900451660157,
+    "managedMB": 28,
+    "betAccepted": true
+}

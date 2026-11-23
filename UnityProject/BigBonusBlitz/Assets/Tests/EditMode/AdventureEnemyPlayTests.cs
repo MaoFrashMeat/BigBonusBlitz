@@ -133,13 +133,24 @@ namespace BBB.Tests
                 yield return Tick(.7f);Assert.AreEqual("ready",enemy.View.Player.State);Capture(type+"-ready");
                 int credit=machine.Credit,sound=audio.SoundSequence;
                 var strike=Array.Find(enemy.View.Look.motions,m=>m.id=="strike");
-                enemy.Request("strike");enemy.Step(strike.seconds[0]*strike.eventAt[0]+.001f);Assert.IsTrue(enemy.ImpactReady);Capture(type+"-contact");
+                bool ranged=type=="book"||type=="salamander";
+                Assert.AreEqual(ranged,enemy.View.Look.HasShot);
+                enemy.RequestStrike(Get<AdventureHeroPresenter>("_adventureHero").View.Body.rectTransform);
+                enemy.Step(strike.seconds[0]*strike.eventAt[0]+.001f);
+                if(ranged)
+                {
+                    Assert.IsFalse(enemy.ImpactReady);Assert.IsTrue(enemy.IsProjectileFlying);
+                    enemy.Step(enemy.View.Look.shot.seconds*.5f);Capture(type+"-projectile");
+                    enemy.Step(enemy.View.Look.shot.seconds*.51f);Assert.IsFalse(enemy.IsProjectileFlying);
+                }
+                Assert.IsTrue(enemy.ImpactReady);Capture(type+"-contact");
                 Assert.AreEqual(credit,machine.Credit);Assert.AreEqual(sound,audio.SoundSequence,"Presentation emitted duplicate sound");
                 float gap=enemy.View.Body.transform.position.x-Get<RectTransform>("_charRt").position.x;
-                Assert.That(gap,Is.InRange(35f,150f),"Strike misses hero plane");
+                if(ranged)Assert.Greater(gap,150f,"Caster should stay behind its projectile");
+                else Assert.That(gap,Is.InRange(35f,150f),"Strike misses hero plane");
                 enemy.Request("hit");enemy.Step(.08f);Capture(type+"-hit");yield return Tick(.8f);Assert.AreEqual("idle",enemy.View.Player.State);
                 sawHeroHit=false;game.StartCoroutine((IEnumerator)Call("EngageStepRoutine",new EngageStep{outcome=EngageOutcome.Hit,damage=1}));
-                Assert.AreEqual("strike",enemy.View.Player.State);yield return Tick(.35f);
+                Assert.AreEqual("strike",enemy.View.Player.State);yield return Tick(.35f+(ranged?enemy.View.Look.shot.seconds:0));
                 Assert.IsTrue(sawHeroHit,"Contact did not drive existing hero reaction");
                 yield return Tick(1);
                 game.StartCoroutine((IEnumerator)Call("DefeatRoutine"));enemy.Step(.25f);Capture(type+"-defeat");yield return Tick(.9f);

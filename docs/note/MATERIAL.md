@@ -1,5 +1,9 @@
 # MATERIAL.md — note の材料の割り当て表
 
+### 2026-11-23 接地・遠隔攻撃・全30地点の路面（dev 420）
+
+全地点の周期検査に合格しても、道の原画が表示されていない欠陥は検出できなかった。路面だけの実描画で修正を確認した経緯を美術検証の記事に使用できる。[制作・失敗・実描画と検証結果](../art/2026-11-22/PRESENTATION_RELEASE.md)。
+
 ### 2026-10-18 [見た目回帰/Unityライフサイクル] 戦闘帯のピーク退避
 - 出どころ: `docs/devlog.md` dev 396、[COMBAT_INTENSITY_PEAK_STRIP_REVIEW.md](../art/2026-10-18/COMBAT_INTENSITY_PEAK_STRIP_REVIEW.md)、attempt09/10。peakで下段を除き、同フレーム`Destroy`遅延の古い帯残像を非表示化で防ぐ。attempt09の参照assertionだけでは残像を見逃し、実画像とactive object数を検査する必要があった。
 - 記事のどこに使えそうか: 4. Unity実描画とゲーム本編の回帰、8. UIの重なりをどう検証するか、9. 全画面美術/実機の残作業。fixtureの機械合格と目視/最終承認を分ける。

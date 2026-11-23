@@ -156,14 +156,15 @@ namespace BBB.Runtime
             {
                 float consumed=Mathf.Min(seconds,leadSeconds-leadElapsed);
                 leadElapsed+=consumed;seconds-=consumed;
-                advance=DesiredAdvance();
-                View.Root.anchoredPosition=restFeet+Vector2.right*(advance*Mathf.SmoothStep(0,1,leadElapsed/leadSeconds));
+                float travelSeconds=approachHandoffPose>=0?Mathf.Max(.001f,leadSeconds-HeroPresentation.Config.approach.handoffSeconds):leadSeconds;
+                if(leadElapsed-consumed<travelSeconds)advance=DesiredAdvance();
+                View.Root.anchoredPosition=restFeet+Vector2.right*(advance*Mathf.SmoothStep(0,1,leadElapsed/travelSeconds));
                 if(IsApproaching){RenderApproach();return;}
                 View.Render();
                 if(seconds<=0)return;
             }
             View.Step(seconds);
-            if(attackTarget==null){ResetApproach();return;}
+            if(attackTarget==null){ResetApproach();View.ApplyWalkingSurface(Environment);return;}
             approachElapsed+=seconds;
             float progress;
             if(View.Player.State==approachMotion)

@@ -35,17 +35,35 @@ public static class NativeEnvironmentValidation
         double worst=0;int combinations=0,periodChecks=0;
         var nativeIds=AdventureEnvironmentCatalog.All.Values.Where(p=>p.layers!=null&&p.layers.Any(l=>l.nativeAlpha)).Select(p=>p.id).OrderBy(id=>id).ToArray();
         Check(nativeIds.Length>=3,"Native stage coverage");
-        foreach(var id in nativeIds.Concat(new[]{"C-1"}))
+        var stageIds=AdventureEnvironmentCatalog.All.Keys.OrderBy(id=>id).ToArray();
+        Check(stageIds.Length==30,"Expected all 30 adventure stages");
+        foreach(var id in stageIds)
         {
             bg.SetStage(id,true);Check(bg.Profile.UsesModules&&bg.IllustratedLayerCount==3,"Missing layers "+id);
             foreach(var layer in bg.Profile.layers)Check(layer.rowHeight>0&&layer.top>=0&&layer.top+layer.rowHeight<=1,"Invalid row");
-            foreach(AdventureTime time in Enum.GetValues(typeof(AdventureTime)))foreach(var weather in new[]{AdventureWeather.Clear,AdventureWeather.Cloudy,AdventureWeather.Rain})
+            foreach(AdventureTime time in Enum.GetValues(typeof(AdventureTime)))foreach(AdventureWeather weather in Enum.GetValues(typeof(AdventureWeather)))
             {
                 bg.SetTimeOfDay(time,0);bg.SetWeather(weather,1,0);bg.Preview(7.1f);Render(id+"-"+time+"-"+weather,1280,426);combinations++;
                 Check(bg.CurrentWeather==AdventureEnvironmentCatalog.WeatherFor(bg.Profile,weather),"Weather conversion");
             }
             bg.SetTimeOfDay(AdventureTime.Day,0);bg.SetWeather(AdventureWeather.Clear,0,0);bg.Preview(7);
             var visible=stage.GetComponentsInChildren<RawImage>().Where(im=>im.enabled&&im.GetComponentInParent<CanvasGroup>().alpha>.99f).ToArray();Check(visible.Length==3,"Visible layers");
+            var path=stage.GetComponentsInChildren<Image>().First(im=>im.name=="WalkingPath"&&im.enabled&&im.GetComponentInParent<CanvasGroup>().alpha>.99f);
+            Check(path.sprite!=null&&path.sprite.texture.width>=1024,"Road paint missing "+id);
+            if(id=="A-1")
+            {
+                foreach(var im in visible)im.enabled=false;
+                bg.PreviewScroll(0);var stationary=Render("road-only",640,213);
+                bg.PreviewScroll(2);var moved=Render(null,640,213);
+                int low=255,high=0,changed=0;
+                for(int x=20;x<620;x++)
+                {
+                    int index=12*640+x;
+                    low=Math.Min(low,stationary[index].r);high=Math.Max(high,stationary[index].r);
+                    if(Math.Abs(stationary[index].r-moved[index].r)>2)changed++;
+                }
+                Check(high-low>=6&&changed>60,"Road texture stationary/flat: range "+(high-low)+" changed "+changed);
+            }
             for(int layer=0;layer<3;layer++)
             {
                 for(int i=0;i<3;i++)visible[i].enabled=i==layer;
@@ -71,7 +89,7 @@ public static class NativeEnvironmentValidation
         canvas=UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None).First(c=>c.isRootCanvas);UnityEngine.Object.DestroyImmediate(canvas.GetComponent<CanvasScaler>());canvas.renderMode=RenderMode.WorldSpace;canvas.transform.position=Vector3.zero;canvas.transform.localScale=Vector3.one;canvas.worldCamera=camera;
         var safe=canvas.GetComponentInChildren<SafeStage>();if(safe!=null){safe.enabled=false;safe.Stage.SetParent(canvas.transform,false);}
         var main=(ParallaxBackground)typeof(GameController).GetField("_bg",flags).GetValue(game);
-        foreach(var id in nativeIds)
+        foreach(var id in stageIds)
         {
             machine.Adv.nodeId=id;
             typeof(GameController).GetMethod("RefreshUi",flags).Invoke(game,null);
@@ -79,7 +97,7 @@ public static class NativeEnvironmentValidation
             foreach(var hero in canvas.GetComponentsInChildren<AdventureHeroPresenter>())hero.View.ApplyEnvironment(main);
             foreach(var size in new[]{new Vector2Int(1280,720),new Vector2Int(2556,1179)}){if(safe!=null)safe.Stage.localScale=Vector3.one*Mathf.Min(1,540f*size.x/size.y/safe.Stage.sizeDelta.x);Render("game-"+id+"-"+size.x,size.x,size.y);}
         }
-        File.WriteAllText(Path.Combine(output,"validation.json"),"{\"passed\":true,\"nativeStages\":"+nativeIds.Length+",\"legacyMatteRegression\":true,\"timeWeatherCombinations\":"+combinations+",\"periodChecks\":"+periodChecks+",\"worstWrapDifference\":"+worst.ToString(System.Globalization.CultureInfo.InvariantCulture)+",\"stageCoverage\":30,\"mainResolutions\":2,\"finalArtApproved\":false,\"productionSaveTouched\":false}");
+        File.WriteAllText(Path.Combine(output,"validation.json"),"{\"passed\":true,\"nativeStages\":"+nativeIds.Length+",\"legacyMatteRegression\":true,\"timeWeatherCombinations\":"+combinations+",\"periodChecks\":"+periodChecks+",\"worstWrapDifference\":"+worst.ToString(System.Globalization.CultureInfo.InvariantCulture)+",\"paintedRoadScroll\":true,\"stageCoverage\":30,\"mainResolutions\":2,\"finalArtApproved\":false,\"productionSaveTouched\":false}");
         Debug.Log("NATIVE_ENVIRONMENT_VALIDATION passed");
     }
 }

@@ -188,6 +188,8 @@ namespace BBB.Runtime
             var exist = FindFirstObjectByType<AudioManager>();
             if (exist != null) return exist;
             var go = new GameObject("AudioManager");
+            // Configure the sources before Unity enables playOnAwake on an empty filtered source.
+            go.SetActive(false);
             var am = go.AddComponent<AudioManager>();
             am._bgm = go.AddComponent<AudioSource>();
             am._bgm.loop = true;
@@ -222,7 +224,13 @@ namespace BBB.Runtime
             am._bgm.volume = 0.5f;
             am._se.volume = 0.8f;
             am._sePitched.volume = 0.8f;
+            am._choiceSrc = go.AddComponent<AudioSource>();
+            am._choiceSrc.playOnAwake = false;
+            am._choiceSrc.loop = true;
+            am._voiceSrc = go.AddComponent<AudioSource>();
+            am._voiceSrc.playOnAwake = false;
             am.InitMotion();
+            go.SetActive(true);
             return am;
         }
 
@@ -253,7 +261,6 @@ namespace BBB.Runtime
         private AudioSource _choiceSrc;
         public void NaviChoice(bool on)
         {
-            if (_choiceSrc == null) { _choiceSrc = gameObject.AddComponent<AudioSource>(); _choiceSrc.playOnAwake = false; _choiceSrc.loop = true; }
             if (!on) { if (_choiceSrc.isPlaying) _choiceSrc.Stop(); return; }
             var c = Clip("navi_choice"); if (c == null) return;
             MarkSound();
@@ -429,7 +436,6 @@ namespace BBB.Runtime
                 clips = list.ToArray(); _voice[key] = clips;
             }
             if (clips.Length == 0) return;
-            if (_voiceSrc == null) { _voiceSrc = gameObject.AddComponent<AudioSource>(); _voiceSrc.playOnAwake = false; }
             MarkSound();
             _voiceSrc.Stop(); _voiceSrc.volume = _se.volume; _voiceSrc.clip = clips[Random.Range(0, clips.Length)]; _voiceSrc.Play();
         }
