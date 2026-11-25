@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- UE5 版 C++ 移植の照合用。Core を決まった乱数で回し、1G ずつ状態を書き出す -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>trace</AssemblyName>
+    <!-- .NET 8 のランタイムが無い PC（SDK 9 / 10 だけ）でも新しい版で動かす -->
+    <RollForward>LatestMajor</RollForward>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../core/core.csproj" />
+    <Reference Include="UnityEngine"><HintPath>$(UnityEditorDir)/Data/Managed/UnityEngine.dll</HintPath></Reference>
+    <Reference Include="Newtonsoft.Json"><HintPath>@(NewtonsoftDll)</HintPath></Reference>
+  </ItemGroup>
+</Project>

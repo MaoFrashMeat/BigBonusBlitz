@@ -1,3 +1,10 @@
+### 2026-11-25 UE版の仕組みは C# を 1 対 1 で C++ へ移し、1G ずつ照合する（dev 422）
+
+- 決定: Unity の BBB.Core（27 ファイル）を `UE5Project/Source/BigBonusBlitz/*/BBBCore` へ同じ名前・同じ計算順で移す。正しさは `tools/verify/trace`（C#）と `BigBonusBlitz.Port.Trace`（UE の Automation）の書き出しが 1 行も違わないことで決める。決まりは `UE5Project/Source/BigBonusBlitz/PORTING.md`。
+- 理由: 本人「UE5でUnityと変わらなくプレイできるように」「仕組みから」（2026-11-25）。作り直しでは差が見えないので、同じ乱数で結果が一致することを基準にした。
+- 確認（2026-11-25・この PC・設定1・押し方4通り×10万G）: 400,006 行が完全一致。トレースは SlotMachine の 1G の流れだけで、商人・工房・装備の売買・物語・実績の画面から呼ぶ関数はまだ照合していない。
+- 次: UE の画面（BBBMainStageController / HUD）を簡易版の FBBBSlotMachine から BBBCore::SlotMachine へ付け替え、その後に画面を移す。
+
 ### 2026-11-25 UE 5.8 版は別リポジトリ・LFS 本体は MaoFM の Google ドライブ
 
 - 決定: `UE5Project/` を別リポジトリ `MaoFrashMeat/BigBonusBlitz-UE5`（非公開）に分ける。テキストは GitHub、`.uasset` / `.umap` の LFS 本体は `H:/マイドライブ/BigBonusBlitz-UE5/lfs.git`（git-lfs 標準のファイル転送）。BBB 本体の `.gitignore` は `UE5Project/` を外す。
