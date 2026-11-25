@@ -27,3 +27,6 @@ assets/sounds/maou/
 
 # ボイススタジオの録音（自分の声。取り込んだ物は Resources/Audio/Voice に入る）
 tools/voice/
+
+# UE 5.8 版は別リポジトリ（MaoFrashMeat/BigBonusBlitz-UE5。LFS 本体は MaoFM の Google ドライブ）
+UE5Project/
