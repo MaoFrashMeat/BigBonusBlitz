@@ -1,0 +1,22 @@
+﻿{
+    "engine":  "UE 5.8",
+    "tests":  [
+                  {
+                      "name":  "DataLoader",
+                      "result":  "Success"
+                  },
+                  {
+                      "name":  "MillionSpinHarness",
+                      "result":  "Success"
+                  },
+                  {
+                      "name":  "TechChallenge",
+                      "result":  "Success"
+                  }
+              ],
+    "techTestGames":  10000,
+    "harnessGames":  200000,
+    "harnessViolations":  0,
+    "layoutExitCode":  0,
+    "unityTechRoleTests":  "License unavailable (exit 198)"
+}

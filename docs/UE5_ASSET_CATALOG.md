@@ -101,3 +101,15 @@ py -3 UE5Project/Tools/prepare_staging.py
 & "F:\EpicGames\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" "D:\GitHub\BigBonusBlitz\UE5Project\BigBonusBlitz.uproject" -ExecutePythonScript="D:\GitHub\BigBonusBlitz\UE5Project\Tools\ue_import_assets.py" -unattended -nop4 -nosplash -NullRHI -stdout -FullStdOutLogOutput
 py -3 UE5Project/Tools/generate_catalog.py
 ```
+
+<a id="ue-tech-421"></a>
+## 2026-11-25　UE版の役別目押し（dev 421）
+
+手動のレバーで `tech.roleRules` を読み、左のチェリー・中のスイカ・右のベルの順に対応するリールを案内する。上中下の3コマに役と指定図柄が見え、対象リールを最初に押せば滑り後にも両方が残る図柄から抽選する。対象リールを止めると成否が決まり、最後のリールでゲーム結果と併記する。AUTO開始のGには課題を出さない。
+
+- 実装は UE5Project の BBBSlotMachine、BBBMainStageController、BBBMainHudWidget。検証は BBBCoreAutomationTests の TechChallenge。課題順の優先は今回の作業判断。
+- 初回のPIE描画では3D部分が極端に暗かった。診断用のカメラで物理露出を無効にすると見えたため、本編カメラにも適用し、回転時のモーションブラーを切った。生成側がActorラベルを使うため、PIEでそのラベルを参照する。移動対象の敵とサリアをMovableにした。
+- [自動検証](../tools/tech-qa/2026-11-25/v1/results.json)。UEの手動/AUTO計1万Gで3リールの出題と成功・失敗を確認。別の20万G検査で違反0。配置検査成功。隔離Unityはライセンス認証で終了コード198となり、対象EditModeの結果なし。
+- ドラムの円周全体に20コマを貼る方法では窓に6コマ以上が見え、7やBARも左右反転していた。高さ方向へ3コマを貼り、図柄の向きとカメラ位置を修正。回転中に前フレームの図柄が残るため、UE版のアンチエイリアスをFXAAに変更した。
+- 隔離UEの通常プレイ画面で[出題](../tools/tech-qa/2026-11-25/v6/prompt.png)・[成功](../tools/tech-qa/2026-11-25/v6/success.png)・[失敗](../tools/tech-qa/2026-11-25/v6/miss.png)を目視。別途ドラムの停止位置を0〜19に固定して撮影し、図柄テンプレートと照合した。3リール×3段×20位置は[180/180一致](../tools/tech-qa/2026-11-25/v6/reel-windows.json)。
+- 次は専用の「狙え！」柱、精度ランク、成功報酬。配布ビルド・実機での入力タイミングは未確認。

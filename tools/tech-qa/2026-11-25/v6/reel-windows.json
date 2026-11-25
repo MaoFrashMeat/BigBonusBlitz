@@ -1,0 +1,1267 @@
+{
+  "method": "Normalized high-pass template matching against visually identified PIE symbols; blank cells by low contrast",
+  "checked": 180,
+  "mismatches": 0,
+  "cells": [
+    {
+      "top": 0,
+      "reel": 0,
+      "row": 0,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 0,
+      "reel": 0,
+      "row": 1,
+      "expected": "CHERRY",
+      "observed": "CHERRY"
+    },
+    {
+      "top": 0,
+      "reel": 0,
+      "row": 2,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 0,
+      "reel": 1,
+      "row": 0,
+      "expected": "BLANK",
+      "observed": "BLANK"
+    },
+    {
+      "top": 0,
+      "reel": 1,
+      "row": 1,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 0,
+      "reel": 1,
+      "row": 2,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 0,
+      "reel": 2,
+      "row": 0,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 0,
+      "reel": 2,
+      "row": 1,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 0,
+      "reel": 2,
+      "row": 2,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 1,
+      "reel": 0,
+      "row": 0,
+      "expected": "CHERRY",
+      "observed": "CHERRY"
+    },
+    {
+      "top": 1,
+      "reel": 0,
+      "row": 1,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 1,
+      "reel": 0,
+      "row": 2,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 1,
+      "reel": 1,
+      "row": 0,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 1,
+      "reel": 1,
+      "row": 1,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 1,
+      "reel": 1,
+      "row": 2,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 1,
+      "reel": 2,
+      "row": 0,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 1,
+      "reel": 2,
+      "row": 1,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 1,
+      "reel": 2,
+      "row": 2,
+      "expected": "CHERRY",
+      "observed": "CHERRY"
+    },
+    {
+      "top": 2,
+      "reel": 0,
+      "row": 0,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 2,
+      "reel": 0,
+      "row": 1,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 2,
+      "reel": 0,
+      "row": 2,
+      "expected": "RED7",
+      "observed": "RED7"
+    },
+    {
+      "top": 2,
+      "reel": 1,
+      "row": 0,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 2,
+      "reel": 1,
+      "row": 1,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 2,
+      "reel": 1,
+      "row": 2,
+      "expected": "RED7",
+      "observed": "RED7"
+    },
+    {
+      "top": 2,
+      "reel": 2,
+      "row": 0,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 2,
+      "reel": 2,
+      "row": 1,
+      "expected": "CHERRY",
+      "observed": "CHERRY"
+    },
+    {
+      "top": 2,
+      "reel": 2,
+      "row": 2,
+      "expected": "RED7",
+      "observed": "RED7"
+    },
+    {
+      "top": 3,
+      "reel": 0,
+      "row": 0,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 3,
+      "reel": 0,
+      "row": 1,
+      "expected": "RED7",
+      "observed": "RED7"
+    },
+    {
+      "top": 3,
+      "reel": 0,
+      "row": 2,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 3,
+      "reel": 1,
+      "row": 0,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 3,
+      "reel": 1,
+      "row": 1,
+      "expected": "RED7",
+      "observed": "RED7"
+    },
+    {
+      "top": 3,
+      "reel": 1,
+      "row": 2,
+      "expected": "CHERRY",
+      "observed": "CHERRY"
+    },
+    {
+      "top": 3,
+      "reel": 2,
+      "row": 0,
+      "expected": "CHERRY",
+      "observed": "CHERRY"
+    },
+    {
+      "top": 3,
+      "reel": 2,
+      "row": 1,
+      "expected": "RED7",
+      "observed": "RED7"
+    },
+    {
+      "top": 3,
+      "reel": 2,
+      "row": 2,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 4,
+      "reel": 0,
+      "row": 0,
+      "expected": "RED7",
+      "observed": "RED7"
+    },
+    {
+      "top": 4,
+      "reel": 0,
+      "row": 1,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 4,
+      "reel": 0,
+      "row": 2,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 4,
+      "reel": 1,
+      "row": 0,
+      "expected": "RED7",
+      "observed": "RED7"
+    },
+    {
+      "top": 4,
+      "reel": 1,
+      "row": 1,
+      "expected": "CHERRY",
+      "observed": "CHERRY"
+    },
+    {
+      "top": 4,
+      "reel": 1,
+      "row": 2,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 4,
+      "reel": 2,
+      "row": 0,
+      "expected": "RED7",
+      "observed": "RED7"
+    },
+    {
+      "top": 4,
+      "reel": 2,
+      "row": 1,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 4,
+      "reel": 2,
+      "row": 2,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 5,
+      "reel": 0,
+      "row": 0,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 5,
+      "reel": 0,
+      "row": 1,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 5,
+      "reel": 0,
+      "row": 2,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 5,
+      "reel": 1,
+      "row": 0,
+      "expected": "CHERRY",
+      "observed": "CHERRY"
+    },
+    {
+      "top": 5,
+      "reel": 1,
+      "row": 1,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 5,
+      "reel": 1,
+      "row": 2,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 5,
+      "reel": 2,
+      "row": 0,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 5,
+      "reel": 2,
+      "row": 1,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 5,
+      "reel": 2,
+      "row": 2,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 6,
+      "reel": 0,
+      "row": 0,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 6,
+      "reel": 0,
+      "row": 1,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 6,
+      "reel": 0,
+      "row": 2,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 6,
+      "reel": 1,
+      "row": 0,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 6,
+      "reel": 1,
+      "row": 1,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 6,
+      "reel": 1,
+      "row": 2,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 6,
+      "reel": 2,
+      "row": 0,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 6,
+      "reel": 2,
+      "row": 1,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 6,
+      "reel": 2,
+      "row": 2,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 7,
+      "reel": 0,
+      "row": 0,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 7,
+      "reel": 0,
+      "row": 1,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 7,
+      "reel": 0,
+      "row": 2,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 7,
+      "reel": 1,
+      "row": 0,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 7,
+      "reel": 1,
+      "row": 1,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 7,
+      "reel": 1,
+      "row": 2,
+      "expected": "BAR",
+      "observed": "BAR"
+    },
+    {
+      "top": 7,
+      "reel": 2,
+      "row": 0,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 7,
+      "reel": 2,
+      "row": 1,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 7,
+      "reel": 2,
+      "row": 2,
+      "expected": "BAR",
+      "observed": "BAR"
+    },
+    {
+      "top": 8,
+      "reel": 0,
+      "row": 0,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 8,
+      "reel": 0,
+      "row": 1,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 8,
+      "reel": 0,
+      "row": 2,
+      "expected": "BLUE7",
+      "observed": "BLUE7"
+    },
+    {
+      "top": 8,
+      "reel": 1,
+      "row": 0,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 8,
+      "reel": 1,
+      "row": 1,
+      "expected": "BAR",
+      "observed": "BAR"
+    },
+    {
+      "top": 8,
+      "reel": 1,
+      "row": 2,
+      "expected": "CHERRY",
+      "observed": "CHERRY"
+    },
+    {
+      "top": 8,
+      "reel": 2,
+      "row": 0,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 8,
+      "reel": 2,
+      "row": 1,
+      "expected": "BAR",
+      "observed": "BAR"
+    },
+    {
+      "top": 8,
+      "reel": 2,
+      "row": 2,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 9,
+      "reel": 0,
+      "row": 0,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 9,
+      "reel": 0,
+      "row": 1,
+      "expected": "BLUE7",
+      "observed": "BLUE7"
+    },
+    {
+      "top": 9,
+      "reel": 0,
+      "row": 2,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 9,
+      "reel": 1,
+      "row": 0,
+      "expected": "BAR",
+      "observed": "BAR"
+    },
+    {
+      "top": 9,
+      "reel": 1,
+      "row": 1,
+      "expected": "CHERRY",
+      "observed": "CHERRY"
+    },
+    {
+      "top": 9,
+      "reel": 1,
+      "row": 2,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 9,
+      "reel": 2,
+      "row": 0,
+      "expected": "BAR",
+      "observed": "BAR"
+    },
+    {
+      "top": 9,
+      "reel": 2,
+      "row": 1,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 9,
+      "reel": 2,
+      "row": 2,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 10,
+      "reel": 0,
+      "row": 0,
+      "expected": "BLUE7",
+      "observed": "BLUE7"
+    },
+    {
+      "top": 10,
+      "reel": 0,
+      "row": 1,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 10,
+      "reel": 0,
+      "row": 2,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 10,
+      "reel": 1,
+      "row": 0,
+      "expected": "CHERRY",
+      "observed": "CHERRY"
+    },
+    {
+      "top": 10,
+      "reel": 1,
+      "row": 1,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 10,
+      "reel": 1,
+      "row": 2,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 10,
+      "reel": 2,
+      "row": 0,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 10,
+      "reel": 2,
+      "row": 1,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 10,
+      "reel": 2,
+      "row": 2,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 11,
+      "reel": 0,
+      "row": 0,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 11,
+      "reel": 0,
+      "row": 1,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 11,
+      "reel": 0,
+      "row": 2,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 11,
+      "reel": 1,
+      "row": 0,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 11,
+      "reel": 1,
+      "row": 1,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 11,
+      "reel": 1,
+      "row": 2,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 11,
+      "reel": 2,
+      "row": 0,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 11,
+      "reel": 2,
+      "row": 1,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 11,
+      "reel": 2,
+      "row": 2,
+      "expected": "BLANK",
+      "observed": "BLANK"
+    },
+    {
+      "top": 12,
+      "reel": 0,
+      "row": 0,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 12,
+      "reel": 0,
+      "row": 1,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 12,
+      "reel": 0,
+      "row": 2,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 12,
+      "reel": 1,
+      "row": 0,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 12,
+      "reel": 1,
+      "row": 1,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 12,
+      "reel": 1,
+      "row": 2,
+      "expected": "BLUE7",
+      "observed": "BLUE7"
+    },
+    {
+      "top": 12,
+      "reel": 2,
+      "row": 0,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 12,
+      "reel": 2,
+      "row": 1,
+      "expected": "BLANK",
+      "observed": "BLANK"
+    },
+    {
+      "top": 12,
+      "reel": 2,
+      "row": 2,
+      "expected": "CHERRY",
+      "observed": "CHERRY"
+    },
+    {
+      "top": 13,
+      "reel": 0,
+      "row": 0,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 13,
+      "reel": 0,
+      "row": 1,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 13,
+      "reel": 0,
+      "row": 2,
+      "expected": "CHERRY",
+      "observed": "CHERRY"
+    },
+    {
+      "top": 13,
+      "reel": 1,
+      "row": 0,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 13,
+      "reel": 1,
+      "row": 1,
+      "expected": "BLUE7",
+      "observed": "BLUE7"
+    },
+    {
+      "top": 13,
+      "reel": 1,
+      "row": 2,
+      "expected": "BLANK",
+      "observed": "BLANK"
+    },
+    {
+      "top": 13,
+      "reel": 2,
+      "row": 0,
+      "expected": "BLANK",
+      "observed": "BLANK"
+    },
+    {
+      "top": 13,
+      "reel": 2,
+      "row": 1,
+      "expected": "CHERRY",
+      "observed": "CHERRY"
+    },
+    {
+      "top": 13,
+      "reel": 2,
+      "row": 2,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 14,
+      "reel": 0,
+      "row": 0,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 14,
+      "reel": 0,
+      "row": 1,
+      "expected": "CHERRY",
+      "observed": "CHERRY"
+    },
+    {
+      "top": 14,
+      "reel": 0,
+      "row": 2,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 14,
+      "reel": 1,
+      "row": 0,
+      "expected": "BLUE7",
+      "observed": "BLUE7"
+    },
+    {
+      "top": 14,
+      "reel": 1,
+      "row": 1,
+      "expected": "BLANK",
+      "observed": "BLANK"
+    },
+    {
+      "top": 14,
+      "reel": 1,
+      "row": 2,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 14,
+      "reel": 2,
+      "row": 0,
+      "expected": "CHERRY",
+      "observed": "CHERRY"
+    },
+    {
+      "top": 14,
+      "reel": 2,
+      "row": 1,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 14,
+      "reel": 2,
+      "row": 2,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 15,
+      "reel": 0,
+      "row": 0,
+      "expected": "CHERRY",
+      "observed": "CHERRY"
+    },
+    {
+      "top": 15,
+      "reel": 0,
+      "row": 1,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 15,
+      "reel": 0,
+      "row": 2,
+      "expected": "BAR",
+      "observed": "BAR"
+    },
+    {
+      "top": 15,
+      "reel": 1,
+      "row": 0,
+      "expected": "BLANK",
+      "observed": "BLANK"
+    },
+    {
+      "top": 15,
+      "reel": 1,
+      "row": 1,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 15,
+      "reel": 1,
+      "row": 2,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 15,
+      "reel": 2,
+      "row": 0,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 15,
+      "reel": 2,
+      "row": 1,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 15,
+      "reel": 2,
+      "row": 2,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 16,
+      "reel": 0,
+      "row": 0,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 16,
+      "reel": 0,
+      "row": 1,
+      "expected": "BAR",
+      "observed": "BAR"
+    },
+    {
+      "top": 16,
+      "reel": 0,
+      "row": 2,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 16,
+      "reel": 1,
+      "row": 0,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 16,
+      "reel": 1,
+      "row": 1,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 16,
+      "reel": 1,
+      "row": 2,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 16,
+      "reel": 2,
+      "row": 0,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 16,
+      "reel": 2,
+      "row": 1,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 16,
+      "reel": 2,
+      "row": 2,
+      "expected": "BLUE7",
+      "observed": "BLUE7"
+    },
+    {
+      "top": 17,
+      "reel": 0,
+      "row": 0,
+      "expected": "BAR",
+      "observed": "BAR"
+    },
+    {
+      "top": 17,
+      "reel": 0,
+      "row": 1,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 17,
+      "reel": 0,
+      "row": 2,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 17,
+      "reel": 1,
+      "row": 0,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 17,
+      "reel": 1,
+      "row": 1,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 17,
+      "reel": 1,
+      "row": 2,
+      "expected": "CHERRY",
+      "observed": "CHERRY"
+    },
+    {
+      "top": 17,
+      "reel": 2,
+      "row": 0,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 17,
+      "reel": 2,
+      "row": 1,
+      "expected": "BLUE7",
+      "observed": "BLUE7"
+    },
+    {
+      "top": 17,
+      "reel": 2,
+      "row": 2,
+      "expected": "CHERRY",
+      "observed": "CHERRY"
+    },
+    {
+      "top": 18,
+      "reel": 0,
+      "row": 0,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 18,
+      "reel": 0,
+      "row": 1,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 18,
+      "reel": 0,
+      "row": 2,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 18,
+      "reel": 1,
+      "row": 0,
+      "expected": "STAR",
+      "observed": "STAR"
+    },
+    {
+      "top": 18,
+      "reel": 1,
+      "row": 1,
+      "expected": "CHERRY",
+      "observed": "CHERRY"
+    },
+    {
+      "top": 18,
+      "reel": 1,
+      "row": 2,
+      "expected": "BLANK",
+      "observed": "BLANK"
+    },
+    {
+      "top": 18,
+      "reel": 2,
+      "row": 0,
+      "expected": "BLUE7",
+      "observed": "BLUE7"
+    },
+    {
+      "top": 18,
+      "reel": 2,
+      "row": 1,
+      "expected": "CHERRY",
+      "observed": "CHERRY"
+    },
+    {
+      "top": 18,
+      "reel": 2,
+      "row": 2,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 19,
+      "reel": 0,
+      "row": 0,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 19,
+      "reel": 0,
+      "row": 1,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 19,
+      "reel": 0,
+      "row": 2,
+      "expected": "CHERRY",
+      "observed": "CHERRY"
+    },
+    {
+      "top": 19,
+      "reel": 1,
+      "row": 0,
+      "expected": "CHERRY",
+      "observed": "CHERRY"
+    },
+    {
+      "top": 19,
+      "reel": 1,
+      "row": 1,
+      "expected": "BLANK",
+      "observed": "BLANK"
+    },
+    {
+      "top": 19,
+      "reel": 1,
+      "row": 2,
+      "expected": "REPLAY",
+      "observed": "REPLAY"
+    },
+    {
+      "top": 19,
+      "reel": 2,
+      "row": 0,
+      "expected": "CHERRY",
+      "observed": "CHERRY"
+    },
+    {
+      "top": 19,
+      "reel": 2,
+      "row": 1,
+      "expected": "WATERMELON",
+      "observed": "WATERMELON"
+    },
+    {
+      "top": 19,
+      "reel": 2,
+      "row": 2,
+      "expected": "STAR",
+      "observed": "STAR"
+    }
+  ]
+}
