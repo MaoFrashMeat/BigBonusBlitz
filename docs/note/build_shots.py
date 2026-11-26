@@ -188,6 +188,16 @@ def main():
     if fx is not None:
         save(fx, "34-fx-samples.png")
 
+    # 35: 11月の冒険画面（Windows 用に組んだ確認用プレイヤーでの実描画・11/23）
+    adv = load(os.path.join(ROOT, "tools", "environment-qa", "2026-11-23", "verified", "windows-adventure.png"))
+    if adv is not None:
+        save(adv, "35-adventure-nov.png")
+
+    # 36: 背景30地点（昼）の一覧。新しい画風に揃った状態（11/19〜23）
+    st = load(os.path.join(ROOT, "tools", "environment-qa", "2026-11-23", "verified", "stages-day.png"))
+    if st is not None:
+        save(st, "36-stages-30.png")
+
     print("\n作成 %d 件" % len(made))
     if skipped:
         print("スキップ:", ", ".join(skipped))
