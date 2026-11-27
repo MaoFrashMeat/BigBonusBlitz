@@ -1,3 +1,9 @@
+### 2026-11-27 UE版のボタンは画像ではなく紺と金の二重線で組む（dev 427）
+
+- 決定: UE の HUD のボタンは、Unity の `button-gold/navy.png` を貼らず、Slate の線（外の金線・内の細い金線・紺または金の面）で組む。主操作（LEVER）だけ金、ほかは紺。状態（AUTO の ON）は金で表し、項目名に言葉を足さない。
+- 理由: 画像は上下に透明の余白が大きく、Slate の Box 描画では切り出しても枠が文字幅に縮んだり描かれなかったりした。カード・計器と同じ線で組めば崩れない。Taste Skill（余白の強弱・主操作の差）と Azure 基準に合わせた（本人「Taste Skill を用いて UI デザインも改良」2026-11-26）。
+- 確認（2026-11-27・この PC・-game 1280×720 と 2556×1179）: `tools/hud-qa/2026-11-27/v5`。タイトルの窓と各画面（地図・店・装備など）は旧デザインのまま。
+
 ### 2026-11-25 UE版の仕組みは C# を 1 対 1 で C++ へ移し、1G ずつ照合する（dev 422）
 
 - 決定: Unity の BBB.Core（27 ファイル）を `UE5Project/Source/BigBonusBlitz/*/BBBCore` へ同じ名前・同じ計算順で移す。正しさは `tools/verify/trace`（C#）と `BigBonusBlitz.Port.Trace`（UE の Automation）の書き出しが 1 行も違わないことで決める。決まりは `UE5Project/Source/BigBonusBlitz/PORTING.md`。
